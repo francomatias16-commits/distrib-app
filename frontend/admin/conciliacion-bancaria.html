@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Cruzar con el banco — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/conciliacion-bancaria-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .kpis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .layout-conciliacion { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 900px) { .layout-conciliacion { grid-template-columns: 1fr; } }
+
+    .lotes-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .lotes-header { padding: 14px 16px; border-bottom: 1px solid var(--color-border); }
+    .lotes-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0 0 10px; }
+    .lote-item {
+      padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,.04);
+      font-size: 13px;
+    }
+    .lote-item:hover { background: var(--color-bg); }
+    .lote-item.activo { background: var(--color-primary-light, #eef4fb); border-left: 3px solid var(--color-primary, #185FA5); }
+    .lote-item .lote-nombre { font-weight: 600; color: var(--color-text); }
+    .lote-item .lote-meta { color: var(--color-text-light); font-size: 12px; margin-top: 2px; }
+    .lote-progreso { height: 4px; border-radius: var(--radius-full); background: rgba(0,0,0,.08); margin-top: 6px; overflow: hidden; }
+    .lote-progreso-fill { height: 100%; background: var(--color-success, #16a34a); }
+
+    .tabla-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .tabla-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
+    .filtros-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filtros-bar select {
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background: var(--color-surface);
+    }
+    .tabla-overflow { overflow-x: auto; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      color: var(--color-text-light);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    .tabla td { padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,.04); vertical-align: top; }
+    .tabla tr:last-child td { border-bottom: none; }
+
+    .badge-estado { padding: 3px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; display: inline-block; }
+    .badge-estado.pendiente  { background: rgba(217,119,6,.12); color: #b45309; }
+    .badge-estado.conciliado { background: rgba(22,163,74,.12); color: #15803d; }
+    .badge-estado.descartado { background: rgba(107,114,128,.12); color: #4b5563; }
+
+    .badge-tipo { padding: 2px 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; }
+    .badge-tipo.credito { background: rgba(22,163,74,.1); color: #15803d; }
+    .badge-tipo.debito  { background: rgba(220,38,38,.1); color: #b91c1c; }
+
+    .candidatos-list { display: flex; flex-direction: column; gap: 4px; }
+    .candidato-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 5px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+      font-size: 12px;
+    }
+    .candidato-item .score { font-weight: 700; }
+    .candidato-item .score.alto  { color: #15803d; }
+    .candidato-item .score.medio { color: #b45309; }
+    .candidato-item .score.bajo  { color: #b91c1c; }
+    .candidato-item button {
+      border: 1px solid var(--color-border); background: var(--color-surface);
+      border-radius: var(--radius-sm); padding: 3px 8px; font-size: 11px; cursor: pointer;
+    }
+    .candidato-item button:hover { background: var(--color-bg); }
+    .sin-candidatos { color: var(--color-text-light); font-size: 12px; font-style: italic; }
+
+    .fila-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fila-acciones button {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--color-text);
+    }
+    .fila-acciones button:hover { background: var(--color-bg); }
+    .fila-acciones button.danger { color: var(--color-danger); border-color: rgba(239,68,68,.3); }
+
+    .drop-zone {
+      border: 2px dashed var(--color-border); border-radius: var(--radius-lg);
+      padding: 24px; text-align: center; color: var(--color-text-light);
+      font-size: 13px; cursor: pointer; margin-bottom: 16px;
+      background: var(--color-surface);
+    }
+    .drop-zone.dragover { border-color: var(--color-primary, #185FA5); background: var(--color-bg); }
+    .drop-zone input { display: none; }
+  </style>
+</head>
+<body class="dash-conciliacion-bancaria-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Cruzar con el banco</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Importá el extracto del banco (CSV) y matcheá cada movimiento contra un cobro registrado. Los matches únicos y exactos se pueden conciliar automáticamente; el resto se confirma a mano eligiendo entre los candidatos sugeridos.
+</div>
+
+  <main class="main">
+
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección. Disponible para dueño, admin o contador.</p>
+    </div>
+
+    <div id="contenido-conciliacion">
+
+      <div class="tabla-wrap" style="padding:16px;margin-bottom:16px;" id="wrap-import">
+        <h2 style="font-size:14px;font-weight:700;margin:0 0 12px;">Importar extracto</h2>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('input-csv').click()">
+          <input type="file" id="input-csv" aria-label="Subir archivo CSV para conciliación bancaria" accept=".csv" onchange="onArchivoSeleccionado(this.files[0])" />
+          <div>Arrastrá el CSV del extracto acá, o hacé clic para elegir el archivo.</div>
+          <div style="font-size:11px;margin-top:4px;">Columnas esperadas: <code>fecha</code> (AAAA-MM-DD), <code>descripcion</code>, <code>monto</code>, <code>tipo</code> (credito/debito)</div>
+        </div>
+      </div>
+
+      <div class="layout-conciliacion">
+
+        <div class="lotes-wrap">
+          <div class="lotes-header">
+            <h2>Extractos importados</h2>
+          </div>
+          <div id="lista-lotes"></div>
+        </div>
+
+        <div>
+          <div class="kpis-grid" id="kpis-grid"></div>
+
+          <div class="tabla-wrap">
+            <div class="tabla-header">
+              <h2 id="titulo-movimientos">Elegí un extracto de la izquierda</h2>
+              <div class="filtros-bar">
+                <select id="filtro-estado-mov" onchange="cargarMovimientos()">
+                  <option value="">Todos los estados</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="conciliado">Conciliados</option>
+                  <option value="descartado">Descartados</option>
+                </select>
+                <button type="button" class="btn btn--primary" id="btn-auto-conciliar" onclick="btnAsyncClick(this, autoConciliar)" style="display:none">
+                  Auto-conciliar
+                </button>
+              </div>
+            </div>
+
+            <div class="tabla-overflow">
+              <table class="tabla">
+                <thead>
+            <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th class="thead-sep">Tipo</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th class="thead-sep">Candidatos / Match</th>
+                    <th class="col-sticky-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-movimientos">
+                  <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--color-text-light);">Elegí un extracto importado a la izquierda para ver sus movimientos.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /contenido-conciliacion -->
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script>
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+</script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/conciliacion-bancaria.js?v1"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

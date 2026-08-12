@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Salud del sistema — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <!-- Mismo reskin de "Avisos operativos"/"Movimientos raros": las 3 pantallas
+       del grupo "Alertas automáticas" comparten look & feel sin duplicar CSS. -->
+  <link rel="stylesheet" href="/frontend/admin/css/anomalias-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/observabilidad-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .obs-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .obs-toolbar h2 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
+    .obs-select {
+      font-size: 13px;
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-bg);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+    .btn-refrescar {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600;
+      padding: 7px 16px; border: none; border-radius: var(--radius-sm);
+      background: var(--color-primary); color: #fff; cursor: pointer;
+    }
+    .btn-refrescar:disabled { opacity: .6; cursor: default; }
+
+    .obs-seccion { padding: 18px 20px 4px; }
+    .obs-seccion h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--color-text); }
+
+    .obs-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .obs-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      padding: 14px 16px;
+    }
+    .obs-card .valor { font-size: 24px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+    .obs-card .label { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+    .obs-card.card-error .valor    { color: #b91c1c; }
+    .obs-card.card-pendiente .valor{ color: #92400e; }
+    .obs-card.card-procesado .valor{ color: #166534; }
+
+    .obs-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .obs-tabla th, .obs-tabla td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .obs-tabla th { color: var(--color-text-muted); font-weight: 600; font-size: 12px; }
+    .obs-tabla td.num { text-align: left; font-variant-numeric: tabular-nums; }
+    .badge-estado {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-error     { background: #fee2e2; color: #b91c1c; }
+    .badge-pendiente { background: #fef3c7; color: #92400e; }
+    .badge-procesado { background: #dcfce7; color: #166534; }
+
+    .obs-barras { display: flex; flex-direction: column; gap: 6px; }
+    .obs-barra-fila { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .obs-barra-hora { width: 100px; flex-shrink: 0; color: var(--color-text-muted); }
+    .obs-barra-track { flex: 1; height: 14px; background: var(--color-bg); border-radius: var(--radius-sm); overflow: hidden; }
+    .obs-barra-fill { height: 100%; background: var(--color-primary); }
+    .obs-barra-cant { width: 28px; text-align: right; color: var(--color-text-muted); flex-shrink: 0; }
+
+    .obs-vacio {
+      padding: 24px 20px;
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+
+    .skeleton-list { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .sk-obs { height: 60px; border-radius: var(--radius); background: var(--color-bg); animation: sk-pulse 1.4s ease-in-out infinite; }
+    @keyframes sk-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    @media (max-width: 600px) {
+      .obs-toolbar { padding: 12px 14px; }
+      .obs-seccion { padding: 14px 14px 4px; }
+    }
+  </style>
+</head>
+<body class="dash-anomalias-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Salud del sistema</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Estado del bus de eventos que sincroniza pedidos, facturación, stock y notificaciones entre pantallas — cuántos eventos se procesaron bien, cuáles quedaron en error, y cómo viene el flujo de pedido a factura.
+</div>
+
+  <main class="main">
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección. Disponible para dueño y admin.</p>
+    </div>
+
+    <div id="contenido-obs">
+
+      <div class="obs-toolbar">
+        <h2>Bus de eventos</h2>
+        <select class="obs-select" id="horas-select" onchange="cargarTodo()">
+          <option value="24" selected>Últimas 24 h</option>
+          <option value="72">Últimos 3 días</option>
+          <option value="168">Últimos 7 días</option>
+        </select>
+        <button type="button" class="btn-refrescar" id="btn-refrescar" onclick="btnAsyncClick(this, cargarTodo)" aria-live="polite">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Actualizar
+        </button>
+      </div>
+
+      <div id="skeleton-salud" class="skeleton-list">
+        <div class="sk-obs"></div>
+        <div class="sk-obs"></div>
+      </div>
+
+      <div id="bloque-salud" style="display:none">
+        <div class="obs-seccion">
+          <div class="obs-cards" id="cards-resumen"></div>
+        </div>
+
+        <div class="obs-seccion">
+          <h3>Por tipo de evento</h3>
+          <table class="obs-tabla" id="tabla-por-tipo">
+            <thead>
+              <tr><th>Evento</th><th class="num">Total</th><th class="num">Pendiente</th><th class="num">Procesado</th><th class="num">Error</th><th class="num">Tiempo promedio</th></tr>
+            </thead>
+            <tbody id="tabla-por-tipo-body"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+          <div class="obs-vacio hidden" id="tabla-por-tipo-vacio">Sin eventos en esta ventana.</div>
+        </div>
+
+        <div class="obs-seccion">
+          <h3>Eventos con error prolongado (más de 2 h sin resolverse)</h3>
+          <table class="obs-tabla" id="tabla-error">
+            <thead>
+              <tr><th>Evento</th><th>Origen</th><th>Último intento</th></tr>
+            </thead>
+            <tbody id="tabla-error-body"><tr><td colspan="3" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+          <div class="obs-vacio hidden" id="tabla-error-vacio">Sin eventos en error prolongado. 👍</div>
+        </div>
+
+        <div class="obs-seccion">
+          <h3>Pedidos por hora</h3>
+          <div class="obs-barras" id="barras-pedidos"></div>
+          <div class="obs-vacio hidden" id="barras-pedidos-vacio">Sin pedidos en esta ventana.</div>
+        </div>
+
+        <div class="obs-seccion" style="padding-bottom:32px;">
+          <h3>Tiempo promedio pedido → facturación</h3>
+          <div class="obs-cards" id="card-tiempo-facturacion"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+
+<script src="/frontend/admin/js/observabilidad.js?v1"></script>
+</body>
+</html>

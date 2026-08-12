@@ -1,0 +1,299 @@
+/* ══════════════════════════════════════════════════════════════════
+   STOCK OVERVIEW — réplica de estructura del mockup de referencia
+   (KPIs + gráfico + card lateral tipo "target") con paleta y tokens
+   de distrib. Vive solo en stock.html.
+   ══════════════════════════════════════════════════════════════════ */
+
+.stock-ov { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
+
+/* ── Fila 1: 4 tarjetas KPI ── */
+.stock-ov-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.stock-ov-kpi {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-fluffy);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stock-ov-kpi__top { display: flex; align-items: flex-start; justify-content: space-between; }
+.stock-ov-kpi__label { font-size: 12.5px; color: var(--color-text-muted); font-weight: 500; }
+.stock-ov-kpi__icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.stock-ov-kpi__icon--warn { background: rgba(143,95,0,.12); color: var(--nav-deposito); }
+.stock-ov-kpi__icon--danger { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+.stock-ov-kpi__value { font-size: 22px; font-weight: 800; color: var(--color-text); line-height: 1; }
+.stock-ov-kpi__foot { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.stock-ov-kpi__delta { font-weight: 700; }
+.stock-ov-kpi__delta.up { color: var(--color-success-mid); }
+.stock-ov-kpi__delta.down { color: var(--color-danger-mid); }
+.stock-ov-kpi__hint { color: var(--color-text-light); }
+
+/* ── Fila 2: gráfico + card lateral ── */
+.stock-ov-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.stock-ov-chart-card {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-fluffy);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.stock-ov-chart-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.stock-ov-chart-card__head h3 { font-size: 15px; font-weight: 700; margin: 0; color: var(--color-text); }
+.stock-ov-legend { display: flex; gap: 14px; font-size: 12px; color: var(--color-text-muted); }
+.stock-ov-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.stock-ov-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.stock-ov-legend i.ingreso { background: var(--color-primary); }
+.stock-ov-legend i.egreso { background: var(--nav-deposito); }
+.stock-ov-chart-wrap { position: relative; flex: 1; min-height: 220px; }
+.stock-ov-chart-el { position: absolute; inset: 0; }
+
+/* Columna lateral */
+.stock-ov-side { display: flex; flex-direction: column; gap: 16px; }
+
+.stock-ov-target {
+  background: linear-gradient(160deg, var(--color-text), #2A2E38);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-fluffy);
+  padding: 18px 20px;
+  color: var(--color-surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.stock-ov-target__label { font-size: 12.5px; color: rgba(255,255,255,.6); font-weight: 500; }
+.stock-ov-target__value { font-size: 30px; font-weight: 800; }
+.stock-ov-target__avatars { display: flex; align-items: center; }
+.stock-ov-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 700; color: var(--color-surface);
+  border: 2px solid var(--color-text);
+  margin-left: -8px;
+  flex-shrink: 0;
+}
+.stock-ov-avatar:first-child { margin-left: 0; }
+.stock-ov-avatar--more { background: rgba(255,255,255,.12); color: rgba(255,255,255,.85); }
+
+.stock-ov-divider { height: 1px; background: rgba(255,255,255,.1); }
+
+.stock-ov-mini { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.stock-ov-mini__num { font-size: 20px; font-weight: 800; }
+.stock-ov-mini__sub { font-size: 11.5px; color: rgba(255,255,255,.55); }
+.stock-ov-mini__badge {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: rgba(143,95,0,.18); color: #E3B278;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.stock-ov-mini__badge.ok { background: rgba(184,122,0,.18); color: #8FCBB4; }
+
+/* ══════════════════════════════════════════════════════════════════
+   TABLA restyle — fila con avatar/ícono de producto, badges tipo pill
+   ══════════════════════════════════════════════════════════════════ */
+.tabla-stock .fila-stock .td-producto { display: table-cell; }
+.prod-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prod-avatar {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: var(--color-surface);
+  text-transform: uppercase;
+}
+.prod-row .prod-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prod-row .prod-nombre { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Estado de stock — sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) */
+.badge-estado {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 1px 9px; border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  white-space: nowrap;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-ok        { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-bajo      { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-critico   { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); }
+
+.td-acciones { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.btn-ajustar {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.btn-kebab {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.08);
+  background: transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-kebab:hover { background: rgba(0,0,0,.04); }
+
+/* ══════════════════════════════════════════════════════════════════
+   ALERTAS DE REPOSICIÓN PREDICTIVA — antes era una lista de texto
+   plano sin estilos. Panel compacto, con urgencia visual y colapso
+   para no invadir la página cuando hay muchos productos.
+   ══════════════════════════════════════════════════════════════════ */
+
+.stockauto-panel {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-fluffy);
+  margin: 8px 0 20px;
+  overflow: hidden;
+}
+
+.stockauto-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.stockauto-head__left { display: flex; align-items: center; gap: 10px; }
+.stockauto-head__icon {
+  width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(179,38,30,.1); color: var(--color-danger-mid);
+  flex-shrink: 0;
+}
+.stockauto-head h3 { font-size: 14.5px; font-weight: 700; margin: 0; color: var(--color-text); }
+.stockauto-head__sub { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+.stockauto-head__count {
+  font-size: 12px; font-weight: 700; color: var(--color-danger-mid);
+  background: var(--color-danger-bg);
+  padding: 3px 10px; border-radius: 999px;
+}
+
+.stockauto-list { display: flex; flex-direction: column; }
+
+.stockauto-row {
+  display: grid;
+  grid-template-columns: 3px 1fr auto auto 90px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,.045);
+  cursor: pointer;
+  transition: background .12s;
+}
+.stockauto-row:last-child { border-bottom: none; }
+.stockauto-row:hover { background: rgba(0,0,0,.025); }
+
+.stockauto-row__bar { align-self: stretch; border-radius: 0 3px 3px 0; }
+.stockauto-row--quiebre       .stockauto-row__bar { background: var(--color-danger-mid); }
+.stockauto-row--critico       .stockauto-row__bar { background: var(--nav-deposito); }
+.stockauto-row--stock_bajo    .stockauto-row__bar { background: var(--color-warning-mid); }
+.stockauto-row--sin_proveedor .stockauto-row__bar { background: var(--nav-facturacion); }
+
+.stockauto-row__nombre {
+  font-size: 13.5px; font-weight: 600; color: var(--color-text);
+  padding-left: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.stockauto-row__tipo {
+  font-family: var(--font-family-display);
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  padding: 1px 9px; border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  white-space: nowrap;
+}
+.stockauto-row--quiebre       .stockauto-row__tipo { background: var(--color-danger-bg); color: var(--color-danger-mid); border-color: var(--color-danger-mid); }
+.stockauto-row--critico       .stockauto-row__tipo { background: rgba(143,95,0,.12); color: var(--color-warning); border-color: var(--color-warning); }
+.stockauto-row--stock_bajo    .stockauto-row__tipo { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.stockauto-row--sin_proveedor .stockauto-row__tipo { background: var(--nav-facturacion-bg); color: var(--nav-facturacion); border-color: var(--nav-facturacion); }
+
+.stockauto-row__urgencia {
+  width: 72px; height: 5px; border-radius: 999px; background: rgba(0,0,0,.06);
+  overflow: hidden;
+  position: relative;
+}
+.stockauto-row__urgencia i {
+  position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; display: block;
+}
+.stockauto-row--quiebre       .stockauto-row__urgencia i { background: var(--color-danger-mid); }
+.stockauto-row--critico       .stockauto-row__urgencia i { background: var(--nav-deposito); }
+.stockauto-row--stock_bajo    .stockauto-row__urgencia i { background: var(--color-warning-mid); }
+.stockauto-row--sin_proveedor .stockauto-row__urgencia i { background: var(--nav-facturacion); }
+
+.stockauto-row__dias { font-size: 12.5px; color: var(--color-text-muted); text-align: right; white-space: nowrap; }
+.stockauto-row__dias strong { color: var(--color-text); font-weight: 700; }
+
+.stockauto-row__ver {
+  font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.stockauto-row__ver:hover { background: var(--color-primary); color: var(--color-surface); }
+
+.stockauto-foot {
+  padding: 10px 18px;
+  border-top: 1px solid rgba(0,0,0,.06);
+  text-align: center;
+}
+.stockauto-toggle {
+  background: none; border: none; cursor: pointer;
+  font-size: 12.5px; font-weight: 600; color: var(--color-primary);
+  padding: 4px 10px;
+}
+.stockauto-toggle:hover { text-decoration: underline; }
+
+.stockauto-empty {
+  padding: 22px 18px; text-align: center;
+  color: var(--color-text-muted); font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .stockauto-row { grid-template-columns: 3px 1fr auto auto; }
+  .stockauto-row__urgencia { display: none; }
+  .stockauto-row__dias { display: none; }
+}
+
+/* ── Responsive (overview) ── */
+@media (max-width: 1200px) {
+  .stock-ov-kpis { grid-template-columns: repeat(2, 1fr); }
+  .stock-ov-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .stock-ov-kpis { grid-template-columns: 1fr; }
+}

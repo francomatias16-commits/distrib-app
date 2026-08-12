@@ -1,0 +1,281 @@
+/**
+ * skeletons.css.deprecated — Versión huérfana e INCOMPLETA, reemplazada por /shared/skeletons.css
+ *
+ * Este archivo vivía en /shared/css/skeletons.css. NINGUNA página lo
+ * importaba (0 referencias). Además está desactualizado: le falta el
+ * bloque ".skeleton-table-row / .skeleton-cell" (usado por
+ * mostrarSkeletonTabla() en /shared/adminlte-utils.js) que sí está
+ * completo en /shared/skeletons.css (291 líneas vs 261 de este).
+ *
+ * La fuente de verdad real es /shared/skeletons.css, hoy enlazada en
+ * dashboard.html, automatizacion.html, y (recién agregado) rutas.html,
+ * presupuestos.html, clientes.html y facturacion.html — las 4 páginas
+ * que llaman mostrarSkeletonTabla()/window.mostrarSkeletonTabla() pero
+ * no cargaban ningún skeletons.css, dejando el estado de carga sin
+ * estilo (filas vacías sin shimmer).
+ *
+ * Se conserva acá (no se borra) por la regla de oro de no romper nada.
+ * Retirado: 2026-06-20
+ */
+
+/**
+ * skeletons.css — Skeleton Screens + Empty States + Microinteracciones
+ * distrib-v38-optimized | Módulo 4: UX Next-Gen
+ *
+ * Importar en cualquiera de los tres portales (cliente, admin, chofer).
+ * Reemplaza todos los spinners genéricos del sistema.
+ *
+ * USO:
+ *   Agregar clase .sk-loading al contenedor para mostrar skeletons.
+ *   Remover .sk-loading cuando los datos llegan para revelar el contenido real.
+ */
+
+/* ─── Animación base (shimmer) ────────────────────────────────────────────── */
+@keyframes sk-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+:root {
+  --sk-base:    #2a2725;
+  --sk-shine:   #3d3a38;
+  --sk-radius:  .5rem;
+  --sk-speed:   1.4s;
+  --sk-easing:  linear;
+}
+
+/* Versión clara para portales con fondo blanco */
+[data-tema="claro"] {
+  --sk-base:  #e5e7eb;
+  --sk-shine: #f3f4f6;
+}
+
+/* ─── Elemento skeleton genérico ──────────────────────────────────────────── */
+.sk {
+  display:          inline-block;
+  border-radius:    var(--sk-radius);
+  background:       linear-gradient(
+    90deg,
+    var(--sk-base)  25%,
+    var(--sk-shine) 50%,
+    var(--sk-base)  75%
+  );
+  background-size:  600px 100%;
+  animation:        sk-shimmer var(--sk-speed) var(--sk-easing) infinite;
+  color:            transparent !important;
+  user-select:      none;
+  pointer-events:   none;
+}
+
+/* ─── Variantes de tamaño ─────────────────────────────────────────────────── */
+.sk--text-sm  { height: .75rem; width: 60%; }
+.sk--text     { height: .9rem;  width: 80%; }
+.sk--text-lg  { height: 1.1rem; width: 90%; }
+.sk--title    { height: 1.4rem; width: 55%; }
+.sk--avatar   { width: 2.5rem; height: 2.5rem; border-radius: 50%; }
+.sk--avatar-lg{ width: 4rem;   height: 4rem;   border-radius: 50%; }
+.sk--badge    { height: 1.4rem; width: 4rem; border-radius: 2rem; }
+.sk--btn      { height: 2.75rem; width: 7rem; border-radius: .5rem; }
+.sk--btn-full { height: 2.75rem; width: 100%; border-radius: .5rem; }
+.sk--img      { width: 100%;   aspect-ratio: 16/9; }
+.sk--img-sq   { width: 100%;   aspect-ratio: 1/1; }
+.sk--full     { width: 100%;   height: 1rem; }
+
+/* ─── Contenedor de skeleton (oculta contenido real mientras carga) ────────── */
+.sk-loading > *:not(.sk):not(.sk-card):not(.sk-row):not(.sk-catalog-grid) {
+  visibility: hidden;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON: CARD DE PRODUCTO (catálogo cliente)
+═══════════════════════════════════════════════════════════════════════════ */
+.sk-card-producto {
+  background:    var(--sk-base);
+  border-radius: .75rem;
+  padding:       .75rem;
+  display:       flex;
+  flex-direction: column;
+  gap:           .5rem;
+}
+.sk-card-producto .sk-img    { height: 120px; border-radius: .5rem; }
+.sk-card-producto .sk-nombre { height: .9rem;  width: 70%; }
+.sk-card-producto .sk-precio { height: 1.2rem; width: 40%; }
+.sk-card-producto .sk-btn    { height: 2.25rem; width: 100%; border-radius: .4rem; margin-top: .25rem; }
+.sk-card-producto .sk-img,
+.sk-card-producto .sk-nombre,
+.sk-card-producto .sk-precio,
+.sk-card-producto .sk-btn {
+  background:     linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 600px 100%;
+  animation:      sk-shimmer var(--sk-speed) var(--sk-easing) infinite;
+  border-radius:  var(--sk-radius);
+}
+
+/* Grid de skeleton para catálogo */
+.sk-catalog-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap:                   .75rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON: FILA DE TABLA (stock, facturas, pedidos en admin)
+═══════════════════════════════════════════════════════════════════════════ */
+.sk-row {
+  display:     grid;
+  gap:         1rem;
+  padding:     .75rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  align-items: center;
+}
+.sk-row--3 { grid-template-columns: 2fr 1fr 1fr; }
+.sk-row--4 { grid-template-columns: 2fr 1fr 1fr 1fr; }
+.sk-row--5 { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; }
+
+.sk-row > div {
+  height:      .85rem;
+  border-radius: var(--sk-radius);
+  background:  linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 600px 100%;
+  animation:   sk-shimmer var(--sk-speed) var(--sk-easing) infinite;
+}
+.sk-row > div:first-child { width: 80%; }
+.sk-row > div:not(:first-child) { width: 60%; margin: 0 auto; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON: DASHBOARD CARDS (KPIs, métricas)
+═══════════════════════════════════════════════════════════════════════════ */
+.sk-kpi {
+  background:    var(--sk-base);
+  border-radius: .75rem;
+  padding:       1.25rem;
+  display:       flex;
+  flex-direction: column;
+  gap:           .625rem;
+}
+.sk-kpi__label { height: .75rem; width: 55%; }
+.sk-kpi__valor { height: 2rem;   width: 45%; }
+.sk-kpi__delta { height: .7rem;  width: 35%; }
+.sk-kpi__label,
+.sk-kpi__valor,
+.sk-kpi__delta {
+  background:     linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 600px 100%;
+  animation:      sk-shimmer var(--sk-speed) var(--sk-easing) infinite;
+  border-radius:  var(--sk-radius);
+}
+
+.sk-kpi-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap:                   .75rem;
+  margin-bottom:         1.25rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON: GRÁFICO (dashboard financiero)
+═══════════════════════════════════════════════════════════════════════════ */
+.sk-chart {
+  width:         100%;
+  height:        220px;
+  border-radius: .75rem;
+  background:    linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 600px 100%;
+  animation:     sk-shimmer var(--sk-speed) var(--sk-easing) infinite;
+  margin-bottom: 1.25rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EMPTY STATES — Persuasivos, no genéricos
+═══════════════════════════════════════════════════════════════════════════ */
+.empty-state {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  justify-content: center;
+  text-align:     center;
+  padding:        3rem 1.5rem;
+  gap:            .875rem;
+  color:          #a8a29e;
+  min-height:     240px;
+}
+
+.empty-state__icon {
+  font-size:    3rem;
+  line-height:  1;
+  filter:       grayscale(0.2);
+}
+
+.empty-state__titulo {
+  font-size:   1.05rem;
+  font-weight: 700;
+  color:       #fafaf9;
+  margin:      0;
+}
+
+.empty-state__sub {
+  font-size:   .9rem;
+  max-width:   320px;
+  line-height: 1.5;
+  margin:      0;
+}
+
+.empty-state__cta {
+  margin-top:  .5rem;
+  /* Hereda .btn .btn--primario del portal */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MICROINTERACCIONES DE CONFIRMACIÓN
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Pulse verde al confirmar una acción exitosa */
+@keyframes confirm-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.confirm-pulse {
+  animation: confirm-pulse .6s ease-out;
+}
+
+/* Check animado — insertar SVG con clase .check-icon dentro de un botón */
+@keyframes check-draw {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0;  }
+}
+.check-icon {
+  stroke-dasharray:  24;
+  stroke-dashoffset: 24;
+  animation: check-draw .35s ease forwards;
+}
+
+/* Shake en error */
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX( 6px); }
+}
+.error-shake {
+  animation: error-shake .4s ease;
+}
+
+/* Fade-in genérico para contenido que aparece */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in .22s ease forwards;
+}
+
+/* Transición suave al revelar contenido (quitar sk-loading) */
+.sk-reveal {
+  animation: fade-in .3s ease forwards;
+}

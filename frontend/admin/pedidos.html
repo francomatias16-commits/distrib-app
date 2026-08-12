@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Pedidos y Presupuestos — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=197" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/pedidos.css?v=218" />
+  <link rel="stylesheet" href="/frontend/admin/css/pedidos-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=196" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <style>
+    /* ── REQ-13: Filtros rápidos ── */
+    .filtros-rapidos {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filtros-rapidos-label {
+      font-size: 11px;
+      color: var(--color-text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .btn-rapido {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border);
+      background: transparent;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      transition: background .15s, border-color .15s, color .15s;
+      white-space: nowrap;
+    }
+    .btn-rapido:hover { background: var(--color-surface-2); }
+    .btn-rapido.activo {
+      background: var(--color-primary-bg);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    /* ── REQ-05: Pestañas Pedidos / Presupuestos ── */
+    .page-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 16px;
+      padding: 0 20px;
+    }
+    .page-tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .page-tab:hover { color: var(--color-text); }
+    .page-tab.activa {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+    .page-tab-count {
+      background: var(--color-surface-2);
+      border-radius: var(--radius-lg);
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.activo { display: block; }
+
+    /* ── REQ-05: Presupuestos embebidos ── */
+    .pres-filtros-bar { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    .pres-search-wrap { position:relative; }
+    .pres-search-wrap svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--color-text-muted); }
+    .pres-search-wrap input { padding:7px 10px 7px 32px; border:1px solid var(--color-border); border-radius: var(--radius-md); font-size:13px; background:var(--color-surface); color:var(--color-text); width:220px; }
+    .btn-nuevo-pres { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius: var(--radius-md); border:none; background:var(--color-primary); color:var(--color-surface); font-size:13px; font-weight:600; cursor:pointer; margin-left:auto; }
+    .btn-nuevo-pres:hover { opacity:.9; }
+
+    /* Panel detalle presupuesto */
+    .pres-detalle-panel { position:fixed; top:0; right:0; width:460px; max-width:95vw; height:100vh;
+      background:var(--color-surface); border-left:1px solid var(--color-border);
+      box-shadow:-4px 0 24px rgba(0,0,0,.08); transition:transform .3s; z-index:200;
+      display:flex; flex-direction:column;
+      transform:translateX(100%); }
+    .pres-detalle-panel.abierto { transform:translateX(0); }
+    .pres-detalle-panel-header { display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px; border-bottom:1px solid var(--color-border); }
+    .pres-detalle-panel-header h3 { margin:0; font-size:15px; font-weight:700; }
+    .pres-detalle-panel-body { flex:1; overflow-y:auto; }
+    .btn-cerrar-pres-panel { background:none; border:none; cursor:pointer; color:var(--color-text-muted); }
+
+    /* Modal nuevo presupuesto embebido */
+    .pres-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300;
+      display:flex; align-items:center; justify-content:center; }
+    .pres-modal-overlay.hidden { display:none; }
+    .pres-modal-box { background:var(--color-surface); border-radius: var(--radius-xl); width:860px; max-width:95vw;
+      max-height:92vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+    .pres-modal-header { display:flex; align-items:center; justify-content:space-between;
+      padding:16px 20px; border-bottom:1px solid var(--color-border); }
+    .pres-modal-header h3 { margin:0; font-size:15px; font-weight:700; }
+    .pres-modal-close { background:none; border:none; cursor:pointer; color:var(--color-text-muted); }
+    .pres-modal-body { flex:1; overflow-y:auto; padding:20px; }
+    .pres-modal-footer { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px;
+      border-top:1px solid var(--color-border); }
+    .pres-form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .pres-form-group { margin-bottom:14px; }
+    .pres-form-group label { display:block; font-size:12px; font-weight:600; color:var(--color-text-muted);
+      text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px; }
+    .pres-form-group input, .pres-form-group select, .pres-form-group textarea {
+      width:100%; padding:8px; border:1px solid var(--color-border); border-radius: var(--radius-sm);
+      font-size:13px; background:var(--color-surface); color:var(--color-text); }
+    .pres-item-row { display:grid; grid-template-columns:2fr 2fr 1fr 1.2fr .8fr 28px;
+      gap:6px; align-items:center; margin-bottom:8px; }
+    .pres-item-row .item-prod, .pres-item-row .item-desc,
+    .pres-item-row .item-cant, .pres-item-row .item-precio, .pres-item-row .item-dto {
+      padding:6px 8px; border:1px solid var(--color-border); border-radius: var(--radius-sm);
+      font-size:12px; background:var(--color-surface); color:var(--color-text); width:100%; }
+    .pres-btn-agregar { font-size:12px; font-weight:600; padding:6px 14px; border-radius: var(--radius-sm);
+      border:1px dashed var(--color-border); background:none; cursor:pointer;
+      color:var(--color-text-muted); margin-top:4px; width:100%; }
+    .pres-btn-agregar:hover { border-color:var(--color-primary); color:var(--color-primary); }
+    .pres-total-preview { text-align:right; font-size:15px; font-weight:700; margin-top:12px; color:var(--color-primary); }
+    .pres-info-auto { display:flex; align-items:flex-start; gap:8px; background:#eff6ff;
+      border:1px solid #bfdbfe; color:#1d4ed8; border-radius: var(--radius-md); padding:10px 12px;
+      font-size:12.5px; line-height:1.45; margin-bottom:14px; }
+    .empty-items { font-size:13px; color:var(--color-text-muted); padding:12px 0; text-align:center; }
+    .btn-quitar { background:none; border:none; cursor:pointer; color:var(--color-danger); font-size:14px; padding:0; }
+    .btn-acc { font-size:11px; padding:3px 10px; border-radius: var(--radius-sm); border:1px solid var(--color-border);
+      background:var(--color-surface); cursor:pointer; font-weight:600; margin-right:4px; }
+    .btn-acc:hover { background:var(--color-bg); }
+    .btn-acc.btn-danger { border-color:var(--color-danger); color:var(--color-danger); }
+
+    @media (max-width: 640px) {
+      .pres-modal-box { width: 100%; border-radius: 0; max-height: 100vh; height: 100vh; }
+      .pres-form-row { grid-template-columns: 1fr; }
+      .pres-item-row {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "prod prod" "desc desc" "cant precio" "dto quitar";
+        gap: 6px 8px;
+      }
+      .pres-item-row .item-prod   { grid-area: prod; }
+      .pres-item-row .item-desc   { grid-area: desc; }
+      .pres-item-row .item-cant   { grid-area: cant; }
+      .pres-item-row .item-precio { grid-area: precio; }
+      .pres-item-row .item-dto    { grid-area: dto; }
+      .pres-item-row .btn-quitar  { grid-area: quitar; justify-self: end; }
+    }
+
+    /* ── REQ-06: Modal FEFO ── */
+    .fefo-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+    .fefo-box {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      width: 100%; max-width: 540px;
+      max-height: 80vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
+    .fefo-header {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .fefo-header h3 { margin: 0 0 4px; font-size: 16px; }
+    .fefo-sub { margin: 0; font-size: 12px; color: var(--color-text-light); }
+    .fefo-lista {
+      flex: 1; overflow-y: auto;
+      padding: 12px 20px;
+    }
+    .fefo-producto { margin-bottom: 14px; }
+    .fefo-prod-nombre {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px; font-size: 13px;
+    }
+    .fefo-cant-badge {
+      background: var(--color-surface-2);
+      border-radius: var(--radius-full); padding: 1px 8px;
+      font-size: 11px; color: var(--color-text-muted);
+    }
+    .fefo-faltante {
+      background: #fff3cd; color: #856404;
+      border-radius: var(--radius-full); padding: 1px 8px;
+      font-size: 11px;
+    }
+    .fefo-sin-seguimiento {
+      background: var(--color-primary-bg); color: var(--color-primary);
+      border-radius: var(--radius-full); padding: 1px 8px;
+      font-size: 11px;
+    }
+    .fefo-sin-lotes {
+      font-size: 12px; color: var(--color-text-light);
+      padding: 4px 0 4px 8px;
+    }
+    .fefo-lote {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      align-items: center;
+      padding: 6px 10px;
+      background: var(--color-surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .fefo-lote-nro { font-weight: 600; min-width: 90px; }
+    .fefo-lote-dep { color: var(--color-text-light); flex: 1; }
+    .fefo-lote-venc { white-space: nowrap; }
+    .fefo-lote-usar {
+      background: var(--color-primary-bg);
+      color: var(--color-primary);
+      border-radius: var(--radius-full); padding: 1px 8px;
+      white-space: nowrap;
+    }
+    .fefo-acciones {
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/tema-claro-shipp.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/pedido-modal-fullscreen.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+<style>
+  @keyframes spin-loader {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body class="dash-pedidos-gentelella dash-gentelella">
+
+<!-- ── PRELOADER ── -->
+<div id="app-preloader" class="preloader">
+  <div class="preloader-logo">D</div>
+  <span class="preloader-text">Cargando pedidos…</span>
+  <div class="preloader-bar"></div>
+</div>
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Main layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title" id="topbar-title-dynamic">Pedidos</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro" id="page-intro-pedidos">Seguí cada pedido desde que entra (web, POS o carga manual) hasta que se factura y se entrega, y detectá de un vistazo cuáles están pendientes de confirmar o preparar. Al confirmarse, el pedido reserva stock. Usalo para todo lo que se prepara y se entrega después; la venta inmediata en el mostrador se carga directo desde Punto de venta.</div>
+    <div class="page-intro" id="page-intro-presupuestos" style="display:none">
+  Son cotizaciones previas al pedido — mismos ítems y precios, pero no reservan stock ni comprometen nada, y tienen fecha de vencimiento. Si el cliente lo acepta, se convierte directamente en un pedido.
+</div>
+  </div>
+
+  <!-- REQ-09: búsqueda global inyectada por busqueda-global.js -->
+
+  <main class="main" id="vista-pedidos">
+
+    <!-- ── Pestañas REQ-05 ── -->
+    <div class="page-tabs" role="tablist" aria-label="Vistas de pedidos" style="justify-content:space-between;align-items:center;">
+      <div style="display:flex;gap:0;">
+        <button type="button" role="tab" aria-selected="true"  aria-controls="panel-pedidos"      class="page-tab activa" id="tab-pedidos"      onclick="cambiarTab('pedidos')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg>
+          Pedidos
+        </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="panel-presupuestos" class="page-tab"        id="tab-presupuestos" onclick="cambiarTab('presupuestos')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
+          Presupuestos
+          <span class="page-tab-count" id="pres-contador-tab"></span>
+        </button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;">
+        <button type="button" class="btn-nuevo-pres" id="btn-nuevo-pedido" onclick="pedido_abrirModalNuevo()"
+                style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius: var(--radius-md);border:none;background:var(--color-primary);color:var(--color-surface);font-size:13px;font-weight:600;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nuevo pedido
+              </button>
+              <button type="button" class="btn-nuevo-pres hidden" id="btn-nuevo-presupuesto" onclick="pres_abrirModalNuevo()"
+                style="display:none;align-items:center;gap:6px;padding:7px 14px;border-radius: var(--radius-md);border:none;background:var(--color-primary);color:var(--color-surface);font-size:13px;font-weight:600;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nuevo presupuesto
+              </button>
+              <a href="/admin/pos" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius: var(--radius-md);border:1px solid var(--color-border);color:var(--color-text);font-size:13px;font-weight:600;text-decoration:none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M16 10a4 4 0 0 1-8 0"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                Punto de venta
+              </a>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         TAB: PEDIDOS
+    ═══════════════════════════════════════════════════════ -->
+    <div class="tab-panel activo" id="panel-pedidos" role="tabpanel" aria-labelledby="tab-pedidos">
+
+    <!-- ── Resumen de solo lectura: montos/totales, no son categorías filtrables ── -->
+    <div class="pedidos-resumen-top">
+      <div class="franja-resumen-sololectura">
+        <span><strong id="side-total-pedidos">—</strong> pedidos este mes</span>
+        <span class="sep">·</span>
+        <span>Facturado: <strong id="side-total-facturado">—</strong></span>
+      </div>
+    </div>
+
+    <div class="pedidos-grid">
+    <div class="pedidos-grid-main">
+    <div class="filtros-bar">
+      <div class="filtros-izq">
+        <!-- Búsqueda -->
+        <div class="search-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="input-busqueda" aria-label="Buscar pedido" placeholder="Cliente, N° pedido..." oninput="aplicarFiltros()" autocomplete="off" />
+        </div>
+
+        <!-- Chips de estado (FiltroTabs, ver frontend/shared/filtro-tabs.js) -->
+        <div class="barra-filtros" id="filtro-tabs-estado"></div>
+
+        <!-- REQ-13: Filtros rápidos -->
+        <div class="filtros-rapidos">
+          <span class="filtros-rapidos-label">Acceso rápido:</span>
+          <button type="button" class="btn-rapido" id="btn-sin-facturar" onclick="toggleFiltroRapido('btn-sin-facturar')" title="Pedidos confirmados/preparando sin factura emitida">
+            Sin facturar
+          </button>
+          <button type="button" class="btn-rapido" id="btn-sin-despachar" onclick="toggleFiltroRapido('btn-sin-despachar')" title="Pedidos confirmados/preparando que aún no fueron despachados">
+            Sin despachar
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-toggle-filtros-der" id="btn-toggle-filtros-der"
+              onclick="toggleFiltrosAvanzados()" aria-expanded="false" aria-controls="filtros-der">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        Más filtros
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filtros-der" id="filtros-der">
+        <!-- REQ-13: Filtro por cliente -->
+        <select id="filtro-cliente" onchange="aplicarFiltros()" class="select-filtro">
+          <option value="">Todos los clientes</option>
+        </select>
+        <!-- Filtro vendedor -->
+        <select id="filtro-vendedor" onchange="aplicarFiltros()" class="select-filtro">
+          <option value="">Todos los vendedores</option>
+        </select>
+        <!-- Filtro zona -->
+        <select id="filtro-zona" onchange="aplicarFiltros()" class="select-filtro">
+          <option value="">Todas las zonas</option>
+        </select>
+        <!-- Filtro canal -->
+        <select id="filtro-canal" onchange="aplicarFiltros()" class="select-filtro">
+          <option value="">Todos los canales</option>
+          <option value="telefono">Teléfono</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="vendedor">Vendedor</option>
+          <option value="app">App</option>
+          <option value="web">Web</option>
+          <option value="portal_cliente">Portal cliente</option>
+          <option value="pos">POS</option>
+        </select>
+        <!-- REQ-13: Rango de fechas -->
+        <input type="date" id="filtro-fecha-desde" aria-label="Fecha desde" onchange="aplicarFiltros()" class="select-filtro" title="Desde (fecha entrega)" />
+        <input type="date" id="filtro-fecha-hasta" aria-label="Fecha hasta" onchange="aplicarFiltros()" class="select-filtro" title="Hasta (fecha entrega)" />
+        <!-- REQ-13: Importe mínimo -->
+        <input type="number" id="filtro-importe-min" onchange="aplicarFiltros()" class="select-filtro"
+               placeholder="$ mínimo" min="0" step="100" style="width:100px" aria-label="Importe mínimo" />
+        <button type="button" class="btn btn--ghost" onclick="limpiarFiltros()">Limpiar</button>
+        <button type="button" class="btn btn--ghost" onclick="exportarPedidosExcel()" style="background:var(--color-success-bg);color:var(--color-success);border-color:var(--color-success)" title="Exportar pedidos a Excel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Tabla de pedidos ── -->
+    <div class="tabla-wrap table-responsive-cards">
+      <table class="tabla-pedidos table-compact">
+        <thead>
+            <tr>
+            <th>N° Pedido</th>
+            <th>Cliente</th>
+            <th class="thead-sep">Vendedor</th>
+            <th>Zona</th>
+            <th class="thead-sep">Entrega</th>
+            <th>Total</th>
+            <th class="thead-sep">Estado</th>
+            <th class="col-sticky-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="8" class="tabla-loading" style="padding:48px 0;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;border:3px solid var(--color-border-soft);border-top-color:var(--color-info-mid);border-radius:50%;animation:spin-loader .8s linear infinite;"></div>
+              <span style="font-weight:600;color:var(--color-text);font-size:14px;">Buscando y organizando la información en tiempo real...</span>
+              <span style="font-size:12px;color:var(--color-text-light);">Esto tomará solo un instante. Gracias por tu paciencia.</span>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Paginación (20 pedidos por página) ── -->
+    <div class="paginacion-bar" id="paginacion-pedidos"></div>
+
+    </div><!-- /pedidos-grid-main -->
+
+    </div><!-- /pedidos-grid -->
+
+    </div><!-- /#panel-pedidos -->
+
+    <!-- ══════════════════════════════════════════════════════
+         TAB: PRESUPUESTOS
+    ═══════════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-presupuestos" role="tabpanel" aria-labelledby="tab-presupuestos">
+
+      <!-- Chips de estado (FiltroTabs, ver frontend/shared/filtro-tabs.js) -->
+      <div class="barra-filtros" id="filtro-tabs-pres-estado"></div>
+
+      <!-- Filtros + buscador -->
+      <div class="pres-filtros-bar">
+        <div class="pres-search-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="pres-busqueda" placeholder="Número o cliente..." oninput="pres_aplicarFiltros()" autocomplete="off" aria-label="Buscar presupuesto" />
+        </div>
+        <span id="pres-contador" style="font-size:12px;color:var(--color-text-muted)"></span>
+      </div>
+
+      <!-- Tabla presupuestos -->
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-pedidos table-compact">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Cliente</th>
+              <th class="thead-sep">Vendedor</th>
+              <th>Total</th>
+              <th class="thead-sep">Vencimiento</th>
+              <th>Estado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="pres-tbody">
+            <tr><td colspan="7" style="padding:32px;text-align:center;color:var(--color-text-muted)">Seleccioná la pestaña Presupuestos para cargar.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /#panel-presupuestos -->
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PANEL DETALLE PRESUPUESTO
+═══════════════════════════════════════════════════════ -->
+<div class="pres-detalle-panel" id="pres-panel-detalle">
+  <div class="pres-detalle-panel-header">
+    <h3 id="pres-panel-nombre">Presupuesto</h3>
+    <button type="button" class="btn-cerrar-pres-panel" onclick="pres_cerrarPanel()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="pres-detalle-panel-body" id="pres-panel-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL NUEVO PRESUPUESTO
+═══════════════════════════════════════════════════════ -->
+<div class="pres-modal-overlay hidden" id="pres-modal-nuevo" role="dialog" aria-modal="true" aria-labelledby="pres-modal-titulo">
+  <div class="pres-modal-box">
+    <div class="pres-modal-header">
+      <h3 id="pres-modal-titulo">Nuevo presupuesto</h3>
+      <button type="button" class="pres-modal-close" onclick="pres_cerrarModalNuevo()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="pres-modal-body">
+      <div class="pres-form-row">
+        <div class="pres-form-group">
+          <label>Cliente *</label>
+          <input type="text" id="pres-f-cliente-filtro" placeholder="Escribí para filtrar…"
+                 autocomplete="off" style="margin-bottom:6px" />
+          <select id="pres-f-cliente">
+            <option value="">Seleccionar cliente...</option>
+          </select>
+        </div>
+        <div class="pres-form-group">
+          <label>Vigencia (horas) *</label>
+          <input type="number" id="pres-f-vigencia" value="48" min="1" aria-label="Días de vigencia" />
+        </div>
+      </div>
+      <div id="pres-info-cliente-auto" class="pres-info-auto" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span id="pres-info-cliente-auto-texto"></span>
+      </div>
+      <div class="pres-form-group">
+        <label>Notas / aclaraciones</label>
+        <textarea id="pres-f-notas" rows="2" placeholder="Condiciones, validez, aclaraciones..."></textarea>
+      </div>
+      <div style="margin-top:16px">
+        <!-- ── Buscador visual de productos (ProductoPicker) ── -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <strong class="texto-chico">Buscador de productos</strong>
+          <span style="font-size:11px;color:var(--color-text-muted)">Clic en "Agregar" para incluir en el presupuesto</span>
+        </div>
+        <div id="pres-picker-container"></div>
+
+        <!-- ── Tabla de ítems confirmados ── -->
+        <div style="margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <strong class="texto-chico">Ítems del presupuesto</strong>
+            <button type="button" class="pres-btn-agregar" onclick="btnAsyncClick(this, pres_agregarItemModal)" style="margin:0;padding:4px 10px;font-size:11px">+ Fila manual</button>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-muted);margin-bottom:6px;display:grid;grid-template-columns:2fr 2fr 1fr 1.2fr .8fr 28px;gap:6px;padding:0 2px">
+            <span>Producto</span><span>Descripción</span><span>Cant.</span><span>Precio</span><span>Dto%</span><span></span>
+          </div>
+          <div id="pres-items-container"></div>
+          <div class="pres-total-preview">Total estimado: <span id="pres-total-modal">$0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pres-modal-footer">
+      <button type="button" class="btn btn--ghost" onclick="pres_cerrarModalNuevo()">Cancelar</button>
+      <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, pres_guardarPresupuesto)" id="pres-btn-guardar">Generar Presupuesto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal nuevo pedido (admin) ── -->
+<div class="pres-modal-overlay hidden" id="pedido-modal-nuevo" role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo">
+  <div class="pres-modal-box">
+    <div class="pres-modal-header">
+      <h3 id="pedido-modal-titulo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Nuevo pedido
+      </h3>
+      <button type="button" class="pres-modal-close" onclick="pedido_cerrarModalNuevo()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="pres-modal-body">
+      <div class="pedfs-body">
+
+        <!-- ── Columna principal: datos del pedido + buscador ── -->
+        <div class="pedfs-main">
+          <section class="pedfs-datos-card">
+            <div class="pedfs-datos-grid">
+              <div class="pres-form-group">
+                <label>Cliente *</label>
+                <input type="text" id="pedido-f-cliente-filtro" placeholder="Escribí para filtrar…"
+                       autocomplete="off" style="margin-bottom:6px" />
+                <select id="pedido-f-cliente"></select>
+              </div>
+              <div class="pres-form-group">
+                <label>Forma de entrega</label>
+                <select id="pedido-f-entrega">
+                  <option value="envio">Envío a domicilio</option>
+                  <option value="retiro">Retiro en local</option>
+                </select>
+              </div>
+            </div>
+            <div class="pres-form-group">
+              <label>Observaciones</label>
+              <textarea id="pedido-f-notas" rows="2" placeholder="Indicaciones especiales, horario de entrega…"></textarea>
+            </div>
+            <!-- REQ-AGIL: aparece solo si el cliente elegido ya tiene pedidos previos -->
+            <div id="pedido-repetir-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;
+                 background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius: var(--radius-md);padding:10px 12px;
+                 font-size:12.5px;margin-top:2px">
+              <span id="pedido-repetir-texto"></span>
+              <button type="button" id="pedido-repetir-btn" class="btn btn--primary" style="padding:5px 12px;font-size:12px;white-space:nowrap">
+                Repetir pedido
+              </button>
+            </div>
+          </section>
+
+          <section class="pedfs-buscador-card">
+            <div class="pedfs-buscador-head">
+              <strong>Buscador de productos</strong>
+              <span class="pedfs-hint">Cargá la cantidad — se suma solo al pedido, mirá el carrito a la derecha →</span>
+            </div>
+            <div id="pedido-picker-container"></div>
+          </section>
+        </div>
+
+        <!-- ── Columna lateral: carrito, siempre visible ── -->
+        <aside class="pedfs-cart">
+          <div class="pedfs-cart-head">
+            <strong>Pedido actual</strong>
+            <span class="pedfs-cart-count" id="pedido-cart-count">Sin ítems</span>
+          </div>
+          <div id="pedido-items-container" class="pedfs-cart-list"></div>
+          <button type="button" class="pedfs-btn-manual" onclick="btnAsyncClick(this, pedido_agregarItemModal)">+ Agregar fila manual</button>
+          <div class="pedfs-cart-total">
+            <span>Total estimado</span>
+            <span id="pedido-total-modal">$0</span>
+          </div>
+          <a href="/admin/reglas-precio" target="_blank" rel="noopener" class="pedfs-link-desc">
+            Ver descuentos automáticos vigentes →
+          </a>
+        </aside>
+
+      </div>
+    </div>
+    <div class="pres-modal-footer">
+      <button type="button" class="btn btn--ghost" onclick="pedido_cerrarModalNuevo()">Cancelar</button>
+      <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, pedido_guardar)" id="pedido-btn-guardar">Crear pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal detalle del pedido ── -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="cerrarModal()" aria-hidden="true"></div>
+<div class="modal" id="modal-pedido">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-titulo">Pedido</h2>
+      <div class="modal-subtitulo" id="modal-subtitulo"></div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModal()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Estado actual + cambio -->
+  <div class="modal-estado-row" id="modal-estado-row"></div>
+
+  <!-- Info del cliente -->
+  <div class="modal-seccion">
+    <div class="modal-sec-label">Cliente</div>
+    <div id="modal-cliente-info"></div>
+  </div>
+
+  <!-- Items -->
+  <div class="modal-seccion">
+    <div class="modal-sec-label">Productos</div>
+    <div id="modal-items"></div>
+  </div>
+
+  <!-- Totales -->
+  <div class="modal-totales" id="modal-totales"></div>
+
+  <!-- Notas -->
+  <div id="modal-notas-wrap" class="modal-seccion" style="display:none">
+    <div class="modal-sec-label">Observaciones del cliente</div>
+    <div id="modal-notas" class="modal-notas-texto"></div>
+  </div>
+
+  <!-- Estado de notificaciones (Hallazgo 2, auditoría notificaciones) -->
+  <div class="modal-seccion" id="modal-notif-wrap" style="display:none">
+    <div class="modal-sec-label">Notificaciones de confirmación</div>
+    <div id="modal-notif-lista" class="modal-notif-lista"></div>
+  </div>
+
+  <!-- Notas internas del pedido (REQ-14) -->
+  <div class="modal-seccion" id="modal-notas-internas-wrap" style="display:none">
+    <p class="ni-section-label">Notas internas</p>
+    <div class="ni-lista" id="pedido-notas-lista"></div>
+    <hr class="ni-divider">
+    <div id="pedido-notas-form"></div>
+  </div>
+
+  <div class="modal-acciones" id="modal-acciones">
+    <button type="button" class="btn btn--primary" id="btn-generar-factura" onclick="btnAsyncClick(this, () => generarFactura(pedidoActivo?.id))" style="display:none;gap:7px">      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Generar Comprobante de Venta
+    </button>
+    <button type="button" class="btn-remito" id="btn-imprimir-remito" onclick="imprimirRemito(pedidoActivo?.id)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir remito
+    </button>
+  </div>
+</div>
+
+<!-- ── Confirmación cancelar ── -->
+<div class="confirmar-overlay" id="confirmar-overlay" style="display:none">
+  <div class="confirmar-box">
+    <p class="confirmar-msg">¿Cancelar este pedido? El stock reservado se liberará.</p>
+    <div class="confirmar-btns">
+      <button type="button" class="btn-secundario" onclick="cerrarConfirmar()">No, volver</button>
+      <button type="button" class="btn-danger"     id="btn-confirmar-cancelar">Sí, cancelar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Supabase ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/remito.js?v1782328742714"></script>
+<script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
+<!-- Buscador visual de productos (ProductoPicker) — lo usan tanto el modal
+     de "Nuevo pedido" (script inline más abajo) como presupuestos.js.
+     Faltaba este <script>: el .css sí se cargaba (línea ~26), pero nunca
+     el .js, así que window.ProductoPicker quedaba undefined y el
+     "new window.ProductoPicker(...)" tiraba un TypeError silencioso dentro
+     de la función async — por eso los botones "Nuevo pedido" y "Nuevo
+     presupuesto" no hacían nada visible al hacer click. -->
+<script src="/frontend/admin/js/producto-picker.js?v=196"></script>
+<script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+<script type="module" src="/frontend/admin/js/pedidos.js?v259"></script>
+
+<!-- ── Push notifications (admin) ── -->
+<!-- Activa notificaciones push cuando llega un nuevo pedido.
+     Requiere en env-config.js: FIREBASE_API_KEY, FIREBASE_PROJECT_ID,
+     FIREBASE_MESSAGING_SENDER_ID, FIREBASE_APP_ID, FIREBASE_VAPID_KEY.
+     Si alguna variable falta, el módulo se desactiva silenciosamente. -->
+<script type="module">
+  import { inicializarPushAdmin } from '/frontend/admin/js/push-admin.js';
+
+  // Esperar a que auth.js termine de resolver el perfil del usuario
+  window.authReady.then(() => {
+    const { sb, perfil } = window.authCtx;
+    inicializarPushAdmin(sb, perfil.id, perfil.empresa_id);
+  }).catch(() => {
+    // Auth no disponible (logout o error) — no inicializar push
+  });
+
+  // Si el admin hace clic en una notificación push mientras la página está
+  // abierta en background, el SW envía NOTIF_CLICK → pedidos.js lo maneja.
+  window.addEventListener('push-pedido-click', (e) => {
+    const { pedido_id } = e.detail || {};
+    if (pedido_id && typeof window.abrirModalPorId === 'function') {
+      window.abrirModalPorId(pedido_id);
+    }
+  });
+</script>
+<script>
+(function() {
+  function ocultarPreloader() {
+    var el = document.getElementById("app-preloader");
+    if (!el) return;
+    el.classList.add("oculto");
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+  setTimeout(ocultarPreloader, 3000); // fallback 3s
+  window.ocultarPreloader = ocultarPreloader;
+  window.addEventListener("load", function(){ setTimeout(ocultarPreloader, 500); });
+})();
+</script>
+
+<script src="/frontend/admin/js/presupuestos.js?v1782328742714"></script>
+<script>
+// ── REQ-05: Lógica de pestañas Pedidos / Presupuestos ────────────────────
+(function () {
+  let _presIniciado = false;
+
+  window.cambiarTab = function (tab) {
+    // Activar el tab correcto
+    document.querySelectorAll('.page-tab').forEach(b => b.classList.remove('activa'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+
+    document.getElementById('tab-' + tab)?.classList.add('activa');
+    document.getElementById('panel-' + tab)?.classList.add('activo');
+
+    // Actualizar título y breadcrumb
+    const titles = { pedidos: 'Pedidos', presupuestos: 'Presupuestos' };
+    const titleEl = document.getElementById('topbar-title-dynamic');
+    const bcLast  = document.getElementById('breadcrumb-last');
+    if (titleEl) titleEl.textContent = titles[tab] || tab;
+    if (bcLast)  bcLast.textContent  = titles[tab] || tab;
+
+    // Subtítulo aclaratorio: qué diferencia a un pedido de un presupuesto
+    // (pedido reserva stock y se factura; presupuesto es una cotización que
+    // no compromete nada hasta que se convierte en pedido).
+    const introPed  = document.getElementById('page-intro-pedidos');
+    const introPres = document.getElementById('page-intro-presupuestos');
+    if (introPed)  introPed.style.display  = tab === 'pedidos' ? '' : 'none';
+    if (introPres) introPres.style.display = tab === 'presupuestos' ? '' : 'none';
+
+    // Botones según tab activo
+    const btnNuevoPres = document.getElementById('btn-nuevo-presupuesto');
+    const btnNuevoPed  = document.getElementById('btn-nuevo-pedido');
+    if (btnNuevoPres) btnNuevoPres.style.display = tab === 'presupuestos' ? 'flex' : 'none';
+    if (btnNuevoPed)  btnNuevoPed.style.display  = tab === 'pedidos' ? 'flex' : 'none';
+
+    // Sincronizar URL sin recargar (para que el back-button funcione)
+    const url = new URL(window.location.href);
+    if (tab === 'presupuestos') { url.searchParams.set('tab', 'presupuestos'); }
+    else { url.searchParams.delete('tab'); }
+    history.replaceState({}, '', url.toString());
+
+    // Inicializar presupuestos la primera vez que se abre el tab
+    if (tab === 'presupuestos' && !_presIniciado) {
+      _presIniciado = true;
+      window.authReady.then(() => window.presupuestos_init());
+    }
+
+    // Actualizar contador en tab
+    if (tab === 'presupuestos') {
+      const c = document.getElementById('pres-contador');
+      const t = document.getElementById('pres-contador-tab');
+      if (c && t) t.textContent = c.textContent.split(' ')[0] || '';
+    }
+  };
+
+  // Si se llega por URL con ?tab=presupuestos (redirect desde /admin/presupuestos)
+  window.authReady.then(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'presupuestos') {
+      window.cambiarTab('presupuestos');
+    }
+  });
+})();
+</script>
+
+<script>
+// ── Modal nuevo pedido admin ──────────────────────────────────────────────
+(function () {
+  let _sb2         = null;
+  let _empresa2    = null;
+  let _clientes2   = [];
+  let _itemsPed    = [];
+  let _pickerPed   = null;
+  let _ultimoPedido = null;   // { fecha_pedido, items:[{producto_id,cantidad,nombre}] } del cliente activo
+  let _histToken    = 0;      // evita pisar resultados si el usuario cambia de cliente rápido
+
+  // Lazy-init de datos de clientes para el selector
+  async function _ensureCtx() {
+    if (_sb2) return;
+    await window.authReady;
+    _sb2      = window.authCtx.sb;
+    _empresa2 = window.authCtx.perfil?.empresas || { id: window.authCtx.perfil?.empresa_id };
+    const { data } = await _sb2.from('clientes')
+      .select('id, razon_social, nombre_fantasia')
+      .eq('empresa_id', _empresa2.id)
+      .eq('activo', true)
+      .order('razon_social');
+    _clientes2 = data || [];
+    const sel = document.getElementById('pedido-f-cliente');
+    if (sel) {
+      sel.innerHTML = '<option value="">Seleccionar cliente…</option>' +
+        _clientes2.map(c => `<option value="${c.id}">${c.razon_social || c.nombre_fantasia}</option>`).join('');
+      window.habilitarFiltroSelect?.(sel, document.getElementById('pedido-f-cliente-filtro'));
+      if (!sel.__pedHistWired) {
+        sel.__pedHistWired = true;
+        sel.addEventListener('change', () => _cargarHistorialCliente(sel.value));
+      }
+    }
+  }
+
+  // REQ-AGIL: núcleo de la mejora — apenas se elige el cliente, se trae de
+  // una sola consulta sus últimos pedidos. Con eso: (1) se arma el banner
+  // "Repetir pedido" con el más reciente, y (2) se calculan sus productos
+  // más frecuentes para que el picker los muestre de entrada, sin escribir
+  // nada en el buscador.
+  async function _cargarHistorialCliente(cliente_id) {
+    const banner = document.getElementById('pedido-repetir-banner');
+    const texto  = document.getElementById('pedido-repetir-texto');
+    _ultimoPedido = null;
+    if (banner) banner.style.display = 'none';
+    _pickerPed?.setFrecuentes([]);
+    if (!cliente_id) return;
+
+    const miToken = ++_histToken;
+    const { data, error } = await _sb2.from('pedidos')
+      .select('id, fecha_pedido, pedido_items(producto_id, cantidad, productos(nombre, precio_base, activo))')
+      .eq('cliente_id', cliente_id)
+      .eq('empresa_id', _empresa2.id)
+      .order('fecha_pedido', { ascending: false })
+      .limit(8);
+    if (miToken !== _histToken) return; // el usuario ya cambió de cliente
+    if (error || !data || !data.length) return;
+
+    // (1) Banner "repetir último pedido"
+    const ultimo = data[0];
+    const itemsUltimo = (ultimo.pedido_items || []).filter(it => it.productos?.activo !== false);
+    if (itemsUltimo.length) {
+      _ultimoPedido = { fecha: ultimo.fecha_pedido, items: itemsUltimo };
+      const fecha = new Date(ultimo.fecha_pedido).toLocaleDateString('es-AR');
+      if (texto) texto.innerHTML = `<strong>Este cliente pidió antes</strong> — último pedido del ${fecha} (${itemsUltimo.length} producto${itemsUltimo.length === 1 ? '' : 's'}).`;
+      if (banner) banner.style.display = 'flex';
+    }
+
+    // (2) Frecuentes: cuento ocurrencias de cada producto en los últimos pedidos
+    const conteo = new Map();
+    data.forEach(p => (p.pedido_items || []).forEach(it => {
+      if (it.productos?.activo === false || !it.producto_id) return;
+      conteo.set(it.producto_id, (conteo.get(it.producto_id) || 0) + 1);
+    }));
+    const frecuentes = [...conteo.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([id]) => id);
+    _pickerPed?.setFrecuentes(frecuentes);
+  }
+
+  window.pedido_repetirUltimoPedido = function () {
+    if (!_ultimoPedido) return;
+    _ultimoPedido.items.forEach(it => {
+      // Precio actual del catálogo, no el congelado del pedido viejo —
+      // evita cobrar de más/menos si la lista de precios cambió desde entonces.
+      const prod = (_pickerPed?._productos || []).find(p => p.id === it.producto_id);
+      const existente = _itemsPed.find(x => x.producto_id === it.producto_id);
+      const cant = Number(it.cantidad) || 1;
+      if (existente) {
+        existente.cantidad = (Number(existente.cantidad) || 0) + cant;
+      } else {
+        _itemsPed.push({
+          producto_id:     it.producto_id,
+          descripcion:     prod?.nombre || it.productos?.nombre || '',
+          cantidad:        cant,
+          precio_unitario: Number(prod?.precio_base ?? 0),
+        });
+      }
+    });
+    _renderItemsPed();
+    window.toast?.(`Se cargaron ${_ultimoPedido.items.length} producto(s) del último pedido. Revisá cantidades antes de confirmar.`, 'exito');
+  };
+
+  window.pedido_abrirModalNuevo = async function () {
+    await _ensureCtx();
+    _itemsPed = [];
+    _renderItemsPed();
+    const fSel = document.getElementById('pedido-f-cliente');
+    const fNot = document.getElementById('pedido-f-notas');
+    const fFil = document.getElementById('pedido-f-cliente-filtro');
+    if (fSel) fSel.value = '';
+    if (fNot) fNot.value = '';
+    if (fFil) fFil.value = '';
+    fSel?.querySelectorAll('option').forEach(o => { o.hidden = false; });
+    _ultimoPedido = null;
+    _pedIdemKey = crypto.randomUUID();
+    const banner = document.getElementById('pedido-repetir-banner');
+    if (banner) {
+      banner.style.display = 'none';
+      const btn = document.getElementById('pedido-repetir-btn');
+      if (btn && !btn.__wired) {
+        btn.__wired = true;
+        btn.addEventListener('click', window.pedido_repetirUltimoPedido);
+      }
+    }
+
+    // Inicializar el picker la primera vez; reset en reaperturas
+    const pickerEl = document.getElementById('pedido-picker-container');
+    if (pickerEl) {
+      if (!_pickerPed) {
+        _pickerPed = new window.ProductoPicker(pickerEl, {
+          onAgregar(item) {
+            // REQ-AGIL: si el producto ya está en la lista, suma cantidad
+            // en vez de crear una fila duplicada (evita tener que limpiar
+            // a mano cuando se re-escanea/re-tipea el mismo ítem).
+            const existente = item.producto_id &&
+              _itemsPed.find(it => it.producto_id === item.producto_id);
+            if (existente) {
+              existente.cantidad = (Number(existente.cantidad) || 0) + (Number(item.cantidad) || 0);
+            } else {
+              _itemsPed.push({
+                producto_id:     item.producto_id,
+                descripcion:     item.descripcion,
+                cantidad:        item.cantidad,
+                precio_unitario: item.precio_unitario,
+              });
+            }
+            _renderItemsPed();
+          }
+        });
+        await _pickerPed.init(_sb2, _empresa2.id);
+      } else {
+        _pickerPed.reset();
+      }
+    }
+
+    document.getElementById('pedido-modal-nuevo')?.classList.remove('hidden');
+    _pickerPed?.focus();
+  };
+
+  window.pedido_cerrarModalNuevo = function () {
+    document.getElementById('pedido-modal-nuevo')?.classList.add('hidden');
+  };
+
+  window.pedido_agregarItemModal = function () {
+    _itemsPed.push({ producto_id: '', descripcion: '', cantidad: 1, precio_unitario: 0 });
+    _renderItemsPed();
+  };
+
+  window.pedido_quitarItem = function (idx) {
+    _itemsPed.splice(idx, 1);
+    _renderItemsPed();
+  };
+
+  function _renderItemsPed() {
+    const cont = document.getElementById('pedido-items-container');
+    if (!cont) return;
+    if (!_itemsPed.length) {
+      cont.innerHTML = `
+        <div class="pedfs-cart-empty">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.35;margin-bottom:8px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+          <div>Todavía no agregaste productos.<br>Buscalos a la izquierda.</div>
+        </div>`;
+      _recalcPed();
+      return;
+    }
+    // FIX: antes esta fila usaba las clases genéricas .item-row/.item-desc,
+    // que en pedidos.css ya significaban otra cosa (una insignia roja de
+    // descuento) — por eso el campo de descripción se veía diminuto y
+    // fuera de estilo. Ahora usa clases propias (pedcart-*) sin choque.
+    const opts = (_pickerPed?._productos || []).map(p =>
+      `<option value="${p.id}" data-precio="${p.precio_base || 0}">${p.codigo ? p.codigo + ' — ' : ''}${p.nombre}</option>`
+    ).join('');
+    cont.innerHTML = _itemsPed.map((it, i) => {
+      const subtotal = (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0);
+      return `
+      <div class="pedcart-row" id="ped-item-row-${i}">
+        <div class="pedcart-row-top">
+          <select class="item-prod pedcart-prod" onchange="_pedSelProd(${i},this)">
+            <option value="">Seleccionar producto…</option>${opts}
+          </select>
+          <button type="button" class="pedcart-remove" onclick="pedido_quitarItem(${i})" aria-label="Quitar ítem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <input class="item-desc pedcart-desc" type="text" placeholder="Descripción" value="${_esc2(it.descripcion)}"
+               oninput="_pedUpdItem(${i},'descripcion',this.value)" />
+        <div class="pedcart-row-nums">
+          <input class="item-cant pedcart-cant" type="number" min="1" step="1" inputmode="numeric" value="${Math.round(it.cantidad) || 1}"
+                 oninput="_soloEnterosPed(this);_pedUpdItem(${i},'cantidad',parseInt(this.value,10)||0);_pedRecalcRow(${i});_recalcPed()" />
+          <span class="pedcart-x">×</span>
+          <input class="item-precio pedcart-precio" type="number" min="0" step="1" data-money value="${Math.round(it.precio_unitario)}"
+                 oninput="_pedUpdItem(${i},'precio_unitario',+this.value);_pedRecalcRow(${i});_recalcPed()" />
+          <span class="pedcart-eq">=</span>
+          <span class="pedcart-subtotal" id="ped-subtotal-${i}">$${_fmtPed(subtotal)}</span>
+        </div>
+      </div>`;
+    }).join('');
+    _itemsPed.forEach((it, i) => {
+      if (it.producto_id) {
+        const sel = cont.querySelector(`#ped-item-row-${i} .item-prod`);
+        if (sel) sel.value = it.producto_id;
+      }
+    });
+    _recalcPed();
+  }
+
+  function _fmtPed(n) {
+    return Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // FIX: cantidades solo enteras en el carrito — antes el input aceptaba
+  // decimales (step .001) y con el spinner del teclado/mouse se podían
+  // generar cantidades como "1,006". Descarta cualquier caracter no
+  // numérico apenas se tipea.
+  function _soloEnterosPed(inp) {
+    const limpio = inp.value.replace(/[^\d]/g, '');
+    if (limpio !== inp.value) inp.value = limpio;
+  }
+
+  // Recalcula solo el subtotal de una fila puntual, sin re-renderizar todo
+  // el carrito (evita perder el foco del input mientras se está tipeando).
+  function _pedRecalcRow(idx) {
+    const it = _itemsPed[idx];
+    if (!it) return;
+    const subtotal = (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0);
+    const el = document.getElementById(`ped-subtotal-${idx}`);
+    if (el) el.textContent = '$' + _fmtPed(subtotal);
+  }
+
+  window._pedSelProd = function (idx, sel) {
+    const opt = sel.options[sel.selectedIndex];
+    _itemsPed[idx].producto_id     = sel.value;
+    _itemsPed[idx].descripcion     = opt.text.includes('—') ? opt.text.split('—').pop().trim() : opt.text;
+    _itemsPed[idx].precio_unitario = parseFloat(opt.dataset.precio || 0);
+    const row = document.getElementById(`ped-item-row-${idx}`);
+    if (row) {
+      row.querySelector('.item-desc').value   = _itemsPed[idx].descripcion;
+      row.querySelector('.item-precio').value = _itemsPed[idx].precio_unitario;
+    }
+    _pedRecalcRow(idx);
+    _recalcPed();
+  };
+
+  window._pedUpdItem = function (idx, campo, val) {
+    if (_itemsPed[idx]) _itemsPed[idx][campo] = val;
+  };
+
+  function _recalcPed() {
+    const total = _itemsPed.reduce((s, it) =>
+      s + (it.cantidad || 0) * (it.precio_unitario || 0), 0);
+    const el = document.getElementById('pedido-total-modal');
+    if (el) el.textContent = '$' + total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // FIX: contador del carrito — pensado junto con el rediseño a pantalla
+    // completa para que se vea de un vistazo cuántos ítems ya se cargaron,
+    // sin tener que leer toda la lista.
+    const countEl = document.getElementById('pedido-cart-count');
+    if (countEl) {
+      const n = _itemsPed.length;
+      countEl.textContent = n === 0 ? 'Sin ítems' : `${n} ítem${n === 1 ? '' : 's'}`;
+    }
+  }
+
+  // Plan offline — Etapa 3, ítem 1: misma idempotencia que ya usa el
+  // portal cliente (carrito.html) — se genera una vez al abrir el modal y
+  // viaja en cada intento de guardar, así un reintento tras un error de
+  // conexión no duplica el pedido (ver crearPedidoAdminHandler, migración
+  // que agrega idempotencia a crear_pedido_cliente).
+  let _pedIdemKey = null;
+
+  window.pedido_guardar = async function () {
+    const cliente_id = document.getElementById('pedido-f-cliente')?.value;
+    const notas      = document.getElementById('pedido-f-notas')?.value?.trim() || '';
+    const tipo_entrega = document.getElementById('pedido-f-entrega')?.value || 'envio';
+
+    if (!cliente_id) { window.toast('Seleccioná un cliente.', 'error'); return; }
+    const items = _itemsPed.filter(it => it.descripcion || it.producto_id);
+    if (!items.length) { window.toast('Agregá al menos un producto.', 'error'); return; }
+
+    // Confirmación previa: crear un pedido reserva stock y dispara
+    // notificaciones al cliente, así que pedimos un último OK antes
+    // de mandarlo, igual que para cancelar/eliminar.
+    const clienteTxt = document.getElementById('pedido-f-cliente')
+      ?.selectedOptions?.[0]?.textContent?.trim() || 'el cliente seleccionado';
+    const totalTxt = document.getElementById('pedido-total-modal')?.textContent || '';
+    const ok = await window.confirmar(
+      `¿Confirmás crear este pedido para ${clienteTxt} por ${totalTxt} (${items.length} ítem${items.length === 1 ? '' : 's'})?`,
+      { labelOk: 'Crear pedido', labelCancel: 'Revisar' }
+    );
+    if (!ok) return;
+
+    const btn = document.getElementById('pedido-btn-guardar');
+    if (btn) btn.disabled = true;
+
+    try {
+      const { data: { session } } = await _sb2.auth.getSession();
+      if (!session) { window.location.href = '/admin/login'; return; }
+
+      // Fix: antes pegaba a /api/pedidos sin `accion`, lo que no matcheaba
+      // ninguna rama del handler (405). accion=confirmar tampoco servía
+      // porque esa ruta es exclusiva para clientes. Ver lib/handlers/pedidos.js
+      // → crearPedidoAdminHandler.
+      const r = await fetch('/api/pedidos?accion=crear-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ cliente_id, items, notas, idempotency_key: _pedIdemKey }),
+      });
+      const json = await r.json();
+      if (!r.ok) { window.toast(json.error || 'Error al crear el pedido.', 'error'); return; }
+      // Se libera recién en éxito — si esto fue un reintento tras un error
+      // de conexión, la key se reusó y el backend devolvió el mismo pedido
+      // en vez de duplicarlo (ver ya_existia en crearPedidoAdminHandler).
+      _pedIdemKey = null;
+      window.toast(`Pedido ${json.numero || json.id?.slice(0,8) || ''} creado.`, 'exito');
+      window.pedido_cerrarModalNuevo();
+      // Refrescar la tabla de pedidos
+      if (typeof window.cargarPedidos === 'function') window.cargarPedidos();
+    } catch (err) {
+      window.toast('Error de conexión.', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  function _esc2(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+    );
+  }
+})();
+</script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

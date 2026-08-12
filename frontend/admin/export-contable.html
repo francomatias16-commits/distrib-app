@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Enviar a mi contador — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/export-contable-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 720px) { .cfg-grid { grid-template-columns: 1fr; } }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display:block; font-size:13px; font-weight:600; color:var(--color-text); margin-bottom:5px; }
+    .form-group input, .form-group select {
+      width:100%; padding:8px 12px; border:1px solid var(--color-border); border-radius:var(--radius-sm);
+      font-size:13px; box-sizing:border-box; font-family:inherit; background:var(--color-surface); color:var(--color-text);
+    }
+    .form-group .hint { font-size:12px; color:var(--color-text-muted); margin-top:4px; }
+    .form-group input:disabled, .form-group select:disabled { background:var(--color-bg); color:var(--color-text-muted); cursor:not-allowed; }
+
+    .proveedor-opciones { display:flex; gap:10px; flex-wrap:wrap; }
+    .proveedor-card {
+      flex: 1 1 200px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);
+      padding:12px 14px; cursor:pointer; position:relative; transition:border-color .15s;
+    }
+    .proveedor-card.selected { border-color:var(--color-primary); background:rgba(24,95,165,.04); }
+    .proveedor-card.disabled { cursor:not-allowed; opacity:.6; }
+    .proveedor-card h3 { margin:0 0 4px; font-size:13px; font-weight:700; color:var(--color-text); }
+    .proveedor-card p { margin:0; font-size:11.5px; color:var(--color-text-muted); line-height:1.4; }
+    .badge-proximamente {
+      position:absolute; top:10px; right:10px; font-size:10px; font-weight:700; padding:2px 7px;
+      border-radius: var(--radius-full); background:rgba(217,119,6,.12); color:#b45309;
+    }
+    .badge-listo {
+      position:absolute; top:10px; right:10px; font-size:10px; font-weight:700; padding:2px 7px;
+      border-radius: var(--radius-full); background:rgba(34,197,94,.12); color:#15803d;
+    }
+
+    .plan-cuentas-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px 14px; }
+    @media (max-width: 720px) { .plan-cuentas-grid { grid-template-columns: 1fr; } }
+    .plan-cuentas-grid .form-group label { font-weight:500; font-size:12.5px; }
+    .plan-cuentas-grid .form-group label code {
+      display:block; font-size:10.5px; color:var(--color-text-muted); font-weight:400; margin-top:1px;
+    }
+
+    .btn-primary {
+      background:var(--color-primary); color:#fff; border:none; padding:9px 18px; border-radius:var(--radius-sm);
+      font-size:13px; font-weight:600; cursor:pointer;
+    }
+    .btn-primary:hover { filter:brightness(1.05); }
+    .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+    .btn-secundario {
+      background:var(--color-bg); color:var(--color-text); border:1px solid var(--color-border); padding:9px 18px;
+      border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer;
+    }
+    .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+
+    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius: var(--radius-full); font-size:12px; font-weight:600; }
+    .chip-ok  { background:rgba(34,197,94,.12); color:#15803d; }
+    .chip-no  { background:rgba(217,119,6,.12); color:#b45309; }
+
+    .alerta { padding:11px 15px; border-radius:var(--radius-sm); font-size:13px; margin-bottom:16px; display:none; }
+    .alerta-ok  { background:rgba(34,197,94,.08); color:#15803d; border:1px solid rgba(34,197,94,.3); }
+    .alerta-err { background:rgba(239,68,68,.08); color:#b91c1c; border:1px solid rgba(239,68,68,.3); }
+    .alerta-inf { background:rgba(24,95,165,.08); color:#185fa5; border:1px solid rgba(24,95,165,.3); }
+
+    .tabla-wrap {
+      background: var(--color-surface); border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-lg);
+      overflow: hidden; margin-bottom: 20px;
+    }
+    .tabla-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--color-border); display: flex;
+      align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
+    .tabla-overflow { overflow-x: auto; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla th {
+      padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--color-text-muted); background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border); white-space: nowrap;
+    }
+    .tabla td { padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,.04); vertical-align: middle; }
+    .tabla tbody tr:last-child td { border-bottom: none; }
+    .empty-state { padding: 40px 20px; text-align: center; color: var(--color-text-light); }
+
+    .seccion-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:20px; }
+    .seccion-card h2 { font-size:14px; font-weight:700; margin:0 0 4px; color:var(--color-text); }
+    .seccion-card .sub { font-size:12.5px; color:var(--color-text-muted); margin:0 0 16px; }
+    hr.div { border:none; border-top:1px solid var(--color-border); margin:18px 0; }
+  </style>
+</head>
+<body class="dash-export-contable-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Enviar a mi contador</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Generá el archivo de ventas, compras o cobranzas para pasarle a tu contador. El CSV genérico ya está listo; Tango, Bejerman y Contabilium están en desarrollo.
+</div>
+
+  <main class="main">
+
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección.</p>
+    </div>
+
+    <div id="contenido">
+
+      <div id="alerta" class="alerta"></div>
+
+      <!-- ── Configuración ────────────────────────────────────────────── -->
+      <div class="seccion-card">
+        <h2>Configuración</h2>
+        <p class="sub">Elegí el sistema contable que usás y (si aplica) tu plan de cuentas. Solo dueño/admin puede modificar esto.</p>
+
+        <div class="proveedor-opciones" id="proveedor-opciones">
+          <!-- se completa por JS -->
+        </div>
+
+        <hr class="div">
+
+        <div id="plan-cuentas-wrap">
+          <p class="sub" style="margin-bottom:10px;">
+            Plan de cuentas (para armar los asientos de ventas/compras — no hace falta para el CSV genérico ni para cobranzas):
+          </p>
+          <div class="plan-cuentas-grid">
+            <div class="form-group">
+              <label>Ventas (neto)</label>
+              <input type="text" id="pc_ventas_neto" placeholder="ej: 4.1.01">
+            </div>
+            <div class="form-group">
+              <label>IVA Débito Fiscal</label>
+              <input type="text" id="pc_iva_debito_fiscal" placeholder="ej: 2.1.03">
+            </div>
+            <div class="form-group">
+              <label>Deudores por Venta</label>
+              <input type="text" id="pc_deudores_por_venta" placeholder="ej: 1.1.02">
+            </div>
+            <div class="form-group">
+              <label>Compras (neto)</label>
+              <input type="text" id="pc_compras_neto" placeholder="ej: 5.1.01">
+            </div>
+            <div class="form-group">
+              <label>IVA Crédito Fiscal</label>
+              <input type="text" id="pc_iva_credito_fiscal" placeholder="ej: 1.1.05">
+            </div>
+            <div class="form-group">
+              <label>Proveedores</label>
+              <input type="text" id="pc_proveedores" placeholder="ej: 2.1.01">
+            </div>
+          </div>
+        </div>
+
+        <hr class="div">
+
+        <div class="cfg-grid">
+          <div class="form-group">
+            <label>Separador decimal</label>
+            <select id="separador_decimal">
+              <option value=",">Coma (1.234,56)</option>
+              <option value=".">Punto (1,234.56)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Formato de fecha</label>
+            <select id="formato_fecha">
+              <option value="DD/MM/YYYY">DD/MM/AAAA</option>
+              <option value="YYYY-MM-DD">AAAA-MM-DD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="acciones">
+          <button type="button" class="btn-primary" id="btn-guardar-config">Guardar configuración</button>
+        </div>
+      </div>
+
+      <!-- ── Generar export ───────────────────────────────────────────── -->
+      <div class="seccion-card">
+        <h2>Generar export</h2>
+        <p class="sub">Elegí el tipo de comprobante y el rango de fechas. Se descarga directamente al confirmar.</p>
+
+        <div class="cfg-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="gen_tipo">
+              <option value="ventas">Ventas (facturas + notas de crédito)</option>
+              <option value="compras">Compras (facturas de proveedor)</option>
+              <option value="cobranzas">Cobranzas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" id="gen_desde">
+          </div>
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" id="gen_hasta">
+          </div>
+        </div>
+
+        <div class="acciones">
+          <button type="button" class="btn-primary" id="btn-generar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Generar y descargar</button>
+        </div>
+      </div>
+
+      <!-- ── Historial ─────────────────────────────────────────────────── -->
+      <div class="tabla-wrap">
+        <div class="tabla-header">
+          <h2>Historial de exportaciones</h2>
+          <span style="font-size:12px;color:var(--color-text-light);">Últimas 50</span>
+        </div>
+        <div class="tabla-overflow">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Proveedor</th>
+                <th>Tipo</th>
+                <th>Rango</th>
+                <th>Registros</th>
+                <th>Archivo</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-historial"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+          <div id="historial-vacio" class="empty-state hidden">
+            <p>Todavía no generaste ninguna exportación.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /contenido -->
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script>
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+</script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/export-contable.js?v245"></script>
+</body>
+</html>

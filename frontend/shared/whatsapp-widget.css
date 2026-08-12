@@ -1,0 +1,46 @@
+/**
+ * frontend/shared/whatsapp-widget.css
+ * Botón flotante de soporte directo por WhatsApp (contacto con MF Web Solutions).
+ * Usa las variables de /frontend/shared/tokens.css — cargar tokens.css antes.
+ * Se ubica a la izquierda del botón del asistente de ayuda (chat-widget.css)
+ * para que ambos convivan como FABs circulares en la esquina inferior derecha.
+ */
+
+.wa-soporte-boton {
+  position: fixed;
+  right: calc(var(--space-6, 24px) + 56px + var(--space-3, 12px));
+  bottom: var(--space-6, 24px);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full, 9999px);
+  border: none;
+  background: #25D366; /* verde de marca WhatsApp, intencional */
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-big, 0 8px 24px rgba(0,0,0,.18));
+  transition: transform var(--transition-base, 250ms ease), background var(--transition-base, 250ms ease);
+  z-index: 589;
+  text-decoration: none;
+}
+.wa-soporte-boton:hover { transform: translateY(-2px) scale(1.04); background: #1ebe57; } /* verde WhatsApp más oscuro, hover intencional */
+.wa-soporte-boton svg { width: 26px; height: 26px; }
+
+/* Igual que chat-widget.css: bajo 768px aparece la barra mobile inferior
+   fija (60px + safe-area), ambos FABs deben flotar por encima de ella. */
+@media (max-width: 768px) {
+  .wa-soporte-boton {
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+  }
+}
+
+/* Bajo 480px, apilar el botón de WhatsApp arriba del de ayuda en vez de
+   al costado (dos FABs de 56px lado a lado no entran en pantallas angostas). */
+@media (max-width: 480px) {
+  .wa-soporte-boton {
+    right: 16px;
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px + 56px + 12px);
+  }
+}

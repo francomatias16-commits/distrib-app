@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Cobros y saldos pendientes — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/cobranzas-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-cobranzas-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Cobros y saldos pendientes</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <p class="page-intro">
+  Lista priorizada de a quién conviene llamar hoy según el riesgo de cada cliente, y el detalle de saldos / cuenta corriente de cada uno en la otra pestaña.
+</p>
+  </div>
+
+  <!-- ── Fase 0 (auditoría IA/UX): 'Cuenta corriente' y 'Cobranzas' fusionadas
+       en una sola puerta de entrada con dos pestañas, en vez de dos secciones
+       de menú separadas. /admin/cta-cte ahora redirige acá con ?vista=saldos. ── -->
+  <div class="vista-principal-tabs" role="tablist" aria-label="Vista principal" style="display:flex;gap:8px;padding:0 24px;margin-top:-4px">
+    <button type="button" role="tab" aria-selected="true"  aria-controls="vista-cobranza" class="tab-btn-principal active" id="vptab-cobranza" onclick="cambiarVistaPrincipal('cobranza')">¿A quién llamo hoy?</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="vista-saldos"   class="tab-btn-principal"        id="vptab-saldos"   onclick="cambiarVistaPrincipal('saldos')">Saldos por cliente</button>
+  </div>
+
+  <main class="main" id="vista-cobranza">
+
+    <!-- "Cobrado hoy" no tiene categoría equivalente en la tabla de abajo →
+         solo lectura. Los otros 3 SÍ coinciden 1:1 con los tabs de "Facturas
+         pendientes" (Vencen hoy / Próximos 7 días / Vencidas) → se fusionan
+         ahí como monto, en vez de repetir la info arriba en una tarjeta aparte. -->
+    <div class="franja-resumen-sololectura">
+      <span>Cobrado hoy: <strong id="kpi-cobrado-hoy">$0</strong> <span id="kpi-cobrado-sub"></span></span>
+    </div>
+
+    <!-- Cobros por medio de pago (hoy) -->
+    <div class="tabla-wrap">
+      <div class="tabla-header">
+        <h2>Cobros de hoy por medio de pago</h2>
+      </div>
+      <div id="medios-pago-grid" class="mp-lista">
+        <div class="mp-vacio">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Tabs: facturas vencidas hoy / próximos 7 días -->
+    <div class="tabla-wrap">
+      <div class="tabla-header">
+        <h2>Facturas pendientes</h2>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="tabs" role="tablist" aria-label="Período de cobranza">
+            <button type="button" role="tab" aria-selected="true"  class="tab-btn active" onclick="cambiarTab('priorizada', this)">Priorizada <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></button>
+            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('hoy', this)">Vencen hoy <span class="n" id="tabamt-hoy">$0</span></button>
+            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('semana', this)">Próximos 7 días <span class="n" id="tabamt-semana">$0</span></button>
+            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('vencidas', this)">Vencidas <span class="n" id="tabamt-vencidas">$0</span></button>
+          </div>
+          <button type="button" class="btn btn--danger" id="btn-recordatorio" onclick="btnAsyncClick(this, enviarRecordatorioMasivo)" aria-live="polite" style="padding:6px 14px;font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
+            Recordatorio masivo
+          </button>
+        </div>
+      </div>
+      <div class="tabla-overflow">
+        <table class="tabla table-compact">
+          <!-- El <tr> de abajo es el estado inicial (tab "priorizada"); cambiarTab()
+               reemplaza este contenido por THEAD_FACTURAS o THEAD_PRIORIZADA
+               según la tab activa, vía cobranzas.js -->
+          <thead id="thead-facturas">
+            <tr>
+              <th>N° Factura</th>
+              <th>Cliente</th>
+              <th>Pendiente</th>
+              <th>Días vencida</th>
+              <th>Prioridad</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-facturas"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════════
+       Vista: Saldos por cliente (ex /admin/cta-cte, fusionada acá)
+  ═════════════════════════════════════════════════════════════ -->
+  <main class="main" id="vista-saldos" style="display:none">
+
+    <!-- Los 4 coinciden 1:1 con las opciones del <select id="filtro-estado"> de
+         la tabla de abajo (Todos/Vencido/Por vencer/Al día) → pestañas reales. -->
+    <div class="barra-filtros" id="filtro-tabs-saldos"></div>
+
+    <!-- Tabla de clientes -->
+    <div class="tabla-wrap">
+      <div class="tabla-header">
+        <h2>Clientes con saldo</h2>
+        <div class="filtros-bar">
+          <input type="search" id="buscar-cliente" placeholder="Buscar cliente..." oninput="onBusquedaClienteInput()" aria-label="Buscar cliente" />
+          <select id="filtro-estado" onchange="filtrarClientes()" class="oculto">
+            <option value="">Todos</option>
+            <option value="vencido">Vencido</option>
+            <option value="por_vencer">Por vencer</option>
+            <option value="al_dia">Al día</option>
+          </select>
+        </div>
+      </div>
+      <div class="tabla-overflow">
+        <table class="tabla table-compact" id="tabla-clientes">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Deuda total</th>
+              <th>Vencido</th>
+              <th>Último pago</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-clientes">
+            <tr><td colspan="6"><div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>Cargando...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── Panel lateral: detalle del cliente (vista Saldos) ── -->
+<div class="detalle-panel" id="panel-cliente">
+  <div class="detalle-panel-header">
+    <h3 id="panel-nombre">Cliente</h3>
+    <button type="button" class="btn-cerrar-panel" onclick="cerrarPanel()" aria-label="Cerrar panel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="detalle-panel-body" id="panel-body">
+    <!-- contenido dinámico -->
+  </div>
+  <div class="detalle-panel-footer">
+    <button type="button" class="btn btn--primary" onclick="abrirModalCobro()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Registrar cobro
+    </button>
+    <button type="button" class="btn btn--secondary" onclick="btnAsyncClick(this, enviarEstado)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
+      Enviar estado
+    </button>
+  </div>
+</div>
+
+<!-- ── Modal: registrar cobro ── -->
+<div class="modal-overlay hidden" id="modal-cobro" role="dialog" aria-modal="true" aria-labelledby="modal-cobro-titulo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-cobro-titulo">Registrar cobro</h3>
+      <button type="button" class="modal-close" onclick="cerrarModalCobro()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="alerta-credito-cobro"></div>
+      <div id="cobro-factura-vinculada" class="hidden" style="font-size:12px; color:var(--color-text-light); background:var(--color-bg); border-radius:var(--radius-sm); padding:8px 10px; margin-bottom:10px;"></div>
+      <div class="form-grid">
+        <div class="form-group span2">
+          <label>Cliente</label>
+          <input type="text" id="cobro-cliente-nombre" readonly aria-label="Nombre del cliente" />
+        </div>
+        <div class="form-group">
+          <label>Monto *</label>
+          <input type="number" id="cobro-monto" placeholder="0" min="0" step="1" data-money aria-label="Monto del cobro" />
+        </div>
+        <div class="form-group">
+          <label>Medio de pago *</label>
+          <select id="cobro-medio">
+            <option value="">Seleccionar...</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="cheque">Cheque</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" id="cobro-fecha" aria-label="Fecha del cobro" />
+        </div>
+        <div class="form-group">
+          <label>N° comprobante</label>
+          <input type="text" id="cobro-comprobante" placeholder="Opcional" aria-label="Número de comprobante" />
+        </div>
+        <div class="form-group span2">
+          <label>Observaciones</label>
+          <textarea id="cobro-obs" rows="2" placeholder="Notas adicionales..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalCobro()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-cobro" onclick="btnAsyncClick(this, guardarCobro)" aria-live="polite">Guardar cobro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: enviar estado de cuenta ── -->
+<div class="modal-overlay hidden" id="modal-estado-cuenta" role="dialog" aria-modal="true" aria-labelledby="modal-ec-titulo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-ec-titulo">Enviar estado de cuenta</h3>
+      <button type="button" class="modal-close" onclick="cerrarModalEstado()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="ec-alert"></div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em">Cliente</label>
+        <div id="ec-cliente-nombre" style="font-size:15px;font-weight:700;color:var(--color-text);margin-top:4px">—</div>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-group">
+          <label>Email registrado</label>
+          <div id="ec-email-display" style="font-size:13px;color:var(--color-text-muted);padding:8px 0">—</div>
+        </div>
+        <div class="form-group">
+          <label>Saldo total</label>
+          <div id="ec-deuda-display" style="font-size:15px;font-weight:700;color:var(--color-danger);padding:8px 0">$0</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Enviar a otro email <span style="font-size:11px;color:var(--color-text-muted)">(opcional)</span></label>
+        <input type="email" id="ec-email-override" placeholder="Dejar vacío para usar el email del cliente" autocomplete="off" aria-label="Email de envío" />
+      </div>
+      <div class="form-group" style="margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500">
+          <input type="checkbox" id="ec-incluir-movs" checked style="width:16px;height:16px;cursor:pointer" aria-label="Incluir movimientos" />
+          Incluir últimos movimientos de cuenta corriente
+        </label>
+      </div>
+      <div style="background:var(--color-bg);border-radius: var(--radius-md);padding:12px 14px;font-size:12px;color:var(--color-text-muted);margin-top:12px;line-height:1.5">
+        Se enviará un resumen con saldo total, deuda vencida y facturas pendientes.
+        El email incluye el detalle de facturas impagas y, si está marcada la opción, los últimos 8 movimientos.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalEstado()">Cancelar</button>
+      <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, confirmarEnvioEstado)" id="btn-confirmar-envio-ec">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+        </svg>
+        Enviar estado de cuenta
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Fase 0 (auditoría IA/UX): switcher de las dos vistas fusionadas en esta
+  // misma puerta de entrada. Lee ?vista=saldos para soportar los links viejos
+  // a /admin/cta-cte (que ahora redirige acá vía cta-cte.html, por bookmarks
+  // guardados). automatizacion.js y lib/handlers/cierre.js ya apuntan directo
+  // a /admin/cobranzas?vista=saldos, sin pasar por el redirect.
+  function cambiarVistaPrincipal(vista) {
+    const esSaldos = vista === 'saldos';
+    document.getElementById('vista-cobranza').style.display = esSaldos ? 'none' : '';
+    document.getElementById('vista-saldos').style.display   = esSaldos ? '' : 'none';
+    document.getElementById('vptab-cobranza').classList.toggle('active', !esSaldos);
+    document.getElementById('vptab-saldos').classList.toggle('active', esSaldos);
+    document.getElementById('btn-recordatorio').style.display = esSaldos ? 'none' : '';
+    document.querySelector('.topbar-title').textContent = esSaldos ? 'Saldos por cliente' : 'Cobranzas';
+  }
+  window.cambiarVistaPrincipal = cambiarVistaPrincipal;
+
+  const _vistaInicial = new URLSearchParams(window.location.search).get('vista');
+  if (_vistaInicial === 'saldos') cambiarVistaPrincipal('saldos');
+</script>
+
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+<script src="/frontend/admin/js/cobranzas.js?v268"></script>
+<script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+<script src="/shared/offline-core.js?v1"></script>
+<script src="/frontend/admin/js/cobros-offline.js?v1"></script>
+<script src="/frontend/admin/js/cta-cte.js?v267"></script>
+</body>
+</html>

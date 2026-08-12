@@ -1,0 +1,1244 @@
+{
+  "version": 2,
+  "outputDirectory": ".",
+  "installCommand": "npm ci",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'none'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/(.*)\\.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.mercadopago.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/(.*)\\.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/(.*)\\.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/admin/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/admin/sw-admin.js",
+      "headers": [
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/chofer/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/chofer/sw-chofer.js",
+      "headers": [
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/chofer"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/cliente/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/cliente/sw-cliente.js",
+      "headers": [
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/cliente"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/proveedor/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/frontend/proveedor/sw-proveedor.js",
+      "headers": [
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/proveedor"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/demo",
+      "destination": "/admin/login?demo=1",
+      "permanent": false
+    },
+    {
+      "source": "/demo-chofer",
+      "destination": "/chofer/login?demo=1",
+      "permanent": false
+    },
+    {
+      "source": "/admin/zonas",
+      "destination": "/admin/rutas?tab=zonas",
+      "permanent": false
+    },
+    {
+      "source": "/admin/listas-precio",
+      "destination": "/admin/clientes?tab=listas",
+      "permanent": false
+    },
+    {
+      "source": "/admin/depositos",
+      "destination": "/admin/stock?modal=depositos",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/.well-known/assetlinks.json",
+      "destination": "/.well-known/assetlinks.json"
+    },
+    {
+      "source": "/frontend/admin/manifest.json",
+      "destination": "/frontend/admin/manifest.json"
+    },
+    {
+      "source": "/admin/manifest.json",
+      "destination": "/frontend/admin/manifest.json"
+    },
+    {
+      "source": "/api/importar/vision",
+      "destination": "/api/index?_mod=importar&vision=1"
+    },
+    {
+      "source": "/api/importar",
+      "destination": "/api/index?_mod=importar"
+    },
+    {
+      "source": "/api/auto-imagenes",
+      "destination": "/api/index?_mod=auto-imagenes"
+    },
+    {
+      "source": "/api/empresa/logo",
+      "destination": "/api/index?_mod=empresa&_svc=logo"
+    },
+    {
+      "source": "/api/empresa/icon",
+      "destination": "/api/index?_mod=empresa&_svc=icon"
+    },
+    {
+      "source": "/api/empresa/datos",
+      "destination": "/api/index?_mod=empresa&_svc=datos"
+    },
+    {
+      "source": "/api/empresa/catalogo-publico",
+      "destination": "/api/index?_mod=empresa&_svc=catalogo-publico"
+    },
+    {
+      "source": "/api/empresa",
+      "destination": "/api/index?_mod=empresa"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/index?_mod=setup&_svc=health"
+    },
+    {
+      "source": "/api/setup/status",
+      "destination": "/api/index?_mod=setup&_svc=status"
+    },
+    {
+      "source": "/api/setup/init",
+      "destination": "/api/index?_mod=setup&_svc=init"
+    },
+    {
+      "source": "/api/auth/login",
+      "destination": "/api/index?_mod=auth&_ruta=login"
+    },
+    {
+      "source": "/api/auth/refresh",
+      "destination": "/api/index?_mod=auth&_ruta=refresh"
+    },
+    {
+      "source": "/api/auth/logout",
+      "destination": "/api/index?_mod=auth&_ruta=logout"
+    },
+    {
+      "source": "/api/auth/me",
+      "destination": "/api/index?_mod=auth&_ruta=me"
+    },
+    {
+      "source": "/api/auth/reset-password",
+      "destination": "/api/index?_mod=auth&_ruta=reset-password"
+    },
+    {
+      "source": "/api/admin/kpis",
+      "destination": "/api/index?_mod=admin&_svc=kpis"
+    },
+    {
+      "source": "/api/admin/pedidos",
+      "destination": "/api/index?_mod=admin&_svc=pedidos"
+    },
+    {
+      "source": "/api/admin/stock/bajo",
+      "destination": "/api/index?_mod=admin&_svc=stock-bajo"
+    },
+    {
+      "source": "/api/admin/reportes/ventas-diarias",
+      "destination": "/api/index?_mod=admin&_svc=ventas-diarias"
+    },
+    {
+      "source": "/api/admin/alertas",
+      "destination": "/api/index?_mod=admin&_svc=alertas"
+    },
+    {
+      "source": "/api/admin/salud-eventos",
+      "destination": "/api/index?_mod=admin&_svc=salud-eventos"
+    },
+    {
+      "source": "/api/admin/metricas-negocio",
+      "destination": "/api/index?_mod=admin&_svc=metricas-negocio"
+    },
+    {
+      "source": "/api/admin/onboarding",
+      "destination": "/api/index?_mod=admin&_svc=onboarding"
+    },
+    {
+      "source": "/api/admin/dashboard-ejecutivo",
+      "destination": "/api/index?_mod=admin&_svc=dashboard-ejecutivo"
+    },
+    {
+      "source": "/api/admin/comparativa-mensual",
+      "destination": "/api/index?_mod=admin&_svc=comparativa-mensual"
+    },
+    {
+      "source": "/api/admin/resumen-arranque",
+      "destination": "/api/index?_mod=admin&_svc=resumen-arranque"
+    },
+    {
+      "source": "/api/admin/devoluciones(.*)",
+      "destination": "/api/index?_mod=pedidos&_svc=devoluciones"
+    },
+    {
+      "source": "/api/admin/(.*)",
+      "destination": "/api/index?_mod=admin"
+    },
+    {
+      "source": "/api/chofer/remitos/(.*)/entregar",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=entregar"
+    },
+    {
+      "source": "/api/chofer/remitos",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=remitos"
+    },
+    {
+      "source": "/api/chofer/clientes",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=clientes"
+    },
+    {
+      "source": "/api/chofer/productos",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=productos"
+    },
+    {
+      "source": "/api/chofer/entrega-foto",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=entrega-foto"
+    },
+    {
+      "source": "/api/chofer/devolucion-foto",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=devolucion-foto"
+    },
+    {
+      "source": "/api/chofer/devolucion",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=devolucion"
+    },
+    {
+      "source": "/api/chofer/(.*)",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer"
+    },
+    {
+      "source": "/api/chofer-invitacion",
+      "destination": "/api/index?_mod=chofer-invitacion"
+    },
+    {
+      "source": "/api/cliente/categorias",
+      "destination": "/api/index?_mod=stock&_svc=cliente-categorias"
+    },
+    {
+      "source": "/api/cliente/productos(.*)",
+      "destination": "/api/index?_mod=stock&_svc=cliente-productos"
+    },
+    {
+      "source": "/api/cliente/(.*)",
+      "destination": "/api/index?_mod=stock&_svc=cliente-productos"
+    },
+    {
+      "source": "/api/facturas/config",
+      "destination": "/api/index?_mod=facturas&recurso=config"
+    },
+    {
+      "source": "/api/facturas/anular",
+      "destination": "/api/index?_mod=facturas&accion=anular"
+    },
+    {
+      "source": "/api/facturas/reintentar",
+      "destination": "/api/index?_mod=facturas&accion=reintentar"
+    },
+    {
+      "source": "/api/notas-credito(.*)",
+      "destination": "/api/index?_mod=facturas&_svc=notas-credito"
+    },
+    {
+      "source": "/api/facturas(.*)",
+      "destination": "/api/index?_mod=facturas"
+    },
+    {
+      "source": "/api/export-contable/config",
+      "destination": "/api/index?_mod=export-contable&recurso=config"
+    },
+    {
+      "source": "/api/export-contable/historial",
+      "destination": "/api/index?_mod=export-contable&recurso=historial"
+    },
+    {
+      "source": "/api/export-contable(.*)",
+      "destination": "/api/index?_mod=export-contable"
+    },
+    {
+      "source": "/api/reglas-precio(.*)",
+      "destination": "/api/index?_mod=reglas-precio"
+    },
+    {
+      "source": "/api/reglas-automatizacion(.*)",
+      "destination": "/api/index?_mod=reglas-automatizacion"
+    },
+    {
+      "source": "/api/conciliacion-bancaria(.*)",
+      "destination": "/api/index?_mod=conciliacion-bancaria"
+    },
+    {
+      "source": "/api/fidelizacion(.*)",
+      "destination": "/api/index?_mod=fidelizacion"
+    },
+    {
+      "source": "/api/pedidos/confirmar-pedido",
+      "destination": "/api/index?_mod=pedidos&accion=confirmar"
+    },
+    {
+      "source": "/api/presupuestos(.*)",
+      "destination": "/api/index?_mod=pedidos&_svc=presupuestos"
+    },
+    {
+      "source": "/api/remito-nro",
+      "destination": "/api/index?_mod=pedidos&_svc=remito-nro"
+    },
+    {
+      "source": "/api/pedidos(.*)",
+      "destination": "/api/index?_mod=pedidos"
+    },
+    {
+      "source": "/api/lotes/fefo",
+      "destination": "/api/index?_mod=stock&_svc=lotes-fefo"
+    },
+    {
+      "source": "/api/lotes(.*)",
+      "destination": "/api/index?_mod=stock&_svc=lotes"
+    },
+    {
+      "source": "/api/sugerencias(.*)",
+      "destination": "/api/index?_mod=stock&_svc=sugerencias"
+    },
+    {
+      "source": "/api/stock-auto(.*)",
+      "destination": "/api/index?_mod=stock-auto"
+    },
+    {
+      "source": "/api/liquidacion(.*)",
+      "destination": "/api/index?_mod=stock&_svc=liquidacion"
+    },
+    {
+      "source": "/api/stock(.*)",
+      "destination": "/api/index?_mod=stock"
+    },
+    {
+      "source": "/api/compras(.*)",
+      "destination": "/api/index?_mod=proveedores&_svc=compras"
+    },
+    {
+      "source": "/api/maestros(.*)",
+      "destination": "/api/index?_mod=maestros"
+    },
+    {
+      "source": "/api/banco-codigos(.*)",
+      "destination": "/api/index?_mod=banco-codigos"
+    },
+    {
+      "source": "/api/proveedores(.*)",
+      "destination": "/api/index?_mod=proveedores"
+    },
+    {
+      "source": "/api/pagos/mercado-pago",
+      "destination": "/api/index?_mod=pagos"
+    },
+    {
+      "source": "/api/pagos/config",
+      "destination": "/api/index?_mod=pagos&_svc=config"
+    },
+    {
+      "source": "/api/pagos/publico",
+      "destination": "/api/index?_mod=pagos&_svc=publico"
+    },
+    {
+      "source": "/api/pagos(.*)",
+      "destination": "/api/index?_mod=pagos"
+    },
+    {
+      "source": "/api/estado-cuenta",
+      "destination": "/api/index?_mod=notif&_svc=estado-cuenta"
+    },
+    {
+      "source": "/api/notif/reintentar-email",
+      "destination": "/api/index?_mod=notif&_svc=reintentar-email"
+    },
+    {
+      "source": "/api/notif/cheques-por-vencer",
+      "destination": "/api/index?_mod=notif&_svc=cheques-cron"
+    },
+    {
+      "source": "/api/notif/deuda-vencida",
+      "destination": "/api/index?_mod=notif&_svc=deuda-cron"
+    },
+    {
+      "source": "/api/notif/eventos-reprocesar",
+      "destination": "/api/index?_mod=notif&_svc=eventos-reprocesar-cron"
+    },
+    {
+      "source": "/api/notif/whatsapp-salientes-reprocesar",
+      "destination": "/api/index?_mod=notif&_svc=whatsapp-salientes-reprocesar-cron"
+    },
+    {
+      "source": "/api/notif/whatsapp",
+      "destination": "/api/index?_mod=notif&_svc=whatsapp"
+    },
+    {
+      "source": "/api/notif/whatsapp-webhook",
+      "destination": "/api/index?_mod=notif&_svc=whatsapp-webhook"
+    },
+    {
+      "source": "/api/notif/whatsapp-conversacion-accion",
+      "destination": "/api/index?_mod=notif&_svc=whatsapp-conversacion-accion"
+    },
+    {
+      "source": "/api/notif/whatsapp-embedded-signup",
+      "destination": "/api/index?_mod=notif&_svc=whatsapp-embedded-signup"
+    },
+    {
+      "source": "/api/notif/push-interno",
+      "destination": "/api/index?_mod=notif&tipo=push-interno"
+    },
+    {
+      "source": "/api/notif/push",
+      "destination": "/api/index?_mod=notif&tipo=push"
+    },
+    {
+      "source": "/api/notif/push-chofer",
+      "destination": "/api/index?_mod=notif&_svc=push-chofer"
+    },
+    {
+      "source": "/api/notif(.*)",
+      "destination": "/api/index?_mod=notif"
+    },
+    {
+      "source": "/api/piloto(.*)",
+      "destination": "/api/index?_mod=piloto"
+    },
+    {
+      "source": "/api/pos/abrir-turno",
+      "destination": "/api/index?_mod=pos&accion=abrir-turno"
+    },
+    {
+      "source": "/api/pos/cerrar-turno",
+      "destination": "/api/index?_mod=pos&accion=cerrar-turno"
+    },
+    {
+      "source": "/api/pos/forzar-cierre-turno",
+      "destination": "/api/index?_mod=pos&accion=forzar-cierre-turno"
+    },
+    {
+      "source": "/api/pos/caja-estado",
+      "destination": "/api/index?_mod=pos&accion=caja-estado"
+    },
+    {
+      "source": "/api/pos/config-hardware",
+      "destination": "/api/index?_mod=pos&accion=config-hardware"
+    },
+    {
+      "source": "/api/pos/resumen-turno",
+      "destination": "/api/index?_mod=pos&accion=resumen-turno"
+    },
+    {
+      "source": "/api/pos/cajas",
+      "destination": "/api/index?_mod=pos&accion=cajas"
+    },
+    {
+      "source": "/api/pos/productos",
+      "destination": "/api/index?_mod=pos&accion=productos"
+    },
+    {
+      "source": "/api/pos/ticket",
+      "destination": "/api/index?_mod=pos&accion=ticket"
+    },
+    {
+      "source": "/api/pos/anular",
+      "destination": "/api/index?_mod=pos&accion=anular"
+    },
+    {
+      "source": "/api/pos/facturar",
+      "destination": "/api/index?_mod=pos&accion=facturar"
+    },
+    {
+      "source": "/api/pos/transferir-stock",
+      "destination": "/api/index?_mod=pos&accion=transferir-stock"
+    },
+    {
+      "source": "/api/pos/ventas",
+      "destination": "/api/index?_mod=pos&accion=ventas"
+    },
+    {
+      "source": "/api/pos/depositos",
+      "destination": "/api/index?_mod=pos&accion=depositos"
+    },
+    {
+      "source": "/api/pos/transferencias-stock",
+      "destination": "/api/index?_mod=pos&accion=transferencias-stock"
+    },
+    {
+      "source": "/api/pos/cajas-admin",
+      "destination": "/api/index?_mod=pos&accion=cajas-admin"
+    },
+    {
+      "source": "/api/pos/reporte-z",
+      "destination": "/api/index?_mod=pos&accion=reporte-z"
+    },
+    {
+      "source": "/api/pos/historial-turnos",
+      "destination": "/api/index?_mod=pos&accion=historial-turnos"
+    },
+    {
+      "source": "/api/pos/favoritos-quitar",
+      "destination": "/api/index?_mod=pos&accion=favoritos-quitar"
+    },
+    {
+      "source": "/api/pos/favoritos",
+      "destination": "/api/index?_mod=pos&accion=favoritos"
+    },
+    {
+      "source": "/api/pos/verificar-pin",
+      "destination": "/api/index?_mod=pos&accion=verificar-pin"
+    },
+    {
+      "source": "/api/pos/movimiento-caja",
+      "destination": "/api/index?_mod=pos&accion=movimiento-caja"
+    },
+    {
+      "source": "/api/pos/cliente-rapido",
+      "destination": "/api/index?_mod=pos&accion=cliente-rapido"
+    },
+    {
+      "source": "/api/pos/config-pin",
+      "destination": "/api/index?_mod=pos&accion=config-pin"
+    },
+    {
+      "source": "/api/pos/promociones",
+      "destination": "/api/index?_mod=pos&accion=promociones"
+    },
+    {
+      "source": "/api/pos/devoluciones",
+      "destination": "/api/index?_mod=pos&accion=devoluciones"
+    },
+    {
+      "source": "/api/pos/devolucion",
+      "destination": "/api/index?_mod=pos&accion=devolucion"
+    },
+    {
+      "source": "/api/pos/stock-alerta",
+      "destination": "/api/index?_mod=pos&accion=stock-alerta"
+    },
+    {
+      "source": "/api/pos/sincronizar-offline",
+      "destination": "/api/index?_mod=pos&accion=sincronizar-offline"
+    },
+    {
+      "source": "/admin/cajas",
+      "destination": "/frontend/admin/cajas.html"
+    },
+    {
+      "source": "/api/pos-scanner(.*)",
+      "destination": "/api/index?_mod=pos-scanner"
+    },
+    {
+      "source": "/api/pos(.*)",
+      "destination": "/api/index?_mod=pos"
+    },
+    {
+      "source": "/api/cierre(.*)",
+      "destination": "/api/index?_mod=cierre"
+    },
+    {
+      "source": "/api/rutas-live(.*)",
+      "destination": "/api/index?_mod=rutas-live"
+    },
+    {
+      "source": "/api/bcra(.*)",
+      "destination": "/api/index?_mod=bcra"
+    },
+    {
+      "source": "/api/score(.*)",
+      "destination": "/api/index?_mod=score"
+    },
+    {
+      "source": "/api/automatizacion(.*)",
+      "destination": "/api/index?_mod=automatizacion"
+    },
+    {
+      "source": "/api/auditoria(.*)",
+      "destination": "/api/index?_mod=auditoria"
+    },
+    {
+      "source": "/api/migracion(.*)",
+      "destination": "/api/index?_mod=migracion"
+    },
+    {
+      "source": "/api/busqueda(.*)",
+      "destination": "/api/index?_mod=busqueda"
+    },
+    {
+      "source": "/api/asistente(.*)",
+      "destination": "/api/index?_mod=asistente"
+    },
+    {
+      "source": "/api/clientes(.*)",
+      "destination": "/api/index?_mod=clientes"
+    },
+    {
+      "source": "/api/usuarios(.*)",
+      "destination": "/api/index?_mod=usuarios"
+    },
+    {
+      "source": "/api/ciclos(.*)",
+      "destination": "/api/index?_mod=ciclos"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/setup",
+      "destination": "/frontend/admin/setup.html"
+    },
+    {
+      "source": "/admin/login",
+      "destination": "/frontend/admin/login.html"
+    },
+    {
+      "source": "/admin/restablecer-password",
+      "destination": "/frontend/admin/restablecer-password.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/frontend/admin/dashboard.html"
+    },
+    {
+      "source": "/admin/dashboard",
+      "destination": "/frontend/admin/dashboard.html"
+    },
+    {
+      "source": "/admin/dashboard-v3",
+      "destination": "/frontend/admin/dashboard.html"
+    },
+    {
+      "source": "/admin/pos",
+      "destination": "/frontend/admin/pos.html"
+    },
+    {
+      "source": "/admin/pedidos",
+      "destination": "/frontend/admin/pedidos.html"
+    },
+    {
+      "source": "/admin/clientes",
+      "destination": "/frontend/admin/clientes.html"
+    },
+    {
+      "source": "/admin/productos",
+      "destination": "/frontend/admin/productos.html"
+    },
+    {
+      "source": "/admin/stock",
+      "destination": "/frontend/admin/stock.html"
+    },
+    {
+      "source": "/admin/facturacion",
+      "destination": "/frontend/admin/facturacion.html"
+    },
+    {
+      "source": "/admin/facturacion-config",
+      "destination": "/frontend/admin/facturacion-config.html"
+    },
+    {
+      "source": "/admin/export-contable",
+      "destination": "/frontend/admin/export-contable.html"
+    },
+    {
+      "source": "/admin/reglas-precio",
+      "destination": "/frontend/admin/reglas-precio.html"
+    },
+    {
+      "source": "/admin/conciliacion-bancaria",
+      "destination": "/frontend/admin/conciliacion-bancaria.html"
+    },
+    {
+      "source": "/admin/rentabilidad-producto-vendedor",
+      "destination": "/frontend/admin/rentabilidad-producto-vendedor.html"
+    },
+    {
+      "source": "/admin/mercadopago-config",
+      "destination": "/frontend/admin/mercadopago-config.html"
+    },
+    {
+      "source": "/admin/empresa-config",
+      "destination": "/frontend/admin/empresa-config.html"
+    },
+    {
+      "source": "/admin/soporte",
+      "destination": "/frontend/admin/soporte.html"
+    },
+    {
+      "source": "/admin/rutas",
+      "destination": "/frontend/admin/rutas.html"
+    },
+    {
+      "source": "/admin/cta-cte",
+      "destination": "/frontend/admin/cta-cte.html"
+    },
+    {
+      "source": "/admin/proveedores",
+      "destination": "/frontend/admin/proveedores.html"
+    },
+    {
+      "source": "/admin/compras",
+      "destination": "/frontend/admin/compras.html"
+    },
+    {
+      "source": "/admin/cc-proveedores",
+      "destination": "/frontend/admin/cc-proveedores.html"
+    },
+    {
+      "source": "/admin/comparador-precios",
+      "destination": "/frontend/admin/comparador-precios.html"
+    },
+    {
+      "source": "/admin/cheques",
+      "destination": "/frontend/admin/cheques.html"
+    },
+    {
+      "source": "/admin/riesgo-cheques",
+      "destination": "/frontend/admin/riesgo-cheques.html"
+    },
+    {
+      "source": "/admin/cobranzas",
+      "destination": "/frontend/admin/cobranzas.html"
+    },
+    {
+      "source": "/admin/notas",
+      "destination": "/frontend/admin/notas.html"
+    },
+    {
+      "source": "/admin/fidelizacion",
+      "destination": "/frontend/admin/fidelizacion.html"
+    },
+    {
+      "source": "/admin/presupuestos",
+      "destination": "/frontend/admin/presupuestos.html"
+    },
+    {
+      "source": "/admin/usuarios",
+      "destination": "/frontend/admin/usuarios.html"
+    },
+    {
+      "source": "/admin/lotes",
+      "destination": "/frontend/admin/lotes.html"
+    },
+    {
+      "source": "/admin/vencimientos",
+      "destination": "/frontend/admin/vencimientos.html"
+    },
+    {
+      "source": "/admin/devoluciones",
+      "destination": "/frontend/admin/devoluciones.html"
+    },
+    {
+      "source": "/admin/liquidacion",
+      "destination": "/frontend/admin/liquidacion.html"
+    },
+    {
+      "source": "/admin/puntos",
+      "destination": "/frontend/admin/puntos.html"
+    },
+    {
+      "source": "/admin/reportes-ventas",
+      "destination": "/frontend/admin/reportes-ventas.html"
+    },
+    {
+      "source": "/admin/reportes-financieros",
+      "destination": "/frontend/admin/reportes-financieros.html"
+    },
+    {
+      "source": "/admin/reportes-stock",
+      "destination": "/frontend/admin/reportes-stock.html"
+    },
+    {
+      "source": "/admin/rentabilidad-zona",
+      "destination": "/frontend/admin/rentabilidad-zona.html"
+    },
+    {
+      "source": "/admin/auditoria",
+      "destination": "/frontend/admin/auditoria.html"
+    },
+    {
+      "source": "/admin/migracion",
+      "destination": "/frontend/admin/migracion.html"
+    },
+    {
+      "source": "/admin/anomalias",
+      "destination": "/frontend/admin/anomalias.html"
+    },
+    {
+      "source": "/admin/avisos",
+      "destination": "/frontend/admin/avisos.html"
+    },
+    {
+      "source": "/admin/observabilidad",
+      "destination": "/frontend/admin/observabilidad.html"
+    },
+    {
+      "source": "/admin/notif-log",
+      "destination": "/frontend/admin/notif-log.html"
+    },
+    {
+      "source": "/admin/whatsapp-conversaciones",
+      "destination": "/frontend/admin/whatsapp-conversaciones.html"
+    },
+    {
+      "source": "/admin/whatsapp-onboarding",
+      "destination": "/frontend/admin/whatsapp-onboarding.html"
+    },
+    {
+      "source": "/admin/superadmin",
+      "destination": "/frontend/admin/superadmin.html"
+    },
+    {
+      "source": "/admin/saas-billing",
+      "destination": "/frontend/admin/saas-billing.html"
+    },
+    {
+      "source": "/admin/automatizacion",
+      "destination": "/frontend/admin/automatizacion.html"
+    },
+    {
+      "source": "/admin/(.*\\.json)",
+      "destination": "/frontend/admin/$1"
+    },
+    {
+      "source": "/admin/(.*\\.html)",
+      "destination": "/frontend/admin/$1"
+    },
+    {
+      "source": "/admin/(.*\\.js)",
+      "destination": "/frontend/admin/$1"
+    },
+    {
+      "source": "/admin/(.*\\.css)",
+      "destination": "/frontend/admin/$1"
+    },
+    {
+      "source": "/cliente",
+      "destination": "/frontend/cliente/inicio.html"
+    },
+    {
+      "source": "/cliente/login",
+      "destination": "/frontend/cliente/login.html"
+    },
+    {
+      "source": "/cliente/inicio",
+      "destination": "/frontend/cliente/inicio.html"
+    },
+    {
+      "source": "/cliente/catalogo",
+      "destination": "/frontend/cliente/catalogo.html"
+    },
+    {
+      "source": "/cliente/carrito",
+      "destination": "/frontend/cliente/carrito.html"
+    },
+    {
+      "source": "/cliente/pedidos",
+      "destination": "/frontend/cliente/pedidos.html"
+    },
+    {
+      "source": "/cliente/cuenta",
+      "destination": "/frontend/cliente/cuenta.html"
+    },
+    {
+      "source": "/cliente/checkout",
+      "destination": "/frontend/cliente/checkout.html"
+    },
+    {
+      "source": "/cliente/puntos",
+      "destination": "/frontend/cliente/puntos.html"
+    },
+    {
+      "source": "/cliente/notificaciones",
+      "destination": "/frontend/cliente/notificaciones.html"
+    },
+    {
+      "source": "/cliente/(.*\\.html)",
+      "destination": "/frontend/cliente/$1"
+    },
+    {
+      "source": "/cliente/(.*\\.js)",
+      "destination": "/frontend/cliente/$1"
+    },
+    {
+      "source": "/cliente/(.*\\.css)",
+      "destination": "/frontend/cliente/$1"
+    },
+    {
+      "source": "/cliente/manifest.json",
+      "destination": "/frontend/cliente/manifest.json"
+    },
+    {
+      "source": "/proveedor/portal",
+      "destination": "/frontend/proveedor/portal.html"
+    },
+    {
+      "source": "/proveedor/manifest.json",
+      "destination": "/frontend/proveedor/manifest.json"
+    },
+    {
+      "source": "/scan-pos",
+      "destination": "/frontend/scan-pos/portal.html"
+    },
+    {
+      "source": "/scan-pos/(.*\\.js)",
+      "destination": "/frontend/scan-pos/$1"
+    },
+    {
+      "source": "/scan-pos/(.*\\.css)",
+      "destination": "/frontend/scan-pos/$1"
+    },
+    {
+      "source": "/proveedor/(.*\\.js)",
+      "destination": "/frontend/proveedor/$1"
+    },
+    {
+      "source": "/proveedor/(.*\\.css)",
+      "destination": "/frontend/proveedor/$1"
+    },
+    {
+      "source": "/chofer",
+      "destination": "/frontend/chofer/index.html"
+    },
+    {
+      "source": "/chofer/login",
+      "destination": "/frontend/chofer/login.html"
+    },
+    {
+      "source": "/chofer/restablecer-password",
+      "destination": "/frontend/chofer/restablecer-password.html"
+    },
+    {
+      "source": "/chofer/remito",
+      "destination": "/frontend/chofer/remito.html"
+    },
+    {
+      "source": "/chofer/invitacion",
+      "destination": "/frontend/chofer/invitacion.html"
+    },
+    {
+      "source": "/chofer/notificaciones",
+      "destination": "/frontend/chofer/notificaciones.html"
+    },
+    {
+      "source": "/chofer/(.*\\.html)",
+      "destination": "/frontend/chofer/$1"
+    },
+    {
+      "source": "/chofer/(.*\\.js)",
+      "destination": "/frontend/chofer/$1"
+    },
+    {
+      "source": "/chofer/(.*\\.css)",
+      "destination": "/frontend/chofer/$1"
+    },
+    {
+      "source": "/chofer/manifest.json",
+      "destination": "/frontend/chofer/manifest.json"
+    },
+    {
+      "source": "/sw-push.js",
+      "destination": "/frontend/sw-push.js"
+    },
+    {
+      "source": "/chofer/sw/(.*\\.js)",
+      "destination": "/frontend/chofer/sw/$1"
+    },
+    {
+      "source": "/chofer/sw/(.*\\.html)",
+      "destination": "/frontend/chofer/sw/$1"
+    },
+    {
+      "source": "/shared/(.*\\.css)",
+      "destination": "/frontend/shared/$1"
+    },
+    {
+      "source": "/shared/(.*\\.js)",
+      "destination": "/frontend/shared/$1"
+    },
+    {
+      "source": "/registro",
+      "destination": "/frontend/registro.html"
+    },
+    {
+      "source": "/completar-registro",
+      "destination": "/frontend/completar-registro.html"
+    },
+    {
+      "source": "/api/registro",
+      "destination": "/api/index?_mod=registro"
+    },
+    {
+      "source": "/api/registro-social",
+      "destination": "/api/index?_mod=registro-social"
+    },
+    {
+      "source": "/admin/setup-wizard",
+      "destination": "/frontend/admin/setup-wizard.html"
+    },
+    {
+      "source": "/suspendida",
+      "destination": "/frontend/admin/suspendida.html"
+    },
+    {
+      "source": "/admin/suspendida",
+      "destination": "/frontend/admin/suspendida.html"
+    },
+    {
+      "source": "/api/saas/kpis",
+      "destination": "/api/index?_mod=saas&_svc=kpis"
+    },
+    {
+      "source": "/api/saas/empresas",
+      "destination": "/api/index?_mod=saas&_svc=empresas"
+    },
+    {
+      "source": "/api/saas/config",
+      "destination": "/api/index?_mod=saas&_svc=config"
+    },
+    {
+      "source": "/api/saas/confirmar-pago",
+      "destination": "/api/index?_mod=saas&_svc=confirmar-pago"
+    },
+    {
+      "source": "/api/saas/reactivar",
+      "destination": "/api/index?_mod=saas&_svc=reactivar"
+    },
+    {
+      "source": "/api/saas/suspender",
+      "destination": "/api/index?_mod=saas&_svc=suspender"
+    },
+    {
+      "source": "/api/saas/cancelar",
+      "destination": "/api/index?_mod=saas&_svc=cancelar"
+    },
+    {
+      "source": "/api/saas/precio",
+      "destination": "/api/index?_mod=saas&_svc=precio"
+    },
+    {
+      "source": "/frontend/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/notif/deuda-vencida",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/notif/cheques-por-vencer",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/piloto?accion=generar",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cierre?accion=procesar",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/stock-auto?accion=analizar",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/liquidacion?accion=generar",
+      "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/score?accion=recalcular-todos",
+      "schedule": "0 5 * * 0"
+    },
+    {
+      "path": "/api/piloto?accion=whatsapp-cron",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/auditoria?accion=analizar",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/rutas-live?accion=reporte-semanal",
+      "schedule": "30 7 * * 1"
+    },
+    {
+      "path": "/api/notif/eventos-reprocesar",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/notif/whatsapp-salientes-reprocesar",
+      "schedule": "20 3 * * *"
+    }
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    }
+  }
+}

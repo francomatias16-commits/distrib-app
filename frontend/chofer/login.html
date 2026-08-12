@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresar — App Chofer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="manifest" href="/chofer/manifest.json" />
+  <meta name="theme-color" content="#F5F2EA" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Paleta local del login (celeste) — no pisa los tokens globales */
+      --login-bg-1: #F0F7FD;
+      --login-bg-2: #DCEAF9;
+      --login-bg-3: #C3DDF5;
+      --login-card-bg: rgba(255,255,255,.58);
+      --login-card-border: rgba(255,255,255,.85);
+      --login-accent: #2E6DB4;
+      --login-accent-dark: #1B4E85;
+      --login-text: #1B3A5C;
+      --login-text-light: #5C7699;
+      --login-border: #C7DDF3;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      color: var(--login-text);
+      background: linear-gradient(135deg, var(--login-bg-1) 0%, var(--login-bg-2) 55%, var(--login-bg-3) 100%);
+    }
+
+    .login-card {
+      position: relative;
+      background: var(--login-card-bg);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      border: 1px solid var(--login-card-border);
+      width: 100%; max-width: 440px; border-radius: 24px;
+      box-shadow:
+        0 24px 60px rgba(27,58,92,.16),
+        0 2px 8px rgba(46,109,180,.08),
+        inset 0 1px 0 rgba(255,255,255,.6);
+      padding: 4.25rem 2.75rem 2.25rem;
+      display: flex; flex-direction: column; align-items: center;
+      overflow: visible;
+    }
+
+    .login-header { text-align: center; }
+    .login-header .icon {
+      position: absolute;
+      top: -50px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(255,255,255,.7);
+      border: 2px solid var(--login-accent);
+      box-shadow: 0 8px 20px rgba(27,58,92,.2);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto;
+    }
+    .login-header .icon svg {
+      width: 46px; height: 46px; display: block;
+      fill: none; stroke: var(--login-accent-dark);
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .login-header h1 {
+      font-family: var(--font-family-display);
+      font-size: 1.9rem; font-weight: 700; color: var(--login-text);
+    }
+    .login-header p { font-size: .98rem; color: var(--login-text-light); margin-top: .3rem; }
+
+    .login-body { width: 100%; margin-top: 2rem; }
+
+    .field-wrap {
+      position: relative;
+      display: flex; align-items: center; gap: .7rem;
+      border-bottom: 1.5px solid var(--login-border);
+      padding: .65rem .1rem;
+      transition: border-color .15s;
+    }
+    .field-wrap + .field-wrap { margin-top: 1rem; }
+    .field-wrap:focus-within { border-color: var(--login-accent); }
+    .field-wrap svg { color: var(--login-text-light); flex-shrink: 0; width: 20px; height: 20px; }
+    .field-wrap:focus-within svg { color: var(--login-accent); }
+
+    .field-wrap input {
+      flex: 1; min-width: 0; width: 100%;
+      border: none; background: transparent; padding: 0;
+      font-size: 1.05rem; font-family: inherit; outline: none; color: var(--login-text);
+    }
+    .field-wrap input::placeholder { color: var(--login-text-light); font-style: italic; }
+
+    .row-aux {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1.05rem; font-size: .88rem;
+    }
+    .row-aux label {
+      display: flex; align-items: center; gap: .45rem;
+      color: var(--login-text-light); cursor: pointer; user-select: none;
+    }
+    .row-aux input[type="checkbox"] { accent-color: var(--login-accent); width: 16px; height: 16px; cursor: pointer; }
+    .row-aux a { color: var(--login-accent-dark); font-weight: 600; text-decoration: none; }
+    .row-aux a:hover { color: var(--login-text); text-decoration: underline; }
+
+    .btn {
+      width: 100%; padding: .95rem; border-radius: 9999px;
+      font-size: .9rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+      cursor: pointer; margin-top: 1.75rem; font-family: inherit;
+      transition: background .15s, color .15s, box-shadow .15s, transform .15s;
+    }
+    .btn-primary {
+      background: transparent;
+      color: var(--login-accent-dark);
+      border: 1.5px solid var(--login-accent);
+    }
+    .btn-primary:hover {
+      background: var(--login-accent);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(46,109,180,.3);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); filter: brightness(.98); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .alerta {
+      width: 100%;
+      border-radius: 8px; padding: .75rem .95rem; font-size: .92rem; margin-bottom: 1rem; display: none;
+    }
+    .alerta-err { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid rgba(122,30,25,.2); }
+    .alerta-ok { background: var(--color-success-bg, #E4F0DC); color: var(--color-success, #1E6B1E); border: 1px solid rgba(30,107,30,.2); }
+
+    .nota-pie {
+      text-align: center; font-size: .85rem; color: var(--login-text-light); margin-top: 1.6rem;
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+  </style>
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/a11y-focus.css?v=1" />
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+        </svg>
+      </div>
+      <h1>Iniciar sesión</h1>
+      <p>App Chofer</p>
+    </div>
+
+    <div class="login-body">
+      <div id="alertaLogin" class="alerta alerta-err"></div>
+      <div id="alertaOk" class="alerta alerta-ok"></div>
+
+      <form id="formLogin">
+        <div class="field-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <input type="email" id="email" placeholder="Email" aria-label="Email" autocomplete="username" required>
+        </div>
+        <div class="field-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="password" id="password" placeholder="Contraseña" aria-label="Contraseña" autocomplete="current-password" required>
+        </div>
+
+        <div class="row-aux">
+          <label>
+            <input type="checkbox" id="recordar">
+            Recordarme
+          </label>
+          <a href="#" id="linkOlvide">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btnIngresar">Ingresar</button>
+      </form>
+
+      <!-- Mini-formulario de "olvidé mi contraseña": self-service, no
+           requiere intervención del dueño. Oculto por defecto. -->
+      <div id="formReset" style="display:none">
+        <p class="nota-pie" style="margin:0 0 14px;justify-content:flex-start;text-align:left">
+          Ingresá tu email y te mandamos un link para elegir una contraseña nueva.
+        </p>
+        <div class="field-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <input type="email" id="emailReset" placeholder="Email" aria-label="Email">
+        </div>
+        <button type="button" class="btn btn-primary" id="btnEnviarReset" style="margin-top:1.4rem" onclick="solicitarReset()">Enviar link</button>
+        <a href="#" id="linkVolverLogin" style="display:block;text-align:center;margin-top:14px;font-size:.85rem;color:var(--login-text-light);text-decoration:none">
+          ← Volver a iniciar sesión
+        </a>
+      </div>
+
+      <p class="nota-pie" id="notaPie">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Acceso exclusivo para choferes habilitados
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-chofer-auth' } });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Si ya hay sesión activa, saltar directo a la ruta del día
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) window.location.href = '/chofer';
+
+      activarModoDemoSiCorresponde();
+      mostrarMensajeReset();
+
+      document.getElementById('linkOlvide').addEventListener('click', e => {
+        e.preventDefault();
+        mostrarFormReset();
+      });
+      document.getElementById('linkVolverLogin').addEventListener('click', e => {
+        e.preventDefault();
+        mostrarFormLogin();
+      });
+    });
+
+    // ── "Olvidé mi contraseña": self-service vía Supabase Auth ──
+    function mostrarFormReset() {
+      document.getElementById('alertaLogin').style.display = 'none';
+      document.getElementById('alertaOk').style.display = 'none';
+      document.getElementById('formLogin').style.display = 'none';
+      document.getElementById('formReset').style.display = '';
+      document.getElementById('notaPie').style.display = 'none';
+      document.getElementById('emailReset').value = document.getElementById('email').value;
+      document.getElementById('emailReset').focus();
+    }
+
+    function mostrarFormLogin() {
+      document.getElementById('alertaLogin').style.display = 'none';
+      document.getElementById('alertaOk').style.display = 'none';
+      document.getElementById('formReset').style.display = 'none';
+      document.getElementById('formLogin').style.display = '';
+      document.getElementById('notaPie').style.display = '';
+    }
+
+    async function solicitarReset() {
+      const email = document.getElementById('emailReset').value.trim();
+      const alertaErr = document.getElementById('alertaLogin');
+      alertaErr.style.display = 'none';
+
+      if (!email) {
+        alertaErr.textContent = 'Ingresá tu email.';
+        alertaErr.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('btnEnviarReset');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        await sb.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/chofer/restablecer-password`,
+        });
+        // Mensaje genérico a propósito: no confirma si ese email existe o no.
+        const alertaOk = document.getElementById('alertaOk');
+        alertaOk.textContent = 'Si ese email está registrado, te enviamos un link para restablecer tu contraseña. Revisá tu casilla (y spam).';
+        alertaOk.style.display = 'block';
+      } catch {
+        alertaErr.textContent = 'Error de conexión. Intentá de nuevo.';
+        alertaErr.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar link';
+      }
+    }
+
+    // Si venimos redirigidos desde /chofer/restablecer-password tras un
+    // cambio de contraseña exitoso, mostramos la confirmación acá.
+    function mostrarMensajeReset() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('reset') === 'ok') {
+        const alertaOk = document.getElementById('alertaOk');
+        alertaOk.textContent = 'Contraseña actualizada. Iniciá sesión con tu nueva contraseña.';
+        alertaOk.style.display = 'block';
+      }
+    }
+
+    // Acceso público a la demo: /chofer/login?demo=1 precarga las mismas
+    // credenciales de la demo pública del admin — el rol 'dueno' de esa
+    // cuenta ya está habilitado para este portal (ver ROLES_CHOFER más
+    // abajo), así que no hace falta ningún usuario nuevo. No autocompleta
+    // ni envía sola: el usuario igual tiene que tocar "Ingresar".
+    function activarModoDemoSiCorresponde() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('demo') !== '1') return;
+
+      document.getElementById('email').value = 'demo@distrib-test.local';
+      document.getElementById('password').value = 'DistribDemo2026!';
+
+      const aviso = document.createElement('div');
+      aviso.style.cssText = 'background:#f0fdf4;color:#166534;border:1px solid #86efac;border-radius:8px;padding:10px 12px;font-size:13.5px;margin-bottom:14px;';
+      aviso.textContent = 'Credenciales de la demo pública ya cargadas — cuenta compartida, se reinicia periódicamente. Tocá "Ingresar" para entrar.';
+      document.getElementById('formLogin')?.insertAdjacentElement('beforebegin', aviso);
+    }
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnIngresar');
+      const alerta = document.getElementById('alertaLogin');
+      alerta.style.display = 'none';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true; btn.textContent = 'Ingresando...';
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw new Error('Email o contraseña incorrectos');
+
+        // Verificar que el usuario tenga un rol habilitado para el portal del chofer
+        const { data: perfil, error: errPerfil } = await sb
+          .from('usuarios')
+          .select('rol')
+          .eq('id', data.user.id)
+          .single();
+
+        const ROLES_CHOFER = ['chofer', 'dueno', 'admin'];
+        if (errPerfil || !perfil || !ROLES_CHOFER.includes(perfil.rol)) {
+          await sb.auth.signOut();
+          throw new Error('Tu cuenta no tiene acceso al portal del chofer');
+        }
+
+        window.location.href = '/chofer';
+      } catch (err) {
+        alerta.textContent = err.message || 'No se pudo iniciar sesión';
+        alerta.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Ingresar';
+      }
+    });
+  </script>
+  <script src="/chofer/pwa-init.js"></script>
+</body>
+</html>

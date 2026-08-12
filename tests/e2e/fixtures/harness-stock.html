@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!-- Harness de test — NO es una página de producción. Ver harness-chofer.html para la justificación.
+     Reconstruido por Claude (no vino en el material adjuntado por el usuario) siguiendo el mismo
+     patrón mecánico que harness-pos.html/harness-chofer.html: carga Dexie + offline-core.js + el
+     módulo offline puntual, nada más. Si el harness real de la sesión anterior tenía algo distinto
+     (markup extra, IDs específicos que stock-offline.js espera encontrar en el DOM), reemplazar este
+     archivo por ese — no se pudo verificar contra el código real de stock-offline.js en esta sesión. -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Harness stock-offline (test)</title>
+</head>
+<body>
+  <div class="topbar-right"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/frontend/shared/offline-core.js?v1"></script>
+  <script src="/frontend/admin/js/stock-offline.js"></script>
+</body>
+</html>

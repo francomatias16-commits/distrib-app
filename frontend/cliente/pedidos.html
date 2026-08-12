@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/cliente/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <title>Mis pedidos — Fluxo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/cliente/pwa-init.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-row { display: flex; align-items: center; gap: .75rem; }
+    .btn-back { background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center; }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+
+    /* NAV BOTTOM: ver /shared/tienda-nav.css */
+
+    .contenido { padding: .75rem .75rem 5rem; max-width: 480px; margin: 0 auto; }
+
+    /* Chips de filtro */
+    .filtros-scroll {
+      display: flex; gap: .45rem; overflow-x: auto; margin-bottom: .85rem;
+      -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 2px;
+    }
+    .filtros-scroll::-webkit-scrollbar { display: none; }
+    .chip-filtro {
+      flex-shrink: 0; padding: .35rem .85rem; border-radius: var(--radius-full);
+      font-size: .78rem; font-weight: 600; border: 1px solid var(--color-border);
+      background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+    .chip-filtro.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    /* Card pedido */
+    .card-pedido {
+      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      margin-bottom: .65rem; overflow: hidden;
+    }
+    .pedido-header {
+      display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem;
+      cursor: pointer;
+    }
+    .estado-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-confirmado { background: var(--color-success-mid); }
+    .dot-preparando { background: var(--color-warning-mid); }
+    .dot-despachado { background: var(--color-info-mid); }
+    .dot-entregado  { background: var(--color-text-muted); }
+    .dot-borrador   { background: var(--color-border); }
+    .dot-cancelado  { background: var(--color-danger-mid); }
+    .pedido-meta { flex: 1; min-width: 0; }
+    .pedido-nro { font-size: .88rem; font-weight: 700; color: var(--color-text); }
+    .pedido-fecha { font-size: .72rem; color: var(--color-text-light); margin-top: .1rem; }
+    .pedido-right { text-align: right; }
+    .pedido-total { font-size: .95rem; font-weight: 700; color: var(--color-primary); }
+    .pedido-estado-label {
+      font-size: .7rem; font-weight: 600; padding: .2rem .6rem;
+      border-radius: var(--radius-lg); display: inline-block; margin-top: .2rem;
+    }
+    .lbl-confirmado { background: var(--color-success-bg); color: var(--color-success-mid); }
+    .lbl-preparando { background: var(--color-warning-bg); color: var(--color-box-warning); }
+    .lbl-despachado { background: var(--color-info-bg); color: var(--color-primary-dark); }
+    .lbl-entregado  { background: var(--color-border-soft); color: var(--color-text-muted); }
+    .lbl-borrador   { background: var(--color-border-soft); color: var(--color-text-light); }
+    .lbl-cancelado  { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+
+    /* Detalle del pedido */
+    .pedido-detalle {
+      display: none; border-top: 1px solid var(--color-border-soft); padding: .75rem 1rem;
+    }
+    .pedido-detalle.visible { display: block; }
+    .item-detalle-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .3rem 0; font-size: .82rem; color: var(--color-text-muted);
+    }
+    .item-nombre-det { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-cant-det { color: var(--color-text-light); font-size: .75rem; margin: 0 .5rem; white-space: nowrap; }
+    .item-precio-det { font-weight: 600; white-space: nowrap; }
+    .pedido-notas {
+      font-size: .78rem; color: var(--color-text-muted); font-style: italic;
+      margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--color-border-soft);
+    }
+
+    .empty-state { text-align: center; color: var(--color-text-light); padding: 4rem 1rem; font-size: .88rem; }
+    .empty-state svg { margin-bottom: .75rem; opacity: .35; }
+    .loading { text-align: center; color: var(--color-text-light); padding: 3rem 1rem; font-size: .88rem; }
+
+    /* ── Seguimiento en vivo ── */
+    .btn-seguimiento {
+      width: 100%; margin-top: .6rem; padding: .6rem; border: none; border-radius: var(--radius-md);
+      background: var(--color-primary); color: #fff; font-size: .82rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+    .overlay-seg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 60;
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .overlay-seg.show { display: flex; }
+    .modal-seg {
+      background: var(--color-surface); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+      border-radius: var(--radius-xxl) 16px 0 0; padding: 1.1rem 1.1rem 1.4rem;
+    }
+    .modal-seg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+    .modal-seg-header h2 { font-size: 1rem; font-weight: 700; }
+    .btn-cerrar-seg { background: none; border: none; font-size: 1.3rem; color: var(--color-text-muted); cursor: pointer; line-height: 1; }
+    #mapaSeguimientoCliente { height: 260px; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-border-soft); }
+    .eta-box {
+      margin-top: .8rem; padding: .75rem .9rem; border-radius: var(--radius-lg); background: var(--color-primary-bg);
+      color: var(--color-info); font-size: .88rem; font-weight: 600; text-align: center;
+    }
+    .eta-box.eta-esperando { background: var(--color-surface-2); color: var(--color-text-muted); font-weight: 500; }
+  </style>
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="btn-back" onclick="window.history.back()" aria-label="Volver" title="Volver">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <h1>Mis pedidos</h1>
+    </div>
+    <p style="font-size:.8rem;opacity:.8;margin-top:.15rem">Seguí el estado de tus pedidos, desde confirmado hasta entregado</p>
+  </div>
+
+  <div class="contenido">
+    <div class="filtros-scroll" id="filtrosScroll">
+      <button class="chip-filtro activo" data-estado="">Todos</button>
+      <button class="chip-filtro" data-estado="confirmado">Confirmados</button>
+      <button class="chip-filtro" data-estado="preparando">En preparación</button>
+      <button class="chip-filtro" data-estado="despachado">Despachados</button>
+      <button class="chip-filtro" data-estado="entregado">Entregados</button>
+    </div>
+    <div id="listaPedidos"><div class="loading">Cargando pedidos...</div></div>
+  </div>
+
+  <!-- ── Modal de seguimiento en vivo ── -->
+  <div class="overlay-seg" id="overlaySeguimiento">
+    <div class="modal-seg">
+      <div class="modal-seg-header">
+        <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Seguimiento en vivo</h2>
+        <button type="button" class="btn-cerrar-seg" id="btnCerrarSeguimiento" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div id="mapaSeguimientoCliente"></div>
+      <div class="eta-box eta-esperando" id="etaTexto">Buscando la ubicación del chofer...</div>
+    </div>
+  </div>
+
+  <nav class="nav-bottom">
+    <a class="nav-item" href="/cliente/inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Inicio</a>
+    <a class="nav-item" href="/cliente/catalogo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/></svg>Catálogo</a>
+    <a class="nav-item" href="/cliente/carrito"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Carrito</a>
+    <a class="nav-item activo" href="/cliente/pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Pedidos</a>
+    <a class="nav-item" href="/cliente/cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Cuenta</a>
+  </nav>
+
+  <script>
+    const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-cliente-auth' } });
+    let clienteId, filtroActivo = '';
+
+    const CONFIG_ESTADO = {
+      borrador:   { dot: 'dot-borrador',   lbl: 'Borrador',       cls: 'lbl-borrador' },
+      confirmado: { dot: 'dot-confirmado', lbl: 'Confirmado',     cls: 'lbl-confirmado' },
+      preparando: { dot: 'dot-preparando', lbl: 'En preparación', cls: 'lbl-preparando' },
+      despachado: { dot: 'dot-despachado', lbl: 'Despachado',     cls: 'lbl-despachado' },
+      entregado:  { dot: 'dot-entregado',  lbl: 'Entregado',      cls: 'lbl-entregado' },
+      cancelado:  { dot: 'dot-cancelado',  lbl: 'Cancelado',      cls: 'lbl-cancelado' },
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = '/cliente/login'; return; }
+
+      const { data: u } = await sb.from('usuarios')
+        .select('cliente_id').eq('id', session.user.id).single();
+      if (!u?.cliente_id) { window.location.href = '/cliente/login'; return; }
+      clienteId = u.cliente_id;
+
+      // Filtros
+      document.getElementById('filtrosScroll').querySelectorAll('.chip-filtro').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('activo'));
+          btn.classList.add('activo');
+          filtroActivo = btn.dataset.estado;
+          cargarPedidos();
+        });
+      });
+
+      await cargarPedidos();
+
+      // FIX (auditoría etapa 5 — Hallazgo 1): Mercado Pago redirige acá
+      // con ?pago=exitoso|fallido|pendiente&pedido=<id> tras el checkout,
+      // pero esta página nunca leía esos parámetros. El pedido quedaba
+      // "pagado" del lado de MP sin que el cliente viera confirmación
+      // alguna en la app.
+      await manejarRetornoDePago();
+    });
+
+    async function manejarRetornoDePago() {
+      const params = new URLSearchParams(window.location.search);
+      const pago = params.get('pago');
+      const pedidoId = params.get('pedido');
+      if (!pago) return;
+
+      // Limpiar la URL para que un refresh no vuelva a disparar el toast
+      window.history.replaceState({}, '', window.location.pathname);
+
+      if (pago === 'exitoso') {
+        mostrarToast('¡Pago acreditado! Ya confirmamos tu pedido.', 'ok');
+        if (pedidoId) await reverificarPago(pedidoId);
+      } else if (pago === 'pendiente') {
+        mostrarToast('Tu pago está siendo procesado. Te avisamos apenas se confirme.', 'info');
+        if (pedidoId) await reverificarPago(pedidoId);
+      } else if (pago === 'fallido') {
+        mostrarToast('El pago no pudo procesarse. Podés reintentarlo cuando quieras.', 'error');
+      }
+      await cargarPedidos();
+    }
+
+    // Le pide al backend que consulte el estado real en Mercado Pago (no
+    // nos alcanza con el query param, que solo refleja lo que pasó en el
+    // navegador del cliente en el momento del redirect).
+    async function reverificarPago(pedidoId) {
+      try {
+        const { data: tx } = await sb.from('transacciones_pago')
+          .select('referencia_externa')
+          .eq('pedido_id', pedidoId)
+          .order('created_at', { ascending: false })
+          .limit(1).maybeSingle();
+        if (!tx?.referencia_externa) return;
+
+        const { data: { session } } = await sb.auth.getSession();
+        await fetch(`/api/pagos?payment_id=${tx.referencia_externa}`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+      } catch (e) {
+        console.error('Error reverificando pago:', e);
+      }
+    }
+
+    function mostrarToast(msg, tipo) {
+      const colores = { ok: 'var(--color-success-mid)', info: 'var(--color-primary)', error: 'var(--color-danger-mid)' };
+      const el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = `position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;
+        background:${colores[tipo] || 'var(--color-text-muted)'};color:#fff;padding:.75rem 1.25rem;border-radius:var(--radius-lg);
+        font-size:.88rem;box-shadow:0 4px 14px rgba(0,0,0,.2);max-width:90vw;text-align:center`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }
+
+    async function pagarOnline(pedidoId, btnEl) {
+      const original = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.innerHTML = 'Generando link de pago...';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const resp = await fetch('/api/pagos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ pedido_id: pedidoId })
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.checkout_url) {
+          mostrarToast(data.error || 'No se pudo iniciar el pago online.', 'error');
+          btnEl.disabled = false;
+          btnEl.innerHTML = original;
+          return;
+        }
+        window.location.href = data.checkout_url;
+      } catch (e) {
+        console.error('Error iniciando pago:', e);
+        mostrarToast('No se pudo iniciar el pago online.', 'error');
+        btnEl.disabled = false;
+        btnEl.innerHTML = original;
+      }
+    }
+
+    async function cargarPedidos() {
+      document.getElementById('listaPedidos').innerHTML = '<div class="loading">Cargando...</div>';
+
+      let q = sb.from('pedidos')
+        .select('id, numero_pedido, estado, total, fecha_pedido, notas_cliente, pedido_items(id, cantidad, precio_unitario, productos(nombre))')
+        .eq('cliente_id', clienteId)
+        .order('fecha_pedido', { ascending: false })
+        .limit(50);
+
+      if (filtroActivo) q = q.eq('estado', filtroActivo);
+
+      const { data: pedidos } = await q;
+      const cont = document.getElementById('listaPedidos');
+
+      if (!pedidos?.length) {
+        cont.innerHTML = `
+          <div class="empty-state">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-light)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            <div>No hay pedidos ${filtroActivo ? 'con este estado' : 'todavía'}.</div>
+          </div>`;
+        return;
+      }
+
+      cont.innerHTML = pedidos.map(p => {
+        const cfg = CONFIG_ESTADO[p.estado] || CONFIG_ESTADO.borrador;
+        const fecha = new Date(p.fecha_pedido).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+        const itemsHTML = (p.pedido_items || []).map(it => `
+          <div class="item-detalle-row">
+            <span class="item-nombre-det">${esc(it.productos?.nombre || 'Producto')}</span>
+            <span class="item-cant-det">x${it.cantidad}</span>
+            <span class="item-precio-det">${formatPeso(it.cantidad * it.precio_unitario)}</span>
+          </div>`).join('');
+
+        return `
+          <div class="card-pedido">
+            <div class="pedido-header" onclick="toggleDetalle('det-${p.id}')">
+              <div class="estado-dot ${cfg.dot}"></div>
+              <div class="pedido-meta">
+                <div class="pedido-nro">${esc(p.numero_pedido || 'Pedido')}</div>
+                <div class="pedido-fecha">${fecha}</div>
+              </div>
+              <div class="pedido-right">
+                <div class="pedido-total">${formatPeso(p.total)}</div>
+                <span class="pedido-estado-label ${cfg.cls}">${cfg.lbl}</span>
+              </div>
+            </div>
+            <div class="pedido-detalle" id="det-${p.id}">
+              ${itemsHTML || '<div style="font-size:.82rem;color:var(--color-text-light)">Sin ítems cargados</div>'}
+              ${p.notas_cliente ? `<div class="pedido-notas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>${esc(p.notas_cliente)}</div>` : ''}
+              ${p.estado === 'despachado' ? `<button type="button" class="btn-seguimiento" onclick="event.stopPropagation();abrirSeguimiento('${p.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Ver seguimiento en vivo</button>` : ''}
+              ${['confirmado', 'preparando'].includes(p.estado) ? `<button type="button" class="btn-seguimiento" style="background:var(--color-success-mid);border-color:var(--color-success-mid)" onclick="event.stopPropagation();pagarOnline('${p.id}', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Pagar online</button>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Seguimiento en vivo (Etapa 1 — Logística) ────────────────────────────
+    let mapaSeguimiento = null;
+    let markerChofer = null;
+    let timerSeguimiento = null;
+
+    async function abrirSeguimiento(pedidoId) {
+      document.getElementById('overlaySeguimiento').classList.add('show');
+      document.getElementById('etaTexto').className = 'eta-box eta-esperando';
+      document.getElementById('etaTexto').textContent = 'Buscando la ubicación del chofer...';
+
+      if (!mapaSeguimiento) {
+        mapaSeguimiento = L.map('mapaSeguimientoCliente', { zoomControl: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap',
+        }).addTo(mapaSeguimiento);
+      }
+
+      const consultar = () => actualizarSeguimientoCliente(pedidoId);
+      await consultar();
+      if (timerSeguimiento) clearInterval(timerSeguimiento);
+      timerSeguimiento = setInterval(consultar, 20000);
+    }
+
+    async function actualizarSeguimientoCliente(pedidoId) {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const r = await fetch(`/api/rutas-live?accion=seguimiento&pedido_id=${pedidoId}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'No se pudo obtener el seguimiento');
+
+        const etaBox = document.getElementById('etaTexto');
+
+        if (!data.disponible) {
+          etaBox.className = 'eta-box eta-esperando';
+          etaBox.textContent = data.mensaje || 'El pedido todavía no salió a la calle.';
+          return;
+        }
+        if (!data.ubicacion) {
+          etaBox.className = 'eta-box eta-esperando';
+          etaBox.textContent = 'El chofer está en camino, todavía sin ubicación disponible.';
+          return;
+        }
+
+        const { lat, lng } = data.ubicacion;
+        if (!markerChofer) {
+          markerChofer = L.marker([lat, lng]).addTo(mapaSeguimiento);
+        } else {
+          markerChofer.setLatLng([lat, lng]);
+        }
+        mapaSeguimiento.setView([lat, lng], 14);
+        setTimeout(() => mapaSeguimiento.invalidateSize(), 50);
+
+        etaBox.className = 'eta-box';
+        etaBox.textContent = data.eta_minutos != null
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Tu pedido está a ~${data.eta_minutos} min (${data.paradas_restantes} parada${data.paradas_restantes === 1 ? '' : 's'} antes de llegar a vos)`
+          : 'El chofer está en camino.';
+      } catch (e) {
+        document.getElementById('etaTexto').className = 'eta-box eta-esperando';
+        document.getElementById('etaTexto').textContent = e.message;
+      }
+    }
+
+    document.getElementById('btnCerrarSeguimiento').addEventListener('click', () => {
+      document.getElementById('overlaySeguimiento').classList.remove('show');
+      if (timerSeguimiento) { clearInterval(timerSeguimiento); timerSeguimiento = null; }
+    });
+
+    function toggleDetalle(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('visible');
+    }
+
+    function formatPeso(n) {
+      return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(Number(n) || 0);
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+  </script>
+  <script src="/frontend/shared/chat-widget.js" defer data-chat-asistente="1"></script>
+</body>
+</html>

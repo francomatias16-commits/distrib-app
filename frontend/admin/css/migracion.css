@@ -1,0 +1,649 @@
+/* frontend/admin/css/migracion.css
+   Estilos del wizard de migración asistida de clientes/productos. */
+
+.wizard-desc {
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
+/* ── Paso 0: elegir entidad ── */
+.mig-progreso-general {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 20px;
+}
+
+.mig-progreso-barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.mig-progreso-fill {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 999px;
+  transition: width .3s ease;
+}
+
+.mig-progreso-texto {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Contenedor de cada paso del wizard (antes sin estilo: los pasos
+   quedaban pegados unos a otros sin separación) */
+.mig-paso {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.mig-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mig-ck-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+
+.mig-ck-item.ck-completo {
+  opacity: .75;
+}
+
+.mig-ck-orden {
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.mig-ck-item.ck-completo .mig-ck-orden {
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.mig-ck-icono {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.mig-ck-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mig-ck-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mig-ck-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.mig-ck-prereq {
+  font-size: 12px;
+  color: var(--color-warning);
+  margin-top: 2px;
+}
+
+.mig-ck-accion {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.ck-completado  { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+.ck-en-progreso { background: var(--color-warning-bg); border-color: var(--color-warning); color: var(--color-warning); }
+.ck-error       { background: var(--color-danger-bg); border-color: var(--color-danger); color: var(--color-danger); }
+.ck-pendiente   { background: var(--color-bg); color: var(--color-text-secondary); }
+
+@media (max-width: 640px) {
+  .mig-ck-item { flex-wrap: wrap; }
+  .mig-ck-accion { width: 100%; }
+  .mig-ck-accion .btn { width: 100%; }
+
+  .mig-mapeo-row,
+  .mig-destinos .mig-mapeo-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .mig-pista { grid-column: 1 / -1; margin-top: 0; }
+
+  .mig-stats-grid { grid-template-columns: 1fr 1fr; max-width: none; }
+}
+
+@media (max-width: 420px) {
+  .mig-stats-grid { grid-template-columns: 1fr; }
+}
+
+.mig-entidades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.mig-entidad-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+
+.mig-entidad-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+.mig-entidad-card svg { color: var(--color-primary); }
+
+.mig-entidad-card strong { font-size: 16px; }
+
+.mig-entidad-card span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mig-vacio {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.mig-sesion-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: var(--color-surface);
+}
+
+.mig-sesion-info { display: flex; flex-direction: column; gap: 2px; }
+
+.mig-sesion-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mig-sesion-meta {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.mig-estado-pill {
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  white-space: nowrap;
+}
+
+.mig-estado-completado  { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+.mig-estado-error       { background: var(--color-danger-bg);  border-color: var(--color-danger);  color: var(--color-danger); }
+.mig-estado-cancelado   { background: var(--color-bg); color: var(--color-text-secondary); }
+.mig-estado-deshaciendo { background: var(--color-warning-bg); border-color: var(--color-warning); color: var(--color-warning); }
+.mig-estado-deshecho    { background: var(--color-bg); color: var(--color-text-secondary); }
+
+/* ── Paso 1: subir archivo ── */
+.mig-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border: 2px dashed var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--color-text-secondary);
+  transition: border-color .15s ease, background .15s ease;
+}
+
+.mig-dropzone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg);
+}
+
+.mig-dropzone svg { color: var(--color-primary); }
+
+#estado-carga {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Paso 2: mapear columnas ── */
+.mig-mapeo-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mig-mapeo-row label { font-weight: 500; }
+
+.mig-mapeo-row select {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font: inherit;
+}
+
+.mig-pista {
+  grid-column: 2 / 3;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: -4px;
+}
+
+.mig-destinos {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.mig-destinos-titulo {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mig-destinos .mig-mapeo-row {
+  grid-template-columns: 220px 1fr;
+  border-bottom: none;
+  padding: 6px 0;
+}
+
+.mig-destinos-nota {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.mig-advertencias {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-mid);
+  color: var(--color-warning);
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* ── Corrección punto 1: columnas del archivo sin campo de destino ── */
+.mig-sin-mapear {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.mig-sin-mapear ul {
+  margin: 6px 0 8px;
+  padding-left: 20px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.mig-sin-mapear-nota {
+  margin: 0 0 10px;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+}
+
+.mig-sin-mapear-ok {
+  margin-top: 10px;
+  color: var(--color-success);
+  font-size: 13px;
+}
+
+.mig-sin-mapear-panel {
+  margin: -4px 0 8px;
+  padding: 0 4px;
+}
+
+.mig-sin-mapear-panel .mig-sin-mapear {
+  text-align: left;
+}
+
+/* ── Paso 3: revisar ── */
+.mig-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  max-width: 480px;
+}
+
+.mig-stat-card {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  text-align: center;
+  background: var(--color-surface);
+}
+
+.mig-stat-card.ok    { border-color: var(--color-success); }
+.mig-stat-card.error { border-color: var(--color-danger); }
+
+.mig-stat-num { font-size: 22px; font-weight: 700; }
+.mig-stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.mig-filtro-filas {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.e-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.e-pill:hover { background: var(--color-bg); }
+
+.e-pill.activa {
+  background: var(--color-primary-bg, var(--color-bg));
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.mig-tabla-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.mig-tabla-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.mig-tabla-wrap th, .mig-tabla-wrap td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.mig-tabla-wrap th {
+  background: var(--color-bg);
+  font-weight: 600;
+}
+
+.mig-tabla-wrap tr.fila-error { background: var(--color-danger-bg); }
+
+.mig-celda-errores {
+  color: var(--color-danger);
+  white-space: normal;
+  min-width: 200px;
+}
+
+.mig-vacio-celda {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 24px;
+}
+
+.mig-aviso-confirmar {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Paso 4: resultado ── */
+.mig-resultado-ok {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+}
+
+.mig-resultado-ok svg { color: var(--color-success); }
+
+
+/* ── REQ-MIG-MAPEO (v194): link y notas de pantalla admin en el checklist ── */
+.mig-ck-link-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-success);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-md, 6px);
+  margin-top: 4px;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.mig-ck-link-admin:hover {
+  background: var(--color-success-bg);
+}
+.mig-ck-link-admin svg { flex: none; }
+
+/* Nota positiva (pantalla dedicada existe) */
+.mig-ck-nota-ok {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* Nota de gap (sin pantalla global dedicada) */
+.mig-ck-nota-gap {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--color-warning);
+  line-height: 1.4;
+  background: var(--color-warning-bg);
+  border: 1px solid rgba(180,83,9,.15);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+/* ─── Banner de soporte inmediato (si la migración se complica) ─────────── */
+.mig-soporte-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  background: #ecfdf5;
+  margin-bottom: 20px;
+}
+.mig-soporte-banner-texto { display: flex; flex-direction: column; gap: 2px; max-width: 620px; }
+.mig-soporte-banner-texto strong { font-size: 14px; color: #065f46; }
+.mig-soporte-banner-texto span { color: #065f46; font-size: 13px; line-height: 1.4; opacity: .9; }
+.mig-soporte-banner .btn-wa-soporte {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #10b981; color: #fff; border: none;
+  padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;
+  text-decoration: none; white-space: nowrap; flex-shrink: 0;
+}
+.mig-soporte-banner .btn-wa-soporte:hover { background: #059669; }
+.mig-soporte-banner .btn-wa-soporte svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ─── Migración maestra (un solo archivo → varias entidades) ────────────── */
+.mig-maestra-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  border: 1px dashed var(--color-primary);
+  border-radius: 12px;
+  background: var(--color-primary-bg, rgba(24,95,165,0.06));
+  margin-bottom: 24px;
+}
+.mig-maestra-cta-texto { display: flex; flex-direction: column; gap: 2px; max-width: 560px; }
+.mig-maestra-cta-texto strong { font-size: 15px; }
+.mig-maestra-cta-texto span { color: var(--color-text-secondary); font-size: 13px; line-height: 1.4; }
+
+.mig-maestra-card {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.mig-maestra-card.omitida { opacity: .55; }
+.mig-maestra-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.mig-maestra-card-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mig-maestra-card-titulo strong { font-size: 14px; }
+.mig-maestra-card-titulo select { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--color-border); font-size: 13px; }
+.mig-maestra-filas-count { font-size: 12px; color: var(--color-text-secondary); }
+
+.mig-confianza-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double; border-color: transparent;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.mig-confianza-alta  { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+.mig-confianza-media { background: var(--color-warning-bg); border-color: var(--color-warning); color: var(--color-warning); }
+.mig-confianza-baja  { background: var(--color-danger-bg); border-color: var(--color-danger); color: var(--color-danger); }
+
+.mig-maestra-mapeo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px 16px;
+}
+.mig-maestra-mapeo-item { display: flex; flex-direction: column; gap: 3px; }
+.mig-maestra-mapeo-item label { font-size: 12px; color: var(--color-text-secondary); }
+.mig-maestra-mapeo-item label .req { color: var(--color-danger); }
+.mig-maestra-mapeo-item select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--color-border); font-size: 13px; }
+.mig-maestra-mapeo-item select.falta-requerido { border-color: var(--color-danger); }
+
+.mig-maestra-progreso-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.mig-maestra-progreso-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  font-size: 13px;
+}
+.mig-maestra-progreso-item .detalle { color: var(--color-text-secondary); font-size: 12px; }
+
+.mig-maestra-resultado-tabla { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+.mig-maestra-resultado-tabla th, .mig-maestra-resultado-tabla td {
+  padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--color-border);
+}
+.mig-maestra-resultado-tabla th { color: var(--color-text-secondary); font-weight: 600; font-size: 12px; }
+
+/* Migración 384: vista previa de detección de fila de encabezados. */
+.mig-check-encabezado { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.mig-check-encabezado input { width: 16px; height: 16px; cursor: pointer; }
+.mig-preview-tabla-wrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--color-border); border-radius: 8px; }
+.mig-preview-tabla { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.mig-preview-tabla th, .mig-preview-tabla td {
+  padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--color-border);
+}
+.mig-preview-tabla th { background: var(--color-surface); color: var(--color-text-secondary); font-weight: 600; }
+.mig-preview-tabla tbody tr:last-child td { border-bottom: none; }
+
+/* Migración 384 (parte 2): checkbox de encabezado por hoja en migración maestra. */
+.mig-maestra-check-encabezado {
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-size: 12px; color: var(--color-text-secondary); margin: 6px 0 2px;
+}
+.mig-maestra-check-encabezado input { width: 14px; height: 14px; cursor: pointer; }
+.mig-maestra-encabezado-muestra {
+  font-size: 11px; color: var(--color-text-secondary); margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}

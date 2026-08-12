@@ -1,0 +1,432 @@
+/**
+ * responsive-mobile.css — Parche global responsive mobile-first
+ * v636 — Auditoría exhaustiva responsive (prioridad mobile)
+ *
+ * Este archivo se carga en TODAS las páginas (admin, cliente, chofer,
+ * proveedor) DESPUÉS de reskin-patch-v2-shadcn.css para sobreescribir
+ * con la menor especificidad necesaria, usando !important solo donde
+ * los archivos anteriores ya lo hacen.
+ *
+ * Breakpoints estándar del proyecto:
+ *   ≤1024px → tablet grande
+ *   ≤768px  → tablet / mobile landscape
+ *   ≤640px  → mobile normal
+ *   ≤480px  → mobile pequeño
+ *   ≤360px  → mobile muy pequeño (ej: Galaxy A series)
+ */
+
+/* ══════════════════════════════════════════════════════════════
+   1. TABLAS — overflow horizontal contenido
+   ══════════════════════════════════════════════════════════════
+   Antes .tabla-wrap solo tenía position:relative. Ahora scrollea
+   horizontalmente en cualquier tamaño, con scroll suave en iOS. */
+.tabla-wrap,
+.tabla-container,
+.tabla-wrapper,
+.rmw-tabla-auto {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  /* Asegura que la columna sticky derecha (.col-sticky-end) siga
+     funcionando correctamente al scrollear */
+  position: relative;
+}
+/* .rmw-tabla-auto: wrapper que responsive-mobile.js inserta en runtime
+   alrededor de cualquier <table> que no tenga ya un wrapper propio de
+   scroll (páginas donde la tabla no estaba envuelta, o se inyecta por
+   JS después de un fetch). Ver frontend/shared/responsive-mobile.js. */
+.rmw-tabla-auto table { min-width: 0; }
+
+/* Tablas sin wrapper explícito: al menos evitar overflow del body */
+table {
+  min-width: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   0. SAFETY NET — nunca scroll horizontal del body
+   ══════════════════════════════════════════════════════════════
+   Red de contención final: ningún contenido suelto (grid mal calculado,
+   texto sin wrap, etc.) debería poder generar scroll horizontal de toda
+   la página. Los contenedores que sí necesitan scroll horizontal propio
+   (tablas, .dash-quick-nav, tabs con scroll táctil) declaran su propio
+   overflow-x:auto y no se ven afectados por esto. */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. TOPBAR — jerarquía de visibilidad progresiva en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Pill "Preguntale al asistente IA" — no crítica en mobile */
+  #pill-ia { display: none !important; }
+
+  /* Contador (ej: "27 productos") — se repite en el body, no crítico */
+  .topbar-contador { display: none !important; }
+
+  /* Topbar-left: que no desborde cuando el menú tiene logo + botón */
+  .topbar-left { min-width: 0; overflow: hidden; }
+  .topbar-left .logo { flex-shrink: 0; }
+
+  /* El título de la página: truncar si es muy largo */
+  .topbar-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40vw;
+  }
+}
+
+@media (max-width: 480px) {
+  /* En mobile muy pequeño, dejar solo AFIP + deuda vencida + avatar */
+  #pill-wa  { display: none !important; }
+  #pill-pos { display: none !important; }
+
+  /* Título aún más corto */
+  .topbar-title { max-width: 30vw; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. STATUS PILLS — wrapping si quedan visibles
+   ══════════════════════════════════════════════════════════════ */
+.topbar-right {
+  /* El flex-wrap ya está en adminlte-components.css ≤768px,
+     este min-width:0 evita que las pills empujen el contenedor */
+  min-width: 0;
+}
+.status-pill {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+@media (max-width: 640px) {
+  .status-pill { max-width: 120px; font-size: 8px !important; padding: 3px 6px !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. FILTROS / TOOLBARS — columna en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Barra de filtros compartida */
+  .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .filtros-bar > * { width: 100% !important; max-width: 100% !important; }
+  .filtros-bar input,
+  .filtros-bar select { width: 100% !important; box-sizing: border-box !important; }
+
+  /* Botones de acción en barra de filtros: ocupan todo el ancho */
+  .filtros-bar .btn-exportar,
+  .filtros-bar .btn-importar,
+  .filtros-bar .btn-primario,
+  .filtros-bar .btn-secundario {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. MODAL FOOTER / FORM ACCIONES — wrapping en mobile
+   ══════════════════════════════════════════════════════════════
+   reskin-patch-v2-shadcn.css define .modal-footer con justify-content
+   flex-end pero sin flex-wrap. En mobile los botones desbordan. */
+@media (max-width: 560px) {
+  .modal-footer,
+  .dialog-footer,
+  .form-acciones,
+  .modal-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+  }
+  .modal-footer > *,
+  .dialog-footer > *,
+  .form-acciones > *,
+  .modal-actions > * {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+  }
+  /* Botón de borrar (margin-right:auto): que no ocupe toda la fila */
+  .form-acciones > [style*="margin-right:auto"],
+  .form-acciones > .btn-peligro:first-child {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    order: 10 !important; /* Mover borrar al final en mobile */
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. GRIDS DE FORMULARIO — 2 columnas → 1 en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 560px) {
+  .grid-2col,
+  .form-grid-2col,
+  [class*="grid-2"],
+  .datos-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* form-row con 2 columnas → 1 */
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. CARDS — padding más compacto en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .card { border-radius: var(--radius-lg, 12px) !important; }
+  .card-body { padding: 14px !important; }
+  .card-header {
+    padding: 12px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  /* Títulos de sección */
+  .section-title,
+  .page-title,
+  h1.titulo-pagina { font-size: 17px !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8. BOTONES — tamaño mínimo táctil (48px × 48px WCAG)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Botones de acción principales: mínimo 44px de alto */
+  .btn-primario,
+  .btn-secundario,
+  .btn-peligro {
+    min-height: 40px;
+  }
+  /* Botones icon-only: área táctil mínima */
+  .btn-icon,
+  .prod-icon-btn,
+  button[aria-label]:not([class*="btn-"]) {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10. SAFE AREA INSETS — notch / barra inferior iOS y Android
+   ══════════════════════════════════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  /* Footer fijo de modales / paneles off-canvas */
+  .form-acciones,
+  .modal-footer,
+  .pedfs-cart-total,
+  .pos-footer,
+  .cart-footer,
+  .checkout-footer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+  /* Drawer mobile del nav */
+  .mnav-drawer-footer {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   11. IMÁGENES Y MEDIA — nunca desbordan su contenedor
+   ══════════════════════════════════════════════════════════════ */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   12. INPUTS / SELECT / TEXTAREA — 100% en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 16px !important; /* evita zoom automático en iOS */
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   13. PORTAL CLIENTE — fixes específicos
+   ══════════════════════════════════════════════════════════════ */
+
+/* carrito.html: título no aprieta botón "Vaciar" */
+.cart-topbar-row,
+.topbar-row {
+  min-width: 0;
+}
+.cart-topbar-row h1,
+.topbar-row h1 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* checkout.html: fila de ítem — nombre no choca con precio */
+.item-row,
+.checkout-item-row,
+.order-item-row {
+  flex-wrap: wrap !important;
+  min-width: 0;
+}
+.item-row .item-nombre,
+.checkout-item-row .item-nombre,
+.order-item-row .item-nombre {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* cuenta.html: info-row no se desborda */
+.info-row {
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+}
+.info-row span:last-child {
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+.perfil-info {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.perfil-info h2,
+.perfil-info p {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* catalogo.html: una columna en pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .product-grid,
+  .catalogo-grid,
+  [class*="grid"][class*="prod"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* confirmación / barra inferior del catálogo */
+.confirm-bar,
+.cart-bottom-bar {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+.confirm-bar .info,
+.cart-bottom-bar .info {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+.confirm-bar .btn-primario,
+.cart-bottom-bar .btn-primario {
+  flex-shrink: 0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   14. POS — pantalla de punto de venta en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Grilla de productos del POS: 2 columnas mínimo */
+  .pos-grid,
+  .pos-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* Panel del carrito del POS: ancho completo */
+  .pos-cart,
+  .pos-sidebar {
+    width: 100% !important;
+    max-height: 45vh !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   15. RUTAS — mapa y listado en mobile
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .rutas-layout,
+  .rutas-grid {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .rutas-sidebar,
+  .rutas-panel {
+    width: 100% !important;
+    max-height: 40vh !important;
+    overflow-y: auto !important;
+  }
+  .rutas-map,
+  #map-container {
+    height: 50vw !important;
+    min-height: 240px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   16. DASHBOARD — KPI grid colapsa en mobile
+   ══════════════════════════════════════════════════════════════
+   El grid del dashboard usa grid-template-columns inline. No podemos
+   sobreescribir fácilmente inline styles, pero sí podemos forzar
+   el .grid hijo a un mínimo de 2 columnas en mobile. */
+@media (max-width: 640px) {
+  /* Cards del dashboard que usan grid auto-fit */
+  .kpi-grid,
+  .dashboard-kpis,
+  .small-box-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+@media (max-width: 360px) {
+  .kpi-grid,
+  .dashboard-kpis,
+  .small-box-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   17. SCROLL HORIZONTAL HINT — sombra visual cuando hay scroll
+   ══════════════════════════════════════════════════════════════ */
+.tabla-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255,255,255,.8), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.tabla-wrap.has-scroll::after { opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════════
+   18. PRINT — básicos
+   ══════════════════════════════════════════════════════════════ */
+@media print {
+  .topbar, .mnav-root, #nav-root, .chat-widget, .whatsapp-widget,
+  .topbar-right, .filtros-bar { display: none !important; }
+  .main { padding: 0 !important; }
+  .tabla-wrap { overflow-x: visible !important; }
+  table { width: 100% !important; font-size: 11px !important; }
+}

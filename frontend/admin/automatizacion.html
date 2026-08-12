@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Alertas automáticas — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/automatizacion.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/automatizacion-gentelella.css" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-automatizacion-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Alertas automáticas</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Configurá reglas que se disparan solas — alertas de stock bajo, ofertas de liquidación por vencimiento, recordatorios de cobro y más.
+</div>
+
+  <main class="main-content">
+
+    <!-- Topbar del panel -->
+    <div class="auto-topbar">
+      <div>
+        <p id="auto-fecha" style="margin:0;font-size:14px;color:var(--color-text-muted)">
+          Estado en tiempo real de los 5 motores de automatización
+        </p>
+      </div>
+      <button type="button" class="btn-refrescar-panel" id="btn-refrescar" title="Actualizar estado">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- Timestamp última actualización -->
+    <div class="auto-timestamp" id="auto-generado"></div>
+
+    <!-- Chips de descripción -->
+    <div style="padding: 8px 24px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+      <span style="font-size:12px;padding:4px 10px;background:color-mix(in srgb, var(--color-warning-mid) 10%, transparent);color:var(--color-warning-mid);border-radius: var(--radius-full);font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="14" r="1.2" fill="currentColor"/><circle cx="15" cy="14" r="1.2" fill="currentColor"/><line x1="12" y1="8" x2="12" y2="4"/><circle cx="12" cy="3" r="1"/><line x1="1" y1="14" x2="4" y2="14"/><line x1="20" y1="14" x2="23" y2="14"/></svg>Piloto: sugerencias cada 7am</span>
+      <span style="font-size:12px;padding:4px 10px;background:color-mix(in srgb, var(--color-success-mid) 10%, transparent);color:var(--color-success-mid);border-radius: var(--radius-full);font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 19"/></svg>Cierre: cada 30 min</span>
+      <span style="font-size:12px;padding:4px 10px;background:color-mix(in srgb, var(--color-info-mid) 10%, transparent);color:var(--color-info-mid);border-radius: var(--radius-full);font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21"/><line x1="8" y1="3" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="21"/></svg>Rutas: GPS en tiempo real</span>
+      <span style="font-size:12px;padding:4px 10px;background:color-mix(in srgb, var(--nav-facturacion) 10%, transparent);color:var(--nav-facturacion);border-radius: var(--radius-full);font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Stock: análisis cada 6am</span>
+      <span style="font-size:12px;padding:4px 10px;background:color-mix(in srgb, var(--nav-fidelizacion) 10%, transparent);color:var(--nav-fidelizacion);border-radius: var(--radius-full);font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="15" r="6"/><path d="M9 10.5L7 2h4l1 4 1-4h4l-2 8.5"/></svg>Nivel de confianza: domingos 5am</span>
+    </div>
+
+    <!-- Panel Push -->
+    <div class="push-panel" id="push-panel">
+      <div class="push-panel__left">
+        <span class="push-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+        <div>
+          <strong class="push-title">Alertas automáticas</strong>
+          <span class="push-sub" id="push-estado-txt">Recibí notificaciones cuando los motores detecten eventos críticos</span>
+        </div>
+      </div>
+      <div class="push-panel__right">
+        <button type="button" class="btn-push-toggle" id="btn-push-toggle" onclick="togglePush()">
+          Activar alertas
+        </button>
+      </div>
+    </div>
+
+    <!-- Preferencias de notificación -->
+    <div class="push-prefs" id="push-prefs" style="display:none">
+      <div class="push-prefs__title">¿Qué alertas querés recibir?</div>
+      <div class="push-prefs__grid">
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-piloto_sugerencia" onchange="guardarPref(this)" checked aria-label="Sugerencia piloto">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="14" r="1.2" fill="currentColor"/><circle cx="15" cy="14" r="1.2" fill="currentColor"/><line x1="12" y1="8" x2="12" y2="4"/><circle cx="12" cy="3" r="1"/><line x1="1" y1="14" x2="4" y2="14"/><line x1="20" y1="14" x2="23" y2="14"/></svg></span>
+          <span>Sugerencias de pedido</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-cierre_cliente_bloqueado" onchange="guardarPref(this)" checked aria-label="Cerrar cliente bloqueado">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span>Cliente bloqueado</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-cierre_error_cola" onchange="guardarPref(this)" checked aria-label="Cerrar error en cola">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span>Error en cola financiera</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-stock_quiebre" onchange="guardarPref(this)" checked aria-label="Alerta de quiebre de stock">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2a5 5 0 0 0-5 5v6h10V7a5 5 0 0 0-5-5z"/><line x1="12" y1="2" x2="12" y2="0"/><rect x="4" y="13" width="16" height="4" rx="1"/><line x1="4" y1="21" x2="20" y2="21"/></svg></span>
+          <span>Quiebre de stock</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-stock_orden_auto" onchange="guardarPref(this)" checked aria-label="Orden automática de stock">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>
+          <span>Orden auto-generada</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-stock_sin_proveedor" onchange="guardarPref(this)" checked aria-label="Producto necesita reponerse sin proveedor asignado">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 3h4a1 1 0 0 1 1 1v2.05a2.5 2.5 0 1 0 0 4.9V13a1 1 0 0 1-1 1h-2.05a2.5 2.5 0 1 1-4.9 0H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h2.05a2.5 2.5 0 1 1 4.9 0V4a1 1 0 0 1 1-1z" /></svg></span>
+          <span>Reposición sin proveedor</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-score_caida_critica" onchange="guardarPref(this)" checked aria-label="Alerta caída crítica de score">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="15" r="6"/><path d="M9 10.5L7 2h4l1 4 1-4h4l-2 8.5"/></svg></span>
+          <span>Caída crítica de nivel de confianza</span>
+        </label>
+        <label class="pref-toggle">
+          <input type="checkbox" id="pref-migracion_sesion_error" onchange="guardarPref(this)" checked aria-label="Sesión de migración con error">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+          <span>Migración con error</span>
+        </label>
+        <label class="pref-toggle">
+          <!-- FIX (auditoría módulos, etapa 12, Hallazgo 1): la columna
+               notif_prefs_auto.auditoria_anomalia existe desde la migración
+               070 y el cron /api/auditoria?accion=analizar ya la respeta
+               (notifAuto tipo='auditoria_anomalia'), pero no había ningún
+               toggle acá para que el admin la vea o la desactive — faltaba
+               solo esto, la notificación en sí ya funciona. -->
+          <input type="checkbox" id="pref-auditoria_anomalia" onchange="guardarPref(this)" checked aria-label="Anomalía detectada en auditoría">
+          <span class="pref-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="12"/><circle cx="11" cy="14.5" r="0.6" fill="currentColor"/></svg></span>
+          <span>Anomalía detectada en auditoría</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Grid de motores — ID correcto: auto-grid -->
+    <div class="auto-grid" id="auto-grid"></div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Reglas personalizadas (Fase 6 — PLAN_ERP_SINCRONIZACION_2026.md)
+         "Cuando pase X, si se cumple esto, avisame" — armadas por el
+         propio cliente, corren en paralelo a los 5 motores fijos de
+         arriba, sobre el mismo bus de eventos_negocio.
+         ══════════════════════════════════════════════════════════════ -->
+    <div class="reglas-auto-header">
+      <div>
+        <h2 class="reglas-auto-titulo">Reglas personalizadas</h2>
+        <p class="reglas-auto-sub">Armá tus propias reglas: "cuando pase esto, si se cumple tal condición, avisame".</p>
+      </div>
+      <button type="button" class="btn btn--primary btn--sm" id="btn-nueva-regla-auto" onclick="abrirModalReglaAuto()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva regla
+      </button>
+    </div>
+
+    <div class="tabla-card" id="reglas-auto-card">
+      <table class="tabla-base" id="tabla-reglas-auto">
+        <thead>
+          <tr>
+            <th>Regla</th>
+            <th>Se dispara con</th>
+            <th>Condición</th>
+            <th>Acción</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-reglas-auto"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+      </table>
+      <div class="tabla-empty" id="reglas-auto-empty" style="display:none">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:8px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><br>
+        Todavía no armaste ninguna regla personalizada.
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta / edición de regla personalizada
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-regla-auto-backdrop" onclick="cerrarModalReglaAuto()" aria-hidden="true" style="display:none"></div>
+
+<div class="modal" id="modal-regla-auto" style="display:none">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-regla-auto-titulo">Nueva regla personalizada</h2>
+      <div class="modal-subtitulo">Elegí el evento, una condición opcional y qué hacer cuando se cumpla</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalReglaAuto()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre de la regla <span class="form-requerido">*</span></label>
+        <input type="text" id="ra-nombre" class="form-input" placeholder="Ej: Avisar pedidos grandes" maxlength="120" />
+        <p class="field-error-msg" id="ra-nombre-error" style="display:none"></p>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Se dispara cuando</label>
+        <select id="ra-evento" class="form-select"></select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input type="checkbox" id="ra-activa" checked style="width:auto;margin:0" /> Regla activa
+        </label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">
+          Condición (opcional)
+          <span class="tooltip-info" title="Dejala vacía para que la regla se dispare siempre que ocurra el evento">ⓘ</span>
+        </label>
+
+        <div id="ra-cond-combinador-wrap" style="display:none;margin-bottom:8px">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-muted)">
+            Se cumplen
+            <select id="ra-cond-combinador" class="form-select" style="width:auto;display:inline-block">
+              <option value="y">todas las condiciones (Y)</option>
+              <option value="o">alguna de las condiciones (O)</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="ra-cond-filas"></div>
+
+        <button type="button" class="btn-secundario btn--sm" id="btn-agregar-cond" onclick="agregarFilaCondicion()" style="margin-top:6px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar condición
+        </button>
+
+        <p class="ra-cond-hint">Ej: campo <code>monto</code>, operador <code>es mayor que</code>, valor <code>50000</code> → se dispara solo con pedidos de más de $50.000. Agregá más de una condición para combinarlas con Y/O.</p>
+      </div>
+    </div>
+
+    <div class="ra-accion-box">
+      <div class="ra-accion-box__titulo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Acción
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Qué hacer cuando se cumpla</label>
+          <select id="ra-accion-tipo" class="form-select" onchange="cambiarTipoAccionRegla()">
+            <option value="notificar_push">Notificación push</option>
+            <option value="enviar_whatsapp">Mensaje de WhatsApp</option>
+            <option value="crear_tarea">Crear tarea</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── notificar_push ── -->
+      <div id="ra-accion-push" class="ra-accion-campos">
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Título de la notificación <span class="form-requerido">*</span></label>
+            <input type="text" id="ra-titulo" class="form-input" placeholder="Ej: Pedido grande" maxlength="80" />
+            <p class="field-error-msg" id="ra-titulo-error" style="display:none"></p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Mensaje <span class="form-requerido">*</span></label>
+            <input type="text" id="ra-mensaje" class="form-input" placeholder="Ej: Se creó un pedido por más de $50.000" maxlength="160" />
+            <p class="field-error-msg" id="ra-mensaje-error" style="display:none"></p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Avisar a</label>
+            <div class="ra-roles-grid" id="ra-roles-grid">
+              <label><input type="checkbox" value="dueno" checked> Dueño</label>
+              <label><input type="checkbox" value="admin" checked> Admin</label>
+              <label><input type="checkbox" value="vendedor"> Vendedor</label>
+              <label><input type="checkbox" value="contador"> Contador</label>
+              <label><input type="checkbox" value="depositero"> Depositero</label>
+              <label><input type="checkbox" value="chofer"> Chofer</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── enviar_whatsapp ── -->
+      <div id="ra-accion-whatsapp" class="ra-accion-campos" style="display:none">
+        <p class="ra-cond-hint" style="margin-top:0">
+          WhatsApp solo permite mandar plantillas ya aprobadas por Meta (no texto libre). El teléfono y el nombre del cliente se resuelven automáticamente del pedido/cliente que disparó el evento — por eso esta acción solo tiene sentido en eventos que involucran un cliente.
+        </p>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Plantilla <span class="form-requerido">*</span></label>
+            <select id="ra-wa-template" class="form-select"></select>
+            <p class="field-error-msg" id="ra-wa-template-error" style="display:none"></p>
+          </div>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Parámetros de la plantilla (opcional)</label>
+          <div id="ra-wa-params-filas"></div>
+          <button type="button" class="btn-secundario btn--sm" onclick="agregarFilaParamWa()" style="margin-top:6px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar parámetro
+          </button>
+          <p class="ra-cond-hint">El nombre del cliente se completa solo — solo hace falta cargar acá el resto de los parámetros que pida la plantilla (ej: <code>monto_vencido</code>).</p>
+        </div>
+      </div>
+
+      <!-- ── crear_tarea ── -->
+      <div id="ra-accion-tarea" class="ra-accion-campos" style="display:none">
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Título de la tarea <span class="form-requerido">*</span></label>
+            <input type="text" id="ra-tarea-titulo" class="form-input" placeholder="Ej: Confirmar stock antes de despachar" maxlength="120" />
+            <p class="field-error-msg" id="ra-tarea-titulo-error" style="display:none"></p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Descripción (opcional)</label>
+            <input type="text" id="ra-tarea-descripcion" class="form-input" placeholder="Detalle para quien la resuelva" maxlength="500" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Asignar a</label>
+            <div class="ra-roles-grid" id="ra-tarea-roles-grid">
+              <label><input type="checkbox" value="dueno" checked> Dueño</label>
+              <label><input type="checkbox" value="admin" checked> Admin</label>
+              <label><input type="checkbox" value="vendedor"> Vendedor</label>
+              <label><input type="checkbox" value="contador"> Contador</label>
+              <label><input type="checkbox" value="depositero"> Depositero</label>
+              <label><input type="checkbox" value="chofer"> Chofer</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalReglaAuto()">Cancelar</button>
+    <button type="button" class="btn btn--primary" id="btn-guardar-regla-auto" onclick="guardarReglaAuto()">Guardar regla</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Tareas creadas por reglas (acción "crear_tarea")
+═════════════════════════════════════════════════════════════ -->
+<div class="reglas-auto-header" style="margin-top:32px">
+  <div>
+    <h2 class="reglas-auto-titulo">Tareas</h2>
+    <p class="reglas-auto-sub">Pendientes creados automáticamente por tus reglas de automatización.</p>
+  </div>
+</div>
+
+<div class="tabla-card" id="tareas-auto-card">
+  <table class="tabla-base" id="tabla-tareas-auto">
+    <thead>
+      <tr>
+        <th>Tarea</th>
+        <th>Origen</th>
+        <th>Creada</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody-tareas-auto"><tr><td colspan="5" class="tabla-loading">Cargando...</td></tr></tbody>
+  </table>
+  <div class="tabla-empty" id="tareas-auto-empty" style="display:none">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:8px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><br>
+    No hay tareas pendientes.
+  </div>
+</div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
+<script type="module" src="/frontend/admin/js/automatizacion.js?v1782328742714"></script>
+</body>
+</html>

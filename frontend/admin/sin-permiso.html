@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sin acceso — Panel Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/login.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    .login-card::before {
+      background: linear-gradient(90deg, #a5470f 0%, #c47e18 50%, #c4a01e 100%);
+    }
+    .login-subtitulo {
+      background: rgba(74,47,15,.1);
+      color: #4a2f0f;
+    }
+    .sin-permiso-icono {
+      display: flex; align-items: center; justify-content: center;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(196,126,24,.12); color: #a5470f;
+      margin: 0 auto 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+
+  <div class="login-header" style="padding:32px 32px 0; text-align:center;">
+    <div class="sin-permiso-icono">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+    </div>
+    <div class="login-empresa">Tu cuenta no tiene acceso a esta sección</div>
+    <div class="login-subtitulo">Panel Administrativo</div>
+  </div>
+
+  <!-- Etapa 14 (auditoría UX), Hallazgo 3: antes esto redirigía silenciosamente
+       a /admin/login (mismo destino que una contraseña incorrecta). El
+       usuario válido con rol sin páginas asignadas no podía distinguir
+       "mi contraseña está mal" de "mi rol no tiene ninguna pantalla todavía". -->
+  <div style="margin:24px 32px 0; color:var(--color-text-light); font-size:14px; line-height:1.5;">
+    <p id="texto-explicacion">
+      Iniciaste sesión correctamente, pero tu usuario no tiene una pantalla
+      asignada dentro del panel todavía.
+    </p>
+    <p style="margin-top:12px;">
+      Si pensás que esto es un error, avisale a quien administra tu cuenta
+      en la empresa — puede sumarte acceso a las secciones que necesitás.
+    </p>
+  </div>
+
+  <div style="margin:24px 32px 32px; display:flex; flex-direction:column; gap:10px;">
+    <button type="button" id="btn-volver-login" class="btn-primary" style="width:100%;">
+      Cerrar sesión y volver a intentar
+    </button>
+  </div>
+
+</div>
+
+<script>
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    const rol = params.get('rol');
+    if (rol) {
+      document.getElementById('texto-explicacion').textContent =
+        `Iniciaste sesión correctamente como "${rol}", pero ese rol no tiene ninguna pantalla asignada dentro del panel todavía.`;
+    }
+
+    document.getElementById('btn-volver-login').addEventListener('click', async () => {
+      try {
+        const sb = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-admin-auth' } });
+        await sb.auth.signOut();
+      } catch (e) { /* best-effort */ }
+      try {
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('sb_') || k.includes('supabase')) localStorage.removeItem(k); });
+        Object.keys(sessionStorage).forEach(k => { if (k.startsWith('sb_') || k.includes('supabase')) sessionStorage.removeItem(k); });
+      } catch (e) { /* best-effort */ }
+      window.location.href = '/admin/login';
+    });
+  })();
+</script>
+
+</body>
+</html>

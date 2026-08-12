@@ -1,0 +1,275 @@
+/**
+ * whatsapp-conversaciones-gentelella.css — Reskin "Gentelella v4" de Conversaciones WhatsApp
+ * ────────────────────────────────────────────────────────────────────────────────────────────
+ * Pantalla: frontend/admin/whatsapp-conversaciones.html
+ * Se carga DESPUÉS de /shared/tokens.css, /shared/adminlte-components.css,
+ * /frontend/admin/css/base-layout.css y /frontend/admin/css/finanzas.css (CSS base
+ * compartido), y de /frontend/shared/gentelella-tokens.css (debe estar linkeado
+ * antes en el <head>).
+ *
+ * El propio whatsapp-conversaciones.html trae un <style> inline con varios
+ * componentes propios (badges de estado/atención, stats-bar, chat del modal,
+ * borrador de pedido) definidos con --color-*/valores fijos. Este archivo los
+ * sobreescribe con tokens --ge-* sin tocar el <style> inline ni el HTML.
+ * Sigue el mismo criterio ya aplicado en notif-log-gentelella.css (pantalla
+ * hermana, mismo layout base finanzas.css + stats-bar/modal propios).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-whatsapp-conversaciones-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella { background: var(--ge-bg) !important; }
+body.dash-whatsapp-conversaciones-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .topbar-workspace,
+body.dash-whatsapp-conversaciones-gentelella .topbar-fecha {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Botón secundario "Limpiar" / "Cerrar" / "Ver" / "Liberar" y primario
+   "Tomar conversación" */
+body.dash-whatsapp-conversaciones-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Stats bar (.stats-bar / .stat-chip, definidos inline)
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .stat-chip {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .stat-chip .val {
+  color: var(--ge-teal) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .stat-chip .lbl {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .filtros-bar input,
+body.dash-whatsapp-conversaciones-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .filtros-bar input:focus,
+body.dash-whatsapp-conversaciones-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .filtros-bar label {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla principal
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella table.tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella table.tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella table.tabla tr.fila-conv:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella table.tabla tr.fila-conv:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .tabla-footer {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .tabla-footer #lbl-count {
+  color: var(--ge-muted) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .cliente-cell {
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .sin-resultados {
+  color: var(--ge-muted) !important;
+}
+
+/* Pastillas de estado de la conversación (.badge-estado.activa/etc.) */
+body.dash-whatsapp-conversaciones-gentelella .badge-estado {
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 700 !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .badge-estado.activa {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .badge-estado.esperando_confirmacion {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .badge-estado.derivada_humano {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Pastillas de atención (.badge-tomada / .badge-libre) */
+body.dash-whatsapp-conversaciones-gentelella .badge-tomada {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 700 !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .badge-libre {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de detalle (meta + borrador + chat)
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .modal-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella #modal-conv-meta {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella #modal-conv-meta strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Borrador de pedido en curso (.borrador-box) */
+body.dash-whatsapp-conversaciones-gentelella .borrador-box {
+  background: var(--ge-warning-bg) !important;
+  border: 1px solid var(--ge-orange) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .borrador-box strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Chat (.chat-scroll / .burbuja) */
+body.dash-whatsapp-conversaciones-gentelella .chat-scroll {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .burbuja.in {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .burbuja.out {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .burbuja .hora {
+  color: var(--ge-muted) !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .burbuja.no-soportado {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Ícono de color compacto dentro de .stat-chip (34px en vez de
+   los 40px estándar del componente KPI, porque el chip es angosto)
+   ════════════════════════════════════════════════════════════ */
+body.dash-whatsapp-conversaciones-gentelella .stat-chip-icono {
+  width: 34px !important;
+  height: 34px !important;
+}
+body.dash-whatsapp-conversaciones-gentelella .stat-chip-icono svg {
+  width: 16px !important;
+  height: 16px !important;
+}

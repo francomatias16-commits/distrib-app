@@ -1,0 +1,212 @@
+/**
+ * cajas-gentelella.css — Reskin "Gentelella v4" de la pantalla Cajas
+ * ───────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/shared/gentelella-tokens.css (que debe
+ * estar linkeado antes en el <head>) y del <style> propio de cajas.html.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ *
+ * Scope: body.dash-cajas-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella { background: var(--ge-bg) !important; }
+body.dash-cajas-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar + intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cajas-gentelella .topbar-title { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-cajas-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; font-size: 13px !important; }
+
+body.dash-cajas-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Header de sección ("Cajas configuradas" + botón nueva)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .cajas-header-sec h2 { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .cajas-header-sec p  { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Botones primarios/secundarios
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-cajas-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-cajas-gentelella .btn-guardar {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cajas-gentelella .btn-guardar:hover { background: var(--ge-teal-dark) !important; }
+body.dash-cajas-gentelella .btn-cancel {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-cajas-gentelella .btn-cancel:hover { background: var(--ge-chip-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Tarjetas de caja (grid principal)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .caja-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cajas-gentelella .caja-card:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-cajas-gentelella .caja-card:not(.inactiva) {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-cajas-gentelella .caja-card.inactiva {
+  background: var(--ge-chip-bg) !important;
+  opacity: .75 !important;
+}
+body.dash-cajas-gentelella .caja-icon {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cajas-gentelella .caja-icon.inactiva {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-cajas-gentelella .caja-nombre { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .caja-deposito { color: var(--ge-muted) !important; }
+
+body.dash-cajas-gentelella .caja-badge { border-radius: var(--ge-radius-pill) !important; }
+body.dash-cajas-gentelella .badge-activa {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-cajas-gentelella .badge-inactiva {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-muted) !important;
+}
+
+body.dash-cajas-gentelella .btn-caja {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cajas-gentelella .btn-caja:hover {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-cajas-gentelella .btn-caja.editar:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-cajas-gentelella .btn-caja.toggle-inactiva:hover {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-cajas-gentelella .btn-caja.toggle-activa:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel lateral: PIN supervisor + historial
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cajas-gentelella .card-header { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-cajas-gentelella .card-title { color: var(--ge-ink) !important; }
+
+body.dash-cajas-gentelella .form-input,
+body.dash-cajas-gentelella .form-select {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cajas-gentelella .form-input:focus,
+body.dash-cajas-gentelella .form-select:focus {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cajas-gentelella .form-label { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .form-hint { color: var(--ge-muted) !important; }
+
+/* Tabla de historial */
+body.dash-cajas-gentelella .tabla-historial thead {
+  background: var(--ge-chip-bg) !important;
+}
+body.dash-cajas-gentelella .tabla-historial thead th {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 10.5px !important;
+  letter-spacing: .04em !important;
+}
+body.dash-cajas-gentelella .tabla-historial tbody tr {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cajas-gentelella .tabla-historial tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-cajas-gentelella .tabla-historial td { color: var(--ge-ink) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal (alta/edición de caja)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cajas-gentelella .modal-titulo { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .modal-subtitulo { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Toasts / alertas
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .toast-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border: 1px solid var(--ge-teal) !important;
+}
+body.dash-cajas-gentelella .alerta-err,
+body.dash-cajas-gentelella .toast-err {
+  background: #F3DAD8 !important;
+  color: var(--ge-red) !important;
+  border: 1px solid var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Estado vacío
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella .cajas-vacio h3 { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .cajas-vacio p  { color: var(--ge-muted) !important; }

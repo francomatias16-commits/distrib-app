@@ -1,0 +1,686 @@
+/**
+ * cobranzas-gentelella.css — Reskin "Gentelella v4" de la pantalla Cobros y Saldos
+ * ───────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Cubre ambas vistas fusionadas: "cobranzas" (cobranzas.js) y "saldos" (cta-cte.js).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ *
+ * Scope: body.dash-cobranzas-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella { background: var(--ge-bg) !important; }
+body.dash-cobranzas-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cobranzas-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-cobranzas-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cobranzas-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-cobranzas-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* Botón "Recordatorio masivo" (btn--danger) */
+body.dash-cobranzas-gentelella .btn.btn--danger {
+  background: var(--ge-red) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-cobranzas-gentelella .btn.btn--danger:hover {
+  background: color-mix(in srgb, var(--ge-red) 80%, black) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* Page intro */
+body.dash-cobranzas-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pestañas principales (vista-principal-tabs)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .tab-btn-principal {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-cobranzas-gentelella .tab-btn-principal:hover {
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-teal) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-cobranzas-gentelella .tab-btn-principal.active {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+/* Pulso urgente en la pestaña de cobranzas */
+body.dash-cobranzas-gentelella .tab-btn-principal.urgente--pulso {
+  background: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-panel) !important;
+  animation: ge-pulso 1.4s ease-in-out infinite !important;
+}
+@keyframes ge-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(231,76,60,.0); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards — layout de finanzas (kpi-card)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cobranzas-gentelella .kpi-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+}
+body.dash-cobranzas-gentelella .kpi-val,
+body.dash-cobranzas-gentelella .kpi-valor {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-cobranzas-gentelella .kpi-sub,
+body.dash-cobranzas-gentelella [id$="-sub"] {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* Medios de pago — lista sutil (mp-fila), reemplaza las tarjetas fkpi
+   con ícono centrado sobre fondo pastel: acá cada medio es una fila
+   angosta con ícono chico, nombre, una barra proporcional al total del
+   día y el monto alineado a la derecha, en línea con el resto de filas
+   de tabla de la pantalla. */
+body.dash-cobranzas-gentelella .mp-lista {
+  display: flex !important;
+  flex-direction: column !important;
+}
+body.dash-cobranzas-gentelella .mp-fila {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 10px 20px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cobranzas-gentelella .mp-fila:last-child { border-bottom: none !important; }
+body.dash-cobranzas-gentelella .mp-icono {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-cobranzas-gentelella .mp-icono svg { width: 15px !important; height: 15px !important; }
+body.dash-cobranzas-gentelella .mp-label {
+  flex-shrink: 0 !important;
+  width: 140px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--ge-ink-soft) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+body.dash-cobranzas-gentelella .mp-barra {
+  flex: 1 1 auto !important;
+  height: 6px !important;
+  border-radius: var(--ge-radius-pill) !important;
+  background: var(--ge-bg) !important;
+  overflow: hidden !important;
+}
+body.dash-cobranzas-gentelella .mp-barra-fill {
+  display: block !important;
+  height: 100% !important;
+  border-radius: var(--ge-radius-pill) !important;
+  background: var(--ge-teal) !important;
+}
+body.dash-cobranzas-gentelella .mp-monto {
+  flex-shrink: 0 !important;
+  width: 128px !important;
+  text-align: right !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cobranzas-gentelella .mp-vacio {
+  text-align: center !important;
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+  padding: 16px 20px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabs internas (tab-btn / tab-btn.active) — "Priorizada / Vencen hoy /
+   Próximos 7 días / Vencidas": mismo look de caja+sombra que filtro-tab.
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .tabs {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  gap: 8px !important;
+}
+body.dash-cobranzas-gentelella .tab-btn {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 8px 16px !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-cobranzas-gentelella .tab-btn:hover {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-cobranzas-gentelella .tab-btn.active {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros y buscadores
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella #buscar-cliente,
+body.dash-cobranzas-gentelella #filtro-estado,
+body.dash-cobranzas-gentelella .filtro-input,
+body.dash-cobranzas-gentelella .filtro-select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella #buscar-cliente:focus,
+body.dash-cobranzas-gentelella #filtro-estado:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cobranzas-gentelella #buscar-cliente::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody) — vista cobranzas y saldos
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-cobranzas-gentelella .tabla-wrap thead th,
+body.dash-cobranzas-gentelella #thead-facturas th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 14px !important;
+  white-space: nowrap !important;
+}
+body.dash-cobranzas-gentelella .tabla-wrap tbody td,
+body.dash-cobranzas-gentelella #tbody-facturas td,
+body.dash-cobranzas-gentelella #tbody-clientes td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .tabla-wrap tbody tr:last-child td { border-bottom: none !important; }
+body.dash-cobranzas-gentelella .tabla-wrap tbody tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-cobranzas-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-cobranzas-gentelella .tabla-wrap tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Montos */
+body.dash-cobranzas-gentelella .monto {
+  font-weight: 600 !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cobranzas-gentelella .monto-rojo { color: var(--ge-red) !important; }
+body.dash-cobranzas-gentelella .monto-verde { color: var(--ge-teal) !important; }
+
+/* Empty state */
+body.dash-cobranzas-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  padding: 32px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de prioridad de cobro
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .chip {
+  display: inline-block !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+body.dash-cobranzas-gentelella .chip-rojo {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-cobranzas-gentelella .chip-amarillo {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-cobranzas-gentelella .chip-verde {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-cobranzas-gentelella .chip-gris {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Semáforo de estado de cliente (vista saldos)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .semaforo {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+body.dash-cobranzas-gentelella .semaforo-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+body.dash-cobranzas-gentelella .semaforo.verde {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-cobranzas-gentelella .semaforo.verde .semaforo-dot { background: var(--ge-teal) !important; }
+body.dash-cobranzas-gentelella .semaforo.amarillo {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-cobranzas-gentelella .semaforo.amarillo .semaforo-dot { background: var(--ge-orange) !important; }
+body.dash-cobranzas-gentelella .semaforo.rojo {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-cobranzas-gentelella .semaforo.rojo .semaforo-dot { background: var(--ge-red) !important; }
+body.dash-cobranzas-gentelella .semaforo.gris {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cobranzas-gentelella .semaforo.gris .semaforo-dot { background: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Botón "Cobrar" inline en tabla
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .btn.btn-sm.btn-primary,
+body.dash-cobranzas-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-cobranzas-gentelella .btn.btn-sm.btn-primary:hover,
+body.dash-cobranzas-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-cobranzas-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-cobranzas-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel lateral de cliente (cta-cte.js)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella #panel-cliente {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cobranzas-gentelella #panel-nombre {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+body.dash-cobranzas-gentelella .detalle-seccion {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-cobranzas-gentelella .detalle-seccion h4 {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+body.dash-cobranzas-gentelella .saldo-resumen {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-cobranzas-gentelella .detalle-fila {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+body.dash-cobranzas-gentelella .detalle-fila-label {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-cobranzas-gentelella .detalle-fila-val {
+  color: var(--ge-ink) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .saldo-total-fila {
+  border-top: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-cobranzas-gentelella .alerta-inline.danger {
+  background: rgba(231,76,60,.08) !important;
+  border: 1px solid rgba(231,76,60,.2) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-red) !important;
+  font-size: 12px !important;
+}
+
+/* Movimientos en panel */
+body.dash-cobranzas-gentelella .movimiento-row {
+  border-bottom: 1px solid var(--ge-border) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+body.dash-cobranzas-gentelella .movimiento-row:last-child {
+  border-bottom: none !important;
+}
+body.dash-cobranzas-gentelella .movimiento-icono {
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+body.dash-cobranzas-gentelella .movimiento-icono.cobro {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-cobranzas-gentelella .movimiento-icono.factura {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-cobranzas-gentelella .movimiento-desc {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+body.dash-cobranzas-gentelella .movimiento-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+}
+body.dash-cobranzas-gentelella .movimiento-monto {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .movimiento-monto.cobro { color: var(--ge-teal) !important; }
+body.dash-cobranzas-gentelella .movimiento-monto.factura { color: var(--ge-red) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal de cobro (modal-cobro)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella #modal-cobro {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cobranzas-gentelella .modal-backdrop,
+body.dash-cobranzas-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-cobranzas-gentelella .modal-titulo,
+body.dash-cobranzas-gentelella .modal-header h2,
+body.dash-cobranzas-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-cobranzas-gentelella .modal-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cobranzas-gentelella #cobro-cliente-nombre,
+body.dash-cobranzas-gentelella #cobro-monto,
+body.dash-cobranzas-gentelella #cobro-medio,
+body.dash-cobranzas-gentelella #cobro-comprobante,
+body.dash-cobranzas-gentelella #cobro-obs,
+body.dash-cobranzas-gentelella #cobro-fecha {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella #cobro-monto:focus,
+body.dash-cobranzas-gentelella #cobro-medio:focus,
+body.dash-cobranzas-gentelella #cobro-comprobante:focus,
+body.dash-cobranzas-gentelella #cobro-obs:focus,
+body.dash-cobranzas-gentelella #cobro-fecha:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cobranzas-gentelella #alerta-credito-cobro {
+  background: rgba(240,173,78,.1) !important;
+  border: 1px solid rgba(240,173,78,.25) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-warning-text) !important;
+  font-size: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal "Enviar estado de cuenta" (modal-backdrop / modal-footer)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella #modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-cobranzas-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-cobranzas-gentelella .vista-principal-tabs {
+    padding: 0 12px !important;
+    flex-wrap: wrap !important;
+  }
+  body.dash-cobranzas-gentelella #panel-cliente {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999 !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal interior + panel lateral de cliente
+   ════════════════════════════════════════════════════════════ */
+body.dash-cobranzas-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cobranzas-gentelella .modal-header h2,
+body.dash-cobranzas-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-cobranzas-gentelella .modal-body {
+  font-size: 13px !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cobranzas-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+body.dash-cobranzas-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+/* Panel lateral de detalle */
+body.dash-cobranzas-gentelella .detalle-panel {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: -2px 0 8px rgba(0,0,0,.1) !important;
+}
+body.dash-cobranzas-gentelella .detalle-panel-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 16px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+body.dash-cobranzas-gentelella .detalle-panel-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  font-size: 15px !important;
+}
+body.dash-cobranzas-gentelella .btn-cerrar-panel {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  cursor: pointer !important;
+}
+body.dash-cobranzas-gentelella .btn-cerrar-panel:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-ink-soft) !important;
+}
+body.dash-cobranzas-gentelella .detalle-panel-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+}
+body.dash-cobranzas-gentelella .detalle-panel-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+  padding: 14px 20px !important;
+}
+
+/* ── Z-INDEX ESCALADO: confirm por encima de #modal-cobro ────────────
+   BUG REAL (no solo de los tests): #modal-cobro usa la clase
+   .modal-overlay (finanzas.css, z-index:500). window.confirmar() usa
+   --z-modal (default 400, shared/tokens.css). Con #modal-cobro abierto
+   y --z-modal en 400, el diálogo de confirmación de "Registrar cobro"
+   queda VISUALMENTE DETRÁS del modal — su botón "ok" es inclickeable
+   con mouse para cualquier usuario real, no solo para Playwright
+   ("<label>N° comprobante</label> ... subtree intercepts pointer
+   events"). Confirmado corriendo cta-cte.spec.js contra Chromium real.
+   Mismo hallazgo y mismo fix ya aplicado para el caso análogo de
+   #modal-producto en productos-modal-fix.css — acá se replica scopeado
+   a cobranzas.html (que es donde vive #modal-cobro, cargado también por
+   /admin/cta-cte.html vía el stub de redirect a
+   cobranzas.html?vista=saldos). --z-toast ya estaba bien (600 > 500). */
+:root {
+  --z-modal: 10100;
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Escanear para el POS</title>
+  <link rel="stylesheet" href="/frontend/scan-pos/portal.css?v1" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+</head>
+<body>
+
+  <div id="scan-estado" class="scan-estado">
+    <div class="scan-spinner" aria-hidden="true"></div>
+    <p>Conectando con la caja…</p>
+  </div>
+
+  <div id="scan-error" class="scan-error" style="display:none">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <h1 id="scan-error-tit">No se pudo abrir</h1>
+    <p id="scan-error-msg"></p>
+  </div>
+
+  <div id="scan-camara" class="scan-camara" style="display:none">
+    <video id="scan-video" autoplay muted playsinline></video>
+    <div class="scan-marco" aria-hidden="true"></div>
+
+    <div class="scan-topbar">
+      <span class="scan-badge" id="scan-badge">Vinculado</span>
+    </div>
+
+    <div id="scan-flash" class="scan-flash" aria-live="polite"></div>
+
+    <p id="scan-camara-error" class="scan-camara-error" style="display:none"></p>
+  </div>
+
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
+  <script src="/frontend/scan-pos/portal.js"></script>
+</body>
+</html>

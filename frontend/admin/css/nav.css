@@ -1,0 +1,448 @@
+/**
+ * nav.css — Navegación admin: mega-menú overlay
+ * Botón flotante (#nav-menu-btn) + panel modal centrado con todas las
+ * secciones agrupadas por espacio de trabajo (mismo patrón que ya usaba
+ * dashboard.html). Reemplaza al viejo riel oscuro + panel de secciones.
+ * El drawer mobile (mnav-*, ≤768px, ver más abajo) sigue aparte.
+ */
+
+:root {
+  /* NOTA WCAG (v249-contraste): --nav-hoy, --nav-ventas, --nav-deposito,
+     --nav-cobros, --nav-facturacion, --nav-fidelizacion, --nav-reportes,
+     --nav-config y sus variantes -bg YA se definen en /shared/tokens.css
+     con valores corregidos para contraste AA sobre fondo blanco (el nav
+     pasó de riel oscuro a panel claro, ver comentario "Nav claro" en
+     tokens.css). Antes este archivo las volvía a declarar acá con los
+     tonos viejos pensados para fondo oscuro, y como nav.css se carga
+     DESPUÉS de tokens.css esas variables ganaban la cascada, pisando el
+     fix. Se eliminan las redeclaraciones para que todo el nav use el
+     único valor correcto. */
+
+  /* WCAG re-chequeo v485 (paleta Hoja de Ruta): con los tonos nuevos,
+     --nav-ventas, --nav-deposito, --nav-cobros, --nav-facturacion,
+     --nav-fidelizacion y --nav-reportes ya son oscuros de por sí y
+     cumplen 4.5:1 como texto plano sobre el panel blanco (7.91:1, 5.52:1,
+     5.52:1, 7.44:1, 7.17:1 y 6.68:1 respectivamente), así que las
+     variantes "-text" pasan a apuntar directo al propio token — ya no
+     hace falta la indirección a --color-box-*. La única excepción es
+     --nav-hoy (#B87A00, 3.61:1 — falla como texto porque es justamente
+     el acento vívido de la marca), que sigue resolviéndose con
+     --color-primary-dark (5.52:1). */
+  --nav-hoy-text:          var(--color-primary-dark);
+  --nav-ventas-text:       var(--nav-ventas);
+  --nav-deposito-text:     var(--nav-deposito);
+  --nav-cobros-text:       var(--nav-cobros);
+  --nav-facturacion-text:  var(--nav-facturacion);
+  --nav-fidelizacion-text: var(--nav-fidelizacion);
+  --nav-reportes-text:     var(--nav-reportes);
+  --nav-config-text:       var(--nav-config);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Menú principal — mega-menú overlay (mismo formato que dashboard.html)
+   Reemplaza al riel+panel oscuro anterior. Un solo botón disparador
+   que abre un panel modal centrado con TODAS las secciones agrupadas
+   por área — igual patrón visual, misma fuente de datos (nav-data.js)
+   que usaba el riel viejo.
+   El drawer mobile (mnav-*, ≤768px) no se toca: sigue como estaba.
+   ══════════════════════════════════════════════════════════════════
+   FIX (2026-08-01): el botón disparador dejó de ser un FAB flotante
+   fixed en la esquina (top:14px;left:14px) — quedaba invisible en
+   producción: cualquier elemento por encima en el DOM con z-index más
+   alto (topbars, toasts, modales propios de cada pantalla) podía
+   taparlo sin que se notara en una revisión rápida del código, y no
+   había forma sencilla de confirmarlo pantalla por pantalla. Ahora
+   nav.js inserta el botón (logo + separador + botón) directo DENTRO de
+   .topbar-left de cada pantalla, en el flujo normal del documento —
+   igual que ya lo hacía dashboard.html a mano. #nav-root pasa a ser
+   solo el contenedor de backdrop+panel (que ya tienen su propio
+   position:fixed más abajo), no necesita posición propia. */
+#nav-root { display: contents; }
+
+.topbar-left .logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
+.topbar-left .logo img { display: block; height: 26px; width: auto; }
+.topbar-left .topbar-divider {
+  width: 1px; height: 20px; background: var(--color-border-soft); flex-shrink: 0;
+}
+
+.nav-menu-btn {
+  height: 32px; padding: 0 14px; border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-surface); color: var(--color-text);
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; font-family: var(--font-family); flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(22,24,29,.06);
+  transition: background .12s, border-color .12s, color .12s;
+}
+.nav-menu-btn svg { flex-shrink: 0; }
+.nav-menu-btn-label { font-size: 12px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.nav-menu-btn:hover { background: var(--color-surface-2); border-color: var(--color-primary); }
+.nav-menu-btn.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+/* v611 — flecha "Volver": mismo lenguaje visual que .nav-menu-btn (borde,
+   fondo, sombra, hover) pero circular y de solo ícono, 32px. */
+.nav-back-btn {
+  width: 32px; height: 32px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-surface); color: var(--color-text);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(22,24,29,.06);
+  transition: background .12s, border-color .12s, color .12s;
+}
+.nav-back-btn svg { flex-shrink: 0; }
+.nav-back-btn:hover { background: var(--color-surface-2); border-color: var(--color-primary); }
+.nav-back-btn[hidden] { display: none; }
+
+.nav-menu-backdrop {
+  position: fixed; inset: 0; background: rgba(22,24,29,.5); z-index: 400;
+  opacity: 0; pointer-events: none; transition: opacity .15s;
+  backdrop-filter: blur(1px);
+}
+.nav-menu-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.nav-menu-panel {
+  position: fixed; top: 50%; left: 50%; z-index: 401;
+  transform: translate(-50%, -52%) scale(.98);
+  width: min(1200px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow-y: auto;
+  background: var(--color-surface); border-top: 3px solid var(--color-success-mid);
+  border-radius: var(--radius-xl); box-shadow: 0 30px 70px rgba(22,24,29,.32);
+  opacity: 0; pointer-events: none; transition: opacity .16s, transform .16s;
+}
+.nav-menu-panel.open { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+
+.nav-menu-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; border-bottom: 1px solid var(--color-border-soft);
+}
+.nav-menu-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.nav-menu-logo { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
+.nav-menu-title { font-family: var(--font-family-display); font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--color-text); line-height: 1.2; }
+.nav-menu-subtitle { font-size: 10.5px; color: var(--color-text-light); margin-top: 1px; }
+.nav-menu-close {
+  width: 26px; height: 26px; border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-soft); background: var(--color-surface); color: var(--color-text-light);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.nav-menu-close:hover { background: var(--color-danger-bg); color: var(--color-danger); border-color: rgba(122,30,25,.25); }
+
+.nav-menu-home {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+  color: var(--nav-hoy-text); background: var(--color-surface-2); border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg); padding: 6px 12px; text-decoration: none;
+  margin-left: auto; margin-right: 14px; flex-shrink: 0;
+  transition: background .12s, border-color .12s;
+}
+.nav-menu-home svg { flex-shrink: 0; width: 14px; height: 14px; }
+.nav-menu-home:hover { background: var(--color-surface); border-color: var(--nav-hoy-text); }
+.nav-menu-home.is-current { background: var(--nav-hoy-text); border-color: var(--nav-hoy-text); color: #fff; }
+
+.nav-menu-grid { display: flex; align-items: flex-start; gap: 0; padding: 22px 28px 6px; }
+.nav-menu-col { flex: 1 1 0; min-width: 0; padding-right: 32px; margin-right: 32px; border-right: 1px solid var(--color-border-soft); }
+.nav-menu-col:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+
+.nav-ws { display: block; width: 100%; margin-bottom: 20px; }
+.nav-ws:last-child { margin-bottom: 0; }
+.nav-ws-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--nav-ws-color, var(--color-primary));
+  margin-bottom: 8px; padding-bottom: 7px; border-bottom: 1px solid var(--color-border-soft);
+}
+.nav-ws-label svg { flex-shrink: 0; width: 13px; height: 13px; }
+.nav-ws-links { display: flex; flex-direction: column; }
+.nav-ws-link {
+  display: flex; align-items: baseline; gap: 5px; font-size: 13.5px; color: var(--color-text-muted);
+  text-decoration: none; padding: 3.5px 0; line-height: 1.35; transition: color .12s;
+}
+.nav-ws-link::before { content: '\203A'; font-weight: 700; color: var(--color-text-light); transition: color .12s; }
+.nav-ws-link:hover { color: var(--color-text); }
+.nav-ws-link:hover::before { color: var(--nav-ws-color, var(--color-text)); }
+.nav-ws-link.is-current { color: var(--nav-ws-color, var(--color-primary)); font-weight: 700; }
+.nav-ws-link.is-current::before { color: var(--nav-ws-color, var(--color-primary)); }
+
+/* ── Footer del panel: empresa (izq., misma fuente que auth.js llenaba
+   antes en el riel — #sidebar-logo/#sidebar-empresa se mantienen para no
+   romper la sincronización con el drawer mobile, que los lee del DOM) + Salir (der.) ── */
+.nav-menu-footer {
+  border-top: 1px solid var(--color-border-soft); margin: 0 28px; padding: 12px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.nav-menu-footer-empresa { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.nav-menu-footer-empresa #sidebar-logo {
+  width: 24px; height: 24px; border-radius: var(--radius-md); flex-shrink: 0; overflow: hidden;
+  background: var(--color-surface-2); color: var(--color-text); font-weight: 700; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-menu-footer-empresa #sidebar-logo img { width: 100%; height: 100%; object-fit: cover; }
+.nav-menu-footer-empresa #sidebar-empresa {
+  font-size: 12px; font-weight: 600; color: var(--color-text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-menu-salir {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--color-danger);
+  background: var(--color-danger-bg); border: 1px solid rgba(122,30,25,.2); border-radius: var(--radius-lg); padding: 6px 10px;
+  cursor: pointer; font-family: var(--font-family); flex-shrink: 0;
+}
+.nav-menu-salir:hover { background: rgba(122,30,25,.18); }
+
+@media (max-width: 900px) {
+  .nav-menu-home .nav-menu-home-label { display: none; }
+}
+@media (max-width: 640px) {
+  .nav-menu-header { padding: 14px 18px; }
+  .nav-menu-grid { padding: 16px 18px 4px; flex-direction: column; }
+  .nav-menu-col { border-right: none; padding-right: 0; margin-right: 0; margin-bottom: 8px; }
+  .nav-menu-footer { margin: 0 18px; }
+  .nav-menu-footer-empresa #sidebar-empresa { max-width: 140px; }
+}
+
+/* ── Layout ── */
+/* FIX: desborde horizontal invisible en TODAS las páginas del admin.
+   .layout es el flex-item real dentro de `body` (display:flex, fila,
+   ver base-layout.css). Todo flex-item tiene por spec min-width:auto
+   por defecto — un piso de ancho igual al contenido más ancho que no
+   puede envolver (tablas con celdas white-space:nowrap, la fila de
+   filtros, la celda de acciones con 2 botones). flex:1 permite crecer
+   y encoger, pero ese piso de "ancho mínimo automático" seguía
+   ganando, así que en pantallas angostas .layout terminaba más ancho
+   que el viewport disponible — y como body tiene overflow-x:hidden
+   (para evitar scroll horizontal global), ese excedente quedaba
+   directamente invisible y sin forma de alcanzarlo con scroll (ni la
+   columna "Acciones" a la derecha, ni nada más abajo del corte).
+   El fix de min-width:0 que ya existía en base-layout.css se había
+   aplicado a `.main`, un nivel más adentro y en un eje donde el
+   problema no aplicaba al ancho (main-axis vertical ahí) — nunca
+   llegó a tocar el flex-item real. Con min-width:0 acá, .layout
+   ahora sí puede encogerse por debajo del contenido, y son las
+   tablas/listas internas (con su propio overflow-x:auto, ver
+   .tabla-wrap) las que muestran su scroll horizontal interno en vez
+   de desbordar toda la página. */
+.layout {
+  margin-left: 0;
+  flex: 1; display: flex; flex-direction: column; min-height: 100vh;
+  min-width: 0;
+}
+
+/* ── Topbar workspace badge ── */
+.topbar-workspace {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: var(--radius-sm);
+  line-height: 18px; opacity: 0.9;
+  background: rgba(0,0,0,.06);
+  color: var(--color-text-muted);
+}
+/* WCAG fix v249-contraste: el badge usa el acento como TEXTO sobre un
+   fondo tintado casi blanco (10% de opacidad), así que usa las
+   variantes -text (≥4.5:1) en vez del tono crudo (falla en ventas,
+   depósito, cobros y reportes — ver detalle en el bloque :root). */
+body[data-ws="hoy"]          .topbar-workspace { background: var(--nav-hoy-bg);          color: var(--nav-hoy-text); }
+body[data-ws="ventas"]       .topbar-workspace { background: var(--nav-ventas-bg);       color: var(--nav-ventas-text); }
+body[data-ws="deposito"]     .topbar-workspace { background: var(--nav-deposito-bg);     color: var(--nav-deposito-text); }
+body[data-ws="cobros"]       .topbar-workspace { background: var(--nav-cobros-bg);       color: var(--nav-cobros-text); }
+body[data-ws="facturacion"]  .topbar-workspace { background: var(--nav-facturacion-bg);  color: var(--nav-facturacion-text); }
+body[data-ws="fidelizacion"] .topbar-workspace { background: var(--nav-fidelizacion-bg); color: var(--nav-fidelizacion-text); }
+body[data-ws="reportes"]     .topbar-workspace { background: var(--nav-reportes-bg);     color: var(--nav-reportes-text); }
+body[data-ws="config"]       .topbar-workspace { background: var(--nav-config-bg);       color: var(--nav-config-text); }
+
+/* Borde lateral del título según workspace */
+body[data-ws] .topbar-title { padding-left: 12px; position: relative; }
+body[data-ws] .topbar-title::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 70%; border-radius: 2px;
+}
+body[data-ws="hoy"]          .topbar-title::before { background: var(--nav-hoy); }
+body[data-ws="ventas"]       .topbar-title::before { background: var(--nav-ventas); }
+body[data-ws="deposito"]     .topbar-title::before { background: var(--nav-deposito); }
+body[data-ws="cobros"]       .topbar-title::before { background: var(--nav-cobros); }
+body[data-ws="facturacion"]  .topbar-title::before { background: var(--nav-facturacion); }
+body[data-ws="fidelizacion"] .topbar-title::before { background: var(--nav-fidelizacion); }
+body[data-ws="reportes"]     .topbar-title::before { background: var(--nav-reportes); }
+body[data-ws="config"]       .topbar-title::before { background: var(--nav-config); }
+
+/* btn-primary adopta color de workspace */
+/* WCAG fix v249-contraste: .btn-primary trae texto blanco por defecto.
+   Sobre ventas/depósito/reportes eso da 3.3:1 / 3.19:1 / 3.68:1 (no
+   llega a 4.5:1) — se fuerza texto oscuro, igual que ya se hacía en
+   cobros. hoy/facturación/fidelización/config sí superan 4.5:1 con
+   blanco y se dejan como estaban. */
+body[data-ws="hoy"]          .btn-primary { background: var(--nav-hoy);          border-color: var(--nav-hoy); }
+body[data-ws="ventas"]       .btn-primary { background: var(--nav-ventas);       border-color: var(--nav-ventas);       color: var(--color-text); }
+body[data-ws="deposito"]     .btn-primary { background: var(--nav-deposito);     border-color: var(--nav-deposito);     color: var(--color-text); }
+body[data-ws="cobros"]       .btn-primary { background: var(--nav-cobros);       border-color: var(--nav-cobros);       color: var(--color-text); }
+body[data-ws="facturacion"]  .btn-primary { background: var(--nav-facturacion);  border-color: var(--nav-facturacion); }
+body[data-ws="fidelizacion"] .btn-primary { background: var(--nav-fidelizacion); border-color: var(--nav-fidelizacion); }
+body[data-ws="reportes"]     .btn-primary { background: var(--nav-reportes);     border-color: var(--nav-reportes);     color: var(--color-text); }
+body[data-ws="config"]       .btn-primary { background: var(--nav-config);       border-color: var(--nav-config); }
+
+/* ── Empty states workspace-colored ── */
+body[data-ws="hoy"]          .empty-guide-icon { background: var(--nav-hoy-bg);          color: var(--nav-hoy); }
+body[data-ws="ventas"]       .empty-guide-icon { background: var(--nav-ventas-bg);       color: var(--nav-ventas); }
+body[data-ws="deposito"]     .empty-guide-icon { background: var(--nav-deposito-bg);     color: var(--nav-deposito); }
+body[data-ws="cobros"]       .empty-guide-icon { background: var(--nav-cobros-bg);       color: var(--nav-cobros); }
+body[data-ws="facturacion"]  .empty-guide-icon { background: var(--nav-facturacion-bg);  color: var(--nav-facturacion); }
+body[data-ws="fidelizacion"] .empty-guide-icon { background: var(--nav-fidelizacion-bg); color: var(--nav-fidelizacion); }
+body[data-ws="reportes"]     .empty-guide-icon { background: var(--nav-reportes-bg);     color: var(--nav-reportes); }
+body[data-ws="config"]       .empty-guide-icon { background: var(--nav-config-bg);       color: var(--nav-config); }
+
+.empty-guide {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 48px 24px; text-align: center;
+}
+.empty-guide-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg); color: var(--color-text-light); flex-shrink: 0;
+}
+.empty-guide-icon svg { width: 24px; height: 24px; }
+.empty-guide-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0; }
+.empty-guide-desc  { font-size: 13px; color: var(--color-text-muted); max-width: 320px; margin: 0; }
+
+/* ── Menú mobile (≤768px) — botón hamburguesa + drawer lateral ──────────
+ * v223: se reemplaza la barra inferior de 5 accesos por un patrón más
+ * estándar (hamburguesa fija + panel lateral con TODOS los workspaces y
+ * secciones). Motivo: reporte de que la barra inferior no se veía en
+ * celular real. El botón es un FAB fijo, independiente del flujo del
+ * topbar/layout, para no depender de que ningún contenedor padre tenga
+ * el ancho/alto correcto — así se reduce la superficie de bugs a un único
+ * elemento con posición fija y z-index muy alto. */
+#mnav-root { display: none; }
+
+@media (max-width: 768px) {
+  #nav-root  { display: none; }
+  #mnav-root { display: block; }
+  .topbar-left .logo,
+  .topbar-left .topbar-divider,
+  .topbar-left .nav-menu-btn,
+  .topbar-left .nav-back-btn { display: none; }
+  .layout, .layout.nav-collapsed { margin-left: 0 !important; max-width: 100%; overflow-x: hidden; }
+  .main      { max-width: 100%; overflow-x: hidden; }
+
+  /* FIX v222: nav.css redefine .topbar-workspace sin @media, pisando la regla
+     de adminlte-components.css que lo oculta en mobile (misma especificidad,
+     pero este archivo se carga después → gana). Eso hacía que el pill
+     "FACTURACIÓN" quedara visible en el topbar del celular, empujando todo
+     el contenido más ancho que la pantalla y recortando el resto a la derecha. */
+  .topbar-workspace { display: none !important; }
+
+  /* Defensa extra: que ningún hijo del topbar fuerce el ancho por su
+     contenido mínimo (min-content) cuando el flex no tiene min-width:0 */
+  .topbar-left, .topbar-right { min-width: 0; }
+  .topbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; padding-left: 46px !important; }
+  .topbar-title::before { display: none; } /* el borde de color queda raro pegado al botón hamburguesa */
+
+  /* ── Botón hamburguesa (FAB fijo, siempre arriba de todo) ── */
+  .mnav-fab {
+    position: fixed; top: 12px; left: 12px;
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--nav-dark-bg); color: var(--color-surface); border: none;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 700; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mnav-fab:active { background: var(--nav-dark-rail); }
+  .mnav-fab svg { width: 20px; height: 20px; }
+
+  .mnav-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 690; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .mnav-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  /* ── Drawer lateral (desde la izquierda) ── */
+  .mnav-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(82vw, 300px); background: var(--nav-dark-bg);
+    z-index: 691; display: flex; flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,.35);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mnav-drawer.open { transform: translateX(0); }
+
+  .mnav-drawer-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 14px; border-bottom: 1px solid rgba(255,255,255,.08);
+    flex-shrink: 0;
+  }
+  .mnav-drawer-logo {
+    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,255,255,.12); color: var(--color-surface);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; overflow: hidden;
+  }
+  .mnav-drawer-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .mnav-drawer-empresa {
+    flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mnav-drawer-close {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: none;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+
+  .mnav-drawer-body { flex: 1; overflow-y: auto; padding: 8px 8px 4px; -webkit-overflow-scrolling: touch; }
+
+  .mnav-ws-group { margin-bottom: 2px; }
+  .mnav-ws-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: rgba(255,255,255,.42);
+  }
+  .mnav-ws-header svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .8; }
+  .mnav-ws-header--link {
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+  }
+  .mnav-ws-header--link:active { background: rgba(255,255,255,.06); }
+  .mnav-ws-header.active { color: var(--mnav-ws-color, var(--color-surface)); background: rgba(255,255,255,.06); }
+  .mnav-ws-header.active svg { opacity: 1; }
+
+  .mnav-drawer-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 10px 11px 30px; border-radius: 8px;
+    text-decoration: none; color: rgba(255,255,255,.7);
+    font-size: 14px; font-weight: 500;
+    border: none; border-left: 3px solid transparent;
+    background: none; cursor: pointer; width: 100%;
+    text-align: left; -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s; font-family: inherit;
+  }
+  .mnav-drawer-item:active { background: rgba(255,255,255,.06); }
+  .mnav-drawer-item.active { background: rgba(255,255,255,.1); color: var(--color-surface); font-weight: 600; }
+  .mnav-drawer-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,.5); }
+  .mnav-drawer-icon svg { width: 16px; height: 16px; }
+  .mnav-drawer-item.active .mnav-drawer-icon { color: inherit; }
+  .mnav-drawer-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mnav-drawer-check { font-size: 13px; font-weight: 700; margin-left: auto; }
+
+  .mnav-drawer-footer {
+    flex-shrink: 0; padding: 10px; border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .mnav-drawer-salir {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 11px 10px; border-radius: 8px; border: none;
+    background: none; color: rgba(255,255,255,.55); font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .mnav-drawer-salir:active { background: rgba(179,38,30,.15); color: var(--color-danger-mid); }
+  .mnav-drawer-salir svg { width: 18px; height: 18px; flex-shrink: 0; }
+}
+
+/* ─── Focus visible — WCAG 2.2 — v109-a11y ─── */
+.nav-link:focus-visible,
+.sidebar-item:focus-visible,
+.nav-item > a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}

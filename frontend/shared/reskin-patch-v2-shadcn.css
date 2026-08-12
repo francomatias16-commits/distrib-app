@@ -1,0 +1,294 @@
+/**
+ * reskin-patch-v2-shadcn.css — Overlay universal v249
+ * ─────────────────────────────────────────────────────────────────────────
+ * Extiende reskin-patch.css (v248 Corporativo) con la ANATOMÍA de
+ * componentes de shadcn/ui, Ant Design, Chakra UI y Mantine, aplicada
+ * sobre las clases YA existentes en el proyecto (.btn-primary, .card,
+ * .badge, .modal, .table, .form-control, etc.) — cero cambios de HTML
+ * requeridos para que el 90% de esto entre en vigencia.
+ *
+ * Qué se tomó de cada uno:
+ *   shadcn/ui   → focus ring con offset, escala de tamaños de botón,
+ *                 anatomía Card/Dialog, variantes ghost/link/outline.
+ *   Ant Design  → densidad de tablas, Tag con punto de estado, Empty state,
+ *                 Statistic con flecha de tendencia.
+ *   Chakra UI   → Alert (status + icono + título/descripción),
+ *                 estados de validación aria-invalid, Stat.
+ *   Mantine     → inputs con leftSection/rightSection, Segmented control,
+ *                 escala de tamaños xs→xl consistente en todos los inputs.
+ *
+ * Cargar SIEMPRE después de reskin-patch.css (mismo mecanismo: gana por
+ * orden de aparición al usar igual especificidad + !important).
+ * NO se tocan --color-primary ni la paleta: es la marca ya auditada WCAG
+ * del proyecto (ver tokens.css). Este archivo es solo anatomía/estados.
+ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   0. VARIABLES — alias semánticos estilo shadcn + escalas Mantine
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Alias semánticos shadcn (mapeados a la paleta corporativa existente) */
+  --ring:              var(--color-primary);
+  --ring-offset-color:  var(--color-surface);
+  --ring-offset-width:  2px;
+  --ring-width:         2px;
+
+  /* Escala de shades por color de estado (0=más claro, 9=más oscuro), estilo Mantine */
+  --success-1: var(--color-success-bg); --success-5: var(--color-success-mid); --success-7: var(--color-success); --success-9: color-mix(in srgb, var(--color-success) 75%, black);
+  --warning-1: var(--color-warning-bg); --warning-5: var(--color-warning-mid); --warning-7: var(--color-warning); --warning-9: color-mix(in srgb, var(--color-warning) 75%, black);
+  --danger-1:  var(--color-danger-bg);  --danger-5:  var(--color-danger-mid);  --danger-7:  var(--color-danger);  --danger-9:  color-mix(in srgb, var(--color-danger) 75%, black);
+  --info-1:    var(--color-info-bg);    --info-5:    var(--color-info-mid);    --info-7:    var(--color-info);    --info-9:    color-mix(in srgb, var(--color-info) 75%, black);
+  --neutral-1: var(--color-surface-2); --neutral-5: var(--color-text-light); --neutral-7: var(--color-text-muted); --neutral-9: var(--color-text);
+
+  /* Tamaños de control, estilo Mantine (xs→xl), usados por botones/inputs/badges nuevos */
+  --ctl-h-xs: 26px; --ctl-h-sm: 32px; --ctl-h-md: 36px; --ctl-h-lg: 42px; --ctl-h-xl: 48px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   1. FOCUS RING — shadcn signature: anillo + separación (offset) blanca,
+      solo visible con teclado (:focus-visible), no en click de mouse.
+   ══════════════════════════════════════════════════════════════════════ */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+.btn-primary:focus-visible, .btn-secondary:focus-visible, .btn-danger:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 var(--ring-offset-width) var(--ring-offset-color),
+    0 0 0 calc(var(--ring-offset-width) + var(--ring-width)) var(--ring) !important;
+}
+/* clicks de mouse conservan el foco sutil existente, sin el halo de teclado */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) { box-shadow: none !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   2. BOTONES — variantes shadcn (ghost, link, soft) + tamaños Mantine
+      Las variantes ya existentes (.btn-primary/.btn-secondary/.btn-danger)
+      NO se tocan; esto solo agrega lo que falta.
+   ══════════════════════════════════════════════════════════════════════ */
+.btn-ghost, button.btn-ghost {
+  background: transparent !important; border: 1px solid transparent !important;
+  color: var(--neutral-7) !important; border-radius: var(--radius-md) !important;
+  font-weight: var(--font-weight-semibold) !important; padding: 8px 14px !important;
+  font-size: var(--font-size-sm) !important; display: inline-flex !important;
+  align-items: center !important; gap: 6px !important; cursor: pointer !important;
+  transition: background var(--transition-fast) !important;
+}
+.btn-ghost:hover:not(:disabled) { background: var(--neutral-1) !important; color: var(--color-text) !important; }
+
+.btn-link, button.btn-link {
+  background: transparent !important; border: none !important; padding: 0 !important;
+  color: var(--color-primary) !important; font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-sm) !important; text-decoration: underline !important;
+  text-underline-offset: 3px !important; cursor: pointer !important;
+}
+.btn-link:hover { color: var(--color-primary-dark) !important; }
+
+.btn-soft, button.btn-soft {
+  background: var(--color-primary-bg) !important; color: var(--color-primary) !important;
+  border: 1px solid transparent !important; border-radius: var(--radius-md) !important;
+  font-weight: var(--font-weight-semibold) !important; padding: 8px 18px !important;
+  font-size: var(--font-size-sm) !important; cursor: pointer !important;
+  transition: background var(--transition-fast) !important;
+}
+.btn-soft:hover:not(:disabled) { background: color-mix(in srgb, var(--color-primary) 16%, transparent) !important; }
+
+/* Tamaños — se combinan con cualquier variante: class="btn-primary btn-xs" */
+.btn-xs { padding: 4px 10px !important; font-size: 11px !important; height: var(--ctl-h-xs) !important; }
+.btn-lg { padding: 11px 24px !important; font-size: var(--font-size-md) !important; height: var(--ctl-h-lg) !important; }
+.btn-icon { padding: 8px !important; width: var(--ctl-h-md); height: var(--ctl-h-md); justify-content: center !important; }
+
+/* Loading state — data-loading="true" en cualquier botón */
+button[data-loading="true"] { color: transparent !important; position: relative !important; pointer-events: none !important; }
+button[data-loading="true"]::after {
+  content: ""; position: absolute; width: 14px; height: 14px; top: 50%; left: 50%;
+  margin: -7px 0 0 -7px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.5); border-top-color: var(--color-surface);
+  animation: btn-spin .6s linear infinite;
+}
+.btn-secondary[data-loading="true"]::after, .btn-ghost[data-loading="true"]::after {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent); border-top-color: var(--color-primary);
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════════════════════════════
+   3. BADGES / TAGS — estilo Ant Design: punto de estado + variante cerrable
+   ══════════════════════════════════════════════════════════════════════ */
+.tag-dot { display: inline-flex !important; align-items: center !important; gap: 6px !important; }
+.tag-dot::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  background: currentColor;
+}
+.tag-closable { padding-right: 6px !important; }
+.tag-close {
+  margin-left: 4px !important; cursor: pointer !important; opacity: .6 !important;
+  font-size: 12px !important; line-height: 1 !important; border: none !important; background: none !important;
+}
+.tag-close:hover { opacity: 1 !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   4. TABLAS — densidad estilo Ant Design + header pegajoso + fila vacía
+   ══════════════════════════════════════════════════════════════════════ */
+.table-sticky thead th { position: sticky !important; top: 0 !important; z-index: var(--z-sticky, 200) !important; }
+.table-compact th, .table-compact td { padding: 6px 12px !important; font-size: 12px !important; }
+.table-comfortable th, .table-comfortable td { padding: 16px 16px !important; }
+
+th.is-sortable { cursor: pointer !important; user-select: none !important; }
+th.is-sortable:hover { color: var(--color-primary) !important; }
+th.is-sortable .sort-icon { opacity: .35 !important; margin-left: 4px !important; font-size: 10px !important; }
+th.is-sortable.is-sorted .sort-icon { opacity: 1 !important; color: var(--color-primary) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   5. EMPTY STATE — estilo Ant Design Empty
+   ══════════════════════════════════════════════════════════════════════ */
+.empty-state {
+  display: flex !important; flex-direction: column !important; align-items: center !important;
+  justify-content: center !important; text-align: center !important; padding: 48px 24px !important;
+  color: var(--color-text-light) !important;
+}
+.empty-state-icon { font-size: 40px !important; opacity: .35 !important; margin-bottom: 12px !important; }
+.empty-state-title { font-size: var(--font-size-base) !important; font-weight: var(--font-weight-semibold) !important; color: var(--color-text-muted) !important; margin: 0 0 4px !important; }
+.empty-state-desc { font-size: var(--font-size-sm) !important; margin: 0 0 16px !important; max-width: 320px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. INPUTS CON ÍCONO — estilo Mantine leftSection/rightSection
+   ══════════════════════════════════════════════════════════════════════ */
+.input-group-icon { position: relative !important; display: flex !important; align-items: center !important; }
+.input-group-icon .input-icon-left,
+.input-group-icon .input-icon-right {
+  position: absolute !important; color: var(--color-text-light) !important; font-size: 14px !important;
+  pointer-events: none !important; display: flex !important;
+}
+.input-group-icon .input-icon-left { left: 12px !important; }
+.input-group-icon .input-icon-right { right: 12px !important; }
+.input-group-icon input.form-control,
+.input-group-icon input { padding-left: 34px !important; }
+.input-group-icon.has-right-icon input { padding-right: 34px !important; }
+
+/* Estados de validación — estilo Chakra (aria-invalid) */
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+  border-color: var(--danger-5) !important;
+  box-shadow: 0 0 0 3px rgba(220,38,38,.10) !important;
+}
+.field-error-msg {
+  display: flex !important; align-items: center !important; gap: 4px !important;
+  font-size: 12px !important; color: var(--danger-7) !important; margin-top: 4px !important;
+}
+.field-help-msg { font-size: 12px !important; color: var(--color-text-light) !important; margin-top: 4px !important; }
+
+/* Switch/toggle — estilo shadcn/Mantine */
+.switch { position: relative !important; display: inline-flex !important; width: 36px !important; height: 20px !important; }
+.switch input { opacity: 0 !important; width: 0 !important; height: 0 !important; }
+.switch .switch-track {
+  position: absolute !important; inset: 0 !important; background: var(--color-border) !important;
+  border-radius: var(--radius-full) !important; transition: background var(--transition-fast) !important; cursor: pointer !important;
+}
+.switch .switch-track::before {
+  content: ""; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px;
+  background: var(--color-surface); border-radius: 50%; transition: transform var(--transition-fast);
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.switch input:checked + .switch-track { background: var(--color-primary) !important; }
+.switch input:checked + .switch-track::before { transform: translateX(16px); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   7. ALERT — estilo Chakra UI: barra de status + icono + título/descripción
+   ══════════════════════════════════════════════════════════════════════ */
+.alert-box {
+  display: flex !important; gap: 10px !important; padding: 12px 14px !important;
+  border-radius: var(--radius-lg) !important; border: 1px solid transparent !important;
+  border-left-width: 3px !important; font-size: 13px !important;
+}
+.alert-box .alert-icon { flex-shrink: 0 !important; font-size: 16px !important; line-height: 1.4 !important; }
+.alert-box .alert-title { font-weight: var(--font-weight-semibold) !important; margin: 0 0 2px !important; }
+.alert-box .alert-desc { margin: 0 !important; opacity: .85 !important; }
+.alert-box.alert-info    { background: var(--info-1) !important;    border-color: var(--info-5) !important;    color: var(--info-9) !important; }
+.alert-box.alert-success { background: var(--success-1) !important; border-color: var(--success-5) !important; color: var(--success-9) !important; }
+.alert-box.alert-warning { background: var(--warning-1) !important; border-color: var(--warning-5) !important; color: var(--warning-9) !important; }
+.alert-box.alert-danger  { background: var(--danger-1) !important;  border-color: var(--danger-5) !important;  color: var(--danger-9) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   8. STAT / KPI — alternativa plana estilo Chakra Stat + flecha Ant Design
+      (opt-in: .stat-card no reemplaza .small-box, convive como variante
+      para paneles densos donde el gradiente pesa demasiado)
+   ══════════════════════════════════════════════════════════════════════ */
+.stat-card {
+  background: var(--color-surface) !important; border: 1px solid var(--color-border-soft) !important;
+  border-radius: var(--radius-lg) !important; padding: 16px 18px !important;
+  box-shadow: var(--shadow-fluffy) !important;
+}
+.stat-label {
+  font-size: 11px !important; font-weight: 700 !important; text-transform: uppercase !important;
+  letter-spacing: var(--letter-spacing-wide) !important; color: var(--color-text-light) !important; margin: 0 0 6px !important;
+}
+.stat-number { font-size: 1.75rem !important; font-weight: var(--font-weight-bold) !important; color: var(--color-text) !important; line-height: 1.1 !important; margin: 0 !important; }
+.stat-delta { display: inline-flex !important; align-items: center !important; gap: 3px !important; font-size: 12px !important; font-weight: var(--font-weight-semibold) !important; margin-top: 6px !important; }
+.stat-delta.up   { color: var(--success-7) !important; }
+.stat-delta.down { color: var(--danger-7) !important; }
+
+/* Acento de color — reemplazo directo de .small-box.bg-* (mismo significado
+   semántico, sin el gradiente pesado): franja izquierda en vez de fondo sólido */
+.stat-card--primary { border-left: 3px solid var(--color-primary) !important; }
+.stat-card--success { border-left: 3px solid var(--success-5) !important; }
+.stat-card--warning { border-left: 3px solid var(--warning-5) !important; }
+.stat-card--danger  { border-left: 3px solid var(--danger-5) !important; }
+.stat-card--info    { border-left: 3px solid var(--info-5) !important; }
+.stat-card--secondary { border-left: 3px solid var(--neutral-5) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   9. SEGMENTED CONTROL — estilo Mantine (alternativa a tabs para 2-4 opciones)
+   ══════════════════════════════════════════════════════════════════════ */
+.segmented { display: inline-flex !important; background: var(--neutral-1) !important; border-radius: var(--radius-md) !important; padding: 3px !important; gap: 2px !important; }
+.segmented button {
+  border: none !important; background: transparent !important; padding: 6px 14px !important;
+  font-size: 13px !important; font-weight: var(--font-weight-medium) !important; color: var(--color-text-muted) !important;
+  border-radius: calc(var(--radius-md) - 2px) !important; cursor: pointer !important;
+  transition: all var(--transition-fast) !important;
+}
+.segmented button.active { background: var(--color-surface) !important; color: var(--color-text) !important; box-shadow: var(--shadow-xs) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   10. MODAL / DIALOG — anatomía shadcn: separación clara header/body/footer
+   ══════════════════════════════════════════════════════════════════════ */
+.modal-header, .dialog-header {
+  padding: 16px 20px !important; border-bottom: 1px solid var(--color-border-soft) !important;
+  display: flex !important; align-items: center !important; justify-content: space-between !important;
+}
+.modal-footer, .dialog-footer {
+  padding: 14px 20px !important; border-top: 1px solid var(--color-border-soft) !important;
+  display: flex !important; justify-content: flex-end !important; gap: 8px !important;
+  background: var(--color-surface-2) !important;
+  flex-wrap: wrap !important;
+}
+@media (max-width: 560px) {
+  .modal-footer, .dialog-footer {
+    padding: 12px 14px !important;
+  }
+  .modal-footer > *, .dialog-footer > * {
+    flex: 1 1 auto !important; min-width: 100px !important; justify-content: center !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   11. AVATAR — tamaños consistentes estilo Chakra/Mantine
+   ══════════════════════════════════════════════════════════════════════ */
+.avatar {
+  border-radius: var(--radius-full) !important; object-fit: cover !important;
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  background: var(--color-primary-bg) !important; color: var(--color-primary) !important;
+  font-weight: var(--font-weight-semibold) !important; flex-shrink: 0 !important;
+}
+.avatar-xs { width: 20px !important; height: 20px !important; font-size: 9px !important; }
+.avatar-sm { width: 28px !important; height: 28px !important; font-size: 11px !important; }
+.avatar-md { width: 36px !important; height: 36px !important; font-size: 13px !important; }
+.avatar-lg { width: 48px !important; height: 48px !important; font-size: 16px !important; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. ACCESIBILIDAD — respeta reduced-motion (piso de calidad)
+   ══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

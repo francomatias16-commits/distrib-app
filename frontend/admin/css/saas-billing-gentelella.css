@@ -1,0 +1,318 @@
+/**
+ * saas-billing-gentelella.css — Reskin "Gentelella v4" de Suscripciones SaaS
+ * ──────────────────────────────────────────────────────────────────────────
+ * Pantalla: frontend/admin/saas-billing.html (vista SUPERADMIN + vista TENANT)
+ * Se carga DESPUÉS de /shared/tokens.css, /shared/adminlte-components.css y
+ * /frontend/admin/css/base-layout.css, y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * A diferencia de otras pantallas del reskin, esta NO usa el shell estándar
+ * (no hay topbar/breadcrumb/nav-root en el HTML) ni clases compartidas de
+ * finanzas.css/compras.css — todo el sistema visual (.btn-prim/.btn-sec,
+ * .badge/.badge--*, .saas-table, .saas-kpi, .saas-modal, .plan-tarjeta, etc.)
+ * está definido en el <style> inline del propio saas-billing.html, sin
+ * ninguna base compartida. Por eso este archivo redefine estructura + color
+ * de casi todos los componentes (no son solo overrides de color).
+ *
+ * Reusa el patrón ya establecido en rutas-gentelella.css para pastillas de
+ * estado con sufijo BEM (`.badge--entregado`, `.badge--pendiente`, etc.) —
+ * misma lógica acá con `.badge--activo/--trial/--suspendido/--cancelado/
+ * --pendiente/--enviada/--pagada/--vencida`.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-saas-billing-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella { background: var(--ge-bg) !important; }
+body.dash-saas-billing-gentelella * { box-sizing: border-box; }
+body.dash-saas-billing-gentelella h1 {
+  color: var(--ge-ink) !important;
+}
+body.dash-saas-billing-gentelella p {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .txt-muted { color: var(--ge-muted) !important; }
+body.dash-saas-billing-gentelella .txt-danger { color: var(--ge-red) !important; }
+body.dash-saas-billing-gentelella .txt-mono { color: var(--ge-ink-soft) !important; }
+body.dash-saas-billing-gentelella .txt-empty { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Botones (.btn-prim / .btn-sec — sin base compartida)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .btn-prim {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  cursor: pointer !important;
+}
+body.dash-saas-billing-gentelella .btn-prim:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-saas-billing-gentelella .btn-sec {
+  display: inline-flex !important;
+  align-items: center !important;
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  padding: 6px 12px !important;
+  cursor: pointer !important;
+}
+body.dash-saas-billing-gentelella .btn-sec:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-saas-billing-gentelella .texto-chico {
+  font-size: 12px !important;
+}
+body.dash-saas-billing-gentelella .btn-confirmar {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-saas-billing-gentelella .btn-confirmar:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-saas-billing-gentelella .btn-confirmar:disabled {
+  opacity: .55 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Banner CBU
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .saas-cbu-banner {
+  background: var(--ge-teal-light) !important;
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .saas-cbu-banner strong {
+  color: var(--ge-ink) !important;
+}
+body.dash-saas-billing-gentelella .saas-cbu-banner code {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Dashboard KPIs globales (strip de mini-cards, estilos inline por div)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella #dash-kpis-strip > p {
+  color: var(--ge-muted) !important;
+}
+body.dash-saas-billing-gentelella #dash-kpis-strip > div > div {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards principales (.saas-kpis / .saas-kpi)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .saas-kpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi.activo {
+  border-color: var(--ge-teal) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi__label {
+  color: var(--ge-muted) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi--red .saas-kpi__val {
+  color: var(--ge-red) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi--orange .saas-kpi__val {
+  color: var(--ge-orange) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi--yellow .saas-kpi__val {
+  color: var(--ge-warning-text) !important;
+}
+body.dash-saas-billing-gentelella .saas-kpi--green .saas-kpi__val {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tablas (.seccion-tabla / .tabla-header / .saas-table)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .seccion-tabla {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-saas-billing-gentelella .tabla-header {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-saas-billing-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-saas-billing-gentelella .saas-table thead th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-saas-billing-gentelella .saas-table tbody tr {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-saas-billing-gentelella .saas-table tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-saas-billing-gentelella .saas-table tbody tr.saas-row--alerta {
+  background: rgba(231,76,60,.06) !important;
+}
+body.dash-saas-billing-gentelella .saas-table td {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pastillas de estado (.badge / .badge--*)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .badge {
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 700 !important;
+}
+body.dash-saas-billing-gentelella .badge--trial,
+body.dash-saas-billing-gentelella .badge--pendiente {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-saas-billing-gentelella .badge--activo,
+body.dash-saas-billing-gentelella .badge--pagada {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-saas-billing-gentelella .badge--suspendido,
+body.dash-saas-billing-gentelella .badge--vencida {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-saas-billing-gentelella .badge--cancelado {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .badge--enviada {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal config CBU (.saas-modal-overlay / .saas-modal / .f-group)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .saas-modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-saas-billing-gentelella .saas-modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-saas-billing-gentelella .saas-modal h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-saas-billing-gentelella .f-group label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .f-group input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-saas-billing-gentelella .f-group input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-saas-billing-gentelella .modal-footer {
+  border-top: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast (#saas-toast)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella #saas-toast {
+  background: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-saas-billing-gentelella #saas-toast.ok {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-saas-billing-gentelella #saas-toast.error {
+  background: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Planes disponibles (self-serve upgrade/downgrade, vista tenant)
+   ════════════════════════════════════════════════════════════ */
+body.dash-saas-billing-gentelella .plan-tarjeta {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta--actual {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__nombre,
+body.dash-saas-billing-gentelella .plan-tarjeta__precio {
+  color: var(--ge-ink) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__precio small {
+  color: var(--ge-muted) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__limites {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__btn--upgrade {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__btn--upgrade:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__btn--downgrade {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__btn--downgrade:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__btn:disabled {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-saas-billing-gentelella .plan-tarjeta__badge-actual {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-saas-billing-gentelella .planes-nota {
+  color: var(--ge-muted) !important;
+}

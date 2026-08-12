@@ -1,0 +1,810 @@
+/**
+ * adminlte-components.css — Componentes compartidos
+ * Reskin replay.software — extracción completa v145
+ */
+
+/* ═══════════════════════════════════════════════════
+   CARD — superficie plana tipo papel (sin glass)
+   ═══════════════════════════════════════════════════ */
+.card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--glass-modal);
+  border: var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-fluffy);
+  margin-bottom: 1rem; overflow: hidden;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.card:hover { box-shadow: var(--shadow-big); transform: translateY(-2px); }
+.card-header {
+  padding: 14px 20px; background: transparent;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.card-title {
+  font-size: 14px; font-weight: var(--font-weight-semibold);
+  color: var(--color-text); margin: 0; line-height: 1.4;
+  display: flex; align-items: center; gap: 8px;
+  letter-spacing: var(--letter-spacing-tight);
+}
+.card-tools { display: flex; align-items: center; gap: 6px; }
+.card-body { flex: 1 1 auto; padding: 20px; }
+.card-footer {
+  padding: 10px 20px; background: rgba(0,0,0,.015);
+  border-top: 1px solid rgba(0,0,0,.05);
+  font-size: var(--font-size-sm); color: var(--color-text-muted);
+}
+.card--primary { border-top: 2px solid var(--color-box-primary); }
+.card--success  { border-top: 2px solid var(--color-box-success); }
+.card--warning  { border-top: 2px solid var(--color-box-warning); }
+.card--danger   { border-top: 2px solid var(--color-box-danger);  }
+.card--info     { border-top: 2px solid var(--color-box-info);    }
+
+/* ═══════════════════════════════════════════════════
+   SMALL BOX — KPI, números grandes, gradientes
+   ═══════════════════════════════════════════════════ */
+.small-box {
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-big);
+  display: block; margin-bottom: 1rem; position: relative;
+  overflow: hidden; color: var(--color-surface);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.small-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 20px 40px -10px rgba(0,0,0,.22), 0 8px 24px rgba(0,0,0,.12);
+}
+.small-box > .inner { padding: 24px 24px 18px; }
+.small-box h3 {
+  font-size: 2.75rem; font-weight: var(--font-weight-bold);
+  margin: 0 0 4px; color: var(--color-surface); line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: var(--letter-spacing-tight);
+}
+.small-box p {
+  font-size: 13px; font-weight: var(--font-weight-medium);
+  color: rgba(255,255,255,.75); margin: 0;
+}
+.small-box > .small-box-footer {
+  position: relative; text-align: center; padding: 9px 0;
+  color: rgba(255,255,255,.65); display: block; font-size: 13px;
+  background: rgba(0,0,0,.18); text-decoration: none;
+  transition: background var(--transition-base); font-weight: var(--font-weight-medium);
+}
+.small-box > .small-box-footer:hover { background: rgba(0,0,0,.28); color: var(--color-surface); }
+.small-box .icon {
+  position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
+  font-size: 68px; color: rgba(255,255,255,.14); line-height: 1;
+  transition: transform var(--transition-slow); pointer-events: none;
+}
+.small-box:hover .icon { transform: translateY(-50%) scale(1.14) rotate(-5deg); }
+/* replay: gradientes corner-to-corner */
+.small-box.bg-primary { background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); }
+.small-box.bg-success  { background: linear-gradient(135deg, var(--color-success-mid) 0%, var(--color-success) 100%); }
+.small-box.bg-warning  { background: linear-gradient(135deg, var(--color-warning-mid) 0%, var(--color-warning) 100%); color: var(--color-text); }
+.small-box.bg-warning h3, .small-box.bg-warning p { color: rgba(0,0,0,.85); }
+.small-box.bg-warning .small-box-footer { color: rgba(0,0,0,.5); }
+.small-box.bg-warning .icon { color: rgba(0,0,0,.10); }
+.small-box.bg-danger    { background: linear-gradient(135deg, var(--color-danger-mid) 0%, var(--color-danger) 100%); }
+.small-box.bg-info      { background: var(--nav-reportes); }
+.small-box.bg-secondary { background: linear-gradient(135deg, var(--color-text-muted) 0%, var(--color-text) 100%); }
+.small-box.bg-dark      { background: var(--color-text); }
+
+/* ═══════════════════════════════════════════════════
+   INFO BOX — superficie plana
+   ═══════════════════════════════════════════════════ */
+.info-box {
+  box-shadow: var(--shadow-fluffy); border-radius: var(--radius-xl);
+  background: var(--glass-modal);
+  border: var(--glass-border);
+  display: flex; min-height: 82px; margin-bottom: 1rem; overflow: hidden;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.info-box:hover { box-shadow: var(--shadow-big); transform: translateY(-2px); }
+.info-box-icon {
+  width: 82px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; flex-shrink: 0; color: var(--color-surface);
+}
+.info-box-icon.bg-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); }
+.info-box-icon.bg-success  { background: linear-gradient(135deg, var(--color-success-mid), var(--color-success)); }
+.info-box-icon.bg-warning  { background: linear-gradient(135deg, var(--color-warning-mid), var(--color-warning)); color: var(--color-text); }
+.info-box-icon.bg-danger   { background: linear-gradient(135deg, var(--color-danger-mid), var(--color-danger)); }
+.info-box-icon.bg-info     { background: linear-gradient(135deg, var(--nav-reportes), var(--nav-reportes)); }
+.info-box-content {
+  padding: 12px 18px; flex: 1;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.info-box-text {
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  color: var(--color-text-light); text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.info-box-number {
+  font-size: 1.5rem; font-weight: var(--font-weight-bold);
+  color: var(--color-text); line-height: 1;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* ═══════════════════════════════════════════════════
+   TOPBAR — sticky, superficie plana
+   ═══════════════════════════════════════════════════ */
+.topbar {
+  background: var(--glass-modal);
+  border-bottom: 1px solid var(--color-border-soft);
+  padding: 0 24px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow-xs);
+  position: sticky; top: 0; z-index: var(--z-sticky);
+}
+/* replay: tracking-tight en heading del topbar */
+.topbar-title {
+  font-size: 19px; font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-text); margin: 0;
+}
+.topbar-fecha { font-size: 13px; color: var(--color-text-muted); } /* [Etapa 4 · Alta] antes usaba --color-text-light (var(--color-text-light)), contraste ≈2.5:1 sobre el topbar — insuficiente para WCAG AA. --color-text-muted (var(--color-text-light)) da ≈4.8:1. */
+.topbar-left  { display: flex; align-items: center; gap: 8px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+/* Auditoría Etapa 2 (v232): usuarios.nombre es text sin límite de longitud
+   y no tenía validación de largo en frontend; a diferencia de .topbar-title,
+   este chip no truncaba y un nombre largo podía desbordar .topbar-right. */
+.topbar-usuario {
+  font-size: 13px; color: var(--color-text-muted); font-weight: var(--font-weight-medium);
+  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* [Etapa 3 — hallazgo Alta/Media] Antes el chip quedaba vacío y silencioso
+   mientras auth.js resolvía sesión+perfil (y el reloj/avatar, que dependen
+   100% de auth.js, heredaban esa misma falta de feedback). Mientras el
+   elemento está vacío mostramos un shimmer; auth.js le mete texContent
+   apenas resuelve, lo que automáticamente saca este estado (deja de matchear
+   :empty). Reutiliza el keyframe skel-shimmer ya definido en skeletons.css,
+   cargado en todas las páginas que también cargan este archivo. */
+.topbar-usuario:empty {
+  display: inline-block;
+  width: 120px; height: 14px; border-radius: var(--radius-sm, 4px);
+  background: linear-gradient(90deg, var(--color-surface, var(--color-surface-2)) 25%, var(--color-border, var(--color-border-soft)) 37%, var(--color-surface, var(--color-surface-2)) 63%);
+  background-size: 400% 100%;
+  animation: skel-shimmer 1.5s linear infinite;
+}
+
+/* ─── Workspace pill + accent line en título ─── */
+.topbar-workspace {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide); text-transform: uppercase;
+  padding: 3px 10px; border-radius: var(--radius-full); line-height: 18px;
+  background: rgba(0,0,0,.06); color: var(--color-text-muted);
+}
+body[data-ws="hoy"]          .topbar-workspace { background: var(--nav-hoy-bg);          color: var(--nav-hoy); }
+body[data-ws="ventas"]       .topbar-workspace { background: var(--nav-ventas-bg);       color: var(--nav-ventas); }
+body[data-ws="deposito"]     .topbar-workspace { background: var(--nav-deposito-bg);     color: var(--nav-deposito); }
+body[data-ws="cobros"]       .topbar-workspace { background: var(--nav-cobros-bg);       color: var(--nav-cobros); }
+body[data-ws="facturacion"]  .topbar-workspace { background: var(--nav-facturacion-bg);  color: var(--nav-facturacion); }
+body[data-ws="fidelizacion"] .topbar-workspace { background: var(--nav-fidelizacion-bg); color: var(--nav-fidelizacion); }
+body[data-ws="reportes"]     .topbar-workspace { background: var(--nav-reportes-bg);     color: var(--nav-reportes); }
+body[data-ws="config"]       .topbar-workspace { background: var(--nav-config-bg);       color: var(--nav-config); }
+
+body[data-ws] .topbar-title { padding-left: 12px; position: relative; }
+body[data-ws] .topbar-title::before {
+  content: ''; position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 3px; border-radius: var(--radius-full);
+  background: var(--nav-color, var(--color-primary));
+}
+.topbar-contador {
+  font-size: 12px; font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted); background: rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.06); padding: 3px 10px;
+  border-radius: var(--radius-full); white-space: nowrap;
+  box-shadow: var(--shadow-outline);
+}
+
+/* ─── Subtítulo descriptivo de página — qué es esta sección y para qué
+   sirve, en una línea. Va justo debajo del topbar. ─── */
+.page-intro {
+  /* v638/ui003: fuente Georgia serif para mayor legibilidad y presencia
+     profesional. Tamaño 14px + italic suave distinguen visualmente la
+     descripción del resto del UI sin competir con los títulos. */
+  padding: 8px 24px 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 920px;
+}
+.page-intro strong {
+  color: var(--color-text);
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* ─── Fila que combina el subtítulo de página con las acciones que antes
+   vivían en el zócalo (topbar-right). Se movieron acá para descargar el
+   topbar, que quedaba muy saturado con título + workspace + contador +
+   botones. El texto queda a la izquierda, las acciones a la derecha. ─── */
+.page-intro-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 24px 10px;
+}
+.page-intro-row .page-intro { padding: 0; }
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+@media (max-width: 780px) {
+  .page-intro-row { padding: 6px 16px 10px; flex-direction: column; align-items: stretch; }
+  .page-actions { justify-content: flex-start; }
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTROS BAR — superficie plana
+   ═══════════════════════════════════════════════════ */
+.filtros-bar {
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 1rem; box-shadow: var(--shadow-fluffy);
+}
+.filtros-bar input, .filtros-bar select {
+  font-family: inherit; font-size: 13px; padding: 7px 10px;
+  border: 1px solid rgba(0,0,0,.10); border-radius: var(--radius-md);
+  background: var(--color-surface); color: var(--color-text);
+  outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-outline);
+}
+.filtros-bar input:focus, .filtros-bar select:focus {
+  border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0,174,112,.12);
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION LABEL — replay: uppercase tracking-wide
+   ═══════════════════════════════════════════════════ */
+.section-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  text-transform: uppercase; letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-light); margin-bottom: 12px;
+}
+
+/* ═══════════════════════════════════════════════════
+   TABLA CARD — wrapper con padding extremos, superficie plana
+   ═══════════════════════════════════════════════════ */
+.tabla-card {
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-fluffy); overflow: hidden; margin-bottom: 1rem;
+  transition: box-shadow var(--transition-base);
+}
+.tabla-card:hover { box-shadow: var(--shadow-big); }
+.tabla-card .tabla-base th:first-child,
+.tabla-card .tabla-base td:first-child { padding-left: 20px; }
+.tabla-card .tabla-base th:last-child,
+.tabla-card .tabla-base td:last-child  { padding-right: 20px; }
+
+/* ═══════════════════════════════════════════════════
+   MODAL — superficie plana (sin glass)
+   ═══════════════════════════════════════════════════ */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.38);
+  z-index: var(--z-modal);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity var(--transition-base);
+}
+.modal-backdrop.visible { opacity: 1; }
+.modal {
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-big); width: 100%; max-width: 540px;
+  max-height: 90vh; overflow-y: auto; padding: 28px;
+  transform: scale(.96); transition: transform var(--transition-base);
+}
+.modal-backdrop.visible .modal { transform: scale(1); }
+.modal-title {
+  font-size: 18px; font-weight: var(--font-weight-bold);
+  color: var(--color-text); margin-bottom: 18px;
+  letter-spacing: var(--letter-spacing-tight);
+}
+.modal-close {
+  position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+  border-radius: var(--radius-full); border: none; background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted); transition: background var(--transition-fast);
+}
+.modal-close:hover { background: rgba(0,0,0,.06); }
+
+/* ═══════════════════════════════════════════════════
+   NOTIFICACIONES
+   ═══════════════════════════════════════════════════ */
+.notif-btn {
+  position: relative; width: 36px; height: 36px;
+  border-radius: var(--radius-full); border: none;
+  background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.notif-btn:hover { background: rgba(0,0,0,.05); color: var(--color-text); }
+.notif-badge {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: var(--radius-full); background: var(--color-box-danger); color: var(--color-surface);
+  font-size: 10px; font-weight: var(--font-weight-bold);
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--color-surface); line-height: 1;
+}
+.notif-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 340px;
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-big); overflow: hidden; z-index: var(--z-dropdown);
+}
+.notif-header {
+  padding: 14px 18px 10px; font-size: 11px; font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted); text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide); border-bottom: 1px solid rgba(0,0,0,.05);
+}
+.notif-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 18px;
+  transition: background var(--transition-fast); border-bottom: 1px solid rgba(0,0,0,.04); cursor: pointer;
+}
+.notif-item:hover { background: rgba(0,174,112,.04); }
+.notif-item:last-child { border-bottom: none; }
+.notif-dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-primary); flex-shrink: 0; margin-top: 5px; }
+.notif-texto { font-size: 13px; color: var(--color-text); line-height: 1.4; }
+.notif-tiempo { font-size: 11px; color: var(--color-text-light); margin-top: 2px; }
+.notif-footer {
+  padding: 11px 18px; text-align: center; font-size: 12px; font-weight: var(--font-weight-bold);
+  color: var(--color-primary); cursor: pointer; transition: background var(--transition-fast);
+  border-top: 1px solid rgba(0,0,0,.05);
+}
+.notif-footer:hover { background: rgba(0,174,112,.04); text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════
+   AVATAR & PROFILE
+   ═══════════════════════════════════════════════════ */
+/* [Etapa 1 · Baja] .topbar-avatar (imagen/hover) se retiró junto con el
+   renderAvatar() muerto que la usaba. [Etapa 3] El archivo adminlte-ui.js
+   que lo contenía (junto a un NotifManager nunca importado en ningún HTML)
+   se eliminó del proyecto por ser código huérfano. El avatar de iniciales
+   real de la plataforma es .topbar-avatar-ini, más abajo. */
+
+/* ─── Chip de usuario en la topbar: círculo con iniciales + nombre + rol ───
+   El círculo lo agrega dashboard-optimizado.js (mejorarChipUsuario), delante
+   de #topbar-usuario; el badge de rol lo agrega auth.js como sibling. */
+.topbar-avatar-ini {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-full);
+  /* [Etapa 4 · Alta] antes usaba var(--color-primary) (var(--color-success-mid)) de fondo con
+     texto blanco 11.5px bold → contraste ≈2.9:1, por debajo de WCAG AA (4.5:1
+     para texto que no califica como "grande"). Se oscurece SOLO el fondo del
+     avatar (no se toca --color-primary, usado en el resto de la UI) a
+     var(--color-success), que da ≈4.6:1 contra blanco. */
+  background: var(--color-success); color: var(--color-surface);
+  font-size: 11.5px; font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  flex-shrink: 0;
+}
+/* [Etapa 1 · Media] fallback visible si auth nunca resuelve (ver topbar-widgets.js) */
+.topbar-avatar-ini--error { background: var(--color-danger-mid); }
+.rol-badge.rol-error { background: var(--color-danger-bg); color: var(--color-danger); }
+
+/* [Etapa 1 · Media] el chip de usuario (avatar + nombre) ahora es clickeable
+   y abre un menú de cuenta real, en vez de ser 100% decorativo. */
+.topbar-chip--clickeable {
+  display: inline-flex; align-items: center; gap: 8px;
+  position: relative; cursor: pointer; border-radius: var(--radius-full);
+  padding: 4px 10px 4px 4px; transition: background var(--transition-fast);
+}
+.topbar-chip--clickeable:hover,
+.topbar-chip--clickeable[aria-expanded="true"] { background: rgba(0,0,0,.05); }
+.topbar-chip--clickeable:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+.topbar-chip-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-sticky, 100);
+  min-width: 170px; background: var(--color-surface); border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+/* El `display: flex` de arriba pisaba el `display: none` que el navegador
+   aplica por defecto al atributo [hidden] (misma especificidad, gana la
+   regla de autor) → el menú quedaba SIEMPRE visible en vez de desplegable,
+   sin importar lo que hiciera topbar-widgets.js con menu.hidden. */
+.topbar-chip-menu[hidden] { display: none; }
+.topbar-chip-menu__item {
+  all: unset; box-sizing: border-box; width: 100%; padding: 8px 10px;
+  font-size: 13px; font-weight: var(--font-weight-medium); color: var(--color-text);
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+.topbar-chip-menu__item:hover,
+.topbar-chip-menu__item:focus-visible { background: rgba(0,0,0,.06); }
+.topbar-chip-menu__item--danger { color: var(--color-danger); }
+.topbar-chip-menu__item--danger:hover { background: var(--color-danger-bg); }
+
+/* Badge de rol junto al nombre — antes no tenía ninguna regla y se veía
+   como texto plano pegado al nombre de usuario. */
+.rol-badge {
+  display: inline-block; margin-left: 6px;
+  font-size: 10px; font-weight: var(--font-weight-bold);
+  text-transform: uppercase; letter-spacing: var(--letter-spacing-wide);
+  padding: 2px 8px; border-radius: var(--radius-full); line-height: 15px;
+  background: rgba(0,0,0,.06); color: var(--color-text-muted);
+  vertical-align: middle;
+}
+.rol-badge.rol-dueno      { background: var(--color-warning-bg); color: var(--color-warning); }
+.rol-badge.rol-admin      { background: var(--nav-facturacion-bg); color: var(--nav-facturacion); }
+.rol-badge.rol-vendedor   { background: var(--color-success-bg); color: var(--color-success); }
+.rol-badge.rol-depositero { background: var(--color-border-soft); color: var(--color-text); }
+.rol-badge.rol-chofer     { background: var(--color-danger-bg); color: var(--color-danger); }
+.rol-badge.rol-contador   { background: var(--nav-facturacion-bg); color: var(--nav-facturacion); }
+.rol-badge.rol-cliente    { background: var(--color-surface-2); color: var(--color-text-muted); }
+.profile-card {
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-big); padding: 20px; text-align: center;
+}
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: var(--radius-full);
+  margin: 0 auto 12px; object-fit: cover;
+  border: 3px solid rgba(0,0,0,.06); box-shadow: var(--shadow-fluffy);
+}
+.profile-name { font-size: 16px; font-weight: var(--font-weight-bold); color: var(--color-text); letter-spacing: var(--letter-spacing-tight); }
+.profile-role { font-size: 13px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════ */
+.progress { height: 6px; background: rgba(0,0,0,.06); border-radius: var(--radius-full); overflow: hidden; }
+.progress-bar {
+  height: 100%; border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+  transition: width var(--transition-slow);
+}
+.progress-bar.bg-success { background: linear-gradient(90deg, var(--color-success-mid), var(--color-success)); }
+.progress-bar.bg-warning { background: linear-gradient(90deg, var(--color-warning-mid), var(--color-warning)); }
+.progress-bar.bg-danger  { background: linear-gradient(90deg, var(--color-danger-mid), var(--color-danger)); }
+.progress-bar.bg-info    { background: linear-gradient(90deg, var(--nav-reportes), var(--nav-reportes)); }
+
+/* ═══════════════════════════════════════════════════
+   DROPDOWN — superficie plana (sin glass)
+   ═══════════════════════════════════════════════════ */
+.dropdown-menu {
+  position: absolute; z-index: var(--z-dropdown);
+  background: var(--glass-modal);
+  border: var(--glass-border); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-big); padding: 6px; min-width: 180px; overflow: hidden;
+}
+.dropdown-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: var(--radius-md); font-size: var(--font-size-sm);
+  color: var(--color-text); cursor: pointer; text-decoration: none;
+  transition: background var(--transition-fast);
+  /* reset de <button>: el componente se usa tanto en <a>/<div> como en <button> */
+  border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+}
+.dropdown-item:hover { background: rgba(0,0,0,.04); }
+.dropdown-item.danger { color: var(--color-danger-mid); }
+.dropdown-item.danger:hover { background: var(--color-danger-bg); }
+.dropdown-divider { height: 1px; background: rgba(0,0,0,.06); margin: 4px 0; }
+
+/* ── Wrapper "Más acciones" del topbar (agrupa acciones secundarias) ── */
+.topbar-mas-acciones { position: relative; }
+.topbar-mas-acciones .dropdown-menu { right: 0; top: calc(100% + 6px); }
+.topbar-mas-acciones-chevron { transition: transform var(--transition-fast); }
+.topbar-mas-acciones button[aria-expanded="true"] .topbar-mas-acciones-chevron { transform: rotate(180deg); }
+
+/* ═══════════════════════════════════════════════════
+   ALERTAS
+   ═══════════════════════════════════════════════════ */
+.alerta-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-radius: var(--radius-lg);
+  font-size: 14px; border: 1px solid transparent;
+}
+.alerta-warning { background: rgba(255,193,7,.10); color: var(--color-warning); border-color: rgba(255,193,7,.20); }
+.alerta-danger  { background: rgba(220,53,69,.08);  color: var(--color-danger);  border-color: rgba(220,53,69,.15); }
+.alerta-info    { background: var(--color-info-bg); color: var(--color-info);    border-color: rgba(23,162,184,.2); }
+.alerta-link    { margin-left: auto; font-size: 13px; font-weight: var(--font-weight-semibold); color: inherit; text-decoration: none; opacity: .8; }
+.alerta-link:hover { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════ */
+.empty-guide {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 56px 24px; text-align: center;
+}
+.empty-guide-icon {
+  width: 64px; height: 64px; border-radius: var(--radius-xl);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,174,112,.08); color: var(--color-primary); margin-bottom: 4px;
+}
+.empty-guide-icon svg { width: 32px; height: 32px; }
+.empty-guide-title { font-size: 16px; font-weight: var(--font-weight-bold); color: var(--color-text); margin: 0; letter-spacing: var(--letter-spacing-tight); }
+.empty-guide-desc  { font-size: 13.5px; color: var(--color-text-muted); max-width: 320px; margin: 0; line-height: 1.5; }
+
+/* ═══════════════════════════════════════════════════
+   KANBAN
+   (v195 — se completa el layout: el JS de KanbanBoard genera
+   .kanban-board / .kanban-col-header / .kanban-col-count /
+   .kanban-col-body / .kanban-card-title / .kanban-card-meta /
+   .kanban-card-amount / .kanban-card-tags / .kanban-tag, que
+   no tenían regla CSS y por eso las columnas se apilaban a
+   ancho completo en vez de ir en fila — esto es lo que se ve
+   "roto" en Pedidos → vista Tablero)
+   ═══════════════════════════════════════════════════ */
+.kanban-board {
+  display: flex; gap: 16px; align-items: flex-start;
+  overflow-x: auto; padding: 4px 2px 16px;
+}
+.kanban-col {
+  background: rgba(0,0,0,.03); border: 1px solid rgba(0,0,0,.05);
+  border-radius: var(--radius-xl); padding: 14px; min-width: 280px;
+  width: 280px; flex-shrink: 0; display: flex; flex-direction: column;
+}
+.kanban-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.kanban-col-title {
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  text-transform: uppercase; letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.kanban-col-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 20px; padding: 0 6px; border-radius: var(--radius-full);
+  background: rgba(0,0,0,.07); color: var(--color-text-muted);
+  font-size: 11px; font-weight: var(--font-weight-bold); line-height: 1;
+}
+.kanban-col-body {
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 72px; border-radius: var(--radius-lg);
+  transition: background var(--transition-fast);
+}
+.kanban-col-body:empty::after {
+  content: 'Sin pedidos'; display: block; text-align: center;
+  padding: 18px 8px; font-size: 12.5px; color: var(--color-text-light);
+  border: 1px dashed rgba(0,0,0,.08); border-radius: var(--radius-lg);
+}
+.kanban-col-body.drag-over {
+  background: var(--color-primary-bg);
+  box-shadow: inset 0 0 0 2px rgba(0,174,112,.35);
+}
+.kanban-card {
+  background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.06);
+  border-radius: var(--radius-lg); padding: 12px 14px;
+  box-shadow: var(--shadow-outline); cursor: grab;
+  transition: box-shadow var(--transition-base), transform var(--transition-base), opacity var(--transition-fast);
+}
+.kanban-card:hover { box-shadow: var(--shadow-fluffy); transform: translateY(-2px); }
+.kanban-card:active { cursor: grabbing; transform: scale(1.02); box-shadow: var(--shadow-big); }
+.kanban-card.dragging { opacity: .4; }
+.kanban-card-title {
+  font-size: 13.5px; font-weight: var(--font-weight-semibold);
+  color: var(--color-text); margin-bottom: 6px; letter-spacing: var(--letter-spacing-tight);
+}
+.kanban-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--color-text-muted);
+}
+.kanban-card-amount { font-weight: var(--font-weight-semibold); color: var(--color-primary-dark); }
+.kanban-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.kanban-tag {
+  display: inline-flex; align-items: center; padding: 2px 8px;
+  border-radius: var(--radius-full); background: rgba(0,0,0,.05);
+  color: var(--color-text-muted); font-size: 10.5px; font-weight: var(--font-weight-medium);
+}
+
+/* ═══════════════════════════════════════════════════
+   PACE BAR — barra de progreso fina en fetch (v195)
+   ═══════════════════════════════════════════════════ */
+.pace-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  z-index: var(--z-toast); background: transparent;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+.pace-bar.visible { opacity: 1; }
+.pace-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: 0 0 8px rgba(0,174,112,.6);
+  transition: width .2s ease;
+}
+.pace-bar-spinner { display: none; }
+
+/* ═══════════════════════════════════════════════════
+   RIBBON — cinta de esquina sobre cards (v195)
+   ═══════════════════════════════════════════════════ */
+.card-ribboned { position: relative; overflow: hidden; }
+.ribbon-wrapper {
+  position: absolute; top: 0; right: 0; width: 90px; height: 90px;
+  overflow: hidden; pointer-events: none; z-index: 2;
+}
+.ribbon-wrapper.sm { width: 70px; height: 70px; }
+.ribbon {
+  position: absolute; top: 15px; right: -30px; width: 115px;
+  transform: rotate(45deg); text-align: center;
+  font-size: 10.5px; font-weight: var(--font-weight-bold); text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide); color: var(--color-surface); padding: 4px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.ribbon-wrapper.sm .ribbon { top: 11px; right: -26px; width: 95px; font-size: 9.5px; padding: 3px 0; }
+.ribbon.bg-danger  { background: var(--color-danger-mid); }
+.ribbon.bg-warning { background: var(--color-warning-mid); color: var(--color-text); }
+.ribbon.bg-success { background: var(--color-success-mid); }
+.ribbon.bg-info    { background: var(--color-info-mid); }
+.ribbon.bg-primary { background: var(--color-primary); }
+
+/* ═══════════════════════════════════════════════════
+   PROFILE CARD — detalle completo (v195)
+   El widget ProfileCard genera banner + avatar + stats + lista,
+   que reusaban el .profile-card "chico" del dropdown del topbar.
+   ═══════════════════════════════════════════════════ */
+.profile-card-banner {
+  height: 64px; border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  position: relative; margin: -20px -20px 0;
+}
+.profile-card-banner.banner-danger { background: linear-gradient(135deg, var(--color-danger-mid), var(--color-danger)); }
+.profile-card-banner.banner-purple { background: linear-gradient(135deg, var(--nav-facturacion), var(--nav-facturacion)); }
+.profile-card-banner.banner-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); }
+.profile-card-avatar {
+  position: absolute; left: 50%; bottom: -28px; transform: translateX(-50%);
+  width: 64px; height: 64px; border-radius: var(--radius-full);
+  background: var(--color-surface); border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-fluffy);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: var(--font-weight-bold); color: var(--color-primary-dark);
+}
+.profile-card-body { padding-top: 38px; text-align: center; }
+.profile-card-name { font-size: 16px; font-weight: var(--font-weight-bold); color: var(--color-text); letter-spacing: var(--letter-spacing-tight); }
+.profile-card-role {
+  font-size: 13px; color: var(--color-text-muted); margin-top: 2px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.profile-stats {
+  display: flex; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+.profile-stat { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.profile-stat:not(:last-child) { border-right: 1px solid var(--color-border); }
+.profile-stat-value { font-size: 15px; font-weight: var(--font-weight-bold); color: var(--color-text); }
+.profile-stat-label { font-size: 10.5px; color: var(--color-text-light); text-transform: uppercase; letter-spacing: var(--letter-spacing-wide); }
+.profile-list {
+  list-style: none; margin: 14px 0 0; padding: 0; text-align: left;
+  border-top: 1px solid var(--color-border);
+}
+.profile-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 2px; border-bottom: 1px solid var(--color-border-soft); font-size: 12.5px;
+}
+.profile-list-item:last-child { border-bottom: none; }
+.profile-list-label { color: var(--color-text-muted); }
+.profile-list-value { color: var(--color-text); font-weight: var(--font-weight-medium); text-align: right; }
+.profile-card-actions {
+  display: flex; gap: 8px; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--color-border); justify-content: center; flex-wrap: wrap;
+}
+.score-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--radius-full);
+  font-size: 11px; font-weight: var(--font-weight-bold);
+}
+.score-badge.score-a { background: rgba(34,197,94,.15); color: var(--color-success-mid); }
+.score-badge.score-b { background: rgba(59,130,246,.15); color: var(--color-primary); }
+.score-badge.score-c { background: rgba(245,158,11,.15); color: var(--color-warning); }
+.score-badge.score-d { background: rgba(239,68,68,.15); color: var(--color-danger-mid); }
+
+/* ═══════════════════════════════════════════════════
+   TODO LIST (v195)
+   ═══════════════════════════════════════════════════ */
+.todo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 6px;
+  border-radius: var(--radius-md); border-bottom: 1px solid var(--color-border-soft);
+  transition: background var(--transition-fast);
+}
+.todo-item:hover { background: var(--color-surface-2); }
+.todo-item:last-child { border-bottom: none; }
+.todo-drag-handle { color: var(--color-text-light); cursor: grab; flex-shrink: 0; display: flex; }
+.todo-checkbox { width: 16px; height: 16px; accent-color: var(--color-primary); flex-shrink: 0; cursor: pointer; }
+.todo-text { font-size: 13.5px; color: var(--color-text); flex: 1; }
+.todo-item.completado .todo-text { text-decoration: line-through; color: var(--color-text-light); }
+.todo-meta {
+  font-size: 11px; color: var(--color-text-light); background: var(--color-bg);
+  padding: 2px 8px; border-radius: var(--radius-full); flex-shrink: 0;
+}
+.todo-item.todo-success .todo-drag-handle { color: var(--color-success-mid); }
+.todo-item.todo-warning .todo-drag-handle { color: var(--color-warning-mid); }
+.todo-item.todo-danger  .todo-drag-handle { color: var(--color-danger-mid); }
+.todo-add-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+.todo-add-input {
+  flex: 1; border: 1px solid rgba(0,0,0,.10); border-radius: var(--radius-md);
+  padding: 7px 12px; font-size: 13px; font-family: inherit; color: var(--color-text);
+  background: var(--color-surface); transition: border-color var(--transition-fast);
+}
+.todo-add-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0,174,112,.12); }
+.btn-tool:hover { color: var(--color-danger-mid) !important; }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — componentes compartidos (tablet / mobile)
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .small-box h3 { font-size: 2.2rem; }
+  .notif-dropdown { width: 300px; }
+}
+
+@media (max-width: 768px) {
+  .card-header { padding: 12px 16px; flex-wrap: wrap; }
+  .card-body   { padding: 16px; }
+  .card-footer { padding: 10px 16px; }
+
+  .small-box > .inner { padding: 18px 18px 14px; }
+  .small-box h3 { font-size: 1.9rem; }
+  .small-box .icon { font-size: 48px; right: 12px; }
+
+  .info-box { min-height: 68px; }
+  .info-box-icon { width: 60px; font-size: 1.3rem; }
+  .info-box-content { padding: 10px 14px; }
+  .info-box-number { font-size: 1.25rem; }
+
+  .topbar { padding: 0 16px; height: auto; min-height: 56px; flex-wrap: wrap; row-gap: 8px; }
+  .topbar-title { font-size: 16px; }
+  .topbar-fecha, .topbar-usuario, .topbar-avatar-ini { display: none; } /* info secundaria, no crítica en mobile */
+  .topbar-workspace { display: none; } /* redundante con la vista actual en mobile */
+
+  /* Con 2+ botones de acción (Exportar, Nuevo, Geocodificar, etc.) el
+     topbar no entra en una sola fila en celular — en vez de desbordar
+     horizontalmente, los botones bajan a una segunda fila. */
+  .topbar-right { flex-wrap: wrap; justify-content: flex-end; row-gap: 6px; }
+  /* topbar-left: min-width:0 evita que logo+menú empujen el layout */
+  .topbar-left { min-width: 0; gap: 6px; }
+  /* topbar-contador: se muestra en el cuerpo de la página, no crítico en topbar mobile */
+  .topbar-contador { display: none; }
+  .topbar-right .btn-exportar,
+  .topbar-right .btn-importar,
+  .topbar-right .btn--primary,
+  .topbar-right .btn-primario {
+    padding: 6px 10px; font-size: 12.5px;
+  }
+
+  .page-intro { padding: 6px 16px 2px; }
+
+  .filtros-bar { padding: 12px 14px; gap: 8px; }
+  .filtros-bar input, .filtros-bar select { flex: 1 1 140px; }
+
+  .notif-dropdown {
+    position: fixed; top: 56px; right: 8px; left: 8px; width: auto;
+  }
+
+  .modal { padding: 20px; max-height: 85vh; }
+  .modal-title { font-size: 16px; }
+
+  .kanban-col { width: 240px; min-width: 240px; }
+
+  .profile-card-actions { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .card-header { padding: 10px 14px; }
+  .card-body   { padding: 14px; }
+  .small-box h3 { font-size: 1.6rem; }
+  .info-box { flex-direction: column; }
+  .info-box-icon { width: 100%; height: 44px; }
+  .topbar { padding: 0 12px; }
+  .topbar-title { font-size: 15px; }
+  .modal { padding: 16px; border-radius: var(--radius-lg); }
+}

@@ -1,0 +1,802 @@
+/**
+ * pos-gentelella.css — Reskin "Gentelella v4" de la pantalla Punto de venta
+ * ──────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/pos.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes).
+ * No modifica ningún id/clase que lean pos.js / pos-offline.js /
+ * pos-printer.js / pos-terminal.js: solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * 2026-07-14: se detectaron 3 variantes de un mismo "texto de advertencia
+ * sobre naranja" repartidas entre pedidos-gentelella.css y este archivo
+ * (#a06800, #7a5000, #7d4000). Se consolidaron en el nuevo token
+ * --ge-warning-text (#a06800, el más repetido). Ver
+ * docs/GENTELELLA_RESKIN_TRACKING.md para el detalle.
+ *
+ * Nota de diseño: el panel oscuro de totales (.pos-panel-totales) es una
+ * decisión intencional del POS (interfaz de mostrador). Se mantiene oscuro
+ * pero se mueve al token --ge-sidebar-2 (navy Gentelella) en lugar del
+ * #0e0e10 original. El acento verde corporativo (--nav-ventas) se reemplaza
+ * por --ge-teal en todos sus usos: botón Cobrar, encabezados, quickbar, etc.
+ *
+ * Scope: body.dash-pos-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella { background: var(--ge-bg) !important; }
+body.dash-pos-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Preloader
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .preloader {
+  background: var(--ge-sidebar-2) !important;
+}
+body.dash-pos-gentelella .preloader-logo { color: var(--ge-teal) !important; }
+body.dash-pos-gentelella .preloader-bar  { background: var(--ge-teal) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-pos-gentelella .topbar-title   { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-pos-gentelella .topbar-workspace { color: var(--ge-ink-soft) !important; }
+
+/* Chip de turno abierto */
+body.dash-pos-gentelella .pos-turno-chip {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-pos-gentelella .pos-turno-chip::before {
+  background: var(--ge-teal) !important;
+}
+
+/* Botón "Pedidos y presupuestos" en topbar */
+body.dash-pos-gentelella .pos-btn-admin {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-btn-admin:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb / page intro
+   ════════════════════════════════════════════════════════════ */
+
+body.dash-pos-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Quickbar (barra de accesos POS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-quickbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-label {
+  color: var(--ge-muted) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-label::before {
+  background: var(--ge-teal) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-sep {
+  background: var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn-icon {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn:hover .pos-quickbar-btn-icon {
+  background: var(--ge-panel) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn:focus-visible {
+  outline-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pantalla "Abrir caja" (turno)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+body.dash-pos-gentelella .pos-turno-titulo { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-turno-sub    { color: var(--ge-ink-soft) !important; }
+body.dash-pos-gentelella .pos-turno-o      { color: var(--ge-muted) !important; }
+
+body.dash-pos-gentelella .pos-sec-label {
+  color: var(--ge-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+
+body.dash-pos-gentelella .pos-field-label { color: var(--ge-ink-soft) !important; }
+
+body.dash-pos-gentelella .pos-turno-item {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-turno-item:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-pos-gentelella .pos-turno-item-caja { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-turno-item-meta { color: var(--ge-muted) !important; }
+
+body.dash-pos-gentelella .pos-turno-error {
+  color: var(--ge-red) !important;
+  background: rgba(231,76,60,.10) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* Input base */
+body.dash-pos-gentelella .input-base {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pos-gentelella .input-base:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* Botón primario (Abrir caja + Confirmar venta) */
+body.dash-pos-gentelella .btn--primary {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .btn--primary:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .btn--danger {
+  background: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .btn--outline {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .btn--outline:hover {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pantalla de venta — columna buscador/ticket
+   ════════════════════════════════════════════════════════════ */
+
+/* Barra de búsqueda */
+body.dash-pos-gentelella .pos-busqueda-wrap {
+  border: 1.5px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-busqueda-wrap:focus-within {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-pos-gentelella .pos-input-producto { color: var(--ge-ink) !important; }
+
+/* Botón "Buscar artículo" */
+body.dash-pos-gentelella .pos-btn-buscar-articulo {
+  background: var(--ge-panel) !important;
+  border: 1.5px solid var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-btn-buscar-articulo:hover {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+
+/* Resultados desplegables */
+body.dash-pos-gentelella .pos-resultados {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pos-gentelella .pos-resultados-vacio { color: var(--ge-muted) !important; }
+
+body.dash-pos-gentelella .pos-producto-card {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-producto-card:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-pos-gentelella .pos-producto-nombre { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-producto-meta   { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-producto-precio { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-producto-stock.ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-producto-stock.bajo {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-pos-gentelella .pos-producto-stock.sin {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Tabla del ticket */
+body.dash-pos-gentelella .pos-ticket-tabla-wrap {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-head {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-head .col-op {
+  background: var(--ge-teal) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body {
+  background: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila:nth-child(even) {
+  background: var(--ge-bg) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila:nth-child(even) .pos-item-quitar {
+  background: var(--ge-bg) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila .pos-item-quitar {
+  background: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-carrito-vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-pos-gentelella .pos-item-num    { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-item-codigo { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-item-nombre { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-item-unitario { color: var(--ge-ink-soft) !important; }
+body.dash-pos-gentelella .pos-item-subtotal { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-item-quitar { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-item-quitar:hover { color: var(--ge-red) !important; }
+
+/* Stepper cantidad */
+body.dash-pos-gentelella .pos-item-cant,
+body.dash-pos-gentelella .pos-item-desc {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pos-gentelella .pos-item-desc:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+body.dash-pos-gentelella .pos-item-cant-btn {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pos-gentelella .pos-item-cant-btn:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel de totales (columna derecha — oscura, estilo mostrador)
+   Se conserva oscuro pero con el navy de Gentelella (--ge-sidebar-2)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-panel-totales {
+  background: var(--ge-sidebar-2) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .pos-totales-fila {
+  color: var(--ge-sidebar-muted) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .pos-totales-fila span:last-child {
+  color: var(--ge-sidebar-text) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .pos-field-label {
+  color: var(--ge-sidebar-muted) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .input-base {
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.15) !important;
+  color: var(--ge-sidebar-text) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .input-base:focus {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 2px rgba(184,122,0,.25) !important;
+}
+body.dash-pos-gentelella .pos-desc-quitar-btn {
+  color: var(--ge-sidebar-muted) !important;
+}
+body.dash-pos-gentelella .pos-desc-quitar-btn:hover { color: var(--ge-red) !important; }
+
+/* Total grande */
+body.dash-pos-gentelella .pos-total-grande {
+  border-top: 1px solid rgba(255,255,255,.14) !important;
+}
+body.dash-pos-gentelella .pos-total-grande-label {
+  color: var(--ge-sidebar-muted) !important;
+}
+body.dash-pos-gentelella .pos-total-grande-monto {
+  color: var(--ge-teal) !important;
+}
+
+/* Botón Cobrar */
+body.dash-pos-gentelella .pos-btn-cobrar {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: none !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-btn-cobrar:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-btn-cobrar:disabled { opacity: .35 !important; }
+
+/* Botones "Nueva venta" / "Ver precio" */
+body.dash-pos-gentelella .pos-btn-accion-rapida {
+  border: 1.5px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-teal) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-btn-accion-rapida:hover {
+  background: rgba(184,122,0,.15) !important;
+}
+
+/* Grilla de favoritos */
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-btn:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-nombre { color: var(--ge-ink) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Fila inferior: cards de info y cliente
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-info-card-tit {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  font-size: 11px !important;
+  letter-spacing: .05em !important;
+}
+body.dash-pos-gentelella .pos-info-fila span   { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-info-fila strong { color: var(--ge-ink) !important; }
+
+body.dash-pos-gentelella .pos-cliente-label  { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-cliente-nombre { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-cliente-cambiar {
+  color: var(--ge-teal) !important;
+  background: none !important;
+  border: none !important;
+}
+body.dash-pos-gentelella .pos-cliente-quitar {
+  color: var(--ge-red) !important;
+  background: none !important;
+  border: none !important;
+}
+body.dash-pos-gentelella .pos-resultados-cliente { overflow-y: auto; }
+body.dash-pos-gentelella .pos-cliente-resultado:hover {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Botón "Cerrar caja" */
+body.dash-pos-gentelella .pos-btn-cerrar-turno {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-pos-gentelella .pos-btn-cerrar-turno:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modales (cobro, cierre, movimiento, admin, PIN, Z, ticket)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pos-gentelella .pos-modal-head h2 { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+  border: none !important;
+}
+body.dash-pos-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Alias para modales de Fase 3 (mismo tratamiento que arriba) */
+body.dash-pos-gentelella .pos-modal-header h2,
+body.dash-pos-gentelella .pos-modal-titulo { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-modal-cerrar {
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+  border: none !important;
+}
+body.dash-pos-gentelella .pos-modal-cerrar:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Modal cobro */
+body.dash-pos-gentelella .pos-modal-total strong { color: var(--ge-teal) !important; }
+body.dash-pos-gentelella .pos-btn-agregar-pago {
+  border: 1px dashed var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-teal) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-btn-agregar-pago:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-pos-gentelella .pos-pagos-resumen {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-totales-fila {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* Vuelto */
+body.dash-pos-gentelella .pos-vuelto-wrap {
+  background: var(--ge-teal-light) !important;
+  border: 2px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-pos-gentelella .pos-vuelto-label { color: var(--ge-teal-dark) !important; }
+body.dash-pos-gentelella .pos-vuelto-monto { color: var(--ge-teal) !important; }
+
+/* Modal cierre / movimiento */
+body.dash-pos-gentelella .pos-cierre-sub { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-cierre-resumen {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-cierre-resumen-fila.total {
+  border-top: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pos-gentelella .pos-cierre-resumen-vacio { color: var(--ge-muted) !important; }
+
+/* Botones de modal */
+body.dash-pos-gentelella .btn-secundario {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pos-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+}
+
+/* Panel estado de caja (modal movimiento) */
+body.dash-pos-gentelella .pos-caja-saldo-panel {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-caja-saldo-loading { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-caja-kpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-caja-kpi--efectivo {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-pos-gentelella .pos-caja-kpi-label { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-caja-kpi-valor { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-caja-kpi--efectivo .pos-caja-kpi-valor {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-caja-sep {
+  color: var(--ge-muted) !important;
+}
+body.dash-pos-gentelella .pos-caja-sep::before,
+body.dash-pos-gentelella .pos-caja-sep::after {
+  background: var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov-item {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--refuerzo {
+  border-left: 3px solid var(--ge-teal) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--sangria {
+  border-left: 3px solid var(--ge-red) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--retiro_final {
+  border-left: 3px solid var(--ge-orange) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--refuerzo .pos-caja-mov-icono {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--sangria .pos-caja-mov-icono {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov--retiro_final .pos-caja-mov-icono {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-pos-gentelella .pos-caja-mov-desc small { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-caja-mov-monto { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-caja-mov-monto--plus  { color: var(--ge-teal-dark) !important; }
+body.dash-pos-gentelella .pos-caja-mov-monto--minus { color: var(--ge-red) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Panel de administración (modal pantalla completa)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-modal-admin {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+}
+body.dash-pos-gentelella .pos-admin-head {
+  border-bottom: 1px solid var(--ge-border) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+body.dash-pos-gentelella .pos-admin-head h2     { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-admin-head-sub    { color: var(--ge-muted) !important; }
+
+/* Botón cerrar del panel admin — visible y accesible */
+body.dash-pos-gentelella .pos-admin-head .modal-close {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  cursor: pointer !important;
+  transition: background .15s, color .15s, border-color .15s !important;
+}
+body.dash-pos-gentelella .pos-admin-head .modal-close:hover {
+  background: var(--ge-panel) !important;
+  border-color: var(--ge-ink-soft) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Sidebar de tabs */
+body.dash-pos-gentelella .pos-admin-tabs {
+  background: var(--ge-bg) !important;
+  border-right: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-admin-tabs-sep { background: var(--ge-border) !important; }
+body.dash-pos-gentelella .pos-admin-tab {
+  color: var(--ge-ink-soft) !important;
+  border-left: 3px solid transparent !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-admin-tab:hover {
+  background: rgba(0,0,0,.04) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pos-gentelella .pos-admin-tab.activo {
+  background: var(--ge-panel) !important;
+  color: var(--ge-teal) !important;
+  border-left-color: var(--ge-teal) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+/* Mobile: tab activo con borde inferior */
+@media (max-width: 860px) {
+  body.dash-pos-gentelella .pos-admin-tab.activo {
+    border-left-color: transparent !important;
+    border-bottom: 3px solid var(--ge-teal) !important;
+  }
+  body.dash-pos-gentelella .pos-admin-tabs {
+    border-right: none !important;
+    border-bottom: 1px solid var(--ge-border) !important;
+  }
+}
+
+/* Contenido de cada tab */
+body.dash-pos-gentelella .pos-admin-content { background: var(--ge-panel) !important; }
+
+/* Filas de ventas */
+body.dash-pos-gentelella .pos-venta-fila,
+body.dash-pos-gentelella .pos-transf-fila {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-venta-fila-num  { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-venta-fila-meta,
+body.dash-pos-gentelella .pos-transf-fila-meta { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-venta-fila-total { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-venta-badge-anulada {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-pos-gentelella .pos-venta-btn-anular {
+  border: 1px solid var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-venta-btn-anular:hover {
+  background: rgba(231,76,60,.1) !important;
+}
+
+/* Producto seleccionado en transferencia */
+body.dash-pos-gentelella .pos-transf-producto-sel {
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-teal-light) !important;
+}
+
+/* Devoluciones */
+body.dash-pos-gentelella .pos-dev-item-fila {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-dev-item-nombre { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-dev-item-cant-orig { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-dev-historial-fila {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-dev-monto { color: var(--ge-teal-dark) !important; }
+
+/* Promociones */
+body.dash-pos-gentelella .pos-promo-fila {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-promo-nombre { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-promo-meta   { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-promo-badge  {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-pos-gentelella .pos-promo-badge.activa {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-promo-badge.inactiva {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Favoritos — admin list */
+body.dash-pos-gentelella .pos-fav-admin-fila {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-fav-admin-pos    { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-fav-admin-nombre { color: var(--ge-ink) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Reporte Z
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-z-header {
+  border-bottom: 2px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-z-empresa { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-z-titulo  { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-z-meta    { color: var(--ge-ink-soft) !important; }
+body.dash-pos-gentelella .pos-z-section {
+  border-bottom: 1px dashed var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-z-row.head { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-z-row.total {
+  border-top: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pos-gentelella .pos-z-row.ok {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-z-row.diferencia { color: var(--ge-red) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Ticket de venta (confirmación)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-ticket-ok { color: var(--ge-teal) !important; }
+body.dash-pos-gentelella .pos-ticket-ok h2 { color: var(--ge-ink) !important; }
+body.dash-pos-gentelella .pos-ticket-ok p  { color: var(--ge-muted) !important; }
+body.dash-pos-gentelella .pos-ticket-detalle {
+  border-top: 1px solid var(--ge-border) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pos-gentelella .pos-ticket-factura-estado.ok {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pos-gentelella .pos-ticket-factura-estado.error { color: var(--ge-red) !important; }
+body.dash-pos-gentelella .pos-ticket-factura-estado.pendiente { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Badges de promo / peso
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-badge-promo {
+  background: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pos-gentelella .pos-badge-peso {
+  background: var(--ge-blue) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Alerta conflicto de caja
+   ════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-alerta-conflicto {
+  color: var(--ge-warning-text) !important;
+  background: rgba(240,173,78,.12) !important;
+  border: 1px solid rgba(240,173,78,.4) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}

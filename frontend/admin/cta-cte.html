@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redirigiendo...</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <meta http-equiv="refresh" content="0; url=/admin/cobranzas?vista=saldos" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+</head>
+<body>
+  <!--
+    Fase 0 (auditoría IA/UX): 'Cuenta corriente' y 'Cobranzas' se fusionaron
+    en una sola puerta de entrada (/admin/cobranzas, con pestañas "¿A quién
+    llamo hoy?" / "Saldos por cliente"). Este archivo queda solo como
+    redirección para no romper links viejos (nav-data.js, automatizacion.js,
+    lib/handlers/cierre.js) y bookmarks guardados por el equipo.
+  -->
+  <script>window.location.replace('/admin/cobranzas?vista=saldos' + window.location.search.replace(/^\?/, '&'));</script>
+  <p>Redirigiendo a <a href="/admin/cobranzas?vista=saldos">Cobranzas</a>...</p>
+</body>
+</html>

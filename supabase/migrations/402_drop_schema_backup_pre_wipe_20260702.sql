@@ -1,0 +1,21 @@
+-- =============================================================================
+-- 402_drop_schema_backup_pre_wipe_20260702.sql
+--
+-- PERF-04 (auditoría 2026, etapa 7): schema `backup_pre_wipe_20260702` era
+-- un snapshot manual completo (~90 tablas, ~7MB) tomado el 2026-07-02 antes
+-- de un wipe de datos. Confirmado antes de borrar:
+--   - Sin USAGE grant para anon/authenticated (nunca estuvo expuesto por
+--     PostgREST, no era un riesgo de seguridad, solo ruido de linter).
+--   - Sin referencias en el código de la app.
+--   - Es el 100% del origen de los 91 hallazgos `no_primary_key` del
+--     linter de performance (las tablas de este schema se copiaron sin
+--     constraints). Verificado: tras el DROP, esos 91 hallazgos
+--     desaparecieron por completo (462 → 371 hallazgos totales).
+--   - Ya reemplazado por el workflow de backup semanal propio (ver
+--     etapas/09b_backup_automatizado_setup.md).
+--
+-- Confirmado explícitamente por el usuario antes de aplicar (borrado
+-- irreversible).
+-- =============================================================================
+
+DROP SCHEMA IF EXISTS backup_pre_wipe_20260702 CASCADE;

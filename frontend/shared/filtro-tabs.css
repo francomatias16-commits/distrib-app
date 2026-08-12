@@ -1,0 +1,156 @@
+/**
+ * filtro-tabs.css — Barra de pestañas de filtro con contador (reemplazo de
+ * las tarjetas KPI de gentelella-fkpi.css / kpi-line.css en las pantallas
+ * donde cada indicador es una categoría real de la tabla de abajo).
+ * ─────────────────────────────────────────────────────────────────────────
+ * RECONSTRUIDO el 2026-08-09 (ver nota igual en filtro-tabs.js): archivo
+ * perdido en el zip recuperado, reconstruido siguiendo el lenguaje visual
+ * ya establecido en gentelella-tokens.css / kpi-line.css (mismos colores,
+ * radios y sombras "hoja sobre hoja" del resto del reskin).
+ *
+ * Markup generado por FiltroTabs.crear() (frontend/shared/filtro-tabs.js):
+ *   <div class="barra-filtros filtro-tabs" role="tablist">
+ *     <button class="filtro-tab activa" data-key="todas" role="tab">
+ *       <span class="filtro-tab-lbl">Todas</span>
+ *       <span class="filtro-tab-count">123</span>
+ *     </button>
+ *     ...
+ *   </div>
+ *
+ * Incluye también `.franja-resumen-sololectura`: la variante SIN clic para
+ * indicadores que son montos/promedios (no categorías filtrables) — misma
+ * franja tipográfica que las pestañas, sin caja, para no simular una
+ * interacción que no existe.
+ */
+
+body.dash-gentelella .filtro-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+body.dash-gentelella .filtro-tab {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 16px !important;
+  background: var(--ge-panel, #FCFAF5) !important;
+  border: 1px solid var(--ge-border, #DAD3C0) !important;
+  border-radius: var(--ge-radius-card, 6px) !important;
+  box-shadow: var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--ge-ink-soft, #4B4A45) !important;
+  cursor: pointer !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+  white-space: nowrap !important;
+}
+
+body.dash-gentelella .filtro-tab:hover {
+  background: var(--ge-chip-bg, #EAE4D6) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.dash-gentelella .filtro-tab:focus-visible {
+  outline: 2px solid var(--ge-teal, #B87A00) !important;
+  outline-offset: 1px !important;
+}
+
+body.dash-gentelella .filtro-tab.activa {
+  background: var(--ge-teal-light, rgba(232,160,0,.14)) !important;
+  border-color: var(--ge-teal, #B87A00) !important;
+  color: var(--ge-teal-dark, #8F5F00) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal, #B87A00), var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+}
+
+body.dash-gentelella .filtro-tab-lbl {
+  line-height: 1.2 !important;
+}
+
+body.dash-gentelella .filtro-tab-count {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 22px !important;
+  height: 20px !important;
+  padding: 0 6px !important;
+  border-radius: var(--ge-radius-pill, 9999px) !important;
+  background: var(--ge-chip-bg, #EAE4D6) !important;
+  color: var(--ge-ink, #16181D) !important;
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1 !important;
+}
+
+body.dash-gentelella .filtro-tab.activa .filtro-tab-count {
+  background: var(--ge-teal, #B87A00) !important;
+  color: #fff !important;
+}
+
+/* ── Variante de solo lectura: mismos indicadores tipográficos, sin caja,
+      sin cursor pointer y sin estado activo — para montos/promedios que
+      no son una categoría filtrable de la tabla. ── */
+body.dash-gentelella .franja-resumen-sololectura {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  margin: 0 0 14px !important;
+  padding: 0 2px !important;
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 13px !important;
+  color: var(--ge-ink-soft, #4B4A45) !important;
+}
+
+body.dash-gentelella .franja-resumen-sololectura strong {
+  font-family: var(--font-family-display, 'Oswald', 'Arial Narrow', sans-serif) !important;
+  font-weight: 700 !important;
+  color: var(--ge-ink, #16181D) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body.dash-gentelella .franja-resumen-sololectura .sep {
+  color: var(--ge-border, #DAD3C0) !important;
+}
+
+/* ── Contador fusionado dentro de un pill .e-pill YA existente (pedidos.html,
+      stock.html): mismo look que .filtro-tab-count pero sin depender del
+      componente FiltroTabs — se usa cuando la pantalla ya tenía sus propios
+      pills de filtro y solo hacía falta sumarle el número. ── */
+body.dash-gentelella .e-pill .n,
+body.dash-gentelella .tab-btn .n {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 20px !important;
+  height: 18px !important;
+  padding: 0 5px !important;
+  margin-left: 2px !important;
+  border-radius: var(--ge-radius-pill, 9999px) !important;
+  background: rgba(0,0,0,.08) !important;
+  color: inherit !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1 !important;
+}
+
+body.dash-gentelella .e-pill.activa .n,
+body.dash-gentelella .tab-btn.active .n {
+  background: rgba(255,255,255,.28) !important;
+}
+
+@media (max-width: 640px) {
+  body.dash-gentelella .filtro-tab {
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
+  }
+  body.dash-gentelella .franja-resumen-sololectura {
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+}

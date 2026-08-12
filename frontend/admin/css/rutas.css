@@ -1,0 +1,1016 @@
+/* Utility global — requerida por mostrarTab() y otros toggles */
+.hidden { display: none !important; }
+
+/**
+ * AdminLTE Style Patch — añadido automáticamente
+ * Mejora visual sobre el CSS existente de la página
+ */
+
+/* Fondo AdminLTE */
+body { background: var(--color-bg); font-family: var(--font-family); }
+
+/* Cards mejoradas */
+/* .card styles inherited from adminlte-components.css (glass) */
+/* .card-header inherited from adminlte-components.css */
+.card-header h3 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+.card-footer { padding: 10px 16px; background: rgba(0,0,0,.02); border-top: 1px solid rgba(0,0,0,.08); font-size: 13px; color: var(--color-text-muted); }
+
+/* Panel headers */
+.panel-header, .section-header {
+  background: rgba(0,0,0,.02);
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+/* Tablas con fondo alternado */
+table th { background: var(--color-bg) !important; }
+tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
+
+/* [Etapa 4 · Media] .topbar-contador se removió de este archivo: estaba duplicado en 9 hojas de página con formas inconsistentes (radius-md vs radius-lg). Definición canónica única en shared/adminlte-components.css. */
+
+/* KPI cards — info-box style cuando son grid */
+.fkpi, .kpi-card:not(.small-box) {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Motor cards / auto cards */
+.motor-card, .regla-card, .trigger-card {
+  border: 1px solid rgba(0,0,0,.125);
+  box-shadow: var(--shadow-fluffy);
+}
+.motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
+
+/* Botones secundarios */
+.btn-exportar, .btn-importar {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: all .12s; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-muted);
+}
+.btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
+.btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info); color: var(--color-info); }
+
+/* Filtros */
+.filtros-section {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Main padding ajustado */
+.main { padding: 20px 24px; }
+
+
+/* admin-rutas.css — Pantallas G y H: armado de rutas + seguimiento */
+
+/* ── Grilla principal ────────────────────────────────────────────── */
+.rutas-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  /* FIX (rediseño visualización de repartos): "start" hacía que cada
+     columna se achicara a su propio contenido — el panel de pedidos
+     pendientes (la lista más importante de la pantalla) terminaba con
+     apenas 1-2 tarjetas visibles al lado de un cuadro de "arrastrar acá"
+     vacío y mucho más alto. "stretch" iguala ambas columnas a la altura
+     de la más alta, y esa altura ahora la fija panel-pendientes (ver
+     abajo), así ambas quedan generosas y parejas en cualquier resolución
+     de escritorio, no solo en el breakpoint angosto de rutas-compact.css. */
+  align-items: stretch;
+}
+
+/* ── Panel izquierdo: pedidos pendientes ─────────────────────────── */
+.panel-pendientes {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Alto real y generoso (antes solo un max-height, así que el panel
+     colapsaba a la altura de 2-3 tarjetas). min()/clamp() para que se
+     vea bien tanto en notebooks chicas como en monitores grandes. */
+  height: clamp(480px, calc(100vh - 260px), 760px);
+}
+
+.panel-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Toggle "Por zona" ─ agrupa la lista de pendientes por zona de entrega,
+   que es justo lo que promete la bajada de la página ("agrupando pedidos
+   por zona y repartidor") y que antes no tenía ningún reflejo visual. */
+.btn-toggle-agrupar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.btn-toggle-agrupar:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.btn-toggle-agrupar[aria-pressed="true"] {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.panel-header h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.panel-header-sub {
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+
+.panel-search {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+
+.panel-search svg {
+  position: absolute;
+  left: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-light);
+}
+
+.panel-search input {
+  width: 100%;
+  padding: 7px 10px 7px 30px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-bg);
+  outline: none;
+}
+
+.panel-search input:focus { border-color: var(--color-primary); }
+
+.lista-pendientes {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  /* FIX: el padding-top de un contenedor con scroll no se oculta detrás
+     de los hijos "position: sticky" (bug de layout de los navegadores
+     basados en Chromium) — quedaba una franja de la tarjeta anterior
+     asomando por encima del header de zona pegajoso. Se saca el padding
+     del contenedor y se lo pasa como margin al primer/último hijo. */
+  padding: 0;
+}
+
+.lista-pendientes > .grupo-zona:first-child,
+.lista-pendientes > .pedido-card:first-child {
+  margin-top: 8px;
+}
+
+.lista-pendientes > .grupo-zona:last-child,
+.lista-pendientes > .pedido-card:last-child {
+  margin-bottom: 8px;
+}
+
+/* ── Tarjeta de pedido pendiente ─────────────────────────────────── */
+.pedido-card {
+  padding: 12px 16px;
+  cursor: grab;
+  border-left: 3px solid transparent;
+  transition: background .12s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pedido-card:hover { background: var(--color-bg); border-left-color: var(--color-primary); }
+.pedido-card.dragging { opacity: .4; background: var(--color-primary-bg); }
+.pedido-card.ya-asignado { opacity: .45; cursor: not-allowed; }
+
+.pedido-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pedido-card-cliente {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pedido-card-monto {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.pedido-card-meta {
+  font-size: 11px;
+  color: var(--color-text-light);
+  display: flex;
+  gap: 8px;
+}
+
+.pedido-card-zona {
+  background: var(--color-bg);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* ── Agrupado por zona (toggle #btn-toggle-agrupar) ──────────────── */
+.grupo-zona + .grupo-zona { margin-top: 4px; }
+
+.grupo-zona-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 16px;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  /* Sombra sutil hacia abajo: sin esto, el header pegajoso se lee como
+     una fila más de la lista en vez de un elemento fijo por encima del
+     contenido que scrollea debajo. */
+  box-shadow: 0 2px 4px -2px rgba(0,0,0,.08);
+}
+
+.grupo-zona:first-child .grupo-zona-header { border-top: none; }
+
+.grupo-zona-nombre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grupo-zona-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.grupo-zona-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+/* ── Panel derecho: ruta activa ──────────────────────────────────── */
+.panel-ruta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ── Cabecera de la ruta ─────────────────────────────────────────── */
+.ruta-form-card {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.ruta-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.ruta-form-grid label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ruta-form-grid input,
+.ruta-form-grid select {
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-surface);
+  outline: none;
+  color: var(--color-text);
+}
+
+.ruta-form-grid input:focus,
+.ruta-form-grid select:focus { border-color: var(--color-primary); }
+
+/* FIX v480 — antes eran dos íconos sin texto apretados junto al <select>
+   de chofer; ahora son su propia fila, con texto y color distintivo cada
+   uno, para que se noten como las acciones importantes que son. */
+.ruta-chofer-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+.btn-chofer-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+
+.btn-chofer-accion--ingresar {
+  background: var(--nav-facturacion-bg);
+  border-color: color-mix(in srgb, var(--nav-facturacion) 25%, transparent);
+  color: var(--nav-facturacion);
+}
+.btn-chofer-accion--ingresar:hover { background: color-mix(in srgb, var(--nav-facturacion) 16%, transparent); }
+
+.btn-chofer-accion--invitar {
+  background: var(--color-success-bg);
+  border-color: color-mix(in srgb, var(--color-success-mid) 25%, transparent);
+  color: var(--color-success-mid);
+}
+.btn-chofer-accion--invitar:hover { background: color-mix(in srgb, var(--color-success-mid) 16%, transparent); }
+
+@media (max-width: 640px) {
+  .ruta-chofer-acciones { flex-direction: column; }
+  .btn-chofer-accion { justify-content: center; }
+}
+
+/* ── Drop zone ───────────────────────────────────────────────────── */
+.drop-zone {
+  background: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color .15s, background .15s;
+  /* Ocupa el espacio libre de .panel-ruta (ahora tan alto como
+     .panel-pendientes) y scrollea internamente en vez de quedar
+     achicado a min-height con espacio muerto debajo. */
+  flex: 1;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.ruta-form-card,
+.ruta-footer {
+  flex-shrink: 0;
+}
+
+.drop-zone.over {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.drop-zone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  color: var(--color-text-light);
+  font-size: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.drop-zone-empty svg { opacity: .35; }
+
+.lista-ruta {
+  padding: 8px 0;
+}
+
+/* ── Fila de pedido dentro de la ruta ────────────────────────────── */
+.ruta-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.ruta-item:last-child { border-bottom: none; }
+
+.ruta-item-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ruta-item-info { display: flex; flex-direction: column; gap: 2px; }
+.ruta-item-cliente { font-size: 13px; font-weight: 600; color: var(--color-text); }
+.ruta-item-dir { font-size: 11px; color: var(--color-text-light); }
+
+.ruta-item-monto { font-size: 13px; font-weight: 700; color: var(--color-primary); white-space: nowrap; }
+
+.btn-quitar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+}
+.btn-quitar:hover { color: var(--color-danger); background: var(--color-danger-bg); }
+
+/* ── Footer de la ruta ───────────────────────────────────────────── */
+.ruta-footer {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ruta-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.ruta-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ruta-stat-label { font-size: 11px; color: var(--color-text-light); }
+.ruta-stat-val   { font-size: 16px; font-weight: 700; color: var(--color-text); }
+
+/* ── Botones de acción ───────────────────────────────────────────── */
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: opacity .15s;
+}
+.btn-primary:hover { opacity: .88; }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background .12s;
+}
+.btn-secondary:hover { background: var(--color-bg); }
+
+.btn-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-mid);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--color-danger-bg) 130%, white); }
+
+/* ── Sección: rutas del día ──────────────────────────────────────── */
+.rutas-del-dia {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.rutas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rutas-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rutas-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--color-bg);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.rutas-table tr:last-child td { border-bottom: none; }
+.rutas-table tr:hover td { background: var(--color-bg); }
+
+/* ── Chips de estado de ruta → sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.chip-pendiente  { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.chip-en-camino  { background: var(--color-primary-bg); color: var(--color-primary); border-color: var(--color-primary); }
+.chip-completada { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.chip-cancelada  { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: var(--color-danger); }
+
+/* ── Panel de seguimiento (H) ────────────────────────────────────── */
+.seguimiento-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.seguimiento-lista {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  max-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+}
+
+.entrega-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-bg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.entrega-row:hover { background: var(--color-bg); }
+.entrega-row.activa { background: var(--color-primary-bg); }
+
+.entrega-orden {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.entrega-row.entregado  .entrega-orden { background: var(--color-success-bg); color: var(--color-success); }
+.entrega-row.no-entregado .entrega-orden { background: var(--color-danger-bg);  color: var(--color-danger); }
+.entrega-row.en-camino  .entrega-orden { background: var(--color-primary-bg); color: var(--color-primary); }
+
+.entrega-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.entrega-cliente { font-size: 13px; font-weight: 600; }
+.entrega-dir     { font-size: 11px; color: var(--color-text-light); }
+
+/* ── Map placeholder ─────────────────────────────────────────────── */
+.mapa-wrap {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+}
+
+#mapa {
+  flex: 1;
+  background: var(--color-surface-2);
+}
+
+.mapa-leyenda {
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+.mapa-leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mapa-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+/* FIX (auditoría UX): bloque local con opacity:0 que pisaba al toast
+   unificado de /shared/tokens.css (clases .toast--visible/--success/
+   --danger). Solo reaccionaba a .toast.show, que rutas.js/rutas-resumen.js
+   ya no disparan (usan window.toast) — dejaba invisibles los avisos,
+   incluido el flujo de "registrar cobro" de rutas-resumen.js. */
+
+/* ── Modal genérico ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+}
+
+.modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 { font-size: 15px; font-weight: 700; }
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+.modal-close:hover { color: var(--color-text); background: var(--color-bg); }
+
+.modal-body    { padding: 20px; }
+.modal-footer  { padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ── Tabs ────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  width: fit-content;
+}
+
+.tab-btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: all .15s;
+}
+.tab-btn.active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-text-light);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty-state svg { opacity: .3; }
+
+/* ── Botón remito (REQ-02) ── */
+.btn-remito {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-remito:hover { background: var(--color-surface-2); border-color: var(--color-text-light); }
+
+/* ── Tablas logísticas → tarjetas en celular (choferes/operadores en la calle) ── */
+@media (max-width: 768px) {
+  .table-responsive-cards .rutas-table,
+  .table-responsive-cards .rutas-table thead,
+  .table-responsive-cards .rutas-table tbody,
+  .table-responsive-cards .rutas-table th,
+  .table-responsive-cards .rutas-table td,
+  .table-responsive-cards .rutas-table tr {
+    display: block;
+  }
+  .table-responsive-cards .rutas-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .table-responsive-cards .rutas-table tbody tr {
+    border: 1px solid rgba(0,0,0,.07);
+    margin: 0 0 12px;
+    border-radius: var(--radius-lg);
+    padding: 4px 14px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .table-responsive-cards .rutas-table td {
+    border: none !important;
+    position: relative;
+    padding: 9px 0 9px 42%;
+    text-align: right;
+    border-bottom: 1px solid var(--color-bg) !important;
+    min-height: 20px;
+  }
+  .table-responsive-cards .rutas-table td:last-child { border-bottom: none !important; }
+  .table-responsive-cards .rutas-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 40%;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  .table-responsive-cards .rutas-table td[data-label=""] { text-align: left; padding-left: 0; }
+  .table-responsive-cards .rutas-table td[data-label=""]::before { display: none; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Reporte de ruta — Tab 4
+══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Barra de filtros ───────────────────────────────────────────────────── */
+.reporte-filtros {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 0;
+}
+
+/* ── KPI Cards ──────────────────────────────────────────────────────────── */
+.reporte-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.reporte-kpi-card {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow .15s;
+}
+
+.reporte-kpi-card:hover {
+  box-shadow: var(--shadow-big);
+}
+
+.reporte-kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reporte-kpi-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.reporte-kpi-label {
+  font-size: 11px;
+  color: var(--color-text-light);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 500;
+}
+
+/* ── Grid mapa + tabla ──────────────────────────────────────────────────── */
+.reporte-detalle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.reporte-mapa-wrap {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .rutas-grid,
+  .seguimiento-grid {
+    grid-template-columns: 1fr;
+  }
+  /* En 1 columna, lista y mapa quedan uno debajo del otro. Si cada uno
+     sigue pidiendo ~100vh de alto (como en desktop, lado a lado), la
+     página mide el doble de la pantalla y el mapa queda fuera de vista.
+     Se les da una altura fija razonable para que ambos entren sin
+     necesitar un scroll interminable. */
+  .seguimiento-lista {
+    max-height: 320px;
+  }
+  .mapa-wrap {
+    height: 320px;
+  }
+}
+
+@media (max-width: 900px) {
+  .reporte-detalle {
+    grid-template-columns: 1fr;
+  }
+  .reporte-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ruta-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .ruta-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .ruta-item {
+    grid-template-columns: 20px 1fr auto;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .reporte-kpis {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .reporte-kpi-val {
+    font-size: 18px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox / CRMHUB" (Sección Rutas)
+   Acento turquesa consistente con el resto + avatar circular de chofer
+   con iniciales (helper avatarChofer() en rutas.js). Acotado a #vista-rutas.
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-rutas {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-rutas .chofer-fila {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+#vista-rutas .chofer-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
+}
+
+#vista-rutas .rutas-table thead th { background: transparent; color: var(--color-text-muted); }
+#vista-rutas .rutas-table tr:hover td { background: var(--color-primary-bg); }

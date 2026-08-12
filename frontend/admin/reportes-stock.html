@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Stock - Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+    <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes-stock-gentelella.css?v=1" />
+  <!-- Estilos del gráfico "Movimientos de stock" + card "Cobertura de catálogo",
+       trasladados desde /admin/stock (ver .stock-ov-grid más abajo) -->
+  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-reportes-stock-gentelella dash-gentelella">
+    <!-- Sidebar -->
+        <div id="nav-root"></div>
+
+        <!-- Main Content -->
+        <div class="layout">
+              <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Reportes de stock</h1>
+    </div>
+    <div class="topbar-right">
+      
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Mirá rotación, quiebres y productos parados por depósito, para decidir qué reponer y qué liquidar.
+</div>
+
+            <div class="content-area">
+                <!-- Filtros -->
+                <div class="filtros-section">
+                    <div class="filtro-group">
+                        <label>Depósito:</label>
+                        <select id="filtroDeposito">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Categoría:</label>
+                        <select id="filtroCategoria">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Estado:</label>
+                        <select id="filtroEstado">
+                            <option value="">Todos</option>
+                            <option value="critico">Stock Crítico</option>
+                            <option value="bajo">Stock Bajo</option>
+                            <option value="normal">Stock Normal</option>
+                            <option value="exceso">Stock Exceso</option>
+                        </select>
+                    </div>
+                    <button type="button" id="btnAplicarFiltros" class="btn btn--primary">Aplicar Filtros</button>
+                    <button type="button" id="btnExportarStock" class="btn btn--ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button>
+                </div>
+
+                <!-- KPIs de Stock -->
+                <div class="franja-resumen-sololectura">
+  <span>Valor Total Stock: <strong id="kpiValorTotal">$0</strong> <span id="kpiCambioValor">+0% vs mes anterior</span></span>
+  <span class="sep">·</span>
+  <span>Productos en Stock: <strong id="kpiProductosStock">0</strong> <span id="kpiCambioProductos">+0 vs mes anterior</span></span>
+  <span class="sep">·</span>
+  <span>Stock Crítico: <strong id="kpiStockCritico">0</strong> <span id="kpiCambioCritico">Requiere atención</span></span>
+  <span class="sep">·</span>
+  <span>Rotación Promedio: <strong id="kpiRotacion">0</strong> <span id="kpiCambioRotacion">Días promedio</span></span>
+</div>
+
+                <!-- Movimientos de Stock (Ingresos vs Egresos, 6 meses) + Cobertura de catálogo
+                     — trasladado desde /admin/stock, donde ocupaba espacio de una pantalla
+                     operativa; acá convive naturalmente con el resto de gráficos analíticos. -->
+                <div class="stock-ov-grid" style="margin-bottom:22px">
+                    <div class="stock-ov-chart-card">
+                        <div class="stock-ov-chart-card__head">
+                            <h3>Movimientos de stock — últimos 6 meses</h3>
+                            <div class="stock-ov-legend">
+                                <span><i class="ingreso"></i>Ingresos</span>
+                                <span><i class="egreso"></i>Egresos</span>
+                            </div>
+                        </div>
+                        <div class="stock-ov-chart-wrap">
+                            <div id="stock-ov-chart" class="stock-ov-chart-el"></div>
+                        </div>
+                    </div>
+
+                    <div class="stock-ov-side">
+                        <div class="stock-ov-target">
+                            <div>
+                                <div class="stock-ov-target__label">Cobertura de catálogo con stock</div>
+                                <div class="stock-ov-target__value" id="ov-cobertura">—%</div>
+                            </div>
+                            <div class="stock-ov-target__avatars" id="ov-avatares-depositos"></div>
+                            <div class="stock-ov-divider"></div>
+                            <div class="stock-ov-mini">
+                                <div>
+                                    <div class="stock-ov-mini__num" id="ov-mini-criticos">—</div>
+                                    <div class="stock-ov-mini__sub">Alertas de stock activas</div>
+                                </div>
+                                <span class="stock-ov-mini__badge ok" id="ov-mini-badge">Al día</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Distribución de Stock -->
+                <div class="chart-section">
+                    <h2>Distribución de Stock por Categoría</h2>
+                    <div class="chart-section-wrap"><div id="chartDistribucionStock" class="chart-section-el"></div></div>
+                </div>
+
+                <!-- Gráfico de Rotación -->
+                <div class="chart-section">
+                    <h2>Rotación de Stock (Últimos 30 días)</h2>
+                    <div class="chart-section-wrap"><div id="chartRotacion" class="chart-section-el"></div></div>
+                </div>
+
+                <!-- Tabla de Stock por Producto -->
+                <div class="ranking-section">
+                    <h2>Estado de Stock por Producto</h2>
+                    <table class="ranking-table">
+                        <thead>
+            <tr>
+                                <th>Producto</th>
+                                <th class="thead-sep">Categoría</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Reservado</th>
+                                <th class="thead-sep">Disponible</th>
+                                <th>Costo Unitario</th>
+                                <th>Valor Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyStock">
+                            <tr><td colspan="8" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="tabla-paginacion" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 4px;">
+                        <span id="stockPaginacionInfo" style="font-size:13px;color:var(--color-text-light);">Cargando...</span>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <label for="selectStockPorPagina" style="font-size:13px;color:var(--color-text-light);">Por página:</label>
+                            <select id="selectStockPorPagina" style="padding:4px 8px;border-radius: var(--radius-sm);border:1px solid var(--color-border);">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button type="button" id="btnStockAnterior" class="btn btn--ghost" disabled>← Anterior</button>
+                            <button type="button" id="btnStockSiguiente" class="btn btn--ghost" disabled>Siguiente →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Productos Críticos -->
+                <div class="ranking-section">
+                    <h2>Productos con Stock Crítico</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Déficit</th>
+                                <th>Última Venta</th>
+                                <th>Acción Recomendada</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyProductosCriticos">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="tabla-paginacion" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 4px;">
+                        <span id="criticosPaginacionInfo" style="font-size:13px;color:var(--color-text-light);">Cargando...</span>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <label for="selectCriticosPorPagina" style="font-size:13px;color:var(--color-text-light);">Por página:</label>
+                            <select id="selectCriticosPorPagina" style="padding:4px 8px;border-radius: var(--radius-sm);border:1px solid var(--color-border);">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button type="button" id="btnCriticosAnterior" class="btn btn--ghost" disabled>← Anterior</button>
+                            <button type="button" id="btnCriticosSiguiente" class="btn btn--ghost" disabled>Siguiente →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Valorización de Stock -->
+                <div class="ranking-section">
+                    <h2>Valorización de Stock por Depósito</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Depósito</th>
+                                <th>Cantidad Productos</th>
+                                <th>Cantidad Total Unidades</th>
+                                <th>Costo Total</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyValorizacion">
+                            <tr><td colspan="5" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabla de Movimientos de Stock -->
+                <div class="ranking-section">
+                    <h2>Movimientos de Stock (Últimos 30 días)</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Depósito</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyMovimientos">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="tabla-paginacion" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 4px;">
+                        <span id="movimientosPaginacionInfo" style="font-size:13px;color:var(--color-text-light);">Cargando...</span>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <label for="selectMovimientosPorPagina" style="font-size:13px;color:var(--color-text-light);">Por página:</label>
+                            <select id="selectMovimientosPorPagina" style="padding:4px 8px;border-radius: var(--radius-sm);border:1px solid var(--color-border);">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button type="button" id="btnMovimientosAnterior" class="btn btn--ghost" disabled>← Anterior</button>
+                            <button type="button" id="btnMovimientosSiguiente" class="btn btn--ghost" disabled>Siguiente →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Conteos de Stock -->
+                <div class="ranking-section">
+                    <h2>Historial de Conteos de Stock</h2>
+
+                    <div class="filtros-section">
+                        <div class="filtro-group">
+                            <label>Depósito:</label>
+                            <select id="conteosFiltroDeposito">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <label>Motivo:</label>
+                            <select id="conteosFiltroMotivo">
+                                <option value="">Todos</option>
+                                <option value="inventario">Corrección de inventario</option>
+                                <option value="conteo_fisico">Conteo físico</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <label>Desde:</label>
+                            <input type="date" id="conteosFiltroDesde">
+                        </div>
+                        <div class="filtro-group">
+                            <label>Hasta:</label>
+                            <input type="date" id="conteosFiltroHasta">
+                        </div>
+                        <div class="filtro-group" style="flex-direction:row;align-items:center;gap:6px;">
+                            <input type="checkbox" id="conteosFiltroSoloDiferencia" style="width:auto;">
+                            <label for="conteosFiltroSoloDiferencia" style="margin:0;">Solo con diferencia</label>
+                        </div>
+                        <button type="button" id="btnAplicarFiltrosConteos" class="btn btn--primary">Aplicar Filtros</button>
+                    </div>
+
+                    <div class="franja-resumen-sololectura">
+  <span>Conteos Registrados: <strong id="kpiConteosTotal">0</strong> <span id="kpiConteosTotalSub">En el período filtrado</span></span>
+  <span class="sep">·</span>
+  <span>Conteos con Diferencia: <strong id="kpiConteosConDiferencia">0</strong> <span id="kpiConteosConDiferenciaSub">Sistema ≠ contado</span></span>
+  <span class="sep">·</span>
+  <span>Diferencia Acumulada: <strong id="kpiConteosDiferenciaAcumulada">0</strong> <span id="kpiConteosDiferenciaAcumuladaSub">Unidades (contado − sistema)</span></span>
+</div>
+
+                    <div class="chart-section">
+                        <h2>Productos con Más Diferencia (top 10)</h2>
+                        <div class="chart-section-wrap"><div id="chartConteosTopProductos" class="chart-section-el"></div></div>
+                    </div>
+
+                    <table class="ranking-table">
+                        <thead>
+            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th class="thead-sep">Depósito</th>
+                                <th>Sistema</th>
+                                <th>Contado</th>
+                                <th class="thead-sep">Diferencia</th>
+                                <th>Motivo</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyConteos">
+                            <tr><td colspan="8" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="tabla-paginacion" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 4px;">
+                        <span id="conteosPaginacionInfo" style="font-size:13px;color:var(--color-text-light);">Cargando...</span>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <label for="selectConteosPorPagina" style="font-size:13px;color:var(--color-text-light);">Por página:</label>
+                            <select id="selectConteosPorPagina" style="padding:4px 8px;border-radius: var(--radius-sm);border:1px solid var(--color-border);">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button type="button" id="btnConteosAnterior" class="btn btn--ghost" disabled>← Anterior</button>
+                            <button type="button" id="btnConteosSiguiente" class="btn btn--ghost" disabled>Siguiente →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/frontend/env-config.js?v1782328742714"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
+<script src="/frontend/shared/echarts-wrapper.js?v1"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/reportes-stock.js?v1782328742714"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puntos — Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <style>
+    /* ── DT-02: Puntos — estilos de página ─────────────────────────────── */
+
+    /* KPIs */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 700px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 420px) {
+      .kpis { grid-template-columns: 1fr; }
+    }
+
+    .kpi-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-valor {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1;
+    }
+
+    /* Buscador + tabla */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .buscar-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 340px;
+    }
+
+    .buscar-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+      pointer-events: none;
+    }
+
+    #buscar-input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      box-sizing: border-box;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      outline: none;
+    }
+
+    #buscar-input:focus { border-color: var(--color-primary); }
+
+    /* Tabla */
+    .tabla-wrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
+    .tabla-puntos { width: 100%; border-collapse: collapse; }
+    .tabla-puntos th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-muted); padding: 10px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-bg); text-align: left; }
+    .tabla-puntos td { padding: 12px 16px; border-bottom: 1px solid var(--color-border); font-size: 13px; color: var(--color-text); vertical-align: middle; }
+    .tabla-puntos tr:last-child td { border-bottom: none; }
+    .tabla-puntos tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 4%, transparent); }
+    .tabla-loading { text-align: center; color: var(--color-text-muted); padding: 32px !important; }
+
+    .cliente-nombre { display: block; font-weight: 500; }
+    .cliente-email  { display: block; font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+
+    .td-center { text-align: center; }
+    .td-right  { text-align: left; }
+    .td-muted  { color: var(--color-text-muted); font-size: 12px; }
+    .td-fecha  { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
+
+    /* Badges de saldo en tabla */
+    .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
+    .badge-low  { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #b45309; }
+    .badge-mid  { background: color-mix(in srgb, #3b82f6 12%, transparent); color: #1d4ed8; }
+    .badge-high { background: color-mix(in srgb, #10b981 12%, transparent); color: #047857; }
+
+    /* ── Modal ──────────────────────────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 100;
+    }
+
+    .modal-puntos {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(560px, calc(100vw - 32px));
+      max-height: calc(100vh - 64px);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xxl);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      z-index: 101;
+    }
+
+    .modal-puntos { display: none; }
+
+    .modal-header-pts {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .modal-header-info { flex: 1; }
+    .modal-header-info h2 { font-size: 16px; font-weight: 700; margin: 0 0 2px; color: var(--color-text); }
+    .modal-header-info p  { font-size: 12px; color: var(--color-text-muted); margin: 0; }
+
+    .modal-saldo-wrap { text-align: right; }
+    .modal-saldo-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text-muted); margin-bottom: 2px; }
+    .modal-saldo-valor { font-size: 22px; font-weight: 800; line-height: 1; }
+    .saldo-cero  { color: var(--color-text-muted); }
+    .saldo-bajo  { color: #b45309; }
+    .saldo-medio { color: #1d4ed8; }
+    .saldo-alto  { color: #047857; }
+
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-muted); padding: 4px; border-radius: var(--radius-sm);
+      display: flex; align-items: center;
+    }
+    .modal-close:hover { background: var(--color-bg); color: var(--color-text); }
+
+    /* Tabs del modal */
+    .modal-tabs-pts {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg);
+      padding: 0 22px;
+    }
+
+    .modal-tab {
+      font-size: 13px; font-weight: 500;
+      padding: 10px 14px;
+      border: none; background: none; cursor: pointer;
+      color: var(--color-text-muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+    }
+    .modal-tab.activo { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+    .modal-tab:hover:not(.activo) { color: var(--color-text); }
+
+    .modal-tab-panel { padding: 20px 22px; overflow-y: auto; max-height: calc(100vh - 280px); }
+
+    /* Historial */
+    .tabla-historial { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla-historial th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-muted); padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; }
+    .tabla-historial td { padding: 9px 10px; border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent); }
+    .tabla-historial tr:last-child td { border-bottom: none; }
+
+    .tipo-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: var(--radius-sm);
+    }
+    .tipo-acreditacion { background: color-mix(in srgb,#10b981 12%,transparent); color: #047857; }
+    .tipo-canje        { background: color-mix(in srgb,#3b82f6 12%,transparent); color: #1d4ed8; }
+    .tipo-ajuste       { background: color-mix(in srgb,#f59e0b 12%,transparent); color: #b45309; }
+    .tipo-vencimiento  { background: color-mix(in srgb,#ef4444 12%,transparent); color: #b91c1c; }
+
+    .mov-concepto { display: block; font-size: 11px; color: var(--color-text-muted); margin-top: 3px; }
+    .pts-positivo { color: #047857; font-weight: 600; }
+    .pts-negativo { color: #b91c1c; font-weight: 600; }
+
+    /* Form canje / acreditación */
+    .form-grupo { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--color-text-muted); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+
+    .form-input {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 9px 12px; font-size: 14px; font-family: inherit;
+      color: var(--color-text); background: var(--color-surface);
+      outline: none; transition: border-color .15s;
+    }
+    .form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent); }
+
+    /* Preview canje */
+    #canje-preview { margin: 12px 0; }
+    .canje-preview-fila {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 12px; font-size: 13px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .canje-preview-total {
+      background: var(--color-bg); border-radius: 0 0 var(--radius-md) var(--radius-md);
+      font-weight: 600;
+    }
+    .preview-error strong { color: var(--color-danger) !important; }
+    .canje-error-msg { color: var(--color-danger); font-size: 12px; margin-top: 8px; font-weight: 600; }
+
+    /* Botones acción modal */
+    .modal-acciones-pts {
+      display: flex; justify-content: flex-end; gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Solo admin */
+    .solo-admin { /* display controlado por JS */ }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1f2937; color: #fff; padding: 10px 20px; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .2s, transform .2s;
+      z-index: 200; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok  { background: #047857; }
+    .toast.err { background: #b91c1c; }
+  </style>
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/puntos-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-puntos-gentelella dash-gentelella">
+
+<!-- ── Layout admin (igual que otras pantallas) ── -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div id="nav-root"></div>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title">Puntos de clientes</h1>
+      </div>
+      <div class="topbar-right">
+        <span id="topbar-fecha" class="topbar-fecha"></span>
+        <span class="topbar-usuario" id="topbar-usuario"></span>
+      </div>
+    </header>
+
+    <div class="page-intro">
+  Consultá el saldo de puntos de cada cliente, su historial de movimientos, y acreditá o canjeá puntos manualmente cuando haga falta.
+</div>
+
+    <!-- Ninguno de estos 3 es una categoría filtrable (la tabla solo tiene
+         búsqueda libre) — los 3 quedan como franja de solo lectura. -->
+    <div class="franja-resumen-sololectura">
+      <span>Total puntos activos: <strong id="kpi-total-puntos">—</strong> <span>(saldo sin canjear)</span></span>
+      <span class="sep">·</span>
+      <span>Clientes con puntos: <strong id="kpi-clientes-con">—</strong> <span>(saldo &gt; 0)</span></span>
+      <span class="sep">·</span>
+      <span>Total canjeado: <strong id="kpi-canjeados-mes">—</strong> <span>(este mes)</span></span>
+    </div>
+
+    <!-- Toolbar + Tabla -->
+    <div class="toolbar">
+      <div class="buscar-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="buscar-input" aria-label="Buscar cliente" type="search" placeholder="Buscar cliente...">
+      </div>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla-puntos">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th class="td-center">Saldo</th>
+            <th class="td-right">Total ganado</th>
+            <th class="td-right">Total canjeado</th>
+            <th class="td-right">Última actividad</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="5" class="tabla-loading">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Modal cliente ── -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="cerrarModal()" aria-hidden="true"></div>
+
+<div class="modal-puntos" id="modal-puntos">
+
+  <!-- Header -->
+  <div class="modal-header-pts">
+    <div class="modal-header-info">
+      <h2 id="modal-cliente-nombre">—</h2>
+      <p  id="modal-cliente-email">—</p>
+    </div>
+    <div class="modal-saldo-wrap">
+      <div class="modal-saldo-label">Saldo</div>
+      <div class="modal-saldo-valor saldo-cero" id="modal-saldo">0 pts</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModal()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="modal-tabs-pts">
+    <button type="button" class="modal-tab activo" data-modal-tab="historial" onclick="selModalTab('historial')">Historial</button>
+    <button type="button" class="modal-tab" data-modal-tab="canje" onclick="selModalTab('canje')">Canjear</button>
+    <button type="button" class="modal-tab solo-admin" data-modal-tab="acreditar" onclick="selModalTab('acreditar')">Acreditar</button>
+  </div>
+
+  <!-- Panel: Historial -->
+  <div class="modal-tab-panel" id="modal-panel-historial">
+    <table class="tabla-historial">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Movimiento</th>
+          <th class="td-right">Puntos</th>
+          <th class="td-right">Saldo</th>
+        </tr>
+      </thead>
+      <tbody id="historial-body">
+        <tr><td colspan="4" class="tabla-loading">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Panel: Canje -->
+  <div class="modal-tab-panel" id="modal-panel-canje" style="display:none">
+
+    <div class="form-grupo">
+      <label class="form-label" for="canje-puntos">Puntos a canjear</label>
+      <input id="canje-puntos" type="number" min="1" class="form-input"
+        placeholder="Ej: 200" oninput="actualizarPreviewCanje()">
+    </div>
+
+    <div id="canje-preview"></div>
+
+    <div class="form-grupo">
+      <label class="form-label" for="canje-concepto">Concepto (opcional)</label>
+      <input id="canje-concepto" type="text" class="form-input"
+        placeholder="Ej: Descuento en pedido #1234">
+    </div>
+
+    <div class="modal-acciones-pts">
+      <button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-confirmar-canje" onclick="btnAsyncClick(this, confirmarCanje)" disabled>
+        Confirmar canje
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel: Acreditar (solo admin/dueno) -->
+  <div class="modal-tab-panel solo-admin" id="modal-panel-acreditar" style="display:none">
+
+    <div class="form-grupo">
+      <label class="form-label" for="acred-puntos">Puntos a acreditar</label>
+      <input id="acred-puntos" type="number" min="1" max="99999" class="form-input"
+        placeholder="Ej: 100">
+    </div>
+
+    <div class="form-grupo">
+      <label class="form-label" for="acred-concepto">Concepto</label>
+      <input id="acred-concepto" type="text" class="form-input"
+        placeholder="Ej: Bonificación por volumen, Corrección de saldo...">
+    </div>
+
+    <div class="modal-acciones-pts">
+      <button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn-primario solo-admin" id="btn-confirmar-acred" onclick="btnAsyncClick(this, confirmarAcreditacion)">
+        Acreditar puntos
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/puntos.js?v282"></script>
+
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/cliente/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <title>Catálogo — Fluxo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/cliente/pwa-init.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; padding-bottom: 8rem; -webkit-font-smoothing: antialiased; }
+
+    .topbar {
+      background: linear-gradient(155deg, var(--color-primary-dark) 0%, var(--color-primary) 62%, var(--color-primary) 100%);
+      color: var(--color-surface); padding: 1.35rem 1.25rem 1.6rem; position: sticky; top: 0; z-index: 10;
+      box-shadow: 0 6px 20px -6px rgba(12,39,64,.35);
+    }
+    .topbar h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
+    .topbar p { font-size: .8rem; opacity: .78; margin-top: .2rem; }
+
+    .buscador-wrap { margin-top: 1rem; position: relative; }
+    .buscador-wrap input {
+      width: 100%; padding: .7rem .9rem .7rem 2.5rem; border: 1px solid transparent; border-radius: var(--radius-xl);
+      font-size: .9rem; font-family: inherit; outline: none; background: rgba(255,255,255,.96);
+      box-shadow: 0 2px 10px rgba(8,25,42,.12); transition: box-shadow .15s, border-color .15s;
+    }
+    .buscador-wrap input:focus {
+      border-color: rgba(255,255,255,.6); box-shadow: 0 0 0 3px rgba(255,255,255,.18), 0 2px 10px rgba(8,25,42,.12);
+    }
+    .buscador-wrap input::placeholder { color: var(--color-text-light); }
+    .buscador-wrap svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); opacity: .45; color: var(--color-primary); }
+
+    .categorias-scroll {
+      display: flex; gap: .5rem; overflow-x: auto; padding: 1rem 1.25rem 0;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .categorias-scroll::-webkit-scrollbar { display: none; }
+    .chip-cat {
+      flex-shrink: 0; padding: .42rem .95rem; border-radius: var(--radius-full); font-size: .8rem; font-weight: 600;
+      background: rgba(255,255,255,.14); color: var(--color-surface); cursor: pointer; white-space: nowrap; border: 1px solid rgba(255,255,255,.18);
+      font-family: inherit; transition: background .15s, color .15s, transform .1s;
+    }
+    .chip-cat:active { transform: scale(.96); }
+    .chip-cat.activa { background: var(--color-surface); color: var(--color-primary); border-color: var(--color-surface); box-shadow: 0 2px 8px rgba(8,25,42,.18); }
+
+    .contenido { padding: 1.1rem 1rem; max-width: 720px; margin: 0 auto; }
+    .loading, .empty-state {
+      text-align: center; color: var(--color-text-muted); padding: 3.25rem 1.5rem; font-size: .9rem;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .empty-state svg { margin-bottom: .85rem; opacity: .45; }
+    .empty-state div { max-width: 240px; line-height: 1.4; }
+
+    .grid-productos {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem;
+    }
+    @media (min-width: 520px) { .grid-productos { grid-template-columns: repeat(3, 1fr); } }
+
+    .card-producto {
+      background: var(--color-surface); border-radius: var(--radius-xxl); box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px rgba(15,23,42,.06);
+      overflow: hidden; display: flex; flex-direction: column; position: relative;
+      border: 1px solid rgba(15,23,42,.04); transition: box-shadow .2s, transform .2s;
+    }
+    .card-producto:active { transform: scale(.98); }
+    .producto-img-wrap {
+      width: 100%; aspect-ratio: 1.3 / 1; background: linear-gradient(155deg, #eef2f6, #e4eaf1);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .producto-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .producto-img-wrap svg { opacity: .28; color: var(--color-text-light); }
+
+    .badge-oferta {
+      position: absolute; top: .55rem; left: .55rem; z-index: 2;
+      background: linear-gradient(135deg, var(--color-danger-mid), var(--color-danger)); color: var(--color-surface);
+      font-size: .68rem; font-weight: 700; padding: .28rem .58rem; border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: .2rem; box-shadow: 0 2px 6px rgba(176,42,55,.35);
+    }
+
+    .producto-body { padding: .75rem .8rem .85rem; flex: 1; display: flex; flex-direction: column; }
+    .producto-nombre { font-size: .85rem; font-weight: 600; color: var(--color-text); line-height: 1.28; margin-bottom: .25rem; }
+    .producto-unidad { font-size: .72rem; color: var(--color-text-light); margin-bottom: .55rem; }
+
+    .producto-precios { margin-top: auto; }
+    .precio-tachado { font-size: .75rem; color: var(--color-text-light); text-decoration: line-through; }
+    .precio-actual { font-size: 1.05rem; font-weight: 800; color: var(--color-primary); letter-spacing: -.01em; }
+    .precio-actual.con-oferta { color: var(--color-danger-mid); }
+
+    .vence-oferta { font-size: .68rem; color: var(--color-danger); font-weight: 600; margin-top: .15rem; }
+
+    .sin-stock-overlay {
+      position: absolute; inset: 0; background: rgba(255,255,255,.78);
+      display: flex; align-items: center; justify-content: center; z-index: 1;
+      -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
+    }
+    .sin-stock-tag {
+      background: var(--color-text-muted); color: var(--color-surface); font-size: .72rem; font-weight: 600;
+      padding: .32rem .75rem; border-radius: var(--radius-md); letter-spacing: .01em;
+    }
+
+    .btn-cargar-mas {
+      width: 100%; padding: .8rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-xl);
+      background: var(--color-surface); color: var(--color-primary); font-weight: 600; font-size: .85rem; cursor: pointer; margin-top: 1.1rem;
+      font-family: inherit; transition: background .15s, box-shadow .15s;
+    }
+    .btn-cargar-mas:hover { background: var(--color-primary-bg); }
+    .btn-cargar-mas:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Agregar al carrito */
+    .producto-accion { margin-top: .55rem; }
+    .btn-agregar {
+      width: 100%; padding: .5rem; border: none; border-radius: var(--radius-md);
+      background: var(--color-primary); color: var(--color-surface); font-size: .78rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .3rem;
+      font-family: inherit; transition: background .15s, transform .1s;
+    }
+    .btn-agregar:active { transform: scale(.96); }
+    .btn-agregar:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-agregar.agregado { background: var(--color-success-mid); }
+
+    .qty-stepper {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--color-primary); border-radius: var(--radius-md); overflow: hidden;
+    }
+    .qty-stepper button {
+      width: 30px; height: 32px; border: none; background: transparent; color: var(--color-surface);
+      font-size: 1rem; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: background .15s;
+    }
+    .qty-stepper button:active { background: rgba(255,255,255,.18); }
+    .qty-stepper .qty-val { color: var(--color-surface); font-size: .82rem; font-weight: 700; }
+
+    /* Toast */
+    #toastCarrito {
+      position: fixed; bottom: 8rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--color-text); color: var(--color-surface); padding: .7rem 1.15rem; border-radius: var(--radius-xl);
+      font-size: .85rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.28);
+      opacity: 0; transition: opacity .2s, transform .2s; z-index: 50; pointer-events: none;
+      display: flex; align-items: center; gap: .45rem;
+    }
+    #toastCarrito.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Barra inferior de pedido — se apoya sobre el zócalo, respetando el safe-area de iOS */
+    .bar-confirmar {
+      position: fixed; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; z-index: 40;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); color: var(--color-surface); display: none;
+      align-items: center; justify-content: space-between;
+      padding: .9rem 1.25rem; box-shadow: 0 -6px 18px rgba(15,47,74,.22);
+    }
+    .bar-confirmar.visible { display: flex; }
+    .bar-confirmar-info { font-size: .82rem; opacity: .88; }
+    .bar-confirmar-total { font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; }
+    .bar-confirmar-btn {
+      background: var(--color-surface); color: var(--color-primary); border: none; border-radius: var(--radius-lg);
+      padding: .62rem 1.15rem; font-size: .9rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: transform .1s;
+    }
+    .bar-confirmar-btn:active { transform: scale(.96); }
+  </style>
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
+</head>
+<body>
+  <div class="topbar">
+    <h1>Catálogo</h1>
+    <p>Productos disponibles para tu próximo pedido</p>
+
+    <div class="buscador-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="inputBuscar" aria-label="Buscar producto" placeholder="Buscar producto...">
+    </div>
+
+    <div class="categorias-scroll" id="categoriasScroll"></div>
+  </div>
+
+  <!-- FIX v477: banner de vista previa — se muestra solo cuando "Ver catálogo"
+       del panel admin abrió esta página con un preview_token (ver catalogo.html
+       más abajo). Aclara que esto no es la vista de un cliente real logueado,
+       aunque los datos (precios, stock, categorías) sean exactamente los mismos. -->
+  <div id="bannerPreviewAdmin" style="display:none;background:var(--color-warning-bg);color:var(--color-warning);font-size:13px;font-weight:600;text-align:center;padding:8px 12px;">
+    👁 Vista previa — así ve el catálogo un cliente de tu empresa
+  </div>
+
+  <div class="contenido">
+    <div id="listaProductos"><div class="loading">Cargando catálogo...</div></div>
+  </div>
+
+  <div id="toastCarrito">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+    <span id="toastTexto">Agregado al carrito</span>
+  </div>
+
+  <!-- Barra inferior: ir al carrito -->
+  <div class="bar-confirmar" id="barConfirmar">
+    <div>
+      <div class="bar-confirmar-info" id="barItems">0 productos</div>
+      <div class="bar-confirmar-total" id="barTotal">$ 0</div>
+    </div>
+    <button class="bar-confirmar-btn" onclick="window.location.href='/cliente/carrito'">
+      Ver carrito →
+    </button>
+  </div>
+
+  <nav class="nav-bottom">
+    <a class="nav-item" href="/cliente/inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      Inicio
+    </a>
+    <a class="nav-item activo" href="/cliente/catalogo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/></svg>
+      Catálogo
+    </a>
+    <a class="nav-item" href="/cliente/carrito">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Carrito
+    </a>
+    <a class="nav-item" href="/cliente/pedidos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      Pedidos
+    </a>
+    <a class="nav-item" href="/cliente/cuenta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Cuenta
+    </a>
+  </nav>
+
+  <script>
+    const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-cliente-auth' } });
+    const params = new URLSearchParams(window.location.search);
+
+    let empresaId = params.get('empresa_id');
+    let categoriaActiva = null;
+    let busquedaActual = '';
+    let paginaActual = 1;
+    let totalPaginas = 1;
+    let cargando = false;
+    let debounceTimer = null;
+
+    let clienteId = null;       // null si no hay sesión de cliente (catálogo público / sin login)
+    let accessToken = null;     // JWT de la sesión, si hay una — se manda al backend en Authorization
+    const carritoMap = new Map(); // producto_id -> cantidad (refleja lo que ya está en carrito_items)
+
+    // FIX v477 — "Ver catálogo" (panel admin): el link llega con el access
+    // token del admin en el fragmento de la URL (#preview_token=...), nunca
+    // en el query string, para que no quede en logs del servidor ni en el
+    // header Referer. Se lee acá, se limpia la URL de inmediato (para que no
+    // quede visible/copiable en la barra ni en el historial del navegador),
+    // y se usa tal cual como sesión — el backend lo valida como el token de
+    // un usuario real y autenticado de la empresa (ver resolverEmpresaCliente
+    // en lib/handlers/stock.js), sin depender del flag de catálogo público.
+    let previewToken = null;
+    if (window.location.hash.startsWith('#preview_token=')) {
+      previewToken = decodeURIComponent(window.location.hash.slice('#preview_token='.length));
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    function headersAuth() {
+      return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (previewToken) {
+        // Vista previa desde el panel admin: usamos el token del admin tal
+        // cual, sin intentar resolver un perfil de "cliente" (el admin no
+        // tiene cliente_id — no es un cliente real, y no debería serlo).
+        accessToken = previewToken;
+        document.getElementById('bannerPreviewAdmin').style.display = '';
+      } else {
+        // Si hay sesión de cliente, resolver empresa_id y cliente_id desde su perfil
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          accessToken = session.access_token;
+          const { data: perfil } = await sb.from('usuarios').select('empresa_id, cliente_id').eq('id', session.user.id).single();
+          if (perfil?.empresa_id) {
+            if (!empresaId) empresaId = perfil.empresa_id;
+            clienteId = perfil.cliente_id || null;
+          }
+        }
+      }
+
+      if (!empresaId) {
+        document.getElementById('listaProductos').innerHTML = `
+          <div class="empty-state">No se especificó la empresa. Accedé desde el link que te compartió tu distribuidora.</div>`;
+        return;
+      }
+
+      if (clienteId) await cargarCarritoActual();
+
+      await cargarCategorias();
+      await cargarProductos(true);
+    });
+
+    async function cargarCarritoActual() {
+      try {
+        const { data } = await sb.rpc('get_carrito_cliente', { p_cliente_id: clienteId });
+        carritoMap.clear();
+        (data || []).forEach(it => carritoMap.set(it.producto_id, it.cantidad));
+        actualizarFab();
+      } catch (e) {
+        // si falla, el catálogo sigue mostrando productos sin estado de carrito
+      }
+    }
+
+    function actualizarFab() {
+      const cantidades = [...carritoMap.values()];
+      const totalItems = cantidades.reduce((a, b) => a + b, 0);
+      const bar = document.getElementById('barConfirmar');
+
+      if (totalItems > 0) {
+        // Calcular total aproximado (suma de precio * cantidad desde carritoMap no tiene precios)
+        // Usar el total que ya calculamos al agregar
+        const plural = totalItems === 1 ? '1 producto' : `${totalItems} productos`;
+        document.getElementById('barItems').textContent = plural;
+        bar.classList.add('visible');
+      } else {
+        bar.classList.remove('visible');
+      }
+    }
+
+    function mostrarToast(texto) {
+      const t = document.getElementById('toastCarrito');
+      document.getElementById('toastTexto').textContent = texto;
+      t.classList.add('visible');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('visible'), 1800);
+    }
+
+    document.getElementById('inputBuscar').addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        busquedaActual = e.target.value.trim();
+        cargarProductos(true);
+      }, 350);
+    });
+
+    async function cargarCategorias() {
+      try {
+        const r = await fetch(`/api/cliente/categorias?empresa_id=${empresaId}`, { headers: headersAuth() });
+        const data = await r.json();
+        if (!r.ok) return;
+
+        const cont = document.getElementById('categoriasScroll');
+        const categorias = data.categorias || [];
+        if (!categorias.length) { cont.style.display = 'none'; return; }
+
+        cont.innerHTML = `<button type="button" class="chip-cat activa" aria-pressed="true"  data-id="">Todas</button>` +
+          categorias.map(c => `<button type="button" class="chip-cat" aria-pressed="false" data-id="${c.id}">${esc(c.nombre)}</button>`).join('');
+
+        cont.querySelectorAll('.chip-cat').forEach(btn => {
+          btn.addEventListener('click', () => {
+            cont.querySelectorAll('.chip-cat').forEach(b => { b.classList.remove('activa'); b.setAttribute('aria-pressed', 'false'); });
+            btn.classList.add('activa'); btn.setAttribute('aria-pressed', 'true');
+            categoriaActiva = btn.dataset.id || null;
+            cargarProductos(true);
+          });
+        });
+      } catch (e) {
+        // Si falla categorías, el catálogo igual funciona sin filtro
+      }
+    }
+
+    async function cargarProductos(reset) {
+      if (cargando) return;
+      cargando = true;
+
+      if (reset) {
+        paginaActual = 1;
+        document.getElementById('listaProductos').innerHTML = '<div class="loading">Cargando catálogo...</div>';
+      }
+
+      try {
+        const qs = new URLSearchParams({ empresa_id: empresaId, page: paginaActual, limit: 24 });
+        if (categoriaActiva) qs.set('categoria', categoriaActiva);
+        if (busquedaActual)  qs.set('q', busquedaActual);
+
+        const r = await fetch(`/api/cliente/productos?${qs.toString()}`, { headers: headersAuth() });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Error al cargar productos');
+
+        totalPaginas = data.pages || 1;
+        const productos = data.productos || [];
+
+        if (reset && !productos.length) {
+          document.getElementById('listaProductos').innerHTML = `
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <div>No encontramos productos con ese criterio.</div>
+            </div>`;
+          return;
+        }
+
+        const html = `<div class="grid-productos" id="gridProductos">${productos.map(pintarCardProducto).join('')}</div>`;
+
+        if (reset) {
+          document.getElementById('listaProductos').innerHTML = html;
+        } else {
+          document.getElementById('gridProductos').insertAdjacentHTML('beforeend', productos.map(pintarCardProducto).join(''));
+        }
+
+        renderBotonCargarMas();
+      } catch (e) {
+        document.getElementById('listaProductos').innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+      } finally {
+        cargando = false;
+      }
+    }
+
+    function renderBotonCargarMas() {
+      const existente = document.getElementById('btnCargarMas');
+      if (existente) existente.remove();
+
+      if (paginaActual >= totalPaginas) return;
+
+      const btn = document.createElement('button');
+      btn.id = 'btnCargarMas';
+      btn.className = 'btn-cargar-mas';
+      btn.textContent = 'Ver más productos';
+      btn.addEventListener('click', async () => {
+        btn.disabled = true; btn.textContent = 'Cargando...';
+        paginaActual += 1;
+        await cargarProductos(false);
+      });
+      document.getElementById('listaProductos').appendChild(btn);
+    }
+
+    function pintarCardProducto(p) {
+      const oferta = p.oferta_liquidacion;
+      const sinStock = (p.stock_disponible || 0) <= 0;
+
+      const precioBase = +p.precio_base || 0;
+      const precioFinal = oferta ? +oferta.precio_oferta : precioBase;
+
+      let venceTexto = '';
+      if (oferta?.vence_oferta_at) {
+        const dias = Math.max(0, Math.ceil((new Date(oferta.vence_oferta_at) - new Date()) / 86400000));
+        venceTexto = dias <= 0 ? 'Vence hoy' : `Vence en ${dias} día${dias === 1 ? '' : 's'}`;
+      }
+
+      return `
+        <div class="card-producto" data-producto-id="${p.id}">
+          ${sinStock ? `<div class="sin-stock-overlay"><span class="sin-stock-tag">Sin stock</span></div>` : ''}
+          ${oferta ? `<div class="badge-oferta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .83 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg>-${Math.round(oferta.descuento_pct)}%</div>` : ''}
+          <div class="producto-img-wrap">
+            ${p.imagen_url
+              ? `<img src="${esc(p.imagen_url)}" alt="${esc(p.nombre)}" loading="lazy">`
+              : `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/><path d="M9 11v3M15 11v3"/></svg>`}
+          </div>
+          <div class="producto-body">
+            <div class="producto-nombre">${esc(p.nombre)}</div>
+            <div class="producto-unidad">${esc(p.unidad || '')}</div>
+            <div class="producto-precios">
+              ${oferta ? `<div class="precio-tachado">${formatPeso(precioBase)}</div>` : ''}
+              <div class="precio-actual ${oferta ? 'con-oferta' : ''}">${formatPeso(precioFinal)}</div>
+              ${venceTexto ? `<div class="vence-oferta">⏱ ${esc(venceTexto)}</div>` : ''}
+            </div>
+            <div class="producto-accion" id="accion-${p.id}">
+              ${renderAccionHtml(p.id, sinStock, precioFinal)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAccionHtml(productoId, sinStock, precioFinal) {
+      if (sinStock) {
+        return `<button class="btn-agregar" disabled>Sin stock</button>`;
+      }
+      const cantidadEnCarrito = carritoMap.get(productoId) || 0;
+      if (cantidadEnCarrito > 0) {
+        return `
+          <div class="qty-stepper">
+            <button type="button" onclick="cambiarCantidadCatalogo('${productoId}', ${precioFinal}, -1)">−</button>
+            <span class="qty-val">${cantidadEnCarrito}</span>
+            <button type="button" onclick="cambiarCantidadCatalogo('${productoId}', ${precioFinal}, 1)">+</button>
+          </div>`;
+      }
+      return `<button class="btn-agregar" onclick="agregarAlCarrito('${productoId}', ${precioFinal})">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar
+      </button>`;
+    }
+
+    function refrescarAccionCard(productoId, precioFinal) {
+      const cont = document.getElementById(`accion-${productoId}`);
+      if (cont) cont.innerHTML = renderAccionHtml(productoId, false, precioFinal);
+    }
+
+    async function agregarAlCarrito(productoId, precioFinal) {
+      if (!clienteId) {
+        window.location.href = `/cliente/login`;
+        return;
+      }
+
+      const cont = document.getElementById(`accion-${productoId}`);
+      const btn = cont?.querySelector('.btn-agregar');
+      if (btn) { btn.disabled = true; btn.textContent = 'Agregando...'; }
+
+      try {
+        const { error } = await sb.from('carrito_items')
+          .upsert({
+            empresa_id: empresaId,
+            cliente_id: clienteId,
+            producto_id: productoId,
+            cantidad: (carritoMap.get(productoId) || 0) + 1,
+            precio_snap: precioFinal,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'cliente_id,producto_id' });
+
+        if (error) throw error;
+
+        carritoMap.set(productoId, (carritoMap.get(productoId) || 0) + 1);
+        refrescarAccionCard(productoId, precioFinal);
+        actualizarFab();
+        mostrarToast('Agregado al carrito');
+      } catch (e) {
+        mostrarToast('No se pudo agregar. Probá de nuevo.');
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Agregar'; }
+      }
+    }
+
+    // FIX (auditoría UX): mismo guard que en carrito.html — evita que dos
+    // clics rápidos en +/- disparen dos upserts/deletes concurrentes sobre
+    // el mismo producto y dejen la cantidad desincronizada.
+    const productosEnProceso = new Set();
+
+    async function cambiarCantidadCatalogo(productoId, precioFinal, delta) {
+      if (productosEnProceso.has(productoId)) return;
+      productosEnProceso.add(productoId);
+      const actual = carritoMap.get(productoId) || 0;
+      const nueva = actual + delta;
+
+      try {
+        if (nueva <= 0) {
+          const { error } = await sb.from('carrito_items')
+            .delete().eq('cliente_id', clienteId).eq('producto_id', productoId);
+          if (error) throw error;
+          carritoMap.delete(productoId);
+        } else {
+          // Upsert en lugar de update: si por algún motivo el row no existe, lo crea
+          const { error } = await sb.from('carrito_items')
+            .upsert({
+              empresa_id:    empresaId,
+              cliente_id:    clienteId,
+              producto_id:   productoId,
+              cantidad:      nueva,
+              precio_snap:   precioFinal,
+              updated_at:    new Date().toISOString(),
+            }, { onConflict: 'cliente_id,producto_id' });
+          if (error) throw error;
+          carritoMap.set(productoId, nueva);
+        }
+        refrescarAccionCard(productoId, precioFinal);
+        actualizarFab();
+      } catch (e) {
+        console.error('[carrito] error update:', e);
+        mostrarToast('No se pudo actualizar el carrito.');
+      } finally {
+        productosEnProceso.delete(productoId);
+      }
+    }
+
+    function formatPeso(n) {
+      return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(Number(n) || 0);
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+  </script>
+  <script src="/frontend/shared/chat-widget.js" defer data-chat-asistente="1"></script>
+</body>
+</html>

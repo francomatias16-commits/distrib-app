@@ -1,0 +1,125 @@
+/**
+ * tema-claro-shipp.css
+ * ─────────────────────────────────────────────────────────────
+ * Reskin de Pedidos calcado de la referencia visual (SHIPP UI):
+ * fondo lavanda-azulado, tarjetas blancas flotantes sin borde,
+ * radios grandes, texto azul marino, sombra suave difusa.
+ *
+ * No modifica markup ni lógica: solo redefine tokens de
+ * /shared/tokens.css y ajusta los bordes hardcodeados de
+ * pedidos.css que no usaban variables (por eso no heredaban
+ * el cambio de paleta).
+ *
+ * Cargar DESPUÉS de pedidos.css.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* Colores sampleados de la referencia (frames del case study) */
+  --color-bg:          #E3E8F5;   /* lavanda-azulado del fondo general */
+  --color-surface:     #FFFFFF;   /* tarjetas */
+  --color-surface-2:   #F4F6FB;   /* sub-paneles / thead / hover */
+  --color-border:      rgba(19, 27, 58, .08);
+  --color-border-soft: rgba(19, 27, 58, .05);
+
+  --color-text:        #131B3A;   /* navy oscuro de la referencia */
+  --color-text-muted:  #62697E;
+  --color-text-light:  #97A0B8;
+
+  /* Radios más grandes, acorde a las tarjetas flotantes del video */
+  --radius-sm:  10px;
+  --radius-md:  14px;
+  --radius-lg:  18px;
+  --radius-xl:  22px;
+  --radius-xxl: 28px;
+
+  /* Sombra difusa sin borde duro, como las cards del video */
+  --shadow-fluffy: 0 4px 20px rgba(19, 27, 58, .06);
+  --shadow-big:    0 10px 32px rgba(19, 27, 58, .10);
+}
+
+body { background: var(--color-bg) !important; }
+
+/* ── Tarjetas / paneles: blanco puro, sin borde, radio grande ── */
+.side-card,
+.filtros-bar,
+.tabla-wrap,
+.fkpi, .kpi-card:not(.small-box),
+.motor-card, .regla-card, .trigger-card,
+.filtros-section,
+.modal,
+.fefo-box,
+.pres-modal-box {
+  border-color: transparent;
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* ── Elementos con borde hardcodeado (no usaban var(--color-border)) ── */
+.search-wrap,
+.select-filtro,
+.btn-limpiar,
+.e-pill,
+.modal-close,
+.btn-cancelar-small,
+.btn-secundario,
+.pg-nav, .pg-num,
+.btn-exportar, .btn-importar {
+  border-color: var(--color-border);
+}
+
+/* ── Fondo de sub-superficies (antes gris frío, ahora lavanda claro) ── */
+.search-wrap,
+.modal-estado-row,
+.tabla-pedidos thead,
+.btn-remito {
+  background: var(--color-surface-2);
+}
+
+.tabla-pedidos thead { border-bottom-color: var(--color-border); }
+
+/* ── Filas de tabla: hover y separación más suaves ── */
+.fila-pedido { border-bottom-color: var(--color-border-soft); }
+.fila-pedido:hover { background: var(--color-surface-2); }
+
+/* ── Pills de estado (e-pill): mismo patrón pill del video ── */
+.e-pill:hover { background: var(--color-surface-2); }
+
+/* ── Paginación: número activo con sombra acorde a la paleta nueva ── */
+.pg-num.activa { box-shadow: 0 2px 10px rgba(184, 122, 0, .28); }
+
+/* ── Upsell card: vira de verde-oscuro a navy-verde para integrar con el navy del resto ── */
+.upsell-card {
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 145%);
+}
+
+/* ── Preloader / avatar de marca: navy en vez de negro plano ── */
+.preloader-logo { background: var(--color-text); }
+
+/* ── Topbar: separa del fondo lavanda con blanco puro ── */
+.topbar { background: var(--color-surface); border-bottom-color: var(--color-border); }
+.topbar-contador { background: var(--color-surface-2); border-color: var(--color-border); }
+
+/* ── Breadcrumb y texto de introducción, tono consistente ── */
+.page-intro { color: var(--color-text-muted); }
+
+/* ── IMPORTANTE ──────────────────────────────────────────────
+   .filtros-bar recibe un estilo "glass" (fondo translúcido +
+   blur + borde) desde /shared/reskin-patch.css con !important
+   (ver reskin-patch.css línea ~260, regla compartida con
+   .filtros-section/.filter-bar/.search-bar). Esa regla gana por
+   especificidad aunque este archivo cargue después, así que acá
+   hace falta iguales !important para lograr la tarjeta blanca
+   opaca y sin borde del video, en vez del efecto vidrio actual.
+   ──────────────────────────────────────────────────────────── */
+.filtros-bar {
+  background: var(--color-surface) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: var(--shadow-fluffy) !important;
+}
+
+/* Mismo caso que .filtros-bar: el panel de detalle de pedido (.modal)
+   ya queda prácticamente opaco por --glass-modal (97% blanco), pero
+   conserva un borde de 1px que el video no tiene. */
+.modal { border: none !important; }

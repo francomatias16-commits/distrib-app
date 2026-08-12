@@ -1,0 +1,1051 @@
+/* ============================================================
+   productos.css — Tabla de Productos rediseñada (v227)
+   Distrib · MF Web Solutions
+   ============================================================ */
+
+/* ── Contenedor principal ── */
+.productos-page {
+  padding: 0;
+}
+
+.productos-card {
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+/* ── Toolbar superior ── */
+.prod-toolbar {
+  padding: 16px 24px 14px;
+  border-bottom: none;
+}
+
+.prod-toolbar-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0;
+  gap: 12px;
+}
+
+.prod-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 2px 0;
+  line-height: 1.3;
+}
+
+.prod-subtitulo {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.87rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.prod-alerta-link {
+  font-size: 0.82rem;
+  color: var(--color-danger-mid);
+  background: var(--color-danger-bg);
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.prod-alerta-link:hover { background: var(--color-danger-bg); }
+
+.prod-filtros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 11px 24px;
+  border-bottom: 1px solid var(--color-surface-2);
+}
+
+.prod-filtros-izq {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prod-filtros-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+/* Select de filtro */
+.prod-select-filtro {
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+.prod-select-filtro:focus {
+  outline: none;
+  border-color: var(--color-border);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+.prod-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: background 0.15s;
+}
+.prod-pill-btn:hover { background: var(--color-surface-2); }
+
+.prod-tag-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: border-color 0.15s;
+}
+.prod-tag-input:focus-within {
+  border-color: var(--color-border);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.04);
+}
+.prod-tag-input svg { color: var(--color-border); flex-shrink: 0; }
+.prod-tag-input input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  width: 180px;
+}
+.prod-tag-input input::placeholder { color: var(--color-border); }
+
+.prod-filtros-der {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prod-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: background 0.15s;
+}
+.prod-icon-btn:hover { background: var(--color-surface-2); }
+
+.prod-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  height: 34px;
+  padding: 0 14px;
+  background: var(--color-text);
+  border: none;
+  border-radius: 8px;
+  color: var(--color-surface);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: background 0.15s;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.prod-add-btn:hover { background: var(--color-text); }
+
+/* ── Navegación de meses ── */
+.prod-nav {
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prod-nav-meses {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.prod-nav-year {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-border);
+  margin-right: 8px;
+}
+
+.prod-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prod-total-label {
+  font-size: 0.78rem;
+  color: var(--color-border);
+  white-space: nowrap;
+}
+
+.prod-mes-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.prod-mes-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.prod-mes-btn.activo {
+  background: var(--nav-facturacion-bg);
+  color: var(--nav-facturacion);
+  font-weight: 600;
+}
+.prod-mes-todos {
+  font-weight: 600;
+  margin-right: 6px;
+  padding-right: 12px;
+  border-right: 1px solid var(--color-border-soft);
+  border-radius: 0;
+}
+
+.prod-edit-cols-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+.prod-edit-cols-btn:hover { background: var(--color-surface-2); }
+
+/* ── Tabla ── */
+.prod-tabla-wrap {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prod-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.prod-tabla thead tr {
+  border-bottom: 1px solid var(--color-surface-2);
+}
+
+.prod-tabla thead th {
+  padding: 11px 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-border);
+  text-align: left;
+  user-select: none;
+}
+.prod-tabla thead th.prod-num { text-align: left; }
+.prod-tabla thead th:first-child { padding-left: 20px; }
+.prod-tabla thead th:last-child  { padding-right: 20px; }
+
+.prod-th-sort { cursor: pointer; }
+.prod-th-sort:hover { color: var(--color-text-light); }
+.prod-sort-icon { color: var(--nav-facturacion); }
+
+.prod-tabla tbody tr {
+  border-bottom: 1px solid var(--color-surface-2);
+  transition: background 0.1s;
+}
+.prod-tabla tbody tr:hover { background: var(--color-surface-2); }
+.prod-tabla tbody tr:last-child { border-bottom: none; }
+
+.prod-tabla tbody td {
+  padding: 9px 12px;
+  vertical-align: middle;
+  color: var(--color-text);
+}
+.prod-tabla tbody td:first-child { padding-left: 20px; }
+.prod-tabla tbody td:last-child  { padding-right: 20px; text-align: left; }
+
+/* Checkbox */
+.prod-check {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1.5px solid var(--color-border);
+  cursor: pointer;
+  accent-color: var(--nav-facturacion);
+  flex-shrink: 0;
+}
+
+/* Avatar / thumbnail */
+.prod-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* v392: thumbnail real de producto (cuando auto-imagenes o la carga manual
+   consiguió una foto) + badge de origen en la esquina. */
+.prod-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.prod-avatar--foto {
+  object-fit: cover;
+  background: var(--color-surface-2);
+  border: 1px solid rgba(0, 0, 0, .06);
+}
+
+.prod-foto-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-surface, var(--color-surface));
+}
+
+.prod-foto-badge--real {
+  background: var(--color-success-mid); /* verde: foto real (barcode, Google Images o subida manual) */
+}
+
+.prod-foto-badge--generica {
+  background: var(--color-warning-mid); /* ámbar: foto genérica de banco (Pexels), no es la marca exacta */
+}
+
+.prod-nombre-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.prod-nombre-text {
+  font-weight: 600;
+  color: var(--color-text);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prod-cat-cell {
+  color: var(--color-text-light);
+  font-size: 0.83rem;
+}
+
+/* Badge estado */
+.prod-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.prod-badge.activo    { background: var(--color-success-bg); color: var(--color-success); }
+.prod-badge.borrador  { background: var(--color-info-bg); color: var(--color-primary-dark); }
+.prod-badge.sin-stock { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+
+/* Columnas numéricas */
+.prod-precio { font-weight: 700; color: var(--color-text); text-align: left; }
+.prod-costo  { color: var(--color-text-light); text-align: left; }
+.prod-stock  { color: var(--color-text-muted); text-align: left; font-variant-numeric: tabular-nums; }
+.prod-stock-cero { color: var(--color-danger-mid); font-weight: 600; }
+.prod-fecha  { color: var(--color-text-light); font-size: 0.8rem; }
+
+/* Donut SVG */
+.prod-donut-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+/* Progress bar */
+.prod-progress-wrap {
+  width: 90px;
+  height: 5px;
+  background: var(--color-border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.prod-progress-fill {
+  height: 100%;
+  background: var(--color-success-mid);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* Menú 3 puntos */
+.prod-menu-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-border);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.prod-menu-btn:hover { background: var(--nav-facturacion-bg); color: var(--nav-facturacion); }
+
+/* ── Estado vacío / cargando ── */
+.prod-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--color-border);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.prod-empty-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border-soft);
+  border-top-color: var(--nav-facturacion);
+  border-radius: 50%;
+  animation: prod-spin 0.7s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes prod-spin { to { transform: rotate(360deg); } }
+
+/* ── Paginación ── */
+.prod-pag-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0 12px;
+  border-top: 1px solid var(--color-surface-2);
+}
+
+.prod-pag-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.83rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.prod-pag-btn:hover:not(:disabled) { background: var(--color-surface-2); }
+.prod-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.prod-pag-info {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .prod-toolbar-top { flex-direction: column; gap: 8px; }
+  .prod-filtros     { flex-direction: column; align-items: flex-start; }
+  .prod-nav         { flex-wrap: wrap; }
+  .prod-nav-meses   { gap: 2px; }
+}
+
+@media (max-width: 768px) {
+  .prod-toolbar { padding: 14px 16px 12px; }
+  .prod-nav     { padding: 8px 16px; }
+  .prod-tag-input input { width: 130px; }
+  .prod-tabla { font-size: 0.82rem; }
+  .prod-nombre-text { max-width: 140px; }
+}
+
+@media (max-width: 600px) {
+  .prod-toolbar { padding: 12px 12px 10px; }
+  .prod-nav     { padding: 8px 12px; }
+  .prod-tag-input input { width: 100px; }
+  .prod-filtros-label { display: none; }
+  .prod-tabla thead th { font-size: 0.65rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   Modal Nuevo/Editar producto — mismo componente visual que
+   usa Clientes (.modal-backdrop/.modal), para que Productos
+   quede consistente con el resto de las secciones del admin.
+   ══════════════════════════════════════════════════════════ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 300;
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  right: -600px;
+  width: 580px;
+  max-width: 95vw;
+  height: 100vh;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  z-index: 400;
+  overflow-y: auto;
+  padding: 28px;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* fix: adminlte-components.css define .modal { transform: scale(.96) }
+     para su propio modal centrado (que pasa a scale(1) vía
+     .modal-backdrop.visible), pero este panel lateral nunca agrega
+     .visible al backdrop — usa .modal.open con `right`. Sin este reset
+     el panel queda pegado en scale(.96) para siempre, como si la
+     apertura nunca terminara. */
+  transform: none;
+}
+.modal.open { right: 0; }
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.modal-titulo    { font-size: 20px; font-weight: 700; }
+.modal-subtitulo { font-size: 13px; color: var(--color-text-muted); margin-top: 3px; }
+
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.modal-close:hover { background: var(--color-bg); }
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  flex: 1;
+}
+
+.modal-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-sec-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* fix v632: "1fr 1fr" sin minmax(0,·) no tiene límite inferior — si un
+   input/select interno pide más ancho (min-content) que la columna, la
+   pista de grid crece y empuja todo el modal más allá de su ancho fijo,
+   apareciendo cortado en el borde de la ventana. minmax(0,1fr) fuerza el
+   límite inferior a 0 para que el contenido interno pueda achicarse. */
+.form-row   { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.form-requerido { color: var(--color-danger); }
+
+.form-input, .form-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color .12s;
+  font-family: inherit;
+}
+.form-input:focus, .form-select:focus { border-color: var(--color-primary); }
+
+.ayuda-contextual {
+  position: relative;
+  display: inline-flex;
+  color: var(--color-text-light);
+  cursor: help;
+}
+.ayuda-contextual::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  width: 220px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 50;
+}
+.ayuda-contextual:hover::after,
+.ayuda-contextual:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.form-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  margin-top: auto;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-secundario {
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: var(--color-surface);
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.btn-secundario:hover { background: var(--color-bg); }
+
+.btn-peligro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger, var(--color-danger-mid));
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-danger, var(--color-danger-mid));
+}
+.btn-peligro:hover     { background: var(--color-danger-bg, rgba(220,38,38,.08)); }
+.btn-peligro:disabled  { opacity: .5; cursor: not-allowed; }
+.btn-peligro.btn--loading { opacity: .6; cursor: wait; }
+
+.btn-primario {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .12s;
+}
+.btn-primario:hover    { opacity: .9; }
+.btn-primario:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primario.btn--loading { opacity: .6; cursor: wait; }
+
+@media (max-width: 720px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v630 — Rediseño del modal de producto: pedido del usuario de que sea más
+   ancho/compacto y que TODO entre en una sola pantalla en desktop, sin tener
+   que scrollear para llegar a Guardar/Cancelar, y sin tener acciones
+   separadas arriba (Limpiar) y abajo (Guardar/Cancelar).
+
+   Estrategia:
+   1) El modal se ensancha (se expande hacia la izquierda, ya que está
+      anclado por la derecha) y el contenido pasa a 2 columnas.
+   2) En vez de que TODO el modal scrollee (header y acciones incluidos),
+      ahora solo el bloque central (.tab-panel) scrollea si hace falta.
+      Header y footer quedan siempre visibles, así las 4 acciones (Eliminar,
+      Limpiar, Cancelar, Guardar) están siempre juntas y a mano.
+   ═══════════════════════════════════════════════════════════════════════ */
+.modal--producto {
+  width: 860px;
+  max-width: 94vw;
+  overflow: hidden; /* el scroll pasa a .tab-panel, no al modal entero */
+}
+.modal--producto .modal-header {
+  flex-shrink: 0;
+}
+.modal--producto .tab-panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden; /* fix v632: no depender de la conversión implícita
+    visible→auto del spec; cortar explícito para que nada empuje el ancho
+    del modal ni aparezca un scroll horizontal inesperado */
+  gap: 18px;
+  padding-right: 6px;
+  margin-right: -6px;
+}
+.modal--producto .form-acciones {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.modal-grid-2col {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* fix v632, ver form-row */
+  gap: 0 28px;
+  align-content: start;
+  min-width: 0;
+}
+.modal-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Escaneo: una sola fila compacta, con la explicación larga movida a un
+   tooltip (ícono "i") en vez de un párrafo que ocupaba una línea entera. */
+.modal-seccion--scan { gap: 8px; }
+.scan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.scan-row .btn-primario,
+.scan-row .btn-secundario {
+  flex: 1;
+  min-width: 160px; /* fix v632: bajado de 180px para que en modales angostos
+    (94vw < 860px) los dos botones entren sin desbordar el contenedor.
+    160px × 2 + 8px gap = 328px que caben holgadamente en la zona de contenido
+    más estrecha posible (94vw de ~350px ≈ 273px de contenido, que en ese caso
+    ya pasan a flex-wrap y se apilan, sin riesgo de overflow horizontal). */
+  justify-content: center;
+}
+.scan-ayuda {
+  flex-shrink: 0;
+  padding: 6px;
+}
+.scan-ayuda::after { left: auto; right: 0; width: 240px; }
+
+.foto-row { display: flex; align-items: center; gap: 14px; }
+.foto-preview-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-2);
+}
+.foto-controles { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.foto-controles input[type="file"] { font-size: 12.5px; max-width: 100%; }
+.foto-btn-quitar { padding: 4px 10px; font-size: 12.5px; width: fit-content; }
+.foto-hint { font-size: 11.5px; color: var(--color-text-muted); }
+
+.form-row--1 { grid-template-columns: 1fr; }
+.form-nota { font-size: 12px; color: var(--color-text-muted); margin: 0; }
+
+.depositos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .modal--producto { width: 700px; }
+}
+@media (max-width: 760px) {
+  .modal-grid-2col { grid-template-columns: 1fr; gap: 18px 0; }
+  .modal--producto { width: 100%; }
+}
+@media (max-width: 560px) {
+  .modal--producto .form-acciones {
+    flex-wrap: wrap;
+  }
+  .modal--producto .form-acciones > button {
+    flex: 1 1 auto;
+    margin-right: 0 !important;
+  }
+  .modal--producto #btn-eliminar-producto {
+    order: 4; /* en mobile va al final, no compite por espacio con Guardar */
+    flex-basis: 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox" (Sección Productos)
+   Réplica del mismo lenguaje visual aplicado a Clientes: acento turquesa,
+   buscador tipo píldora, tabla aireada, avatares circulares a color,
+   badges en píldora, paginación redondeada. Acotado a /admin/productos.
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-productos {
+  --tb-accent:      var(--nav-ventas);
+  --tb-accent-dark: var(--nav-ventas);
+  --tb-accent-bg:   rgba(13,148,136,.10);
+  --tb-purple:      var(--nav-facturacion);
+  --tb-orange:      var(--color-warning-mid);
+  --tb-coral:       var(--color-danger-mid);
+  --tb-blue:        var(--color-info-mid);
+}
+
+/* ── Card contenedora ── */
+#vista-productos .productos-card {
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 4px 20px rgba(15,23,42,.05);
+}
+
+/* ── Buscador tipo píldora ── */
+#vista-productos .prod-tag-input {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  background: var(--color-bg);
+  padding: 8px 16px;
+  box-shadow: none;
+}
+#vista-productos .prod-tag-input svg { color: var(--tb-accent); }
+#vista-productos .prod-tag-input:focus-within {
+  border-color: var(--tb-accent);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px var(--tb-accent-bg);
+}
+
+/* ── Select de filtro → mismo lenguaje píldora ── */
+#vista-productos .prod-select-filtro {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  background-color: var(--color-bg);
+}
+#vista-productos .prod-select-filtro:focus {
+  border-color: var(--tb-accent);
+  box-shadow: 0 0 0 3px var(--tb-accent-bg);
+}
+
+/* ── Botón agregar y menú de columnas → acento turquesa ── */
+#vista-productos .prod-add-btn { background: var(--tb-accent); }
+#vista-productos .prod-add-btn:hover { background: var(--tb-accent-dark); }
+#vista-productos .prod-icon-btn:hover,
+#vista-productos .prod-edit-cols-btn:hover { background: var(--tb-accent-bg); color: var(--tb-accent-dark); }
+#vista-productos .prod-mes-btn.activo { background: var(--tb-accent-bg); color: var(--tb-accent-dark); }
+#vista-productos .prod-th-sort:hover,
+#vista-productos .prod-sort-icon { color: var(--tb-accent); }
+#vista-productos .prod-check { accent-color: var(--tb-accent); }
+
+/* ── Tabla: aireada, separación mínima entre filas ── */
+#vista-productos .prod-tabla-wrap { border-radius: 14px; }
+#vista-productos .prod-tabla thead th {
+  background: transparent;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text-light);
+  padding: 14px 12px;
+}
+#vista-productos .prod-tabla tbody tr {
+  border-bottom: 1px solid var(--color-bg);
+}
+#vista-productos .prod-tabla tbody td { padding: 13px 12px; }
+#vista-productos .prod-tabla tbody tr:hover { background: var(--tb-accent-bg); }
+
+/* ── Avatar circular a color (rota entre 4 tonos), sin badge de check ── */
+#vista-productos .prod-avatar {
+  border-radius: 50%;
+  color: var(--color-surface);
+  background: var(--tb-purple);
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
+}
+#vista-productos tbody tr:nth-of-type(4n+2) .prod-avatar { background: var(--tb-orange); }
+#vista-productos tbody tr:nth-of-type(4n+3) .prod-avatar { background: var(--tb-blue); }
+#vista-productos tbody tr:nth-of-type(4n+4) .prod-avatar { background: var(--tb-accent); }
+
+/* ── Badges de estado → pastillas suaves, sin cambiar sus colores semánticos ── */
+#vista-productos .prod-badge { padding: 5px 13px; font-weight: 700; }
+
+/* ── Barra de progreso (goal) → tono turquesa ── */
+#vista-productos .prod-progress-fill { background: var(--tb-accent); }
+#vista-productos .prod-menu-btn:hover { background: var(--tb-accent-bg); color: var(--tb-accent-dark); }
+
+/* ── Paginación → píldoras turquesa ── */
+#vista-productos .prod-pag-btn { border-radius: 999px; }
+#vista-productos .prod-pag-btn:hover:not(:disabled) {
+  border-color: var(--tb-accent);
+  color: var(--tb-accent-dark);
+  background: var(--tb-accent-bg);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FIX v481 — menú "Más funciones" del topbar (Importar / Exportar /
+   Buscar imágenes). Antes estaban sueltas: Importar y Exportar como dos
+   botones en el topbar, y "Buscar imágenes automáticamente" como un ícono
+   sin texto escondido en la fila de filtros. Se agrupan acá.
+   ══════════════════════════════════════════════════════════════════════ */
+.topbar-more-wrap { position: relative; }
+
+.btn-mas-funciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md, 8px);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.btn-mas-funciones:hover { background: var(--color-surface-2); border-color: var(--color-border); color: var(--color-text); }
+.btn-mas-funciones .chevron { transition: transform .15s; }
+.btn-mas-funciones[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+.menu-mas-funciones {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 4px 12px rgba(15,23,42,.08), 0 12px 28px -6px rgba(15,23,42,.12);
+  min-width: 280px;
+  padding: 6px;
+}
+
+.menu-mas-funciones-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  font-family: inherit;
+}
+.menu-mas-funciones-item:hover { background: var(--color-surface-2); }
+.menu-mas-funciones-item svg { flex-shrink: 0; margin-top: 1px; color: var(--color-text-muted); }
+.menu-mas-funciones-item strong { display: block; font-size: 13.5px; font-weight: 600; color: var(--color-text); }
+.menu-mas-funciones-item small { display: block; font-size: 12px; color: var(--color-text-light); margin-top: 1px; }
+
+@media (max-width: 640px) {
+  .menu-mas-funciones { right: auto; left: 0; min-width: 260px; }
+  .btn-mas-funciones span.label-full { display: none; }
+}

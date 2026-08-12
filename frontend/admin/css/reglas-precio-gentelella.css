@@ -1,0 +1,487 @@
+/**
+ * reglas-precio-gentelella.css — Reskin "Gentelella v4" de la pantalla Descuentos automáticos
+ * ─────────────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea reglas-precio.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-reglas-precio-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella { background: var(--ge-bg) !important; }
+body.dash-reglas-precio-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reglas-precio-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-reglas-precio-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-reglas-precio-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-reglas-precio-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* CTA principal — Nueva regla */
+body.dash-reglas-precio-gentelella #btn-nueva-regla,
+body.dash-reglas-precio-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-reglas-precio-gentelella #btn-nueva-regla:hover,
+body.dash-reglas-precio-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-reglas-precio-gentelella .btn-primario:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards — small-box (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .small-box {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reglas-precio-gentelella .small-box.bg-primary {
+  background: var(--ge-teal) !important;
+}
+body.dash-reglas-precio-gentelella .small-box.bg-success {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-reglas-precio-gentelella .small-box.bg-secondary {
+  background: var(--ge-sidebar) !important;
+}
+body.dash-reglas-precio-gentelella .small-box.bg-info {
+  background: var(--ge-blue) !important;
+}
+body.dash-reglas-precio-gentelella .small-box .inner h3 {
+  color: var(--ge-panel) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+body.dash-reglas-precio-gentelella .small-box .inner p {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-reglas-precio-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-reglas-precio-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .filtros-bar input,
+body.dash-reglas-precio-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-reglas-precio-gentelella .filtros-bar input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-reglas-precio-gentelella .filtros-bar input:focus,
+body.dash-reglas-precio-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-reglas-precio-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-reglas-precio-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-reglas-precio-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+/* Filas con estado visual */
+body.dash-reglas-precio-gentelella .tabla tr.regla-inactiva td {
+  opacity: .5 !important;
+}
+body.dash-reglas-precio-gentelella .tabla tr.regla-vencida td {
+  opacity: .55 !important;
+}
+body.dash-reglas-precio-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-reglas-precio-gentelella .tabla tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips (inline styles en HTML + generados por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .chip {
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 9px !important;
+}
+/* tipo de descuento */
+body.dash-reglas-precio-gentelella .chip-desc-pct {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-reglas-precio-gentelella .chip-desc-fijo {
+  background: rgba(142,68,173,.13) !important;
+  color: var(--ge-purple) !important;
+}
+/* estado de vigencia */
+body.dash-reglas-precio-gentelella .chip-vencida {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-reglas-precio-gentelella .chip-activa {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-reglas-precio-gentelella .chip-inactiva {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones de acción en tabla (fila-acciones)
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .fila-acciones button {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 10px !important;
+}
+body.dash-reglas-precio-gentelella .fila-acciones button:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-reglas-precio-gentelella .fila-acciones button.danger {
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-reglas-precio-gentelella .fila-acciones button.danger:hover {
+  background: rgba(231,76,60,.08) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de regla (backdrop + panel lateral)
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-reglas-precio-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-reglas-precio-gentelella .modal-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 18px !important;
+}
+body.dash-reglas-precio-gentelella .modal-header > div:first-child {
+  padding-right: 40px !important;
+}
+body.dash-reglas-precio-gentelella .modal-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+body.dash-reglas-precio-gentelella .modal-subtitulo {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-reglas-precio-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-reglas-precio-gentelella .modal-close:hover {
+  color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-reglas-precio-gentelella .modal-seccion {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+/* Esta pantalla nunca tuvo .form-row/.form-group con layout propio: los
+   campos quedaban apilados uno debajo del otro en una sola columna.
+   Se agrega la grilla de 2 columnas que ya usan productos/clientes/stock. */
+body.dash-reglas-precio-gentelella .form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px !important;
+}
+body.dash-reglas-precio-gentelella .form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+/* Filas con un solo campo (Nombre de la regla, Alcance del producto) deben
+   ocupar el ancho completo de las 2 columnas del grid, no quedar a la mitad. */
+body.dash-reglas-precio-gentelella .form-row > .form-group:only-child {
+  grid-column: 1 / -1 !important;
+}
+@media (max-width: 640px) {
+  body.dash-reglas-precio-gentelella .form-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Formulario de regla
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .form-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+body.dash-reglas-precio-gentelella .form-input,
+body.dash-reglas-precio-gentelella .form-group input,
+body.dash-reglas-precio-gentelella .form-group select,
+body.dash-reglas-precio-gentelella .form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-reglas-precio-gentelella .form-input:focus,
+body.dash-reglas-precio-gentelella .form-group input:focus,
+body.dash-reglas-precio-gentelella .form-group select:focus,
+body.dash-reglas-precio-gentelella .form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-reglas-precio-gentelella .form-input::placeholder,
+body.dash-reglas-precio-gentelella .form-group input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-reglas-precio-gentelella .tooltip-info {
+  color: var(--ge-muted) !important;
+  cursor: help !important;
+}
+
+/* Selector de alcance (Todo el catálogo / Producto específico / Categoría) */
+body.dash-reglas-precio-gentelella .alcance-toggle label {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  font-weight: 500 !important;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+body.dash-reglas-precio-gentelella .alcance-toggle label:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-reglas-precio-gentelella .alcance-toggle label:has(input:checked) {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+body.dash-reglas-precio-gentelella .alcance-toggle input {
+  accent-color: var(--ge-teal) !important;
+}
+
+/* Cantidad mínima, valor, prioridad — inputs numéricos */
+body.dash-reglas-precio-gentelella input[type="number"] {
+  color-scheme: light !important;
+}
+
+/* Vigente desde / hasta */
+body.dash-reglas-precio-gentelella input[type="date"] {
+  color-scheme: light !important;
+}
+
+/* Checkbox "Regla activa" */
+body.dash-reglas-precio-gentelella #fr-activa {
+  accent-color: var(--ge-teal) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+body.dash-reglas-precio-gentelella .form-group label:has(#fr-activa) {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+/* Acciones del formulario */
+body.dash-reglas-precio-gentelella .form-acciones {
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 16px 0 0 !important;
+  margin-top: auto !important;
+  border-top: 1px solid var(--ge-border) !important;
+  background: transparent !important;
+}
+body.dash-reglas-precio-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-reglas-precio-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-reglas-precio-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-reglas-precio-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-reglas-precio-gentelella .filtros-bar input,
+  body.dash-reglas-precio-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+  body.dash-reglas-precio-gentelella .kpis-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-reglas-precio-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Fix: modal de regla de precio quedaba atrapado detrás del
+   backdrop (invisible) y sin posición fija -> cualquier click
+   se lo comía el backdrop y cerraba el modal.
+   Se replica el patrón "cajón deslizante" usado en el resto
+   del admin (clientes, pedidos, stock, etc.).
+   ════════════════════════════════════════════════════════════ */
+#modal-regla-backdrop.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 300;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+#modal-regla.modal {
+  position: fixed;
+  top: 0;
+  right: -600px;
+  left: auto;
+  width: 580px;
+  max-width: 95vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  z-index: 400;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  transform: none;
+}
+#modal-regla.modal.open { right: 0; }

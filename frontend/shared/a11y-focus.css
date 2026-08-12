@@ -1,0 +1,39 @@
+/* a11y-focus.css
+   Subconjunto 100% seguro y aditivo de reskin-patch-v2-shadcn.css,
+   pensado para páginas con diseño propio (PWA chofer, landing pública,
+   registro, login cliente) donde NO se aplica el reskin completo para
+   no romper botones/inputs ya estilizados a medida.
+
+   Contiene únicamente:
+   1. Anillo de foco de teclado (:focus-visible) — solo selectores de
+      ELEMENTO (button, a, input, select, textarea, [tabindex]), sin
+      clases, para no pisar .btn-primary/.btn-ghost/etc. propios de
+      cada página.
+   2. Soporte de prefers-reduced-motion.
+
+   No define paletas ni toca ningún otro estilo existente. */
+
+:root {
+  --ring:              var(--color-primary);
+  --ring-offset-color:  var(--color-surface);
+  --ring-offset-width:  2px;
+  --ring-width:         2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 var(--ring-offset-width) var(--ring-offset-color),
+    0 0 0 calc(var(--ring-offset-width) + var(--ring-width)) var(--ring) !important;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) { box-shadow: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="var(--color-primary)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Notas de Crédito y Débito — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/notas-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-notas-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Notas crédito/débito</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <p class="page-intro">
+  Notas de crédito y débito asociadas a facturas ya emitidas — para bonificar, ajustar o corregir un comprobante sin tener que anularlo.
+</p>
+  </div>
+
+  <main class="main" id="vista-notas">
+    <div class="tabla-wrap">
+      <div class="tabla-header">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2>Historial de Notas</h2>
+          <button type="button" class="btn btn--primary" onclick="abrirModalNota()" style="padding:6px 14px;font-size:13px;">Nueva Nota</button>
+        </div>
+        <div class="filtros-bar">
+          <input type="text" id="buscar-nota" aria-label="Buscar nota" placeholder="Buscar por cliente o número..." autocomplete="off">
+          <select id="filtro-tipo-nota" onchange="filtrarNotas()">
+            <option value="">Todos los tipos</option>
+            <option value="credito">Nota de Crédito</option>
+            <option value="debito">Nota de Débito</option>
+          </select>
+        </div>
+      </div>
+      <div class="tabla-overflow">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Número</th>
+              <th class="thead-sep">Tipo</th>
+              <th>Cliente</th>
+              <th class="thead-sep">Monto</th>
+              <th>Estado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-notas"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Nueva Nota -->
+<div class="modal-overlay hidden" id="modal-nota" role="dialog" aria-modal="true" aria-labelledby="modal-nota-titulo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-nota-titulo">Nueva Nota de Crédito/Débito</h3>
+      <button type="button" class="modal-close" onclick="cerrarModalNota()" aria-label="Cerrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tipo de Nota
+          <span class="ayuda-contextual" data-tooltip="La Nota de Crédito reduce lo que te debe el cliente (devoluciones, descuentos, errores de cobro). La Nota de Débito lo aumenta (intereses, gastos a cargo del cliente). Impacta la cuenta corriente apenas la emitís.">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+        </label>
+        <div class="nota-tipo-selector">
+          <button type="button" class="nota-tipo-btn" id="btn-tipo-credito" onclick="setTipoNota('credito')">Nota de Crédito</button>
+          <button type="button" class="nota-tipo-btn" id="btn-tipo-debito" onclick="setTipoNota('debito')">Nota de Débito</button>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group span2">
+          <label>Cliente</label>
+          <select id="nota-cliente"></select>
+        </div>
+        <div class="form-group">
+          <label>Monto</label>
+          <input type="number" id="nota-monto" step="1" data-money placeholder="0" aria-label="Monto">
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="nota-fecha" aria-label="Fecha">
+        </div>
+        <div class="form-group span2">
+          <label>Concepto / Motivo</label>
+          <textarea id="nota-motivo" rows="2" placeholder="Ej: Devolución de mercadería, error en precio..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalNota()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-nota" onclick="btnAsyncClick(this, guardarNota)">Emitir Nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle de Nota -->
+<div class="modal-overlay hidden" id="modal-detalle-nota" role="dialog" aria-modal="true" aria-labelledby="modal-detalle-titulo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-detalle-titulo">Detalle de la nota</h3>
+      <button type="button" class="modal-close" onclick="cerrarModalDetalleNota()" aria-label="Cerrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tipo</label>
+          <div id="detalle-nota-tipo"></div>
+        </div>
+        <div class="form-group">
+          <label>Número</label>
+          <div id="detalle-nota-numero" style="font-family:monospace"></div>
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <div id="detalle-nota-fecha"></div>
+        </div>
+        <div class="form-group">
+          <label>Monto</label>
+          <div id="detalle-nota-monto"></div>
+        </div>
+        <div class="form-group span2">
+          <label>Cliente</label>
+          <div id="detalle-nota-cliente"></div>
+        </div>
+        <div class="form-group span2">
+          <label>Concepto / Motivo</label>
+          <div id="detalle-nota-motivo"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="btn-anular-nota-detalle" class="btn" style="background:var(--color-danger-bg,#f8d7da);color:var(--color-danger,#B02A37)" onclick="">Anular nota</button>
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalDetalleNota()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/notas.js?v1782328742714"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

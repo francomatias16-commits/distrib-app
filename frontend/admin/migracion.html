@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Importar mis datos — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/migracion.css?v=196" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/migracion-gentelella.css" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-migracion-gentelella dash-gentelella">
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Importar mis datos</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Importá clientes, productos, proveedores e historial de facturas desde una planilla — el asistente detecta cada entidad y valida los datos antes de cargarlos.
+</div>
+
+  <!-- Derivación inmediata a soporte técnico si la migración se complica —
+       mismo número/canal que soporte.html y whatsapp-widget.js
+       (5493492384984, MF Web Solutions). Fijo arriba de todo, antes del
+       checklist, para que se vea sin scrollear ni tener que buscarlo. -->
+  <div class="mig-soporte-banner">
+    <div class="mig-soporte-banner-texto">
+      <strong>¿Se complicó la migración?</strong>
+      <span>Si una fila se rechaza, no encontrás el error o no sabés cómo seguir, escribinos y te ayudamos al instante — no hace falta que lo resuelvas solo.</span>
+    </div>
+    <a class="btn-wa-soporte" target="_blank" rel="noopener noreferrer"
+       href="https://wa.me/5493492384984?text=Hola%2C%20necesito%20ayuda%20con%20la%20migraci%C3%B3n%20de%20datos%20en%20Fluxo.">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.14h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.37c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.24 8.24zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.99-1.22-.73-.66-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.36-.77-1.86-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01a.93.93 0 0 0-.67.31c-.23.25-.87.85-.87 2.08 0 1.23.89 2.42 1.02 2.58.12.17 1.75 2.67 4.24 3.75.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+      Hablar con soporte
+    </a>
+  </div>
+
+  <main class="main">
+
+    <!-- ════════ PASO 0: checklist guiado + historial ════════ -->
+    <section class="mig-paso" id="paso-inicio">
+      <h2>Migración guiada de datos</h2>
+      <p class="wizard-desc">Te sugerimos este orden porque pedidos, cuenta corriente y precios especiales necesitan que clientes/productos ya estén migrados. No es obligatorio seguirlo al pie de la letra, pero evita filas rechazadas por "cliente no encontrado".</p>
+
+      <div id="mig-progreso-general" class="mig-progreso-general"></div>
+
+      <!-- Migración maestra: un solo archivo (Excel multi-hoja o .zip con
+           varios CSV/Excel) en vez de subir entidad por entidad. El sistema
+           detecta qué hoja/archivo corresponde a qué entidad y ejecuta todo
+           en el orden de dependencias correcto. -->
+      <div class="mig-maestra-cta">
+        <div class="mig-maestra-cta-texto">
+          <strong>¿Tenés todo en un solo archivo?</strong>
+          <span>Subí un Excel con una hoja por área (Clientes, Productos, Pedidos, etc.) o un .zip con varios archivos — el sistema detecta qué es cada uno y lo migra en el orden correcto.</span>
+        </div>
+        <button type="button" class="btn btn--primary" onclick="mostrarPaso('paso-maestra-subir')">Migración maestra</button>
+      </div>
+
+      <div id="mig-checklist" class="mig-checklist">
+        <p class="mig-vacio">Cargando...</p>
+      </div>
+
+      <h3 style="margin-top: 28px;">Historial de sesiones</h3>
+      <div id="lista-sesiones" style="margin-top: 12px;">
+        <p class="mig-vacio">Cargando...</p>
+      </div>
+
+      <!-- Panel superadmin: sesiones de TODOS los tenants -->
+      <div id="panel-superadmin-mig" style="display:none;margin-top:32px;border-top:1px solid var(--color-border);padding-top:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <h3 style="margin:0;font-size:15px;font-weight:700;">Sesiones (todos los tenants)</h3>
+          <button type="button" class="btn btn--secondary btn--sm" onclick="cargarSuperadminMig()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-muted);margin:0 0 10px;">
+          Vista de superadmin: sesiones activas, fallidas o recientes en todos los tenants.
+        </p>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>              <tr style="background:var(--color-surface-2);border-bottom:1px solid var(--color-border-soft);">
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);">Empresa</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);" class="thead-sep">Entidad</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);">Estado</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);">Filas</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);">Válidas</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);" class="thead-sep">Con error</th>
+                <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--color-text);">Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-superadmin-mig">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-light);">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ PASO 1: subir archivo ════════ -->
+    <section class="mig-paso" id="paso-subir" style="display:none">
+      <h2 id="titulo-subir">Subir archivo</h2>
+      <p class="wizard-desc">Soporta CSV, Excel (.xlsx, .xls, .xlsm, .xlsb), OpenDocument (.ods), texto plano (.txt), PDF, JSON, XML, dBase/Tango (.dbf) e imágenes (.png, .jpg — foto o captura de una lista/factura). Máximo 50.000 filas.</p>
+      <p class="wizard-desc" id="aviso-pdf-ocr" style="display:none;color:var(--color-warning);background:var(--color-warning-bg);border:1px solid var(--color-warning-bg);border-radius: var(--radius-sm);padding:8px 12px;"></p>
+
+      <button type="button" class="btn btn--secondary btn--sm" id="btn-descargar-plantilla" onclick="descargarPlantillaColumnas()" style="margin-bottom: 16px;">
+        Descargar plantilla vacía (Excel)
+      </button>
+
+      <label class="mig-dropzone" for="input-archivo">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <p><strong>Hacé clic para elegir un archivo</strong><br>o arrastralo aquí</p>
+      </label>
+      <input type="file" id="input-archivo" accept=".csv,.xlsx,.xls,.xlsm,.xlsb,.ods,.txt,.pdf,.json,.xml,.dbf,.png,.jpg,.jpeg" onchange="onArchivoElegido(event)" / style="display:none">
+      <div id="estado-carga"></div>
+      <!-- Punto 9 del plan (P2): selector de hoja cuando el archivo Excel/ODS
+           trae más de una. Oculto por defecto; parsearExcelCrudo lo muestra
+           si corresponde y espera la elección antes de seguir. -->
+      <div id="selector-hoja" class="mig-destinos" style="display:none">
+        <label for="select-hoja"><strong>El archivo tiene varias hojas — ¿cuál usamos?</strong></label>
+        <select id="select-hoja"></select>
+        <button type="button" class="btn btn--primary btn--sm" onclick="btnAsyncClick(this, confirmarHojaElegida)">Usar esta hoja</button>
+      </div>
+
+      <!-- Migración 384: vista previa + confirmación de si la primera fila
+           del archivo es encabezado o ya son datos. Oculto por defecto;
+           mostrarPreviewEncabezado() lo muestra siempre después de parsear,
+           con el checkbox pre-marcado según una heurística, pero editable. -->
+      <div id="preview-encabezado" class="mig-destinos" style="display:none">
+        <label for="check-tiene-encabezado" class="mig-check-encabezado">
+          <input type="checkbox" id="check-tiene-encabezado" checked>
+          <strong>La primera fila de mi archivo son encabezados (nombres de columna)</strong>
+        </label>
+        <p class="mig-destinos-nota">Desmarcá esta opción si tu archivo empieza directo con datos, sin fila de títulos — en ese caso usamos nombres genéricos ("Columna 1", "Columna 2", ...) que vas a poder mapear igual en el siguiente paso.</p>
+        <div class="mig-preview-tabla-wrap">
+          <table id="preview-encabezado-tabla" class="mig-preview-tabla"></table>
+        </div>
+        <button type="button" class="btn btn--primary btn--sm" onclick="confirmarPreviewEncabezado()" style="margin-top: 10px;">Continuar</button>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <button type="button" class="btn btn--secondary" onclick="volverAInicio()">Atrás</button>
+      </div>
+    </section>
+
+    <!-- ════════ PASO 2: mapear columnas ════════ -->
+    <section class="mig-paso" id="paso-mapear" style="display:none">
+      <h2>Mapear columnas</h2>
+      <p class="wizard-desc">Indicá qué columna de tu archivo corresponde a cada campo.</p>
+
+      <div id="mapeo-plantillas" class="mig-destinos" style="display:none"></div>
+
+      <div id="mapeo-destinos" class="mig-destinos" style="display:none"></div>
+      <div id="mapeo-ayuda-ctacte" class="mig-destinos" style="display:none"></div>
+
+      <div id="mapeo-grid" style="margin-top: 16px;"></div>
+
+      <p id="mapeo-progreso" style="display:none; color: var(--color-text-muted); margin-top: 12px;"></p>
+
+      <div style="margin-top: 24px;">
+        <button type="button" class="btn btn--secondary" onclick="mostrarPaso('paso-subir')">Atrás</button>
+        <button type="button" class="btn btn--primary" id="btn-mapear" onclick="btnAsyncClick(this, confirmarMapeo)">
+          Validar
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px; vertical-align:-2px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════ PASO 3: revisar ════════ -->
+    <section class="mig-paso" id="paso-revisar" style="display:none">
+      <h2>Revisar antes de confirmar</h2>
+      <p class="wizard-desc">Revisá las filas detectadas. Podés cambiar qué hacer con cada una.</p>
+
+      <div class="mig-stats-grid">
+        <div class="mig-stat-card">
+          <div class="mig-stat-num" id="resumen-total">0</div>
+          <div class="mig-stat-label">Total</div>
+        </div>
+        <div class="mig-stat-card ok">
+          <div class="mig-stat-num" id="resumen-validas">0</div>
+          <div class="mig-stat-label">Válidas</div>
+        </div>
+        <div class="mig-stat-card error">
+          <div class="mig-stat-num" id="resumen-errores">0</div>
+          <div class="mig-stat-label">Con error</div>
+        </div>
+      </div>
+
+      <div id="resumen-mapeo-detalle" class="mig-destinos" style="display:none"></div>
+
+      <div class="mig-filtro-filas">
+        <button type="button" class="e-pill activa" onclick="filtrarFilas('todas', this)">Todas</button>
+        <button type="button" class="e-pill" onclick="filtrarFilas('error', this)">Solo con error</button>
+      </div>
+
+      <div class="mig-tabla-wrap">
+        <table>
+          <thead id="filas-thead"></thead>
+          <tbody id="filas-tbody"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="mig-aviso-confirmar" id="confirmar-aviso"></div>
+      <div id="precheck-advertencias"></div>
+      <button type="button" class="btn btn--secondary btn--sm" id="btn-descargar-errores" style="display:none; margin-top: 8px;" onclick="descargarErrores()">
+        Descargar filas con error (Excel)
+      </button>
+      <p id="confirmar-progreso" style="display:none; color: var(--color-text-muted); margin-top: 8px;"></p>
+
+      <div style="margin-top: 16px;">
+        <button type="button" class="btn btn--secondary" onclick="mostrarPaso('paso-mapear')">Atrás</button>
+        <button type="button" class="btn btn--primary" id="btn-confirmar" onclick="btnAsyncClick(this, confirmarSesion)">
+          Confirmar importación
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════ PASO 4: resultado ════════ -->
+    <section class="mig-paso" id="paso-resultado" style="display:none">
+      <div class="mig-resultado-ok">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <h2>¡Listo!</h2>
+        <p id="resultado-detalle">Migración completada.</p>
+        <div id="resultado-advertencias"></div>
+        <div id="resultado-columnas-sin-mapear"></div>
+        <p id="reintentar-progreso" style="display:none; color: var(--color-text-muted); margin-top: 8px;"></p>
+        <div style="margin-top: 24px;">
+          <button type="button" class="btn btn--secondary" id="btn-reintentar" onclick="reintentarFallidas()" style="display:none">Reintentar fallidas</button>
+          <button type="button" class="btn btn--secondary" onclick="descargarInformeMigracion()">Descargar informe (Excel)</button>
+          <button type="button" class="btn btn--primary" onclick="volverAInicio()">Hacer otra migración</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ MAESTRA — PASO 1: subir archivo único ════════ -->
+    <section class="mig-paso" id="paso-maestra-subir" style="display:none">
+      <h2>Migración maestra</h2>
+      <p class="wizard-desc">
+        Subí un Excel con una hoja por área (por ejemplo: "Clientes", "Productos", "Pedidos") o un archivo
+        .zip que contenga varios CSV/Excel, uno por área. El sistema va a detectar automáticamente qué es
+        cada hoja/archivo y te va a pedir que confirmes antes de importar nada.
+      </p>
+
+      <label class="mig-dropzone" for="input-archivo-maestro">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <p><strong>Hacé clic para elegir un archivo</strong><br>o arrastralo aquí — Excel multi-hoja o .zip</p>
+      </label>
+      <input type="file" id="input-archivo-maestro" accept=".xlsx,.xls,.xlsb,.ods,.zip" onchange="onArchivoMaestroElegido(event)" / style="display:none">
+      <div id="estado-carga-maestra"></div>
+
+      <div style="margin-top: 24px;">
+        <button type="button" class="btn btn--secondary" onclick="volverAInicio()">Atrás</button>
+      </div>
+    </section>
+
+    <!-- ════════ MAESTRA — PASO 2: detección + mapeo por hoja ════════ -->
+    <section class="mig-paso" id="paso-maestra-deteccion" style="display:none">
+      <h2>¿Detectamos bien cada hoja?</h2>
+      <p class="wizard-desc">
+        Revisá qué entidad le asignamos a cada hoja/archivo y qué columna corresponde a cada campo.
+        Podés corregir cualquiera de las dos cosas antes de importar. Las hojas que no correspondan a
+        ninguna entidad se pueden omitir.
+      </p>
+      <div id="maestra-deteccion-lista"></div>
+
+      <div style="margin-top: 24px;">
+        <button type="button" class="btn btn--secondary" onclick="mostrarPaso('paso-maestra-subir')">Atrás</button>
+        <button type="button" class="btn btn--primary" id="btn-maestra-ejecutar" onclick="ejecutarMigracionMaestra()">
+          Importar todo
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════ MAESTRA — PASO 3: progreso ════════ -->
+    <section class="mig-paso" id="paso-maestra-progreso" style="display:none">
+      <h2>Importando…</h2>
+      <p class="wizard-desc">Se procesa una entidad a la vez, en el orden que evita filas rechazadas por dependencias faltantes (por ejemplo: clientes antes que pedidos).</p>
+      <div id="maestra-progreso-lista" class="mig-maestra-progreso-lista"></div>
+    </section>
+
+    <!-- ════════ MAESTRA — PASO 4: resultado ════════ -->
+    <section class="mig-paso" id="paso-maestra-resultado" style="display:none">
+      <div class="mig-resultado-ok">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <h2>Migración maestra terminada</h2>
+        <div id="maestra-resultado-tabla"></div>
+        <div style="margin-top: 24px;">
+          <button type="button" class="btn btn--primary" onclick="volverAInicio()">Volver al inicio</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Librerias ── -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/migracion.js?v1784339068193"></script>
+<script src="/frontend/admin/js/migracion-maestra.js?v1784339068193"></script>
+
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

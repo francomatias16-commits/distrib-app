@@ -1,0 +1,221 @@
+/**
+ * export-contable-gentelella.css — Reskin "Gentelella v4" de la pantalla
+ * Export contable ("Enviar a mi contador")
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * El CSS base de esta pantalla vive en un <style> inline dentro de
+ * export-contable.html (mismo patrón que reglas-precio/comparador-precios/
+ * fidelizacion/conciliacion-bancaria) — este archivo sobreescribe todo bajo
+ * el scope, sin tocar el inline ni ninguna clase/id que lea export-contable.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-export-contable-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-export-contable-gentelella { background: var(--ge-bg) !important; }
+body.dash-export-contable-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-export-contable-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-export-contable-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-export-contable-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-export-contable-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-export-contable-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-export-contable-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-export-contable-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+body.dash-export-contable-gentelella #sin-permiso {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tarjetas de sección (Configuración / Generar export)
+   ════════════════════════════════════════════════════════════ */
+body.dash-export-contable-gentelella .seccion-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-export-contable-gentelella .seccion-card h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-export-contable-gentelella .seccion-card .sub {
+  color: var(--ge-muted) !important;
+}
+body.dash-export-contable-gentelella hr.div {
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* Formularios (config + plan de cuentas + generar export) */
+body.dash-export-contable-gentelella .form-group label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-export-contable-gentelella .form-group label code {
+  color: var(--ge-muted) !important;
+}
+body.dash-export-contable-gentelella .form-group input,
+body.dash-export-contable-gentelella .form-group select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-export-contable-gentelella .form-group input:focus,
+body.dash-export-contable-gentelella .form-group select:focus {
+  outline: none !important;
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-export-contable-gentelella .form-group input:disabled,
+body.dash-export-contable-gentelella .form-group select:disabled {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-export-contable-gentelella .form-group .hint {
+  color: var(--ge-muted) !important;
+}
+
+/* Tarjetas de proveedor contable (CSV genérico / Tango / Bejerman / Contabilium) */
+body.dash-export-contable-gentelella .proveedor-card {
+  border: 1.5px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-export-contable-gentelella .proveedor-card.selected {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-export-contable-gentelella .proveedor-card.disabled {
+  opacity: .6 !important;
+}
+body.dash-export-contable-gentelella .proveedor-card h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-export-contable-gentelella .proveedor-card p {
+  color: var(--ge-muted) !important;
+}
+body.dash-export-contable-gentelella .badge-proximamente {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-orange) !important;
+}
+body.dash-export-contable-gentelella .badge-listo {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Chips genéricos (ok/no) */
+body.dash-export-contable-gentelella .chip-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-export-contable-gentelella .chip-no {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-orange) !important;
+}
+
+/* Botones */
+body.dash-export-contable-gentelella .btn-primary {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-weight: 600 !important;
+}
+body.dash-export-contable-gentelella .btn-primary:hover {
+  filter: none !important;
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-export-contable-gentelella .btn-primary:disabled {
+  opacity: .55 !important;
+}
+body.dash-export-contable-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-export-contable-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Alertas */
+body.dash-export-contable-gentelella .alerta-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border: 1px solid var(--ge-teal) !important;
+}
+body.dash-export-contable-gentelella .alerta-err {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border: 1px solid var(--ge-red) !important;
+}
+body.dash-export-contable-gentelella .alerta-inf {
+  background: rgba(52,152,219,.10) !important;
+  color: var(--ge-blue) !important;
+  border: 1px solid var(--ge-blue) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Historial de exportaciones
+   ════════════════════════════════════════════════════════════ */
+body.dash-export-contable-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-export-contable-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-export-contable-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-export-contable-gentelella .tabla-header span {
+  color: var(--ge-muted) !important;
+}
+body.dash-export-contable-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-export-contable-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-export-contable-gentelella .tabla tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-export-contable-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+}

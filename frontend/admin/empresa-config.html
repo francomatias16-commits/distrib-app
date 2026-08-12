@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datos de la empresa — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <style>
+    .cfg-wrap { max-width:660px; margin:0 auto; padding:24px; }
+    /* Logo + catálogo público en una columna, información general en la
+       otra, solo en escritorio — en mobile/tablet sigue todo apilado. */
+    @media (min-width: 1024px) {
+      .cfg-wrap { max-width: 1280px; }
+      .cfg-grid-2col { display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; align-items:start; }
+      .cfg-grid-2col .cfg-card { margin-bottom:0; }
+      .cfg-col-left { display:flex; flex-direction:column; gap:20px; }
+    }
+    .cfg-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-soft);
+      border-radius: var(--radius-xl, 12px);
+      box-shadow: var(--shadow-sm, 0 1px 2px rgba(15,23,42,.04));
+      padding: 28px; margin-bottom: 20px;
+    }
+    .cfg-card h2 {
+      font-size: 11px; font-weight: var(--font-weight-bold, 700);
+      letter-spacing: var(--letter-spacing-wide, .05em); text-transform: uppercase;
+      color: var(--color-text-light); margin: 0 0 8px;
+    }
+    .cfg-card .sub { font-size:13.5px; color: var(--color-text-muted); margin:0 0 22px; line-height:1.5; }
+    .form-group { margin-bottom:18px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:6px; }
+    .form-group .req { color: var(--color-danger-mid); font-weight:700; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:10px 13px; border:1px solid var(--color-border); border-radius: var(--radius-md, 8px);
+      font-size:14px; box-sizing:border-box; outline:none; transition:border-color .15s, box-shadow .15s;
+      font-family:inherit; color: var(--color-text); background: var(--color-surface);
+    }
+    .form-group input:hover, .form-group select:hover, .form-group textarea:hover { border-color: var(--color-text-light); }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-bg);
+    }
+    .form-group .hint { font-size:12px; color: var(--color-text-light); margin-top:5px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width: 600px) {
+      .cfg-wrap { padding: 14px; }
+      .cfg-card { padding: 18px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    .acciones { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:10px; padding-top:18px; border-top:1px solid var(--color-border-soft); }
+    .acciones .guardado-ok { font-size:12.5px; color: var(--color-success); display:none; align-items:center; gap:5px; }
+    .alerta { padding:12px 16px; border-radius: var(--radius-md, 8px); font-size:13.5px; margin-bottom:18px; display:none; align-items:flex-start; gap:8px; line-height:1.45; }
+    .alerta-ok  { background: var(--color-success-bg); color: var(--color-success); border:1px solid #a7f3d0; }
+    .alerta-err { background: var(--color-danger-bg); color: var(--color-danger); border:1px solid #fca5a5; }
+    .logo-row { display:flex; align-items:center; gap:18px; margin-bottom:4px; }
+    .logo-preview {
+      width:68px; height:68px; border-radius: var(--radius-lg, 10px);
+      background: var(--color-primary-bg); display:flex; align-items:center; justify-content:center;
+      overflow:hidden; flex-shrink:0; border:1px solid var(--color-border-soft);
+    }
+    .logo-preview--filled { background: var(--color-surface); }
+    .logo-preview img { width:100%; height:100%; object-fit:cover; display:block; }
+    .logo-preview #logo-inicial { font-size:24px; font-weight:700; color: var(--color-primary); line-height:1; }
+    .logo-actions { display:flex; flex-direction:column; gap:2px; }
+    .btn-secondary {
+      background: var(--color-surface); color: var(--color-text);
+      border:1px solid var(--color-border); padding:8px 15px;
+      border-radius: var(--radius-md, 8px); font-size:13px; font-weight:500; cursor:pointer;
+      transition: background .15s, border-color .15s; align-self:flex-start;
+    }
+    .btn-secondary:hover { background: var(--color-surface-2); border-color: var(--color-text-light); }
+
+    /* FIX v477 — toggle catálogo público (SEC-008 / CHANGELOG_v296) */
+    .switch-row { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+    .switch-row .switch-txt strong { display:block; font-size:14px; color: var(--color-text); margin-bottom:3px; }
+    .switch-row .switch-txt p { margin:0; font-size:13px; color: var(--color-text-muted); line-height:1.5; max-width:440px; }
+    .switch { position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+    .switch input { opacity:0; width:0; height:0; }
+    .switch .track {
+      position:absolute; cursor:pointer; inset:0; background: var(--color-border);
+      border-radius:999px; transition:background .15s;
+    }
+    .switch .track::before {
+      content:""; position:absolute; width:18px; height:18px; left:3px; top:3px;
+      background:var(--color-surface); border-radius:50%; transition:transform .15s; box-shadow:0 1px 2px rgba(0,0,0,.2);
+    }
+    .switch input:checked + .track { background: var(--color-primary); }
+    .switch input:checked + .track::before { transform:translateX(18px); }
+    .switch input:disabled + .track { opacity:.55; cursor:not-allowed; }
+    .link-compartir {
+      margin-top:16px; display:none; align-items:center; gap:8px; background: var(--color-surface-2);
+      border:1px solid var(--color-border-soft); border-radius: var(--radius-md, 8px); padding:9px 11px;
+    }
+    .link-compartir input {
+      flex:1; border:none; background:transparent; font-size:12.5px; color: var(--color-text-muted);
+      outline:none; padding:0;
+    }
+  </style>
+  <!-- .btn-primary se define globalmente en reskin-patch.css (azul corporativo);
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+       acá solo se agregan estilos de layout que no pisan esa regla. -->
+  <style>
+    .cfg-card h2 + .sub { margin-top: -2px; }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/empresa-config-gentelella.css" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-empresa-config-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Datos de la empresa</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Información básica que aparece en comprobantes, en el panel y en las comunicaciones con tus clientes.
+</div>
+
+  <main class="main">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
+    <div id="contenido" style="display:none">
+      <div class="cfg-wrap">
+
+        <div id="alerta" class="alerta"></div>
+
+        <div class="cfg-grid-2col">
+        <div class="cfg-col-left">
+
+        <!-- Logo -->
+        <div class="cfg-card">
+          <h2>Logo</h2>
+          <p class="sub">Se usa en el panel y (próximamente) en los comprobantes impresos.</p>
+          <div class="logo-row">
+            <div class="logo-preview" id="logo-preview">
+              <span id="logo-inicial"></span>
+              <img id="logo-img" alt="" style="display:none">
+            </div>
+            <div class="logo-actions">
+              <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none">
+              <button type="button" class="btn-secondary" id="btn-logo">Cambiar logo</button>
+              <p class="hint" style="margin-top:6px">PNG, JPG, WEBP o SVG · hasta 2 MB</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIX v477: catálogo público (SEC-008 / CHANGELOG_v296) — antes solo
+             se podía activar con un UPDATE manual en Supabase. -->
+        <div class="cfg-card">
+          <h2>Catálogo público</h2>
+          <p class="sub">Compartí un link de tu catálogo con clientes potenciales, sin que necesiten iniciar sesión.</p>
+
+          <div class="switch-row">
+            <div class="switch-txt">
+              <strong>Habilitar catálogo sin login</strong>
+              <p>Cualquiera con el link podrá ver tus productos, precios y stock disponible. No podrán comprar ni ver tu lista de precios interna: para eso siguen necesitando una cuenta de cliente.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="sw-catalogo-publico" disabled>
+              <span class="track"></span>
+            </label>
+          </div>
+
+          <div class="link-compartir" id="link-compartir">
+            <input type="text" id="link-compartir-input" readonly aria-label="Link del catálogo público">
+            <button type="button" class="btn-secondary" id="btn-copiar-link">Copiar</button>
+          </div>
+        </div>
+
+        </div><!-- /cfg-col-left -->
+
+        <!-- Formulario -->
+        <div class="cfg-card">
+          <h2>Información general</h2>
+          <p class="sub">Nombre, CUIT y datos de contacto de tu empresa.</p>
+
+          <div class="form-group">
+            <label>Nombre o razón social <span class="req">*</span></label>
+            <input type="text" id="e-nombre" placeholder="Ej: Distribuidora García S.R.L." autocomplete="organization" aria-label="Nombre o razón social">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CUIT <span class="req">*</span></label>
+              <input type="text" id="e-cuit" placeholder="20-12345678-9" inputmode="numeric" aria-label="CUIT">
+              <p class="hint">Se guarda sin guiones. 11 dígitos.</p>
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" id="e-telefono" placeholder="Ej: 3492 400000" autocomplete="tel" aria-label="Teléfono">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Domicilio</label>
+            <input type="text" id="e-domicilio" placeholder="Calle, número, localidad" autocomplete="street-address" aria-label="Domicilio">
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label>Email de contacto</label>
+            <input type="email" id="e-email" placeholder="contacto@tuempresa.com.ar" autocomplete="email" aria-label="Email de contacto">
+          </div>
+
+          <div class="acciones">
+            <button type="button" class="btn-primary" id="btn-guardar">Guardar cambios</button>
+            <span class="guardado-ok" id="guardado-ok">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Guardado
+            </span>
+          </div>
+        </div>
+
+        </div><!-- /cfg-grid-2col -->
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script>
+const API_BASE = window.ENV?.API_URL || '';
+
+async function init() {
+  await window.authReady;
+  const perfil = window.authCtx?.perfil;
+  if (!perfil || !['dueno','admin'].includes(perfil.rol)) {
+    window.location.href = '/admin/dashboard';
+    return;
+  }
+  if (perfil.nombre) document.getElementById('topbar-usuario').textContent = perfil.nombre;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('contenido').style.display = 'block';
+  await cargarDatos();
+
+  document.getElementById('btn-guardar').addEventListener('click', guardar);
+  document.getElementById('btn-logo').addEventListener('click', () => document.getElementById('logo-input').click());
+  document.getElementById('logo-input').addEventListener('change', subirLogo);
+
+  // FIX v477: toggle de catálogo público
+  document.getElementById('sw-catalogo-publico').addEventListener('change', toggleCatalogoPublico);
+  document.getElementById('btn-copiar-link').addEventListener('click', copiarLinkCatalogo);
+}
+
+async function cargarDatos() {
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/datos`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      mostrarAlerta('err', d.error || 'No se pudieron cargar los datos de la empresa.');
+      return;
+    }
+    const d = await r.json();
+    document.getElementById('e-nombre').value    = d.nombre || '';
+    document.getElementById('e-cuit').value      = formatearCuit(d.cuit || '');
+    document.getElementById('e-domicilio').value = d.domicilio || '';
+    document.getElementById('e-telefono').value  = d.telefono || '';
+    document.getElementById('e-email').value     = d.email || '';
+    pintarLogo(d.logo_url, d.nombre);
+
+    // FIX v477: estado inicial del toggle de catálogo público
+    const sw = document.getElementById('sw-catalogo-publico');
+    sw.checked = !!d.catalogo_publico_habilitado;
+    sw.disabled = false;
+    actualizarLinkCatalogo(sw.checked);
+  } catch (e) {
+    mostrarAlerta('err', 'Error de conexión al cargar los datos.');
+  }
+}
+
+// FIX v477 — catálogo público (SEC-008 / CHANGELOG_v296)
+function actualizarLinkCatalogo(mostrar) {
+  const cont = document.getElementById('link-compartir');
+  if (!mostrar) { cont.style.display = 'none'; return; }
+
+  const empresaId = window.authCtx?.perfil?.empresa_id || window.authCtx?.perfil?.empresas?.id || '';
+  const input = document.getElementById('link-compartir-input');
+  input.value = `${window.location.origin}/cliente/catalogo?empresa_id=${empresaId}`;
+  cont.style.display = 'flex';
+}
+
+async function toggleCatalogoPublico(ev) {
+  const sw = ev.target;
+  const nuevoValor = sw.checked;
+  sw.disabled = true;
+
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/catalogo-publico`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await getToken()}`
+      },
+      body: JSON.stringify({ habilitado: nuevoValor })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      sw.checked = !nuevoValor; // revertir en la UI si falló
+      mostrarAlerta('err', d.error || 'No se pudo guardar el cambio.');
+      return;
+    }
+    actualizarLinkCatalogo(nuevoValor);
+    mostrarAlerta('ok', nuevoValor
+      ? 'Catálogo público habilitado. Ya podés compartir el link.'
+      : 'Catálogo público deshabilitado.');
+  } catch (e) {
+    sw.checked = !nuevoValor;
+    mostrarAlerta('err', 'Error de conexión al guardar.');
+  } finally {
+    sw.disabled = false;
+  }
+}
+
+async function copiarLinkCatalogo() {
+  const input = document.getElementById('link-compartir-input');
+  try {
+    await navigator.clipboard.writeText(input.value);
+  } catch (e) {
+    // Fallback para navegadores/contextos sin permiso de Clipboard API
+    input.select();
+    document.execCommand('copy');
+  }
+  const btn = document.getElementById('btn-copiar-link');
+  const original = btn.textContent;
+  btn.textContent = 'Copiado ✓';
+  setTimeout(() => { btn.textContent = original; }, 1800);
+}
+
+function pintarLogo(logoUrl, nombre) {
+  const img = document.getElementById('logo-img');
+  const inicial = document.getElementById('logo-inicial');
+  const box = document.getElementById('logo-preview');
+
+  const mostrarInicial = () => {
+    img.style.display = 'none';
+    inicial.style.display = 'block';
+    inicial.textContent = (nombre || '?')[0].toUpperCase();
+    box.classList.remove('logo-preview--filled');
+  };
+
+  mostrarInicial(); // estado por defecto; si el logo carga bien, se reemplaza abajo
+
+  if (logoUrl) {
+    img.onerror = mostrarInicial; // logo_url roto o inaccesible → inicial, no ícono roto
+    img.onload = () => {
+      inicial.style.display = 'none';
+      img.style.display = 'block';
+      box.classList.add('logo-preview--filled');
+    };
+    img.src = logoUrl;
+  }
+}
+
+function formatearCuit(cuit) {
+  const limpio = String(cuit).replace(/\D/g, '');
+  if (limpio.length !== 11) return cuit;
+  return `${limpio.slice(0,2)}-${limpio.slice(2,10)}-${limpio.slice(10)}`;
+}
+
+async function guardar() {
+  const nombre    = document.getElementById('e-nombre').value.trim();
+  const cuit      = document.getElementById('e-cuit').value.trim();
+  const domicilio = document.getElementById('e-domicilio').value.trim();
+  const telefono  = document.getElementById('e-telefono').value.trim();
+  const email     = document.getElementById('e-email').value.trim();
+
+  if (!nombre) return mostrarAlerta('err', 'El nombre de la empresa es requerido.');
+  const cuitLimpio = cuit.replace(/-/g, '');
+  if (!/^\d{11}$/.test(cuitLimpio)) return mostrarAlerta('err', 'El CUIT debe tener 11 dígitos numéricos.');
+
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/datos`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await getToken()}`
+      },
+      body: JSON.stringify({ nombre, cuit: cuitLimpio, domicilio, telefono, email })
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      mostrarAlerta('err', d.error || 'No se pudieron guardar los cambios.');
+    } else {
+      mostrarAlerta('ok', 'Datos guardados correctamente.');
+      document.getElementById('e-cuit').value = formatearCuit(d.empresa.cuit);
+      if (window.authCtx?.perfil?.empresas) {
+        Object.assign(window.authCtx.perfil.empresas, d.empresa);
+      }
+      const chip = document.getElementById('guardado-ok');
+      chip.style.display = 'inline-flex';
+      clearTimeout(window.__guardadoOkTimeout);
+      window.__guardadoOkTimeout = setTimeout(() => { chip.style.display = 'none'; }, 4000);
+    }
+  } catch (e) {
+    mostrarAlerta('err', 'Error de conexión al guardar.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar cambios';
+  }
+}
+
+async function subirLogo(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+  if (!allowed.includes(file.type)) {
+    mostrarAlerta('err', 'Formato de imagen no permitido.');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    mostrarAlerta('err', 'La imagen no puede superar los 2MB.');
+    return;
+  }
+
+  // FRONTEND-002: deshabilitar botón + input mientras la subida está en curso,
+  // mismo patrón anti-doble-click que el resto de las acciones mutantes de la app.
+  const btnLogo = document.getElementById('btn-logo');
+  const logoInput = document.getElementById('logo-input');
+  btnLogo.disabled = true;
+  logoInput.disabled = true;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const b64 = reader.result.split(',')[1];
+    try {
+      const r = await fetch(`${API_BASE}/api/empresa/logo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`
+        },
+        body: JSON.stringify({ filename: file.name, contentType: file.type, data: b64 })
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        mostrarAlerta('err', d.error || 'No se pudo subir el logo.');
+        return;
+      }
+      pintarLogo(d.url, document.getElementById('e-nombre').value);
+      mostrarAlerta('ok', 'Logo actualizado.');
+    } catch (e) {
+      mostrarAlerta('err', 'Error de conexión al subir el logo.');
+    } finally {
+      btnLogo.disabled = false;
+      logoInput.disabled = false;
+      logoInput.value = '';
+    }
+  };
+  reader.onerror = () => {
+    mostrarAlerta('err', 'No se pudo leer el archivo.');
+    btnLogo.disabled = false;
+    logoInput.disabled = false;
+    logoInput.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function mostrarAlerta(tipo, msg) {
+  const el = document.getElementById('alerta');
+  el.className = `alerta alerta-${tipo}`;
+  el.textContent = msg;
+  el.style.display = 'flex';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (tipo === 'ok') setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+async function getToken() {
+  const { data: { session } } = await window.authCtx.sb.auth.getSession();
+  return session?.access_token || '';
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Quién me conviene más — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/comparador-precios-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .kpis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .tabla-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .tabla-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
+    .filtros-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filtros-bar input, .filtros-bar select {
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background: var(--color-surface);
+    }
+    .tabla-overflow { overflow-x: auto; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    .tabla td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+      vertical-align: middle;
+    }
+    .tabla tbody tr:last-child td { border-bottom: none; }
+    .tabla tbody tr:hover td { background: rgba(0,174,112,.03); }
+    .tabla tbody tr.clickable { cursor: pointer; }
+
+    .monto-verde { color: var(--color-success); font-weight: 700; }
+    .monto-gris  { color: var(--color-text-muted); }
+    .spread-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(239,68,68,.1);
+      color: #b91c1c;
+      white-space: nowrap;
+    }
+    .spread-badge.bajo {
+      background: rgba(148,163,184,.15);
+      color: var(--color-text-muted);
+    }
+
+    /* Buscador de producto */
+    .buscador-wrap { position: relative; max-width: 420px; }
+    .buscador-wrap input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+    }
+    .buscador-resultados {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 20;
+    }
+    .buscador-resultados .item {
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .buscador-resultados .item:hover { background: var(--color-bg); }
+    .buscador-resultados .item .cod { color: var(--color-text-muted); font-size: 11px; }
+
+    .volver-link {
+      font-size: 13px;
+      color: var(--color-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .fila-mejor td { background: rgba(34,197,94,.05); }
+    .fila-mejor .badge-mejor {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-full);
+      background: rgba(34,197,94,.15);
+      color: #15803d;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--color-text-light);
+    }
+  </style>
+</head>
+<body class="dash-comparador-precios-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Quién me conviene más</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Detectá en qué productos te conviene cambiar de proveedor. Solo se consideran órdenes de compra ya recibidas (precio confirmado, no cotizaciones).
+</div>
+
+  <main class="main">
+
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección.</p>
+    </div>
+
+    <div id="contenido-comparador">
+
+      <!-- Buscador de producto -->
+      <div class="tabla-wrap" style="padding:16px 20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div class="buscador-wrap">
+            <input type="text" id="input-buscar-producto" aria-label="Buscar un producto puntual por código o nombre" placeholder="Buscar un producto puntual (código o nombre)…" autocomplete="off">
+            <div class="buscador-resultados hidden" id="buscador-resultados"></div>
+          </div>
+          <select id="filtro-meses" onchange="onCambioMeses()" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:13px;">
+            <option value="3">Últimos 3 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="12" selected>Últimos 12 meses</option>
+            <option value="24">Últimos 24 meses</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Vista: ranking de oportunidades -->
+      <div id="vista-ranking">
+        <div class="kpis-grid" id="kpis-grid" style="margin-bottom:16px;"></div>
+
+        <div class="tabla-wrap">
+          <div class="tabla-header">
+            <h2>Oportunidades de ahorro</h2>
+            <span style="font-size:12px;color:var(--color-text-light);">Ordenado por plata que se dejó de ahorrar en el período</span>
+          </div>
+          <div class="tabla-overflow">
+            <table class="tabla">
+              <thead>
+            <tr>
+                  <th>Producto</th>
+                  <th class="thead-sep">Proveedores</th>
+                  <th>Precio promedio pagado</th>
+                  <th>Precio más bajo disponible</th>
+                  <th class="thead-sep">Diferencia</th>
+                  <th>Proveedor más barato</th>
+                  <th>Le compraste más a</th>
+                  <th>Ahorro potencial</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-ranking"><tr><td colspan="8" style="text-align:center;color:var(--color-text-light);">Cargando…</td></tr></tbody>
+            </table>
+            <div id="ranking-vacio" class="empty-state hidden">
+              <p>No hay suficientes órdenes de compra <strong>recibidas</strong> de más de un proveedor para el mismo producto en este período todavía.</p>
+              <p class="texto-chico">A medida que se reciban más órdenes de compra, este listado va a ir mostrando oportunidades reales.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: detalle de un producto -->
+      <div id="vista-detalle" class="hidden">
+        <div class="volver-link" onclick="volverARanking()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Volver al ranking
+        </div>
+
+        <div class="tabla-wrap">
+          <div class="tabla-header">
+            <h2 id="detalle-titulo">Detalle por proveedor</h2>
+          </div>
+          <div class="tabla-overflow">
+            <table class="tabla">
+              <thead>
+            <tr>
+                  <th class="thead-sep">Proveedor</th>
+                  <th>Último precio</th>
+                  <th>Última compra</th>
+                  <th>Precio mínimo</th>
+                  <th class="thead-sep">Precio máximo</th>
+                  <th>Precio promedio</th>
+                  <th>Compras</th>
+                  <th>Cantidad total</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-detalle"><tr><td colspan="8" style="text-align:center;color:var(--color-text-light);">Cargando…</td></tr></tbody>
+            </table>
+            <div id="detalle-vacio" class="empty-state hidden">
+              <p>Este producto no tiene órdenes de compra <strong>recibidas</strong> en el período seleccionado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /contenido-comparador -->
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/comparador-precios.js?v1782328742714"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

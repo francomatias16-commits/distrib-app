@@ -1,0 +1,382 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   rutas-compact.css — Compactación de TODAS las pestañas de Repartos
+   ───────────────────────────────────────────────────────────────────────
+   Objetivo: en pantallas de escritorio, cualquiera de las 6 pestañas
+   (Resumen, Armar ruta, Seguimiento en vivo, Historial, Zonas, Reporte
+   de ruta) tiene que entrar completa en un solo viewport, sin scroll de
+   página. Cuando una sección puntual tiene más contenido del que entra
+   (una tabla larga, una lista de choferes, el timeline de una entrega),
+   esa sección puntual scrollea internamente — la página en sí nunca
+   scrollea.
+
+   Todo vive scopeado a body.dash-rutas-gentelella y sólo se activa en
+   viewports de escritorio con alto suficiente. En mobile / pantallas
+   bajas se conserva el layout original (con scroll de página), que ahí
+   es lo esperable.
+
+   Se carga DESPUÉS de rutas.css, rutas-resumen.css, compras.css y
+   rutas-gentelella.css.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1200px) and (min-height: 650px) {
+
+  /* ── Marco general: la página ocupa exactamente el viewport ─────────── */
+  body.dash-rutas-gentelella {
+    height: 100vh;
+    overflow: hidden;
+  }
+  body.dash-rutas-gentelella .layout {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Topbar / breadcrumb / bajada: versión angosta ───────────────────── */
+  body.dash-rutas-gentelella .topbar {
+    height: 44px !important;
+    padding: 0 20px !important;
+    flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella .topbar-title { font-size: 15px !important; }
+  body.dash-rutas-gentelella .topbar-fecha,
+  body.dash-rutas-gentelella .topbar-usuario { font-size: 11.5px !important; }
+  body.dash-rutas-gentelella > .layout > .page-intro {
+    padding: 6px 20px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Main: columna flex que ocupa el resto del alto disponible ──────── */
+  body.dash-rutas-gentelella .main {
+    padding: 10px 20px 12px !important;
+    gap: 8px !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Fila de tabs + filtro de fecha: alto fijo, no se estira */
+  body.dash-rutas-gentelella .main > div:first-child {
+    flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella .tab-btn {
+    padding: 6px 13px !important;
+    font-size: 13px !important;
+  }
+  body.dash-rutas-gentelella #filtro-fecha {
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+  }
+
+  /* ── Cualquier pestaña activa ocupa el resto del alto y no empuja
+       la página: sólo sus sub-secciones scrollean si hace falta ────────── */
+  body.dash-rutas-gentelella .main > [id^="tab-"][id$="-content"]:not(.hidden) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Tablas simples "de una sola sección" (Historial, Rutas del día,
+     Historial de reportes, tabla de Zonas): el wrapper pasa a ocupar
+     el alto disponible y scrollea internamente, con el header pegado
+     arriba para no perder contexto de columnas. */
+  body.dash-rutas-gentelella .table-responsive-cards,
+  body.dash-rutas-gentelella .tabla-wrap {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto !important;
+  }
+  body.dash-rutas-gentelella .rutas-table thead th,
+  body.dash-rutas-gentelella .tabla-main thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  body.dash-rutas-gentelella .rutas-table th,
+  body.dash-rutas-gentelella .rutas-table td {
+    padding: 7px 12px !important;
+  }
+  body.dash-rutas-gentelella .tabla-main th,
+  body.dash-rutas-gentelella .tabla-main td {
+    padding: 7px 10px !important;
+  }
+  body.dash-rutas-gentelella .panel-header {
+    padding: 8px 14px !important;
+    flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella .panel-header h2 {
+    font-size: 12.5px !important;
+  }
+  body.dash-rutas-gentelella .panel-header-sub {
+    font-size: 11px !important;
+  }
+  body.dash-rutas-gentelella .panel-search {
+    flex-shrink: 0;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TAB: Resumen
+     ══════════════════════════════════════════════════════════════════ */
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-grid {
+    flex: 0.85 1 0;
+    min-height: 0;
+    margin-bottom: 0 !important;
+    gap: 8px !important;
+  }
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-grid--2 {
+    flex: 1.25 1 0;
+  }
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-grid:last-child {
+    flex: 0.9 1 0;
+  }
+  body.dash-rutas-gentelella .resumen-card {
+    padding: 10px 14px !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body.dash-rutas-gentelella .resumen-card-head { margin-bottom: 6px !important; }
+  body.dash-rutas-gentelella .resumen-card-title { font-size: 12.5px !important; }
+  body.dash-rutas-gentelella .resumen-card-sub { font-size: 11px !important; margin-top: 0 !important; }
+  body.dash-rutas-gentelella .resumen-icono { width: 24px !important; height: 24px !important; }
+  body.dash-rutas-gentelella .resumen-icono svg { width: 13px !important; height: 13px !important; }
+  body.dash-rutas-gentelella .resumen-icono--inline { width: 18px !important; height: 18px !important; }
+  body.dash-rutas-gentelella .resumen-icono--inline svg { width: 11px !important; height: 11px !important; }
+
+  body.dash-rutas-gentelella .resumen-minibar-wrap { height: 54px !important; padding-top: 2px !important; }
+  body.dash-rutas-gentelella .resumen-gauge-wrap { gap: 10px !important; }
+  body.dash-rutas-gentelella .resumen-gauge { width: 62px !important; height: 62px !important; }
+  body.dash-rutas-gentelella .resumen-cap-row { margin-bottom: 6px !important; }
+  body.dash-rutas-gentelella .resumen-cap-legend { margin-top: 6px !important; }
+
+  body.dash-rutas-gentelella .resumen-card:has(.resumen-chofer-list) { overflow: visible; }
+  body.dash-rutas-gentelella .resumen-choferes-card { gap: 10px !important; }
+  body.dash-rutas-gentelella .resumen-choferes-count { font-size: 22px !important; }
+  body.dash-rutas-gentelella .resumen-truck-wrap,
+  body.dash-rutas-gentelella .resumen-truck-svg { width: 78px !important; }
+  body.dash-rutas-gentelella .resumen-estado-legend { margin: 6px 0 2px !important; }
+  body.dash-rutas-gentelella .resumen-chofer-list {
+    gap: 5px !important; margin-top: 2px !important;
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  }
+  body.dash-rutas-gentelella .resumen-chofer-item { padding: 6px 10px !important; }
+
+  body.dash-rutas-gentelella .resumen-card:has(.resumen-tracking-grid) { padding: 0 !important; }
+  body.dash-rutas-gentelella .resumen-card:has(.resumen-tracking-grid) .panel-header {
+    padding: 8px 14px !important; flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella .resumen-tracking-grid { flex: 1 1 auto; min-height: 110px; overflow: hidden; }
+  body.dash-rutas-gentelella #mapa-resumen { height: 100% !important; }
+  body.dash-rutas-gentelella .resumen-tracking-info {
+    height: 100%; padding: 8px 12px !important; gap: 6px !important; overflow-y: auto;
+  }
+  body.dash-rutas-gentelella .resumen-timeline { gap: 6px !important; }
+
+  body.dash-rutas-gentelella .resumen-income-val { font-size: 19px !important; }
+  body.dash-rutas-gentelella .resumen-income-chart { height: 50px !important; margin-top: 8px !important; }
+  body.dash-rutas-gentelella .resumen-pago-grid { gap: 8px !important; }
+  body.dash-rutas-gentelella .resumen-pago-card { padding: 8px 10px !important; }
+  body.dash-rutas-gentelella .resumen-pago-val { font-size: 14px !important; }
+  body.dash-rutas-gentelella .resumen-pago-activity {
+    margin-top: 8px !important; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  }
+  body.dash-rutas-gentelella .resumen-pago-activity-item { padding: 5px 0 !important; }
+  body.dash-rutas-gentelella .resumen-cobro-form { gap: 4px !important; margin-top: 6px !important; }
+  body.dash-rutas-gentelella .resumen-cobro-form label { font-size: 11px !important; }
+  body.dash-rutas-gentelella .resumen-cobro-form input,
+  body.dash-rutas-gentelella .resumen-cobro-form select { padding: 5px 8px !important; font-size: 12.5px !important; }
+  body.dash-rutas-gentelella .resumen-avatares { margin-bottom: 2px !important; }
+  body.dash-rutas-gentelella #resumen-cobro-btn { padding-top: 6px !important; padding-bottom: 6px !important; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TAB: Armar ruta
+     ══════════════════════════════════════════════════════════════════ */
+  /* Red de seguridad: el reparto proporcional de alto de más abajo
+     (rutas-grid flex:1 1 auto + rutas-del-dia flex:0 1 170px) asume
+     que panel-pendientes/panel-ruta pueden encogerse sin límite, pero
+     tienen contenido con un alto mínimo real (drop-zone, tarjetas de
+     pedidos, botones de acción del chofer en 2 filas, etc.). En
+     viewports en el borde del breakpoint (~1200×650, notebooks con
+     barra de marcadores/extensiones visible) ese mínimo puede superar
+     el espacio disponible y el algoritmo de flex-shrink terminaba
+     comiéndose el alto de "Rutas del día" hasta dejarlo en unos pocos
+     píxeles o directamente fuera del área visible — y como el tab
+     tenía overflow:hidden, no había ninguna forma de hacer scroll
+     para llegar a verlo. Con overflow-y:auto en el tab, si el
+     contenido de arriba no entra igual, el usuario puede scrollear
+     el tab entero y "Rutas del día" siempre queda alcanzable. */
+  body.dash-rutas-gentelella #tab-armar-content {
+    overflow-y: auto;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    flex-shrink: 0;
+    padding: 12px 16px !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card > div:first-child {
+    margin-bottom: 8px !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .ruta-chofer-acciones {
+    margin-top: 8px !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    /* La lista de pendientes es la información más importante de la
+       pantalla: absorbe TODO el espacio que quede libre una vez
+       reservado el alto fijo de "Rutas del día" (ver abajo). Con
+       flex-basis "auto" (no 0) el navegador puede repartir/quitarle
+       espacio correctamente incluso cuando el contenido no entra
+       entero en el viewport. */
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .panel-pendientes,
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    max-height: none !important;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .drop-zone {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer {
+    flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella #tab-armar-content > div[style*="margin-top"] {
+    flex-shrink: 0;
+    margin-top: 0 !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia {
+    /* Tabla de menor relevancia (vacía la mayor parte del tiempo):
+       alto FIJO y predecible en vez de repartir proporciones de
+       flex-grow con el grid de arriba — ese esquema (flex-basis: 0
+       en ambos lados) no reparte bien el espacio cuando el contenido
+       no entra entero en el viewport, y terminaba empujando la tabla
+       fuera de la pantalla sin que su scroll interno llegara a
+       activarse. Con flex-basis 170px el algoritmo de shrink SÍ sabe
+       encogerla correctamente si hace falta, y su overflow-y:auto
+       (heredado de .table-responsive-cards) se activa siempre que su
+       contenido no entre en ese alto.
+
+       min-height: 130px asegura que, aunque el espacio esté muy
+       ajustado, la sección nunca se encoja por debajo de una altura
+       legible (~2 filas + header) — si eso no alcanza para que todo
+       entre en el viewport, el overflow-y:auto del tab (ver arriba)
+       permite scrollear para llegar a verla igual. */
+    flex: 0 1 170px;
+    min-height: 130px;
+    max-height: 170px;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TAB: Seguimiento en vivo
+     ══════════════════════════════════════════════════════════════════ */
+  body.dash-rutas-gentelella #tab-seguimiento-content > div:first-child {
+    flex-shrink: 0;
+  }
+  body.dash-rutas-gentelella #tab-seguimiento-content .seguimiento-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  body.dash-rutas-gentelella .seguimiento-lista,
+  body.dash-rutas-gentelella .mapa-wrap {
+    max-height: none !important;
+    height: 100% !important;
+  }
+  body.dash-rutas-gentelella .mapa-leyenda {
+    flex-shrink: 0;
+    padding: 8px 14px !important;
+    flex-wrap: wrap;
+    gap: 10px 16px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TAB: Zonas
+     ══════════════════════════════════════════════════════════════════ */
+  body.dash-rutas-gentelella #tab-zonas-content > .page-intro {
+    flex-shrink: 0;
+    margin-bottom: 10px !important;
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+  }
+  body.dash-rutas-gentelella #tab-zonas-content > div[style*="justify-content"] {
+    flex-shrink: 0;
+    margin-bottom: 8px !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TAB: Reporte de ruta
+     ══════════════════════════════════════════════════════════════════ */
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-filtros {
+    flex-shrink: 0;
+    padding: 8px 14px !important;
+  }
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-kpis {
+    flex-shrink: 0;
+    gap: 8px !important;
+  }
+  body.dash-rutas-gentelella .reporte-kpi-card {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+  body.dash-rutas-gentelella .reporte-kpi-icon { width: 30px !important; height: 30px !important; }
+  body.dash-rutas-gentelella .reporte-kpi-val { font-size: 16px !important; }
+  body.dash-rutas-gentelella .reporte-kpi-label { font-size: 10.5px !important; }
+
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-detalle {
+    flex: 1.3 1 0;
+    min-height: 0;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-detalle.hidden {
+    display: none !important;
+  }
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-detalle:not(.hidden) {
+    display: grid !important;
+  }
+  body.dash-rutas-gentelella .reporte-mapa-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body.dash-rutas-gentelella #mapa-reporte {
+    height: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  body.dash-rutas-gentelella #tab-reporte-content .reporte-detalle > div:last-child {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Tabla "Historial de reportes": ocupa lo que quede */
+  body.dash-rutas-gentelella #tab-reporte-content > div:last-child {
+    flex: 1 1 0;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}

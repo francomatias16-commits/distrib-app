@@ -1,0 +1,314 @@
+/**
+ * proveedores-gentelella.css — Reskin "Gentelella v4" de la pantalla Proveedores
+ * ───────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
+ * Compras/Cta.Cte.Proveedores) y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Nota: el indicador "● Activo" de la tabla de links del portal y el color
+ * del botón "Revocar" traen color inline vía atributo style="" (no clases) —
+ * quedan fuera del alcance de un reskin solo-CSS, mismo criterio que en
+ * pantallas previas.
+ *
+ * Scope: body.dash-proveedores-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella { background: var(--ge-bg) !important; }
+body.dash-proveedores-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-proveedores-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-proveedores-gentelella .topbar-workspace,
+body.dash-proveedores-gentelella .topbar-contador {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-proveedores-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-proveedores-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-proveedores-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Botones primario/secundario del topbar y del panel de links */
+body.dash-proveedores-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-proveedores-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-proveedores-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Sección "Links de acceso activos"
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella main.main h2 {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-proveedores-gentelella .search-wrap input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .search-wrap input:focus {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-proveedores-gentelella .search-wrap svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-proveedores-gentelella .search-wrap input:focus ~ svg {
+  color: var(--ge-teal) !important;
+}
+body.dash-proveedores-gentelella .select-filtro {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-proveedores-gentelella .select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tablas (proveedores + links activos del portal)
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-proveedores-gentelella .tabla-main th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-proveedores-gentelella .tabla-main td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-proveedores-gentelella .tabla-main td.vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-proveedores-gentelella .tabla-main tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-proveedores-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-proveedores-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-proveedores-gentelella #tabla-links-activos {
+  margin-top: 4px !important;
+}
+
+/* Badges Activo/Inactivo */
+body.dash-proveedores-gentelella .badge {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.dash-proveedores-gentelella .badge-activo {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-proveedores-gentelella .badge-inactivo {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* Botones de acción en tabla (Editar / Compras / Portal / Dar de baja / Activar / Revocar) */
+body.dash-proveedores-gentelella .btn-tabla {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .btn-tabla:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-proveedores-gentelella .btn-tabla.primario {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-proveedores-gentelella .btn-tabla.primario:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-proveedores-gentelella .btn-tabla.peligro {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+}
+body.dash-proveedores-gentelella .btn-tabla.peligro:hover {
+  opacity: .85 !important;
+}
+
+/* Paginación */
+body.dash-proveedores-gentelella .paginacion-container {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-proveedores-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-proveedores-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal: nuevo / editar proveedor
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-proveedores-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-proveedores-gentelella .modal-box-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-proveedores-gentelella .modal-box-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-proveedores-gentelella .modal-box-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-proveedores-gentelella .modal-box-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-proveedores-gentelella .modal-box-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+body.dash-proveedores-gentelella .form-label,
+body.dash-proveedores-gentelella .form-sec-label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-proveedores-gentelella .form-sec-label {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-proveedores-gentelella .form-input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .form-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-proveedores-gentelella .ayuda-contextual {
+  color: var(--ge-muted) !important;
+}
+body.dash-proveedores-gentelella .ayuda-contextual:hover {
+  color: var(--ge-teal) !important;
+}
+body.dash-proveedores-gentelella .ayuda-contextual::after {
+  background: var(--ge-ink) !important;
+}
+body.dash-proveedores-gentelella .btn-cancelar {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-proveedores-gentelella .btn-cancelar:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal: portal de autogestión del proveedor
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .portal-cargando {
+  color: var(--ge-muted) !important;
+}
+body.dash-proveedores-gentelella .portal-error {
+  color: var(--ge-red) !important;
+}
+body.dash-proveedores-gentelella .portal-link-box .form-input {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cuerpo del modal-box
+   ════════════════════════════════════════════════════════════ */
+body.dash-proveedores-gentelella .modal-box-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  padding: 18px 22px !important;
+  overflow-y: auto !important;
+}

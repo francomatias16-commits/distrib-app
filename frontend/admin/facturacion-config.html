@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración ARCA — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <style>
+    .cfg-wrap { max-width:660px; margin:0 auto; padding:24px; }
+    /* Guía + formulario a la par, solo en escritorio — en mobile/tablet
+       sigue todo apilado en una columna (cfg-grid-2col no hace nada ahí). */
+    @media (min-width: 1024px) {
+      .cfg-wrap { max-width: 1280px; }
+      .cfg-grid-2col { display:grid; grid-template-columns: 1fr 1fr; gap:20px; align-items:start; }
+      .cfg-grid-2col .cfg-card { margin-bottom:0; }
+    }
+    .cfg-card { background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl); padding:28px; margin-bottom:20px; }
+    .cfg-card h2 { font-size:17px; font-weight:600; margin:0 0 4px; }
+    .cfg-card .sub { font-size:13px; color:var(--color-text-muted); margin:0 0 22px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:9px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md);
+      font-size:14px; box-sizing:border-box; outline:none; transition:border .15s;
+      font-family:inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--color-primary); }
+    .form-group textarea { resize:vertical; min-height:100px; font-family:monospace; font-size:12px; }
+    .form-group .hint { font-size:12px; color:var(--color-text-light); margin-top:4px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width: 600px) {
+      .cfg-wrap { padding: 14px; }
+      .cfg-card { padding: 18px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    .btn-primary { background:var(--color-primary); color:var(--color-surface); border:none; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; font-weight:500; cursor:pointer; }
+    .btn-primary:hover { background:var(--color-primary); }
+    .btn-test { background:#10b981; color:var(--color-surface); border:none; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; cursor:pointer; }
+    .btn-test:hover { background:#059669; }
+    .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+    .alerta { padding:11px 15px; border-radius: var(--radius-md); font-size:13px; margin-bottom:16px; display:none; }
+    .alerta-ok  { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+    .alerta-err { background:var(--color-danger-bg); color:var(--color-danger); border:1px solid #fca5a5; }
+    .alerta-inf { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius: var(--radius-full); font-size:12px; font-weight:500; margin-bottom:16px; }
+    .chip-ok  { background:#ecfdf5; color:#065f46; }
+    .chip-no  { background:var(--color-warning-bg); color:var(--color-warning); }
+    .chip-homo { background:#eff6ff; color:#1e40af; margin-left:6px; }
+    .paso { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f3f4f6; }
+    .paso:last-child { border-bottom:none; }
+    .paso-n { width:24px; height:24px; border-radius:50%; background:var(--color-primary); color:var(--color-surface); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .paso-t { font-size:13px; color:var(--color-text); line-height:1.6; }
+    .paso-t code { background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-sm); font-size:12px; }
+    hr.div { border:none; border-top:1px solid var(--color-border-soft); margin:20px 0; }
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; }
+    .toggle-label { font-size:13px; font-weight:500; color:var(--color-text); }
+    .toggle-desc  { font-size:12px; color:var(--color-text-light); margin-top:2px; }
+    /* Toggle switch */
+    .switch { position:relative; display:inline-block; width:40px; height:22px; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; inset:0; background:#d1d5db; border-radius: var(--radius-full); transition:.2s; }
+    .slider:before { position:absolute; content:""; width:16px; height:16px; left:3px; bottom:3px; background:var(--color-surface); border-radius:50%; transition:.2s; }
+    input:checked + .slider { background:var(--color-primary); }
+    input:checked + .slider:before { transform:translateX(18px); }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/facturacion-config-gentelella.css" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-facturacion-config-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/admin/facturacion" style="font-size:13px;color:var(--color-text-muted);text-decoration:none;margin-right:12px;">← Facturas</a>
+      <h1 class="topbar-title">Configuración ARCA</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Cargá el certificado y las credenciales que usa el sistema para emitir facturas electrónicas válidas ante AFIP.
+</div>
+
+  <main class="main">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
+    <div id="contenido" style="display:none">
+      <div class="cfg-wrap">
+
+        <div id="alerta" class="alerta"></div>
+
+        <!-- Estado actual -->
+        <div class="cfg-card" style="padding:16px 28px">
+          <div>
+            <span id="chip-estado" class="chip chip-no"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin configurar</span>
+            <span id="chip-homo" class="chip chip-homo" style="display:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="6" fill="var(--color-primary)" stroke="none"/></svg>Homologación</span>
+          </div>
+          <p id="txt-estado" style="font-size:13px;color:var(--color-text-muted);margin:0">
+            Completá los datos a continuación para comenzar a emitir comprobantes electrónicos ante ARCA.
+          </p>
+        </div>
+
+        <!-- Guía + formulario a la par en escritorio (ver .cfg-grid-2col) -->
+        <div class="cfg-grid-2col">
+
+        <!-- Guía de alta -->
+        <div class="cfg-card">
+          <h2>Alta del certificado ARCA (Argentina)</h2>
+          <p class="sub">El proceso se hace una vez por empresa. Llevá los comandos ya preparados — el portal ARCA no tiene mucha documentación. Probá siempre primero en Homologación antes de pasar a producción.</p>
+          <div class="paso"><span class="paso-n">1</span><p class="paso-t">En tu servidor o máquina local, generá la clave privada y el CSR con OpenSSL (sirve para ambos ambientes):<br><code>openssl req -new -newkey rsa:2048 -keyout privada.key -out solicitud.csr -subj "/C=AR/O=NOMBRE_EMPRESA/serialNumber=CUIT XXXXXXXXXX"</code></p></div>
+          <div class="paso"><span class="paso-n">2</span><p class="paso-t"><strong>Homologación (pruebas) primero:</strong> entrá a <a href="https://wsass-homo.afip.gob.ar" target="_blank" style="color:var(--color-primary)">WSASS</a> con clave fiscal, subí el CSR, descargá el <code>.crt</code> de prueba y autorizá ahí mismo el servicio <code>wsfe</code>. Sin esta autorización ARCA rechaza cualquier intento de emisión.</p></div>
+          <div class="paso"><span class="paso-n">3</span><p class="paso-t">Cargá ese <code>.crt</code> de homologación abajo con el toggle <strong>Homologación activado</strong> y emití una factura de prueba (sin validez fiscal) para confirmar que el circuito funciona de punta a punta antes de tocar datos reales.</p></div>
+          <div class="paso"><span class="paso-n">4</span><p class="paso-t">Cuando la prueba salga bien, tramitá el certificado de <strong>producción</strong>: ingresá al <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" style="color:var(--color-primary)">portal ARCA (AFIP)</a> con clave fiscal nivel 3, entrá a <strong>Administrador de Relaciones de Clave Fiscal → Arca (WS) → agregar representado</strong>, subí el mismo CSR (o uno nuevo) y descargá el <code>.crt</code> de producción — es un certificado distinto al de homologación, no se reusa.</p></div>
+          <div class="paso"><span class="paso-n">5</span><p class="paso-t">Autorizá el servicio WSFEv1 para el CUIT desde <strong>Mis Servicios → Factura Electrónica → Adherir</strong>.</p></div>
+          <div class="paso"><span class="paso-n">6</span><p class="paso-t">Dá de alta el punto de venta en <strong>Administración de puntos de venta y domicilios</strong>, sistema "Comprobantes en línea" / WSFEv1. Sin este paso ARCA rechaza la emisión aunque el certificado sea válido. Anotá el número — es el que va en "Punto de venta" acá al lado.</p></div>
+          <div class="paso"><span class="paso-n">7</span><p class="paso-t">Pegá el <code>.crt</code> y la <code>privada.key</code> de producción en los campos de abajo, actualizá el Punto de venta con el número del paso 6, guardá y usá <strong>"Verificar conexión"</strong> — si ARCA devuelve un token, desactivá el toggle de Homologación y ya podés emitir en real.</p></div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="cfg-card">
+          <h2>Datos de la empresa</h2>
+          <p class="sub">Se guardan en <code>facturacion_config</code>. El cert y la clave nunca se leen desde el frontend.</p>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CUIT <span style="color:var(--color-danger-mid)">*</span></label>
+              <input type="text" id="cuit" placeholder="20123456789" maxlength="13" aria-label="CUIT">
+              <p class="hint">Sin guiones. 11 dígitos.</p>
+              <p class="field-error-msg" id="cuit-error" style="display:none;"></p>
+            </div>
+            <div class="form-group">
+              <label>Punto de venta <span style="color:var(--color-danger-mid)">*</span></label>
+              <input type="text" id="punto_venta" placeholder="1" maxlength="5" aria-label="Punto de venta">
+              <p class="hint">Número habilitado ante ARCA.</p>
+              <p class="field-error-msg" id="punto_venta-error" style="display:none;"></p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Razón social</label>
+              <input type="text" id="razon_social" placeholder="ACME S.R.L." aria-label="Razón social">
+            </div>
+            <div class="form-group">
+              <label>Condición de IVA</label>
+              <select id="condicion_iva">
+                <option value="">— seleccionar —</option>
+                <option value="monotributo">Monotributista</option>
+                <option value="responsable_inscripto">Responsable Inscripto</option>
+                <option value="exento">Exento</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Domicilio fiscal</label>
+            <input type="text" id="domicilio" placeholder="Av. Corrientes 1234, CABA" aria-label="Domicilio">
+          </div>
+
+          <hr class="div">
+
+          <div class="form-group">
+            <label>Certificado PEM <span style="color:var(--color-text-light)">(dejar vacío para conservar el actual)</span></label>
+            <textarea id="cert_pem" placeholder="-----BEGIN CERTIFICATE-----&#10;MIIExxx...&#10;-----END CERTIFICATE-----"></textarea>
+            <p class="hint">Contenido completo del archivo .crt descargado de ARCA.</p>
+          </div>
+
+          <div class="form-group">
+            <label>Clave privada PEM <span style="color:var(--color-text-light)">(dejar vacío para conservar la actual)</span></label>
+            <textarea id="key_pem" placeholder="-----BEGIN PRIVATE KEY-----&#10;MIIExxx...&#10;-----END PRIVATE KEY-----"></textarea>
+            <p class="hint">Contenido completo de privada.key. Nunca sale del servidor.</p>
+          </div>
+
+          <hr class="div">
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Modo homologación</div>
+              <div class="toggle-desc">Activo = usa endpoints de prueba de ARCA. Desactivar cuando estés listo para producción.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="homologacion" checked aria-label="Modo homologación">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="acciones" style="margin-top:20px">
+            <button type="button" class="btn-test" onclick="testearConexion()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M22 9.5l-4-4M15 3l6 6M2 22l3.5-3.5M9 5l4 4-9 9-4-4z"/></svg>Verificar conexión</button>
+            <button type="button" class="btn-primary" onclick="btnAsyncClick(this, guardarConfig)">Guardar configuración</button>
+          </div>
+        </div>
+
+        </div><!-- /cfg-grid-2col -->
+
+      </div>
+    </div><!-- /contenido -->
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script>
+const API_BASE = window.ENV?.API_URL || '';
+
+async function init() {
+  await window.authReady;
+  const perfil = window.authCtx?.perfil;
+  if (!perfil || !['dueno','admin'].includes(perfil.rol)) {
+    window.location.href = '/admin/dashboard';
+    return;
+  }
+  if (window.authCtx?.perfil?.empresas) {
+    const nombre = window.authCtx.perfil.empresas.nombre || 'Admin';
+    const sidebar = document.getElementById('sidebar-empresa');
+    if (sidebar) sidebar.textContent = nombre;
+    const logo = document.getElementById('sidebar-logo');
+    if (logo) logo.textContent = nombre[0].toUpperCase();
+  }
+  if (perfil.nombre) document.getElementById('topbar-usuario').textContent = perfil.nombre;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('contenido').style.display = 'block';
+  await cargarConfig();
+}
+
+async function cargarConfig() {
+  try {
+    const r = await fetch(`${API_BASE}/api/facturas/config`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+
+    const chip = document.getElementById('chip-estado');
+    const txt  = document.getElementById('txt-estado');
+    const chipHomo = document.getElementById('chip-homo');
+
+    if (d.configurado) {
+      chip.className   = 'chip chip-ok';
+      chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Configurado';
+      txt.textContent  = `CUIT ${d.cuit || '—'} · Punto de venta ${d.punto_venta || '—'} · ${d.razon_social || ''}`.trim();
+    } else {
+      chip.className   = 'chip chip-no';
+      chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin configurar';
+      txt.textContent  = 'Completá los datos a continuación para comenzar a emitir comprobantes electrónicos ante ARCA.';
+    }
+
+    chipHomo.style.display = d.homologacion ? 'inline-flex' : 'none';
+
+    // Rellenar campos no sensibles
+    if (d.cuit)          document.getElementById('cuit').value          = d.cuit;
+    if (d.punto_venta)   document.getElementById('punto_venta').value   = d.punto_venta;
+    if (d.razon_social)  document.getElementById('razon_social').value  = d.razon_social;
+    if (d.domicilio)     document.getElementById('domicilio').value     = d.domicilio;
+    if (d.condicion_iva) document.getElementById('condicion_iva').value = d.condicion_iva;
+    document.getElementById('homologacion').checked = d.homologacion !== false;
+
+    // cert_pem y key_pem NO se rellenan (nunca viajan al frontend)
+  } catch(e) { console.error('[config] cargarConfig:', e); }
+}
+
+async function testearConexion() {
+  // El test no necesita que el form esté completo: usa las credenciales
+  // ya guardadas en Supabase (wsaa.js las lee con service_role).
+  // Si acaban de cambiar cert/key, hay que guardar primero.
+  mostrarAlerta('inf', 'Verificando conexión con ARCA…');
+  try {
+    const r = await fetch(`${API_BASE}/api/facturas/config?accion=test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await getToken()}` },
+      body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const vto = d.expiration ? ` (token válido hasta ${new Date(d.expiration).toLocaleString('es-AR')})` : '';
+      mostrarAlerta('ok', `Conexión con ARCA exitosa. Certificado y clave válidos.${vto}`);
+    } else {
+      mostrarAlerta('err', `${d.error}`);
+    }
+  } catch(e) {
+    mostrarAlerta('err', 'Error de red al conectar con ARCA.');
+  }
+}
+
+async function guardarConfig() {
+  const body = leerForm();
+  if (!body) return;
+  try {
+    const r = await fetch(`${API_BASE}/api/facturas/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await getToken()}` },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      mostrarAlerta('ok', 'Configuración ARCA guardada correctamente.');
+      await cargarConfig();
+    } else {
+      mostrarAlerta('err', `${d.error || 'Error al guardar'}`);
+    }
+  } catch(e) {
+    mostrarAlerta('err', 'Error de red al guardar.');
+  }
+}
+
+function marcarCampoInvalidoFC(id, mensaje) {
+  const campo = document.getElementById(id);
+  const msg = document.getElementById(`${id}-error`);
+  if (campo) { campo.setAttribute('aria-invalid', 'true'); }
+  if (msg) { msg.textContent = mensaje; msg.style.display = 'block'; }
+}
+function limpiarValidacionFC() {
+  ['cuit', 'punto_venta'].forEach(id => {
+    document.getElementById(id)?.removeAttribute('aria-invalid');
+    const msg = document.getElementById(`${id}-error`);
+    if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+  });
+}
+
+function leerForm() {
+  limpiarValidacionFC();
+  const cuit        = document.getElementById('cuit').value.trim().replace(/-/g,'');
+  const punto_venta = document.getElementById('punto_venta').value.trim();
+  const razon_social  = document.getElementById('razon_social').value.trim();
+  const domicilio     = document.getElementById('domicilio').value.trim();
+  const condicion_iva = document.getElementById('condicion_iva').value;
+  const cert_pem    = document.getElementById('cert_pem').value.trim();
+  const key_pem     = document.getElementById('key_pem').value.trim();
+  const homologacion = document.getElementById('homologacion').checked;
+
+  if (!cuit || !punto_venta) {
+    if (!cuit) marcarCampoInvalidoFC('cuit', 'El CUIT es obligatorio');
+    if (!punto_venta) marcarCampoInvalidoFC('punto_venta', 'El punto de venta es obligatorio');
+    mostrarAlerta('err', 'CUIT y Punto de venta son obligatorios.');
+    return null;
+  }
+  if (!/^\d{11}$/.test(cuit)) {
+    marcarCampoInvalidoFC('cuit', 'Debe tener exactamente 11 dígitos, sin guiones');
+    mostrarAlerta('err', 'El CUIT debe tener exactamente 11 dígitos, sin guiones.');
+    return null;
+  }
+  if (isNaN(parseInt(punto_venta))) {
+    marcarCampoInvalidoFC('punto_venta', 'Debe ser un número');
+    mostrarAlerta('err', 'El Punto de venta debe ser un número.');
+    return null;
+  }
+
+  const body = { cuit, punto_venta, razon_social, domicilio, condicion_iva, homologacion };
+  // Solo incluir cert/key si el usuario los completó (evita pisar los existentes con vacío)
+  if (cert_pem) body.cert_pem = cert_pem;
+  if (key_pem)  body.key_pem  = key_pem;
+  return body;
+}
+
+function mostrarAlerta(tipo, msg) {
+  const el = document.getElementById('alerta');
+  el.className = `alerta alerta-${tipo}`;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (tipo === 'ok') setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+async function getToken() {
+  const { data: { session } } = await window.authCtx.sb.auth.getSession();
+  return session?.access_token || '';
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

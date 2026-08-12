@@ -1,0 +1,473 @@
+/**
+ * vencimientos-gentelella.css — Reskin "Gentelella v4" de la pantalla Vencimientos
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Pantalla: Lotes y vencimientos / Liquidación (frontend/admin/vencimientos.html)
+ * Se carga DESPUÉS de /frontend/admin/css/compras.css y /frontend/admin/css/finanzas.css
+ * (CSS base compartido con Compras/Cobranzas), y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * Reusa los patrones ya establecidos en cobranzas-gentelella.css (.fkpi/.tabla-wrap/.tab-btn)
+ * y cc-proveedores-gentelella.css (.paginacion-container/.btn-pag) y stock-gentelella.css
+ * (.badge-ok/.badge-bajo/.badge-critico) para mantener consistencia entre pantallas
+ * que comparten estos componentes.
+ *
+ * Nota: `.badge-ok`/`.badge-warn`/`.badge-danger`/`.badge-muted` (generadas por lotes.js
+ * en badgeEstado()), `.cod-badge`, `.btn-acc`/`.btn-acc.btn-danger`, `.alerta-banner`/
+ * `.alerta-rojo`/`.alerta-naranja` y `em.muted` no tienen ninguna definición base (ni de
+ * forma ni de color) en compras.css/finanzas.css ni en ningún CSS cargado por esta
+ * pantalla — sin reskin, renderizan sin forma de pastilla/botón. Se les da estructura
+ * completa acá (mismo criterio ya usado en usuarios-gentelella.css para `.badge-estado`).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-vencimientos-gentelella
+ * (nota: /admin/lotes y /admin/liquidacion son redirects a /admin/vencimientos —
+ * quedan resueltos automáticamente por este mismo archivo, no son pantallas aparte)
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella { background: var(--ge-bg) !important; }
+body.dash-vencimientos-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-vencimientos-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-vencimientos-gentelella .topbar-workspace,
+body.dash-vencimientos-gentelella .topbar-contador,
+body.dash-vencimientos-gentelella .topbar-fecha {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-vencimientos-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-vencimientos-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Botón primario "Nuevo lote" / secundario "Generar ofertas ahora" */
+body.dash-vencimientos-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-vencimientos-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-vencimientos-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pestañas (Lotes y vencimientos / Liquidación)
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .venc-tabs {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .venc-tab {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .venc-tab:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .venc-tab.activo {
+  color: var(--ge-teal) !important;
+  border-bottom-color: var(--ge-teal) !important;
+}
+
+/* Alertas de vencimiento (banner-alertas) */
+body.dash-vencimientos-gentelella .alerta-banner {
+  display: flex !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px !important;
+}
+body.dash-vencimientos-gentelella .alerta-rojo {
+  background: rgba(231,76,60,.1) !important;
+  border: 1px solid var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-vencimientos-gentelella .alerta-naranja {
+  background: var(--ge-warning-bg) !important;
+  border: 1px solid var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .search-wrap input,
+body.dash-vencimientos-gentelella .filtros-bar input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .search-wrap input:focus,
+body.dash-vencimientos-gentelella .filtros-bar input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella .search-wrap svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-vencimientos-gentelella .select-filtro {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-vencimientos-gentelella .select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de lotes
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-vencimientos-gentelella .tabla-main th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .tabla-main td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .tabla-main td.vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-vencimientos-gentelella .tabla-main tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-vencimientos-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella em.muted {
+  color: var(--ge-muted) !important;
+  font-style: italic !important;
+}
+
+/* Código de producto (cod-badge) */
+body.dash-vencimientos-gentelella .cod-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 2px 7px !important;
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 11px !important;
+  font-family: monospace !important;
+}
+
+/* Pastillas de estado del lote (Activo / Por vencer / Vencido / Agotado) */
+body.dash-vencimientos-gentelella .badge-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-vencimientos-gentelella .badge-warn {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-vencimientos-gentelella .badge-danger {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-vencimientos-gentelella .badge-muted {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* Botones de acción en fila (Editar / Eliminar) */
+body.dash-vencimientos-gentelella .btn-acc {
+  display: inline-flex !important;
+  align-items: center !important;
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 12px !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+}
+body.dash-vencimientos-gentelella .btn-acc:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-vencimientos-gentelella .btn-acc.btn-danger {
+  color: var(--ge-red) !important;
+}
+body.dash-vencimientos-gentelella .btn-acc.btn-danger:hover {
+  background: rgba(231,76,60,.08) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Paginación */
+body.dash-vencimientos-gentelella .paginacion-container {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-vencimientos-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Liquidación: KPIs
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .fkpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-label {
+  color: var(--ge-muted) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-val {
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-val.azul {
+  color: var(--ge-teal) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-val.amarillo {
+  color: var(--ge-warning-text) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-val.rojo {
+  color: var(--ge-red) !important;
+}
+body.dash-vencimientos-gentelella .fkpi-sub {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Liquidación: reglas automáticas (card)
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-vencimientos-gentelella .card-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .card-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .ayuda-contextual svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-vencimientos-gentelella .form-group label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .form-group input[type="number"],
+body.dash-vencimientos-gentelella .form-group input[type="checkbox"] {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .form-group input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella .form-hint {
+  color: var(--ge-muted) !important;
+}
+body.dash-vencimientos-gentelella .card-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Liquidación: tabla de ofertas activas
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella table.tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella table.tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella table.tabla tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella .monto-verde {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-vencimientos-gentelella .chip-rojo {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-vencimientos-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal (nuevo / editar lote)
+   ════════════════════════════════════════════════════════════ */
+body.dash-vencimientos-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-vencimientos-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-vencimientos-gentelella .modal-box-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-vencimientos-gentelella .modal-box-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .modal-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .modal-box-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* Formulario del modal */
+body.dash-vencimientos-gentelella .form-group label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-vencimientos-gentelella .form-group input[type="text"],
+body.dash-vencimientos-gentelella .form-group input[type="number"],
+body.dash-vencimientos-gentelella .form-group input[type="date"],
+body.dash-vencimientos-gentelella .form-group select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .form-group input:focus,
+body.dash-vencimientos-gentelella .form-group select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-vencimientos-gentelella .sugerencias-drop {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* Botones de footer de modal */
+body.dash-vencimientos-gentelella .btn-cancelar {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .btn-cancelar:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-vencimientos-gentelella .btn-guardar {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-vencimientos-gentelella .btn-guardar:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ── Z-INDEX ESCALADO: confirm por encima de #modal-lote ────────────
+   BUG REAL (no solo de los tests): #modal-lote usa la clase
+   .modal-overlay — vencimientos.html carga compras.css (z-index:200)
+   Y finanzas.css (z-index:500) para esa misma clase; por orden de
+   cascada gana finanzas.css, z-index:500. window.confirmar() usa
+   --z-modal (default 400, shared/tokens.css). Con #modal-lote abierto
+   y --z-modal en 400, el diálogo de confirmación de "¿Confirmás crear
+   este lote?" / "Dar de baja" queda VISUALMENTE DETRÁS del modal — su
+   botón "ok" es inclickeable con mouse para cualquier usuario real, no
+   solo para Playwright ("<label>Costo unitario</label> ... subtree
+   intercepts pointer events"). Confirmado corriendo vencimientos.spec.js
+   contra Chromium real. Mismo hallazgo y mismo fix ya aplicado para los
+   casos análogos de #modal-cobro (cobranzas-gentelella.css) y
+   #modal-producto (productos-modal-fix.css) — acá se replica scopeado
+   a vencimientos.html. --z-toast ya estaba bien (600 > 500). */
+:root {
+  --z-modal: 10100;
+}

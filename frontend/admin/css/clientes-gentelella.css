@@ -1,0 +1,692 @@
+/**
+ * clientes-gentelella.css — Reskin "Gentelella v4" de la pantalla Clientes
+ * ──────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/clientes.css y de
+ * /frontend/shared/gentelella-tokens.css (debe estar antes en <head>).
+ *
+ * Nota de diseño: la pantalla ya tenía un estilo "TravelBox" con su propio
+ * acento turquesa (#0D9488). Gentelella lo reemplaza con --ge-teal (#26B99A),
+ * unificando el acento con el resto del admin. Las pills de filtro vuelven al
+ * estilo sobrio de Gentelella (gris/blanco → activa teal). Los avatares de
+ * color rotativo se mapean a una paleta de tokens ge-*.
+ *
+ * Tokens (--ge-*): solo desde frontend/shared/gentelella-tokens.css.
+ * Scope: body.dash-clientes-gentelella
+ *
+ * 2026-07-14: se corrigió una regresión — esta pantalla había reintroducido
+ * #7d4000 (3 veces) en vez de usar --ge-warning-text, ya consolidado desde
+ * pedidos/pos. También se tokenizó el verde de marca de WhatsApp
+ * (--ge-whatsapp, #25D366) porque reaparece en 2 pantallas próximas de
+ * la cola (whatsapp-conversaciones, whatsapp-onboarding).
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella { background: var(--ge-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Preloader
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .preloader {
+  background: var(--ge-sidebar-2) !important;
+}
+body.dash-clientes-gentelella .preloader-logo { color: var(--ge-teal) !important; }
+body.dash-clientes-gentelella .preloader-bar  { background: var(--ge-teal) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-clientes-gentelella .topbar-title    { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-clientes-gentelella .topbar-workspace { color: var(--ge-ink-soft) !important; }
+body.dash-clientes-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-clientes-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; }
+
+/* Botones topbar */
+body.dash-clientes-gentelella .btn-exportar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-clientes-gentelella .btn-exportar:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-clientes-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-clientes-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal-dark) !important;
+}
+body.dash-clientes-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-clientes-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+}
+
+/* Botón "Ver catálogo" — antes usaba .btn-tabla (pensada para acciones de
+   fila, sin ninguna regla CSS cargada en esta pantalla: por eso se veía sin
+   estilo). Clase propia, mismo tamaño/tipografía que .btn-exportar, con
+   acento violeta (--ge-purple) para diferenciarlo como acceso a una vista
+   "de afuera" (lo que ve el cliente), distinto del acento teal de las
+   acciones internas (Nuevo cliente) y del gris neutro de Exportar. */
+body.dash-clientes-gentelella .btn-ver-catalogo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--ge-radius-btn) !important;
+  border: 1px solid var(--ge-purple) !important;
+  background: var(--ge-panel) !important;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ge-purple) !important;
+  cursor: pointer;
+  transition: all .12s;
+}
+body.dash-clientes-gentelella .btn-ver-catalogo:hover {
+  background: var(--ge-purple) !important;
+  color: var(--ge-panel) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+body.dash-clientes-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toggle de vista (tabs Clientes / Precios / Direcciones)
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella #vista-toggle .e-pill {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  font-weight: 500 !important;
+  padding: 5px 14px !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-clientes-gentelella #vista-toggle .e-pill::after { content: '' !important; }
+body.dash-clientes-gentelella #vista-toggle .e-pill:hover {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-clientes-gentelella #vista-toggle .e-pill.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+  font-weight: 600 !important;
+}
+body.dash-clientes-gentelella #vista-toggle .e-pill.activa::after { content: '' !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Barra de filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .filtros-bar,
+body.dash-clientes-gentelella #vista-clientes .filtros-bar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* Search wrap */
+body.dash-clientes-gentelella .search-wrap,
+body.dash-clientes-gentelella #vista-clientes .search-wrap {
+  background: var(--ge-bg) !important;
+  border: 1.5px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+  padding: 8px 14px !important;
+}
+body.dash-clientes-gentelella .search-wrap svg,
+body.dash-clientes-gentelella #vista-clientes .search-wrap svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-clientes-gentelella .search-wrap:focus-within,
+body.dash-clientes-gentelella #vista-clientes .search-wrap:focus-within {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-clientes-gentelella .search-wrap:focus-within svg {
+  color: var(--ge-teal) !important;
+}
+body.dash-clientes-gentelella .search-wrap input {
+  color: var(--ge-ink) !important;
+}
+body.dash-clientes-gentelella .search-wrap input::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* Pills de estado (Todos/Activos/Inactivos/Con deuda/En riesgo) */
+body.dash-clientes-gentelella .estado-pills .e-pill {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-clientes-gentelella .estado-pills .e-pill::after { content: '' !important; }
+body.dash-clientes-gentelella .estado-pills .e-pill:hover {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-clientes-gentelella .estado-pills .e-pill.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+  font-weight: 600 !important;
+}
+body.dash-clientes-gentelella .estado-pills .e-pill.activa::after { content: '' !important; }
+/* Variantes de color semántico para pills */
+body.dash-clientes-gentelella .e-pill-verde.activa {
+  background: rgba(184,122,0,.12) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-clientes-gentelella .e-pill-rojo.activa {
+  background: rgba(231,76,60,.1) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-clientes-gentelella .e-pill-amarillo.activa {
+  background: rgba(240,173,78,.12) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+
+/* Select de zona / botón limpiar */
+body.dash-clientes-gentelella .select-filtro {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-clientes-gentelella .select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de clientes
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-clientes-gentelella #vista-clientes .tabla-wrap {
+  border-radius: var(--ge-radius-card) !important;
+}
+
+/* Encabezado */
+body.dash-clientes-gentelella .tabla-clientes thead {
+  background: var(--ge-bg) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .tabla-clientes th,
+body.dash-clientes-gentelella #vista-clientes .tabla-clientes thead th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 14px !important;
+}
+/* override the global rule `table th { background: var(--color-bg) !important; }` */
+
+/* Filas */
+body.dash-clientes-gentelella .fila-cliente,
+body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente td {
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-clientes-gentelella .fila-cliente:hover td,
+body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-clientes-gentelella .fila-inactiva { opacity: .55 !important; }
+
+/* Textos de celda */
+body.dash-clientes-gentelella .cli-nombre { color: var(--ge-ink) !important; }
+body.dash-clientes-gentelella .cli-razon  { color: var(--ge-ink-soft) !important; }
+body.dash-clientes-gentelella .cli-loc    { color: var(--ge-muted) !important; }
+body.dash-clientes-gentelella .td-text    { color: var(--ge-ink-soft) !important; }
+body.dash-clientes-gentelella .tel-link   { color: var(--ge-ink-soft) !important; }
+body.dash-clientes-gentelella .tel-link:hover { color: var(--ge-teal) !important; }
+
+/* Columna zona: sobria en Gentelella */
+body.dash-clientes-gentelella #vista-clientes td[data-label="Zona"] {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: inherit !important;
+}
+
+/* Números destacados */
+body.dash-clientes-gentelella .td-num     { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-clientes-gentelella .td-muted   { color: var(--ge-muted) !important; font-weight: 400 !important; }
+body.dash-clientes-gentelella .num-verde   { color: var(--ge-teal-dark) !important; }
+body.dash-clientes-gentelella .num-amarillo{ color: var(--ge-orange) !important; }
+body.dash-clientes-gentelella .num-rojo    { color: var(--ge-red) !important; }
+
+/* Tabla loading/empty */
+body.dash-clientes-gentelella .tabla-loading,
+body.dash-clientes-gentelella .tabla-empty { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Avatar del cliente
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella #vista-clientes .cli-avatar {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 12px !important;
+  box-shadow: none !important;
+}
+/* Rotación de colores ge-* para los avatares */
+body.dash-clientes-gentelella #vista-clientes tr.fila-cliente:nth-of-type(5n+2) .cli-avatar {
+  background: var(--ge-orange) !important;
+}
+body.dash-clientes-gentelella #vista-clientes tr.fila-cliente:nth-of-type(5n+3) .cli-avatar {
+  background: var(--ge-red) !important;
+}
+body.dash-clientes-gentelella #vista-clientes tr.fila-cliente:nth-of-type(5n+4) .cli-avatar {
+  background: var(--ge-blue) !important;
+}
+body.dash-clientes-gentelella #vista-clientes tr.fila-cliente:nth-of-type(5n+5) .cli-avatar {
+  background: var(--ge-purple) !important;
+}
+/* Badge de estado superpuesto */
+body.dash-clientes-gentelella #vista-clientes .cli-avatar::after {
+  background: var(--ge-teal-dark) !important;
+  border-color: var(--ge-panel) !important;
+}
+body.dash-clientes-gentelella #vista-clientes tr.fila-inactiva .cli-avatar::after {
+  background: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Badges de estado (Activo / Inactivo / Score)
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .badge-estado {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-clientes-gentelella .badge-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-clientes-gentelella .badge-ok .badge-dot { background: var(--ge-teal) !important; }
+body.dash-clientes-gentelella .badge-critico {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-clientes-gentelella .badge-critico .badge-dot { background: var(--ge-red) !important; }
+body.dash-clientes-gentelella .badge-bajo {
+  background: rgba(240,173,78,.12) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-clientes-gentelella .badge-bajo .badge-dot { background: var(--ge-orange) !important; }
+body.dash-clientes-gentelella .badge-neutro {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .badge-neutro .badge-dot { background: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Botones de acciones en tabla
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .btn-editar,
+body.dash-clientes-gentelella #vista-clientes .btn-editar {
+  background: transparent !important;
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-teal) !important;
+  box-shadow: none !important;
+  padding: 5px 14px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-clientes-gentelella .btn-editar:hover,
+body.dash-clientes-gentelella #vista-clientes .btn-editar:hover {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transform: translateY(-1px);
+}
+
+/* Botón portal (círculo de acceso) */
+body.dash-clientes-gentelella #vista-clientes .btn-portal {
+  border: 1.5px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-clientes-gentelella #vista-clientes .btn-portal::after {
+  color: var(--ge-muted) !important;
+}
+body.dash-clientes-gentelella #vista-clientes .btn-portal.btn-portal--activo {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-clientes-gentelella #vista-clientes .btn-portal.btn-portal--activo::after {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella #paginacion-clientes .btn-pag,
+body.dash-clientes-gentelella #vista-clientes #paginacion-clientes .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  padding: 6px 16px !important;
+}
+body.dash-clientes-gentelella #paginacion-clientes .btn-pag:hover:not(:disabled) {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-clientes-gentelella #paginacion-clientes .btn-pag:disabled {
+  opacity: .4 !important;
+}
+body.dash-clientes-gentelella #info-pag { color: var(--ge-ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Panel de alertas de score
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .panel-alertas-score {
+  background: rgba(231,76,60,.07) !important;
+  border: 1px solid rgba(231,76,60,.2) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-clientes-gentelella .panel-alerta-title { color: var(--ge-red) !important; }
+body.dash-clientes-gentelella .alerta-score-row { font-size: 13px !important; }
+body.dash-clientes-gentelella .alerta-score-row span { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal lateral (alta/edición cliente)
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-clientes-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .modal-titulo   { color: var(--ge-ink) !important; }
+body.dash-clientes-gentelella .modal-subtitulo { color: var(--ge-muted) !important; }
+body.dash-clientes-gentelella .modal-close {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+}
+body.dash-clientes-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Tabs del modal */
+body.dash-clientes-gentelella .modal-tabs {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .modal-tab {
+  color: var(--ge-muted) !important;
+  border-bottom: 2px solid transparent !important;
+}
+body.dash-clientes-gentelella .modal-tab:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-clientes-gentelella .modal-tab.activo {
+  color: var(--ge-teal) !important;
+  border-bottom-color: var(--ge-teal) !important;
+  font-weight: 600 !important;
+}
+
+/* Secciones */
+body.dash-clientes-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .modal-seccion { gap: 14px !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Formulario del modal
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .form-label {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 600 !important;
+}
+body.dash-clientes-gentelella .form-requerido { color: var(--ge-red) !important; }
+body.dash-clientes-gentelella .form-input,
+body.dash-clientes-gentelella .form-select {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-clientes-gentelella .form-input:focus,
+body.dash-clientes-gentelella .form-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-clientes-gentelella .form-input::placeholder { color: var(--ge-muted) !important; }
+
+/* Tooltip de ayuda contextual */
+body.dash-clientes-gentelella .ayuda-contextual {
+  color: var(--ge-muted) !important;
+}
+body.dash-clientes-gentelella .ayuda-contextual::after {
+  background: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Grilla de crédito
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .credito-item {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-clientes-gentelella .cred-label { color: var(--ge-muted) !important; }
+body.dash-clientes-gentelella .cred-val   { color: var(--ge-ink) !important; }
+body.dash-clientes-gentelella .val-verde   { color: var(--ge-teal-dark) !important; }
+body.dash-clientes-gentelella .val-amarillo { color: var(--ge-orange) !important; }
+body.dash-clientes-gentelella .val-rojo     { color: var(--ge-red) !important; }
+body.dash-clientes-gentelella .barra-credito {
+  background: var(--ge-border) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-clientes-gentelella .barra-verde   { background: var(--ge-teal) !important; }
+body.dash-clientes-gentelella .barra-amarillo { background: var(--ge-orange) !important; }
+body.dash-clientes-gentelella .barra-rojo     { background: var(--ge-red) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Tabs Historial / Cuenta cte. / Comprobantes / Bloqueos
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .ni-section-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-clientes-gentelella .ni-divider { border-color: var(--ge-border) !important; }
+body.dash-clientes-gentelella .loading-row { color: var(--ge-muted) !important; }
+
+/* Historial pedidos */
+body.dash-clientes-gentelella .ped-row   { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-clientes-gentelella .ped-num   { color: var(--ge-ink) !important; }
+body.dash-clientes-gentelella .ped-meta  { color: var(--ge-muted) !important; }
+body.dash-clientes-gentelella .ped-total { color: var(--ge-ink) !important; }
+
+/* Tabla cuenta corriente */
+body.dash-clientes-gentelella .tabla-cta th {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .tabla-cta td {
+  border-bottom: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones del formulario
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .form-acciones {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .btn-secundario {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-clientes-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-clientes-gentelella .btn-wa-pedido {
+  border-color: var(--ge-whatsapp) !important;
+  color: var(--ge-whatsapp) !important;
+}
+body.dash-clientes-gentelella .btn-wa-pedido:hover {
+  background: rgba(37,211,102,.08) !important;
+}
+body.dash-clientes-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: none !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-clientes-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  opacity: 1 !important;
+}
+body.dash-clientes-gentelella .btn-primario:disabled { opacity: .45 !important; }
+body.dash-clientes-gentelella .btn-peligro {
+  border: 1px solid var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-clientes-gentelella .btn-peligro:hover {
+  background: rgba(231,76,60,.08) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Score badges y modal de desglose
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .score-badge,
+body.dash-clientes-gentelella .score-badge-btn {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-clientes-gentelella .score-premium   { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-clientes-gentelella .score-bueno     { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-clientes-gentelella .score-normal    { background: rgba(52,152,219,.12) !important; color: var(--ge-info-text) !important; }
+body.dash-clientes-gentelella .score-riesgo    { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+body.dash-clientes-gentelella .score-bloqueado { background: var(--ge-bg) !important; color: var(--ge-muted) !important; }
+
+body.dash-clientes-gentelella .score-motivo-frase {
+  background: rgba(231,76,60,.07) !important;
+  border-left-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  border-radius: 0 var(--ge-radius-btn) var(--ge-radius-btn) 0 !important;
+}
+body.dash-clientes-gentelella .score-motivo-inline { color: var(--ge-red) !important; }
+
+body.dash-clientes-gentelella .score-comp {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-clientes-gentelella .score-comp-label { color: var(--ge-ink) !important; }
+body.dash-clientes-gentelella .score-comp-val   { color: var(--ge-muted) !important; }
+body.dash-clientes-gentelella .score-comp-desc  { color: var(--ge-muted) !important; }
+
+body.dash-clientes-gentelella .score-bar-wrap {
+  background: var(--ge-border) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-clientes-gentelella .score-bar-fill--alta  { background: var(--ge-teal) !important; }
+body.dash-clientes-gentelella .score-bar-fill--media { background: var(--ge-orange) !important; }
+body.dash-clientes-gentelella .score-bar-fill--baja  { background: var(--ge-red) !important; }
+
+body.dash-clientes-gentelella .score-historial {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .score-hist-row {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-clientes-gentelella .score-hist-row time { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modales secundarios — overlay, box, header, tab-panel
+   ════════════════════════════════════════════════════════════ */
+body.dash-clientes-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-clientes-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-clientes-gentelella .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-clientes-gentelella .modal-header h2,
+body.dash-clientes-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-clientes-gentelella .tab-panel {
+  background: transparent !important;
+}

@@ -1,0 +1,257 @@
+/**
+ * usuarios-gentelella.css — Reskin "Gentelella v4" de la pantalla Usuarios
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
+ * Proveedores/Cta.Cte.Proveedores/Órdenes de compra, ya reskinado) y de
+ * /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en el <head>).
+ * Reusa los patrones ya establecidos en compras-gentelella.css/proveedores-gentelella.css
+ * para `.tabla-wrap`/`.tabla-main`/`.col-sticky-end`/`.modal-box*`/`.form-*`/`.btn-cancelar`.
+ *
+ * Nota: `.badge-estado`/`.badge-ok` (generadas por usuarios.js para Activo/Inactivo)
+ * no tienen ninguna definición base en compras.css ni en ningún CSS cargado por
+ * esta pantalla — sin reskin, renderizan como texto plano sin pastilla. Se les da
+ * una forma de pastilla mínima acá (mismo patrón `.badge-estado`/`.badge-dot` usado
+ * en `clientes-gentelella.css`) para que se vean intencionales, no por inventar un
+ * componente nuevo. Mismo criterio con `.btn-fila-accion` (Editar/Desactivar/Reactivar),
+ * que tampoco tiene estilo base en ningún CSS cargado por esta pantalla.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-usuarios-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella { background: var(--ge-bg) !important; }
+body.dash-usuarios-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-usuarios-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-usuarios-gentelella .topbar-workspace,
+body.dash-usuarios-gentelella .topbar-contador {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-usuarios-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-usuarios-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-usuarios-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+body.dash-usuarios-gentelella .page-intro a {
+  color: var(--ge-teal) !important;
+}
+body.dash-usuarios-gentelella .page-intro a:hover {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Botón primario "Nuevo usuario" */
+body.dash-usuarios-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-usuarios-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros: búsqueda + select
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-usuarios-gentelella .search-wrap input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-usuarios-gentelella .search-wrap input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-usuarios-gentelella .search-wrap svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-usuarios-gentelella .search-wrap input:focus ~ svg {
+  color: var(--ge-teal) !important;
+}
+body.dash-usuarios-gentelella .select-filtro {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-usuarios-gentelella .select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de usuarios
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-usuarios-gentelella .tabla-main th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-usuarios-gentelella .tabla-main td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-usuarios-gentelella .tabla-main td.vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-usuarios-gentelella .tabla-main tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-usuarios-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-usuarios-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Pastillas de estado (Activo / Inactivo) */
+body.dash-usuarios-gentelella .badge-estado {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 3px 10px !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+body.dash-usuarios-gentelella .badge-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-usuarios-gentelella .badge-inactivo {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border: 1px solid var(--ge-border) !important;
+}
+
+/* Botones de acción en fila (Editar / Desactivar / Reactivar) */
+body.dash-usuarios-gentelella .btn-fila-accion {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 12px !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+}
+body.dash-usuarios-gentelella .btn-fila-accion:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal (nuevo / editar usuario)
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-usuarios-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-usuarios-gentelella .modal-box-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-usuarios-gentelella .modal-box-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-usuarios-gentelella .modal-box-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-usuarios-gentelella .modal-box-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-usuarios-gentelella .modal-box-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* Formulario */
+body.dash-usuarios-gentelella .form-label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-usuarios-gentelella .form-input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-usuarios-gentelella .form-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-usuarios-gentelella #grupo-password p {
+  color: var(--ge-muted) !important;
+}
+
+/* Botones de footer de modal */
+body.dash-usuarios-gentelella .btn-cancelar {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-usuarios-gentelella .btn-cancelar:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cuerpo del modal-box
+   ════════════════════════════════════════════════════════════ */
+body.dash-usuarios-gentelella .modal-box-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  padding: 18px 22px !important;
+  overflow-y: auto !important;
+}

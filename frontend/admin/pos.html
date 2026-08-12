@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Punto de venta — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/pos.css?v=201" />
+  <link rel="stylesheet" href="/frontend/admin/css/pos-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="dash-pos-gentelella dash-gentelella">
+
+<!-- ── PRELOADER ── -->
+<div id="app-preloader" class="preloader">
+  <div class="preloader-logo">D</div>
+  <span class="preloader-text">Cargando punto de venta…</span>
+  <div class="preloader-bar"></div>
+</div>
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Main layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Punto de venta</h1>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin/pedidos" class="pos-btn-admin" style="text-decoration:none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg>
+              Pedidos y presupuestos
+            </a>
+      <div id="pos-turno-chip" class="pos-turno-chip" style="display:none"></div>
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <!-- ══ Barra de accesos del POS: caja + panel de administración, siempre visible ══ -->
+  <nav class="pos-quickbar" id="pos-quickbar" aria-label="Accesos del punto de venta" style="display:none">
+    <div class="pos-quickbar-group" id="pos-quickbar-turno" style="display:none">
+      <span class="pos-quickbar-label">Caja</span>
+      <button type="button" id="btn-movimiento-caja" class="pos-quickbar-btn" onclick="abrirModalMovimiento()">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+        <span>Movimiento</span>
+      </button>
+      <button type="button" id="btn-reporte-z" class="pos-quickbar-btn" onclick="abrirModalReporteZ()">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+        <span>Reporte Z</span>
+      </button>
+    </div>
+
+    <div class="pos-quickbar-sep" id="pos-quickbar-sep" style="display:none"></div>
+
+    <div class="pos-quickbar-group" id="pos-quickbar-admin" style="display:none">
+      <span class="pos-quickbar-label">Administración</span>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('ventas')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <span>Ventas</span>
+      </button>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('stock')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+        <span>Stock</span>
+      </button>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('favoritos-tab')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></span>
+        <span>Favoritos</span>
+      </button>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('devoluciones')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg></span>
+        <span>Devoluciones</span>
+      </button>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('promociones')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.83 12.83A2 2 0 0 1 2.24 11.4L2.7 3.7A1 1 0 0 1 3.7 2.7l7.7-.46a2 2 0 0 1 1.42.59l7.76 7.76a2 2 0 0 1 0 2.82z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></span>
+        <span>Promociones</span>
+      </button>
+      <div class="pos-quickbar-sep pos-quickbar-sep--sub"></div>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('hardware')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+        <span>Hardware</span>
+      </button>
+      <button type="button" class="pos-quickbar-btn" onclick="abrirModalAdmin('config-pos')">
+        <span class="pos-quickbar-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        <span>Config POS</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main pos-main">
+
+    <!-- ══════════════════ PANTALLA: ABRIR TURNO ══════════════════ -->
+    <section id="pos-pantalla-turno" class="pos-card pos-turno-card" style="display:none">
+      <h2 class="pos-turno-titulo">Abrir caja</h2>
+      <p class="pos-turno-sub">Elegí una caja y el monto inicial para empezar a vender.</p>
+
+      <div id="pos-turnos-abiertos" class="pos-turnos-abiertos" style="display:none">
+        <p class="pos-sec-label">Ya tenés turno abierto en:</p>
+        <div id="pos-turnos-abiertos-lista" class="pos-turnos-lista"></div>
+        <p class="pos-turno-o">— o abrí una caja nueva —</p>
+      </div>
+
+      <div class="pos-turno-form">
+        <label class="pos-field-label" for="pos-select-caja">Caja</label>
+        <select id="pos-select-caja" class="input-base"></select>
+
+        <label class="pos-field-label" for="pos-monto-inicial">Monto inicial (efectivo en caja)</label>
+        <input id="pos-monto-inicial" class="input-base" type="number" min="0" step="1" data-money value="0" />
+
+        <button type="button" class="btn btn--primary btn--lg" id="btn-abrir-turno" onclick="abrirTurno()">Abrir caja y empezar a vender</button>
+      </div>
+      <div id="pos-turno-error" class="pos-turno-error" style="display:none"></div>
+    </section>
+
+    <!-- ══════════════════ PANTALLA: VENTA ══════════════════ -->
+    <section id="pos-pantalla-venta" class="pos-grid pos-grid--facil" style="display:none">
+
+      <!-- ── Columna izquierda: buscador + tabla de ítems del ticket ── -->
+      <!-- Zona del catálogo/buscador de productos -->
+      <div class="pos-col-busqueda pos-card">
+        <div class="pos-ticket-toolbar">
+          <div class="pos-buscador-container">
+            <div class="pos-busqueda-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="pos-input-producto" aria-label="Buscar producto en POS" class="pos-input-producto"
+                     placeholder="Código de barras o nombre del producto…" autocomplete="off" autofocus />
+            </div>
+            <!-- Resultados de búsqueda: aparecen como desplegable sobre la tabla del ticket -->
+            <div id="pos-resultados" class="pos-resultados">
+              <p class="pos-resultados-vacio">Escaneá un código de barras o escribí para buscar productos.</p>
+            </div>
+          </div>
+          <button type="button" class="pos-btn-buscar-articulo" onclick="document.getElementById('pos-input-producto').focus()" title="Ir al buscador (o escaneá el código de barras)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Buscar artículo
+          </button>
+          <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-camara" onclick="abrirModalScanner()" title="Escanear código de barras con la cámara de esta pantalla">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Cámara
+          </button>
+          <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-vincular-celular" onclick="abrirModalVincularCelular()" title="Usar el celular como lector de código de barras">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+            <span id="pos-btn-vincular-celular-label">Vincular celular</span>
+          </button>
+        </div>
+
+        <!-- Detalle del ticket: lista de ítems agregados al carrito -->
+        <div class="pos-ticket-tabla-wrap">
+          <div class="pos-ticket-tabla-head" aria-hidden="true">
+            <span class="col-num">#</span>
+            <span class="col-cod">Código</span>
+            <span class="col-item">Descripción</span>
+            <span class="col-cant">Cantidad</span>
+            <span class="col-desc">% Desc.</span>
+            <span class="col-unit">Unitario</span>
+            <span class="col-imp">Importe</span>
+            <span class="col-op"></span>
+          </div>
+          <div id="pos-carrito-items" class="pos-ticket-tabla-body">
+            <p class="pos-carrito-vacio">El carrito está vacío.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Columna derecha: totales, cobro, categorías y cliente ── -->
+      <div class="pos-col-carrito">
+
+        <!-- Panel oscuro de totales (subtotal / descuento / total) + cobrar -->
+        <div class="pos-panel-totales">
+          <div class="pos-totales">
+            <div class="pos-totales-fila"><span>Subtotal</span><span id="pos-tot-subtotal">$ 0</span></div>
+            <div class="pos-totales-fila pos-totales-fila--iva"><span>IVA</span><span id="pos-tot-iva">$ 0</span></div>
+            <!-- Fila descuento global (oculta hasta que aplica) -->
+            <div class="pos-totales-fila" id="pos-tot-descuento-global-fila" style="display:none">
+              <span>Descuento/Recargo</span><span id="pos-tot-descuento-global">$ 0</span>
+            </div>
+          </div>
+
+          <!-- Fase 2 — ítem 12: descuento global -->
+          <div class="pos-descuento-global-wrap" id="pos-descuento-global-wrap" style="display:none">
+            <label class="pos-field-label" for="pos-input-descuento-global">Descuento global (%)</label>
+            <div class="pos-descuento-global-row">
+              <input type="number" id="pos-input-descuento-global" class="input-base pos-desc-global-input"
+                     min="0" max="100" step="1" placeholder="0" onchange="aplicarDescuentoGlobal(this.value)" />
+              <button type="button" class="pos-desc-quitar-btn" onclick="aplicarDescuentoGlobal(0)" aria-label="Quitar descuento"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+          </div>
+
+          <div class="pos-total-grande">
+            <span class="pos-total-grande-label">Total</span>
+            <span class="pos-total-grande-monto" id="pos-tot-total">$ 0</span>
+          </div>
+
+          <button type="button" class="pos-btn-cobrar" id="btn-cobrar" onclick="abrirModalCobro()" disabled>
+            <span>Cobrar</span><span class="pos-btn-cobrar-hint">F2</span>
+          </button>
+
+          <!-- Accesos rápidos estilo escritorio (Nueva venta / Ver precio) -->
+          <div class="pos-acciones-rapidas">
+            <button type="button" class="pos-btn-accion-rapida" id="btn-vaciar-carrito" onclick="vaciarCarrito()">
+              <span>Nueva venta</span><span class="pos-btn-cobrar-hint">F4</span>
+            </button>
+            <button type="button" class="pos-btn-accion-rapida" onclick="document.getElementById('pos-input-producto').focus()">
+              <span>Ver precio</span><span class="pos-btn-cobrar-hint">F5</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Fase 2 — ítem 13: Grilla de favoritos, mostrada como accesos rápidos -->
+        <div id="pos-grilla-favoritos" class="pos-grilla-favoritos"></div>
+      </div>
+
+      <!-- ── Fila inferior: datos de la venta + datos del cliente ── -->
+      <div class="pos-col-inferior">
+
+        <div class="pos-card pos-info-card">
+          <h3 class="pos-info-card-tit">Datos de la venta</h3>
+          <div class="pos-info-card-body">
+            <div class="pos-info-fila"><span>Fecha</span><strong id="pos-info-fecha">—</strong></div>
+            <div class="pos-info-fila"><span>Comprobante</span><strong id="pos-info-comprobante">Ticket</strong></div>
+            <div class="pos-info-fila"><span>Caja</span><strong id="pos-info-caja">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Datos del cliente -->
+        <div class="pos-card pos-cliente-card pos-info-card">
+          <h3 class="pos-info-card-tit">Datos del cliente</h3>
+          <div class="pos-cliente-actual" id="pos-cliente-actual">
+            <span class="pos-cliente-label">Cliente</span>
+            <span class="pos-cliente-nombre" id="pos-cliente-nombre">Consumidor final</span>
+            <button type="button" class="pos-cliente-cambiar" id="btn-cambiar-cliente" onclick="abrirBuscadorCliente()">Elegir cliente</button>
+            <button type="button" class="pos-cliente-quitar" id="btn-quitar-cliente" onclick="quitarCliente()" style="display:none">Quitar</button>
+          </div>
+          <div id="pos-buscador-cliente" class="pos-buscador-cliente" style="display:none">
+            <input type="text" id="pos-input-cliente" aria-label="Buscar cliente en POS" class="input-base" placeholder="Buscar cliente por razón social..." autocomplete="off" />
+            <div id="pos-resultados-cliente" class="pos-resultados-cliente"></div>
+            <button type="button" class="btn btn--sm btn--outline" style="margin-top:6px;width:100%" onclick="abrirModalClienteRapido()">
+              + Crear cliente nuevo
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pos-acciones-caja">
+        <button type="button" class="pos-btn-cerrar-turno" id="btn-abrir-cierre-turno" onclick="abrirModalCierreTurno()">Cerrar caja</button>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal cobro (con vuelto — Fase 2, ítem 7, 8, 9)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-cobro-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-cobro-tit" style="display:none">
+  <div class="pos-modal pos-modal-cobro">
+    <div class="pos-modal-head">
+      <h2 id="modal-cobro-tit">Cobrar</h2>
+      <button type="button" class="modal-close" onclick="cerrarModalCobro()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="pos-modal-total">Total a cobrar: <strong id="pos-modal-total-monto">$ 0</strong></p>
+
+    <div id="pos-pagos-lista" class="pos-pagos-lista"></div>
+    <button type="button" class="pos-btn-agregar-pago" id="btn-agregar-pago" onclick="btnAsyncClick(this, agregarLineaPago)">+ Agregar medio de pago</button>
+
+    <div class="pos-pagos-resumen">
+      <div class="pos-totales-fila"><span>Pagado</span><span id="pos-pagado-total">$ 0</span></div>
+      <div class="pos-totales-fila" id="pos-pagos-diferencia-fila"><span>Diferencia</span><span id="pos-pagado-diferencia">$ 0</span></div>
+    </div>
+
+    <!-- Fase 2 — ítem 9: vuelto grande -->
+    <div id="pos-vuelto-wrap" class="pos-vuelto-wrap" style="display:none">
+      <span class="pos-vuelto-label">Vuelto</span>
+      <span class="pos-vuelto-monto" id="pos-vuelto-monto">$ 0</span>
+    </div>
+
+    <p id="pos-cobro-error" class="pos-turno-error" style="display:none"></p>
+
+    <div class="pos-modal-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModalCobro()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-cobro" onclick="btnAsyncClick(this, confirmarCobro)" aria-live="polite">Confirmar venta ↵</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal cierre de turno
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-cierre-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-cierre-tit" style="display:none">
+  <div class="pos-modal pos-modal-cierre">
+    <div class="pos-modal-head">
+      <h2 id="modal-cierre-tit">Cerrar caja</h2>
+      <button type="button" class="modal-close" onclick="cerrarModalCierreTurno()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="pos-cierre-sub">Contá el efectivo físico en caja e indicá el monto declarado.</p>
+    <div id="pos-cierre-resumen" class="pos-cierre-resumen"></div>
+    <label class="pos-field-label" for="pos-monto-final">Monto final declarado (efectivo)</label>
+    <input id="pos-monto-final" class="input-base" type="number" min="0" step="1" data-money />
+    <p id="pos-cierre-error" class="pos-turno-error" style="display:none"></p>
+    <div class="pos-modal-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModalCierreTurno()">Cancelar</button>
+      <button type="button" class="btn btn--danger" id="btn-confirmar-cierre" onclick="btnAsyncClick(this, confirmarCierreTurno)" aria-live="polite">Cerrar caja</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal movimiento de caja (Fase 2 — ítem 10)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-movimiento-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-movimiento-tit" style="display:none">
+  <div class="pos-modal pos-modal-movimiento pos-modal-caja-pro">
+    <div class="pos-modal-head">
+      <h2 id="modal-movimiento-tit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        Estado de caja
+      </h2>
+      <button type="button" class="modal-close" onclick="cerrarModalMovimiento()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Panel de saldo actual -->
+    <div class="pos-caja-saldo-panel" id="pos-caja-saldo-panel">
+      <div class="pos-caja-saldo-loading" id="pos-caja-saldo-loading">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pos-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        Cargando…
+      </div>
+      <div id="pos-caja-saldo-contenido" style="display:none">
+        <div class="franja-resumen-sololectura">
+          <span>Apertura: <strong id="caja-kpi-apertura">—</strong></span>
+          <span class="sep">·</span>
+          <span>Efectivo esperado: <strong id="caja-kpi-efectivo">—</strong></span>
+          <span class="sep">·</span>
+          <span>Total vendido: <strong id="caja-kpi-total">—</strong></span>
+        </div>
+        </div>
+
+        <!-- Historial de movimientos -->
+        <div class="pos-caja-hist-header">
+          <span class="pos-sec-label" style="margin:0">Movimientos del turno</span>
+        </div>
+        <div id="pos-caja-mov-lista" class="pos-caja-mov-lista">
+          <p class="pos-resultados-vacio">Sin movimientos registrados.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Separador -->
+    <div class="pos-caja-sep">
+      <span>Registrar movimiento</span>
+    </div>
+
+    <!-- Formulario -->
+    <div class="pos-caja-form">
+      <div class="pos-caja-form-row">
+        <div class="pos-caja-form-col">
+          <label class="pos-field-label" for="pos-mov-tipo">Tipo</label>
+          <select id="pos-mov-tipo" class="input-base">
+            <option value="sangria">Sangría — retiro parcial</option>
+            <option value="refuerzo">Refuerzo — agregar efectivo</option>
+            <option value="retiro_final">Retiro final — vaciado</option>
+          </select>
+        </div>
+        <div class="pos-caja-form-col pos-caja-form-col--monto">
+          <label class="pos-field-label" for="pos-mov-monto">Monto</label>
+          <input id="pos-mov-monto" class="input-base" type="number" min="0.01" step="1" data-money placeholder="0" />
+        </div>
+      </div>
+      <label class="pos-field-label" for="pos-mov-concepto">Concepto <span style="font-weight:400;color:var(--color-text-light)">(opcional)</span></label>
+      <input id="pos-mov-concepto" class="input-base" type="text" placeholder="Ej: envío a banco, cambio de turno…" />
+
+      <p id="pos-mov-error" class="pos-turno-error" style="display:none"></p>
+      <div class="pos-modal-acciones" style="margin-top:12px">
+        <button type="button" class="btn-secundario" onclick="cerrarModalMovimiento()">Cancelar</button>
+        <button type="button" class="btn btn--primary" id="btn-confirmar-movimiento" onclick="btnAsyncClick(this, confirmarMovimiento)">Registrar movimiento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal administración (Etapa 4 + Fase 2 agrega pestaña Favoritos)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay pos-modal-overlay--admin" id="modal-admin-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-admin-tit" style="display:none">
+  <div class="pos-modal pos-modal-admin">
+    <div class="pos-modal-head pos-admin-head">
+      <div>
+        <h2 id="modal-admin-tit">Panel de administración</h2>
+        <p class="pos-admin-head-sub">Ventas, stock, promociones y configuración del punto de venta</p>
+      </div>
+      <button type="button" class="modal-close" onclick="cerrarModalAdmin()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="pos-admin-layout">
+      <nav class="pos-admin-tabs" role="tablist" aria-label="Panel administrador">
+        <button type="button" class="pos-admin-tab activo" id="tab-ventas" role="tab" aria-selected="true" onclick="cambiarTabAdmin('ventas')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg>
+          <span>Ventas</span>
+        </button>
+        <button type="button" class="pos-admin-tab" id="tab-stock" role="tab" aria-selected="false" onclick="cambiarTabAdmin('stock')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Stock</span>
+        </button>
+        <button type="button" class="pos-admin-tab" id="tab-favoritos-tab" role="tab" aria-selected="false" onclick="cambiarTabAdmin('favoritos-tab')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+          <span>Favoritos</span>
+        </button>
+        <button type="button" class="pos-admin-tab" id="tab-devoluciones" role="tab" aria-selected="false" onclick="cambiarTabAdmin('devoluciones')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+          <span>Devoluciones</span>
+        </button>
+        <button type="button" class="pos-admin-tab" id="tab-promociones" role="tab" aria-selected="false" onclick="cambiarTabAdmin('promociones')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.83 12.83A2 2 0 0 1 2.24 11.4L2.7 3.7A1 1 0 0 1 3.7 2.7l7.7-.46a2 2 0 0 1 1.42.59l7.76 7.76a2 2 0 0 1 0 2.82z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+          <span>Promociones</span>
+        </button>
+        <button type="button" class="pos-admin-tab" id="tab-hardware" role="tab" aria-selected="false" onclick="cambiarTabAdmin('hardware')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span>Hardware</span>
+        </button>
+        <div class="pos-admin-tabs-sep"></div>
+        <button type="button" class="pos-admin-tab" id="tab-config-pos" role="tab" aria-selected="false" onclick="cambiarTabAdmin('config-pos')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Config POS</span>
+        </button>
+      </nav>
+
+      <div class="pos-admin-content">
+
+    <!-- Panel: Ventas (anular) -->
+    <div class="pos-admin-panel" id="panel-admin-ventas">
+      <input type="text" id="pos-admin-buscar-venta" class="input-base" placeholder="Buscar por número de venta..." autocomplete="off" aria-label="Buscar venta" />
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
+        <input type="date" id="pos-admin-ventas-desde" class="input-base" style="max-width:150px" aria-label="Desde" />
+        <input type="date" id="pos-admin-ventas-hasta" class="input-base" style="max-width:150px" aria-label="Hasta" />
+        <select id="pos-admin-ventas-estado" class="input-base" style="max-width:150px" aria-label="Estado">
+          <option value="">Todos los estados</option>
+          <option value="completada">Completadas</option>
+          <option value="anulada">Anuladas</option>
+        </select>
+        <button type="button" class="btn-secundario" onclick="cargarVentas(document.getElementById('pos-admin-buscar-venta').value.trim())">Filtrar</button>
+        <button type="button" class="btn-secundario" onclick="exportarVentasExcel()">Exportar Excel</button>
+      </div>
+      <div id="pos-admin-ventas-resumen" class="pos-ventas-resumen"></div>
+      <div id="pos-admin-ventas-lista" class="pos-admin-lista">
+        <p class="pos-resultados-vacio">Cargando ventas...</p>
+      </div>
+    </div>
+
+    <!-- Panel: Stock -->
+    <div class="pos-admin-panel" id="panel-admin-stock" style="display:none">
+      <p class="pos-sec-label">Transferir stock entre depósitos</p>
+      <label class="pos-field-label" for="pos-transf-producto">Producto</label>
+      <input type="text" id="pos-transf-producto" class="input-base" placeholder="Buscar producto por nombre o código..." autocomplete="off" />
+      <div id="pos-transf-producto-resultados" class="pos-resultados-cliente"></div>
+      <div id="pos-transf-producto-sel" class="pos-transf-producto-sel" style="display:none"></div>
+      <label class="pos-field-label" for="pos-transf-origen">Depósito origen</label>
+      <select id="pos-transf-origen" class="input-base"></select>
+      <label class="pos-field-label" for="pos-transf-destino">Depósito destino</label>
+      <select id="pos-transf-destino" class="input-base"></select>
+      <label class="pos-field-label" for="pos-transf-cantidad">Cantidad</label>
+      <input id="pos-transf-cantidad" class="input-base" type="number" min="0.001" step="1" />
+      <label class="pos-field-label" for="pos-transf-notas">Notas (opcional)</label>
+      <input id="pos-transf-notas" class="input-base" type="text" placeholder="Motivo, observaciones..." />
+      <p id="pos-transf-error" class="pos-turno-error" style="display:none"></p>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-transferencia" onclick="btnAsyncClick(this, confirmarTransferencia)">Transferir stock</button>
+      <p class="pos-sec-label" style="margin-top:14px">Transferencias recientes</p>
+      <div id="pos-admin-transferencias-lista" class="pos-admin-lista">
+        <p class="pos-resultados-vacio">Cargando historial...</p>
+      </div>
+    </div>
+
+    <!-- Panel: Favoritos (Fase 2 — ítem 13) -->
+    <div class="pos-admin-panel" id="panel-admin-favoritos-tab" style="display:none">
+      <p class="pos-cierre-sub">Configurá los productos de acceso rápido que aparecen en la grilla del POS.</p>
+      <div id="pos-fav-admin-lista" class="pos-admin-lista"></div>
+
+      <p class="pos-sec-label" style="margin-top:12px">Agregar producto a favoritos</p>
+      <input type="text" id="pos-fav-buscar" class="input-base" placeholder="Buscar producto por nombre..." autocomplete="off" aria-label="Buscar producto favorito" />
+      <div id="pos-fav-buscar-resultados" class="pos-resultados-cliente"></div>
+    </div>
+
+    <!-- Panel: Devoluciones (Fase 4) -->
+    <div class="pos-admin-panel" id="panel-admin-devoluciones" style="display:none">
+      <p class="pos-cierre-sub">Registrá devoluciones parciales de ventas. El stock se repone automáticamente.</p>
+
+      <label class="pos-field-label" for="dev-venta-buscar">Buscar venta por número</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="dev-venta-buscar" class="input-base" placeholder="Ej: V-0001" autocomplete="off" style="flex:1" />
+        <button type="button" class="btn btn--sm" onclick="buscarVentaDevolucion()">Buscar</button>
+      </div>
+      <div id="dev-venta-resultado" style="margin-top:8px"></div>
+
+      <div id="dev-items-panel" style="display:none;margin-top:12px">
+        <p class="pos-sec-label">Ítems de la venta — indicá las cantidades a devolver</p>
+        <div id="dev-items-lista" class="pos-admin-lista"></div>
+        <label class="pos-field-label" for="dev-motivo" style="margin-top:8px">Motivo de la devolución</label>
+        <input type="text" id="dev-motivo" class="input-base" placeholder="Producto defectuoso, error en el pedido..." />
+        <p id="dev-error" class="pos-turno-error" style="display:none"></p>
+        <button type="button" class="btn btn--primary" id="btn-confirmar-devolucion" onclick="btnAsyncClick(this, confirmarDevolucion)" style="margin-top:8px">Registrar devolución</button>
+      </div>
+
+      <p class="pos-sec-label" style="margin-top:14px" id="dev-historial-label" style="display:none">Devoluciones de esta venta</p>
+      <div id="dev-historial-lista"></div>
+    </div>
+
+    <!-- Panel: Promociones (Fase 4) -->
+    <div class="pos-admin-panel" id="panel-admin-promociones" style="display:none">
+      <p class="pos-cierre-sub">Configurá promociones automáticas: 2x1, descuento por categoría o por producto.</p>
+
+      <div id="pos-promos-lista" class="pos-admin-lista">
+        <p class="pos-resultados-vacio">Cargando...</p>
+      </div>
+
+      <p class="pos-sec-label" style="margin-top:14px">Nueva promoción</p>
+      <label class="pos-field-label" for="promo-nombre">Nombre</label>
+      <input type="text" id="promo-nombre" class="input-base" placeholder="Ej: 2x1 gaseosas, Desc. 10% lácteos..." />
+
+      <label class="pos-field-label" for="promo-tipo">Tipo</label>
+      <select id="promo-tipo" class="input-base" onchange="renderPromoFormExtra()">
+        <option value="nxm">NxM (ej. 2x1, 3x2)</option>
+        <option value="descuento_producto">Descuento en producto</option>
+        <option value="descuento_categoria">Descuento en categoría</option>
+      </select>
+
+      <div id="promo-extra-nxm">
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <div style="flex:1">
+            <label class="pos-field-label" for="promo-n">Compra (n)</label>
+            <input type="number" id="promo-n" class="input-base" min="2" step="1" value="2" placeholder="2" />
+          </div>
+          <div style="flex:1">
+            <label class="pos-field-label" for="promo-m">Paga (m)</label>
+            <input type="number" id="promo-m" class="input-base" min="1" step="1" value="1" placeholder="1" />
+          </div>
+        </div>
+      </div>
+
+      <div id="promo-extra-descuento" style="display:none">
+        <label class="pos-field-label" for="promo-pct">Descuento %</label>
+        <input type="number" id="promo-pct" class="input-base" min="1" max="100" step="1" placeholder="10" />
+        <div id="promo-extra-producto" style="display:none;margin-top:6px">
+          <label class="pos-field-label">Producto</label>
+          <input type="text" id="promo-prod-buscar" class="input-base" placeholder="Buscar producto..." autocomplete="off" />
+          <div id="promo-prod-resultados" class="pos-resultados-cliente"></div>
+          <div id="promo-prod-sel" style="display:none;font-size:13px;padding:4px 0;color:var(--color-text)"></div>
+        </div>
+        <div id="promo-extra-categoria" style="display:none;margin-top:6px">
+          <label class="pos-field-label">Categoría</label>
+          <select id="promo-cat-select" class="input-base"><option value="">Cargando categorías...</option></select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="flex:1">
+          <label class="pos-field-label" for="promo-desde">Desde (opcional)</label>
+          <input type="date" id="promo-desde" class="input-base" />
+        </div>
+        <div style="flex:1">
+          <label class="pos-field-label" for="promo-hasta">Hasta (opcional)</label>
+          <input type="date" id="promo-hasta" class="input-base" />
+        </div>
+      </div>
+
+      <p id="promo-error" class="pos-turno-error" style="display:none;margin-top:6px"></p>
+      <button type="button" class="btn btn--primary" id="btn-crear-promo" onclick="btnAsyncClick(this, crearPromocion)" style="margin-top:8px">Crear promoción</button>
+    </div>
+
+    <!-- Panel: Hardware (Fase 5 — impresora térmica + terminal de pago) -->
+    <div class="pos-admin-panel" id="panel-admin-hardware" style="display:none">
+      <p class="pos-cierre-sub">Configurá cómo imprime tickets esta caja y cómo se cobra con tarjeta/QR. Es por empresa: afecta a todas las cajas.</p>
+
+      <p class="pos-sec-label">Impresora de tickets</p>
+      <label class="pos-field-label" for="hw-imp-modo">Modo</label>
+      <select id="hw-imp-modo" class="input-base" onchange="toggleHardwareImpresoraFields()">
+        <option value="browser">Navegador (window.print, sin hardware)</option>
+        <option value="webusb">USB directa (ESC/POS — Epson, Bematech, Xprinter...)</option>
+        <option value="network">Red / WiFi (ESC/POS vía proxy local, IP:puerto)</option>
+        <option value="bluetooth">Bluetooth (ESC/POS portátil)</option>
+      </select>
+
+      <div id="hw-imp-network-fields" style="display:none">
+        <label class="pos-field-label" for="hw-imp-ip">IP del proxy de impresión</label>
+        <input id="hw-imp-ip" class="input-base" type="text" placeholder="Ej: 192.168.1.50" />
+        <label class="pos-field-label" for="hw-imp-puerto">Puerto</label>
+        <input id="hw-imp-puerto" class="input-base" type="number" value="9100" />
+      </div>
+
+      <label class="pos-field-label" for="hw-imp-papel">Ancho de papel</label>
+      <select id="hw-imp-papel" class="input-base">
+        <option value="80">80mm</option>
+        <option value="58">58mm</option>
+      </select>
+
+      <label style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px">
+        <input type="checkbox" id="hw-imp-corte" checked /> Cortar papel automáticamente
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+        <input type="checkbox" id="hw-imp-beep" /> Beep al finalizar
+      </label>
+
+      <div id="hw-imp-conectar-wrap" style="display:none;margin-top:6px">
+        <button type="button" class="btn-secundario" onclick="conectarImpresoraHardware()">Conectar dispositivo</button>
+      </div>
+      <button type="button" class="btn-secundario" style="margin-top:6px" onclick="probarImpresionHardware()">Prueba de impresión</button>
+
+      <hr style="border:none;border-top:1px solid var(--color-border);margin:14px 0" />
+
+      <p class="pos-sec-label">Terminal de pago (tarjeta / QR)</p>
+      <label class="pos-field-label" for="hw-term-driver">Terminal</label>
+      <select id="hw-term-driver" class="input-base" onchange="toggleHardwareTerminalFields()">
+        <option value="manual">Manual (cualquier terminal física)</option>
+        <option value="mp_point">Mercado Pago Point Smart/Plus</option>
+        <option value="getnet">Getnet (Santander)</option>
+        <option value="lapos">Lapos / Prisma</option>
+        <option value="naranja">Naranja X</option>
+      </select>
+      <p id="hw-term-desc" class="pos-cierre-sub" style="margin-top:2px"></p>
+
+      <div id="hw-term-mp_point-fields" style="display:none">
+        <label class="pos-field-label" for="hw-term-mp-token">Access token (vendedor MP)</label>
+        <input id="hw-term-mp-token" class="input-base" type="password" placeholder="APP_USR-..." autocomplete="off" />
+        <label class="pos-field-label" for="hw-term-mp-device">Device ID de la terminal</label>
+        <input id="hw-term-mp-device" class="input-base" type="text" placeholder="Ej: PAX_A910__SMARTPOS..." />
+        <p class="pos-cierre-sub" style="color:var(--color-danger)">
+          ⚠ Este token queda accesible en el navegador de cada caja que use esta terminal. No es un token de solo-cobro: tiene el alcance de tu cuenta de Mercado Pago. Usá un usuario/colaborador de MP dedicado al POS, no tu cuenta principal.
+        </p>
+      </div>
+
+      <div id="hw-term-getnet-fields" style="display:none">
+        <label class="pos-field-label" for="hw-term-getnet-pos">POS ID de Getnet</label>
+        <input id="hw-term-getnet-pos" class="input-base" type="text" />
+      </div>
+
+      <div id="hw-term-lapos-fields" style="display:none">
+        <label class="pos-field-label" for="hw-term-lapos-ip">IP del agente Lapos (misma LAN)</label>
+        <input id="hw-term-lapos-ip" class="input-base" type="text" placeholder="Ej: 192.168.1.60" />
+        <label class="pos-field-label" for="hw-term-lapos-puerto">Puerto</label>
+        <input id="hw-term-lapos-puerto" class="input-base" type="number" value="8080" />
+      </div>
+
+      <div id="hw-term-naranja-fields" style="display:none">
+        <label class="pos-field-label" for="hw-term-naranja-token">Token de integración Naranja X</label>
+        <input id="hw-term-naranja-token" class="input-base" type="password" autocomplete="off" />
+      </div>
+
+      <p id="hw-error" class="pos-turno-error" style="display:none"></p>
+      <button type="button" class="btn btn--primary" id="btn-guardar-hardware" style="margin-top:10px" onclick="btnAsyncClick(this, guardarConfigHardware)">Guardar configuración</button>
+    </div>
+
+    <!-- Panel: Config POS — supervisor_pin, umbral descuento, log movimientos_caja -->
+    <div class="pos-admin-panel" id="panel-admin-config-pos" style="display:none">
+
+      <!-- Supervisor PIN -->
+      <p class="pos-sec-label">PIN de supervisor</p>
+      <p class="pos-cierre-sub">Requerido cuando un cajero aplica un descuento mayor al umbral o anula una venta. <strong>NULL = función deshabilitada.</strong></p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+        <input type="password" id="cfg-supervisor-pin" class="input-base" style="max-width:160px;"
+          placeholder="4-8 dígitos numéricos" maxlength="8" autocomplete="new-password" aria-label="PIN de supervisor" />
+        <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, guardarSupervisorPin)">Guardar PIN</button>
+        <button type="button" class="btn-secundario" onclick="borrarSupervisorPin()">Borrar PIN</button>
+        <span class="texto-chico" id="cfg-pin-status"></span>
+      </div>
+
+      <!-- Umbral de descuento -->
+      <p class="pos-sec-label">Umbral de descuento por cajero (%)</p>
+      <p class="pos-cierre-sub">Porcentaje a partir del cual se solicita PIN de supervisor. Por defecto 15%.</p>
+      <div id="cfg-umbral-lista" style="margin-bottom:8px;display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+        <span class="texto-chico" id="cfg-umbral-status"></span>
+      </div>
+
+      <!-- Descuento global máximo permitido -->
+      <p class="pos-sec-label">Descuento global máximo (info)</p>
+      <p class="pos-cierre-sub" style="margin-bottom:14px;">El campo <em>descuento_global_pct</em> se guarda en cada venta y se muestra como badge en la pestaña <strong>Ventas</strong> de este mismo panel.</p>
+
+      <!-- Log de movimientos de caja -->
+      <p class="pos-sec-label">Log de movimientos de caja</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+        <input type="date" id="cfg-mov-desde" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);font-size:13px;" aria-label="Desde" />
+        <input type="date" id="cfg-mov-hasta" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);font-size:13px;" aria-label="Hasta" />
+        <button type="button" class="btn btn--primary" style="padding:6px 14px;font-size:13px;" onclick="cargarMovimientosCajaLog()">Filtrar</button>
+      </div>
+      <div id="cfg-movimientos-lista" class="pos-admin-lista">
+        <p class="pos-resultados-vacio">Seleccioná un rango de fechas y hacé clic en Filtrar.</p>
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+        <button type="button" id="btn-exportar-mov" class="btn-secundario" style="font-size:12px;padding:5px 14px;display:none;" onclick="exportarMovimientosExcel()">
+          ⬇ Exportar Excel
+        </button>
+      </div>
+    </div>
+
+      </div><!-- /.pos-admin-content -->
+    </div><!-- /.pos-admin-layout -->
+
+  </div><!-- /.pos-modal -->
+</div><!-- /#modal-admin-overlay -->
+
+<!-- Diálogo de cobro manual en terminal (lo inyecta pos-terminal.js) -->
+<style>
+.pos-terminal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.pos-terminal-dialog {
+  background: var(--color-surface); border-radius: var(--radius-xl);
+  padding: 24px; width: min(380px, 92vw); text-align: center;
+  box-shadow: 0 12px 32px rgba(0,0,0,.25);
+}
+.pos-terminal-dialog-icon { font-size: 40px; }
+.pos-terminal-dialog-monto { font-size: 28px; font-weight: 700; margin: 6px 0; }
+.pos-terminal-dialog-sub { font-size: 13px; color: var(--color-text-muted); margin-bottom: 14px; }
+.pos-terminal-dialog-ref { text-align: left; margin-bottom: 14px; }
+.pos-terminal-dialog-ref label { font-size: 12px; display: block; margin-bottom: 4px; }
+.pos-terminal-dialog-btns { display: flex; gap: 8px; }
+.pos-terminal-dialog-btns button { flex: 1; }
+</style>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal ticket (resultado de venta)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-ticket-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-ticket-tit" style="display:none">
+  <div class="pos-modal pos-modal-ticket">
+    <button type="button" class="pos-modal-cerrar" onclick="cerrarModalTicket()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="pos-ticket-ok">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+      <h2 id="modal-ticket-tit">Venta registrada</h2>
+      <p id="pos-ticket-numero"></p>
+    </div>
+    <div id="pos-ticket-detalle" class="pos-ticket-detalle"></div>
+    <p id="pos-ticket-factura-estado" class="pos-ticket-factura-estado" style="display:none"></p>
+    <div class="pos-modal-acciones">
+      <button type="button" class="btn-secundario" onclick="imprimirTicket()">Imprimir ticket</button>
+      <button type="button" class="btn-secundario" id="btn-facturar-venta" onclick="facturarVenta()" style="display:none">Facturar</button>
+      <button type="button" class="btn-secundario" id="btn-ver-comprobante" onclick="verComprobante()" style="display:none">Ver / imprimir comprobante</button>
+      <button type="button" class="btn btn--primary" onclick="cerrarModalTicket()">Nueva venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal PIN supervisor (Fase 2 — ítem 14)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-pin-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-pin-tit" style="display:none">
+  <div class="pos-modal pos-modal-pin">
+    <div class="pos-modal-head">
+      <h2 id="modal-pin-tit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Autorización requerida
+      </h2>
+    </div>
+    <p id="pos-pin-mensaje" class="pos-cierre-sub"></p>
+    <label class="pos-field-label" for="pos-pin-input">PIN de supervisor</label>
+    <input id="pos-pin-input" class="input-base pos-pin-input" type="password"
+           inputmode="numeric" pattern="[0-9]*" maxlength="8"
+           placeholder="••••" autocomplete="off" />
+    <p id="pos-pin-error" class="pos-turno-error" style="display:none"></p>
+    <div class="pos-modal-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModalPin()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-pin" onclick="btnAsyncClick(this, confirmarPin)">Autorizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Modal Reporte Z (Fase 2 — ítem 15)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-z-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-z-tit" style="display:none">
+  <div class="pos-modal pos-modal-z">
+    <div class="pos-modal-head">
+      <h2 id="modal-z-tit">Reporte de cierre — Z</h2>
+      <button type="button" class="modal-close" onclick="cerrarModalReporteZ()" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="pos-z-contenido" class="pos-z-contenido"></div>
+    <div class="pos-modal-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModalReporteZ()">Cerrar</button>
+      <button type="button" class="btn btn--primary" onclick="imprimirReporteZ()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-2px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── JS ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
+<!-- v612 — genera el QR del modal "Vincular celular" (ver pos-scanner-remoto.js) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script>
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'vendedor'];
+</script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+
+<!-- ══ MODAL: Alta rápida de cliente (Fase 3) ══════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-cliente-rapido-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-cr-tit" style="display:none">
+  <div class="pos-modal" style="max-width:420px">
+    <div class="pos-modal-header">
+      <h2 class="pos-modal-titulo" id="modal-cr-tit">Nuevo cliente</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="cerrarModalClienteRapido()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <p style="color:var(--color-text-light);font-size:var(--font-size-sm);margin:0">
+        Campos mínimos. Podés completar el resto desde el módulo Clientes después.
+      </p>
+      <div>
+        <label class="form-label" for="cr-razon-social">Nombre / Razón social <span style="color:var(--color-danger-mid)">*</span></label>
+        <input type="text" id="cr-razon-social" class="input-base" autocomplete="off" maxlength="200" placeholder="Ej: Juan Pérez o Comercio El Sol S.A." />
+      </div>
+      <div>
+        <label class="form-label" for="cr-cuit">CUIT / DNI</label>
+        <input type="text" id="cr-cuit" class="input-base" autocomplete="off" maxlength="20" placeholder="Ej: 20-12345678-9" />
+      </div>
+      <div>
+        <label class="form-label" for="cr-telefono">Teléfono</label>
+        <input type="tel" id="cr-telefono" class="input-base" autocomplete="off" maxlength="40" placeholder="Ej: 341 555-1234" />
+      </div>
+      <div>
+        <label class="form-label" for="cr-condicion-iva">Condición IVA</label>
+        <select id="cr-condicion-iva" class="form-select">
+          <option value="consumidor_final">Consumidor final</option>
+          <option value="responsable_inscripto">Responsable inscripto</option>
+          <option value="monotributo">Monotributista</option>
+          <option value="exento">Exento</option>
+        </select>
+      </div>
+      <p id="cr-error" class="pos-turno-error" style="display:none"></p>
+    </div>
+    <div class="pos-modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalClienteRapido()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-cliente-rapido" onclick="btnAsyncClick(this, confirmarClienteRapido)">Crear y seleccionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Alerta stock vacío (Fase 3) ══════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-stock-alerta-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-sa-tit" style="display:none">
+  <div class="pos-modal" style="max-width:460px">
+    <div class="pos-modal-header" style="background:var(--color-warning-bg);border-bottom:1px solid var(--color-warning-bg)">
+      <h2 class="pos-modal-titulo" id="modal-sa-tit" style="color:var(--color-warning-mid)">⚠ Depósito de mostrador sin stock</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="cerrarAlertaStock()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body">
+      <p style="font-size:var(--font-size-sm);margin:0 0 10px">
+        Los siguientes productos <strong>no tienen stock disponible</strong> en este depósito.
+        Las ventas de estos artículos van a ser rechazadas. Transferí stock desde el depósito principal antes de operar.
+      </p>
+      <p id="stock-alerta-deposito" style="font-size:var(--font-size-xs);color:var(--color-text-light);margin:0 0 8px"></p>
+      <ul id="stock-alerta-lista" style="margin:0;padding-left:18px;font-size:var(--font-size-sm);display:flex;flex-direction:column;gap:4px"></ul>
+      <p style="font-size:var(--font-size-xs);color:var(--color-text-light);margin:12px 0 0">
+        Para transferir stock: <strong>Administrar → Stock → Transferir entre depósitos</strong>
+      </p>
+    </div>
+    <div class="pos-modal-footer" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-xs);color:var(--color-text-light);cursor:pointer;font-weight:400">
+        <input type="checkbox" id="stock-alerta-no-mostrar-hoy" style="margin:0">
+        No mostrar de nuevo hoy
+      </label>
+      <button type="button" class="btn btn--primary" onclick="cerrarAlertaStock()">Entendido, continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ¿Querés facturar? (Fase 3) ══════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-facturar-opcional-overlay" style="display:none;z-index:1100" role="dialog" aria-modal="true" aria-labelledby="modal-fo-tit">
+  <div class="pos-modal" style="max-width:380px">
+    <div class="pos-modal-header">
+      <h2 class="pos-modal-titulo" id="modal-fo-tit">¿Emitir factura?</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="cerrarModalFacturarOpcional()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body" style="text-align:center">
+      <p style="margin:0 0 6px">Venta <strong id="fo-venta-numero"></strong> registrada.</p>
+      <p style="font-size:var(--font-size-sm);color:var(--color-text-light);margin:0">
+        ¿Querés emitir el comprobante AFIP ahora?
+      </p>
+      <p id="fo-error" class="pos-turno-error" style="display:none;margin-top:10px"></p>
+    </div>
+    <div class="pos-modal-footer" style="gap:8px">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalFacturarOpcional()">No, solo ticket</button>
+      <button type="button" class="btn btn--primary" id="btn-fo-facturar" onclick="facturarDesdeModal()">Sí, facturar ahora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Escanear código de barras con la cámara (v612) ═══════════
+     Alternativa al lector de mano: usa la cámara trasera del celular
+     para leer el código de barras del producto, con el mismo circuito
+     de búsqueda que ya dispara el lector físico (Enter en el buscador). -->
+<div class="pos-modal-overlay" id="modal-scanner-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-scanner-tit" style="display:none;z-index:1200">
+  <div class="pos-modal" style="max-width:420px">
+    <div class="pos-modal-header">
+      <h2 class="pos-modal-titulo" id="modal-scanner-tit">Escanear con la cámara</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="cerrarModalScanner()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body" style="display:flex;flex-direction:column;gap:10px">
+      <div class="pos-scanner-video-wrap">
+        <video id="pos-scanner-video" autoplay muted playsinline></video>
+        <div class="pos-scanner-marco" aria-hidden="true"></div>
+      </div>
+      <p style="font-size:var(--font-size-xs);color:var(--color-text-light);margin:0;text-align:center">
+        Apuntá la cámara al código de barras del producto. Se agrega solo al detectarlo.
+      </p>
+      <p id="pos-scanner-error" class="pos-turno-error" style="display:none"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Vincular celular (v612) ══════════════════════════════════
+     El celular escanea con su propia cámara (página pública /scan-pos) y
+     cada código llega en tiempo real, por Supabase Realtime Broadcast, a
+     esta pantalla — mismo circuito de búsqueda que ya usan el lector
+     físico y la cámara local (buscarProductos). Ver pos-scanner-remoto.js. -->
+<div class="pos-modal-overlay" id="modal-vincular-celular-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-vc-tit" style="display:none;z-index:1200">
+  <div class="pos-modal pos-modal--vc" style="max-width:380px">
+    <div class="pos-modal-header">
+      <h2 class="pos-modal-titulo" id="modal-vc-tit">Vincular celular</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="ocultarModalVincularCelular()" aria-label="Ocultar (el vínculo sigue activo)" title="Ocultar — el celular sigue vinculado"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body pos-vc-body">
+
+      <div id="vc-estado-generando" class="pos-vc-estado">
+        <div class="pos-vc-spinner" aria-hidden="true"></div>
+        <p>Generando vínculo…</p>
+      </div>
+
+      <div id="vc-estado-qr" class="pos-vc-estado" style="display:none">
+        <div id="vc-qr-canvas" class="pos-vc-qr"></div>
+        <p class="pos-vc-esperando"><span class="pos-vc-punto" aria-hidden="true"></span>Esperando que escanees el QR…</p>
+        <p class="pos-vc-nota">
+          Abrí la cámara del celular y apuntá al código. Si no podés escanearlo, entrá manualmente a
+          <a id="vc-link-fallback" href="#" target="_blank" rel="noopener"></a>.
+        </p>
+      </div>
+
+      <div id="vc-estado-conectado" class="pos-vc-estado" style="display:none">
+        <div class="pos-vc-check" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <p class="pos-vc-titulo-estado">Celular conectado</p>
+        <p class="pos-vc-nota">Escaneá desde el teléfono — cada código se agrega solo, acá mismo.</p>
+        <p id="vc-ultimo-codigo" class="pos-vc-ultimo-codigo" style="display:none"></p>
+      </div>
+
+      <p id="vc-error" class="pos-turno-error" style="display:none"></p>
+    </div>
+    <div class="pos-modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="ocultarModalVincularCelular()">Ocultar</button>
+      <button type="button" class="btn btn--danger" onclick="desvincularCelular()">Cerrar vínculo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+<script src="/shared/offline-core.js?v1"></script>
+<script src="/frontend/admin/js/pos-offline.js?v2"></script>
+<script src="/frontend/admin/js/pos-printer.js?v1782700000000"></script>
+<script src="/frontend/admin/js/pos-terminal.js?v1782700000000"></script>
+<script src="/frontend/admin/js/pos-scanner.js?v1785878700000"></script>
+<script src="/frontend/admin/js/pos.js?v1783031812350"></script>
+<script src="/frontend/admin/js/pos-scanner-remoto.js?v1"></script>
+
+<script>
+// Mostrar el grupo de caja (Movimiento/Reporte Z) solo cuando hay turno abierto
+// (se hace acá para no depender del orden de carga del pos.js)
+(function hookTurno() {
+  const chip = document.getElementById('pos-turno-chip');
+  if (!chip) return;
+  const grupoTurno = document.getElementById('pos-quickbar-turno');
+  const sep        = document.getElementById('pos-quickbar-sep');
+  const grupoAdmin = document.getElementById('pos-quickbar-admin');
+  const actualizarSep = () => {
+    const hayAlgunoVisible = (grupoTurno && grupoTurno.style.display !== 'none') ||
+                              (grupoAdmin && grupoAdmin.style.display !== 'none');
+    const hayAmbos = (grupoTurno && grupoTurno.style.display !== 'none') &&
+                     (grupoAdmin && grupoAdmin.style.display !== 'none');
+    if (sep) sep.style.display = hayAmbos ? '' : 'none';
+    const barra = document.getElementById('pos-quickbar');
+    if (barra) barra.style.display = hayAlgunoVisible ? '' : 'none';
+  };
+  const obs = new MutationObserver(() => {
+    const activo = chip.style.display !== 'none';
+    if (grupoTurno) grupoTurno.style.display = activo ? '' : 'none';
+    actualizarSep();
+  });
+  obs.observe(chip, { attributes: true, attributeFilter: ['style'] });
+  if (grupoAdmin) {
+    new MutationObserver(actualizarSep).observe(grupoAdmin, { attributes: true, attributeFilter: ['style'] });
+  }
+  actualizarSep();
+
+  // También mostrar el input de descuento global cuando el carrito tiene items
+  const carrItems = document.getElementById('pos-carrito-items');
+  const descWrap  = document.getElementById('pos-descuento-global-wrap');
+  if (carrItems && descWrap) {
+    new MutationObserver(() => {
+      const vacio = !!carrItems.querySelector('.pos-carrito-vacio');
+      descWrap.style.display = vacio ? 'none' : '';
+    }).observe(carrItems, { childList: true, subtree: false });
+  }
+})();
+
+// Preloader
+(function() {
+  function ocultarPreloader() {
+    var el = document.getElementById("app-preloader");
+    if (!el) return;
+    el.classList.add("oculto");
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+  setTimeout(ocultarPreloader, 3000);
+  window.ocultarPreloader = ocultarPreloader;
+  window.addEventListener("load", function(){ setTimeout(ocultarPreloader, 500); });
+})();
+
+// Registro del Service Worker (PWA offline + push VAPID)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker
+      .register('/frontend/admin/sw-admin.js', { scope: '/admin/' })
+      .then(function (reg) {
+        console.info('[SW] POS sw-admin registrado. scope:', reg.scope);
+      })
+      .catch(function (err) {
+        console.warn('[SW] Error al registrar sw-admin.js:', err);
+      });
+  });
+}
+</script>
+</body>
+</html>

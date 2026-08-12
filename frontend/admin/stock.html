@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Stock — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock.css?v=197" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=1" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+
+<style>
+.paginacion-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0 8px;
+}
+.btn-pag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-pag:hover:not(:disabled) { background: var(--color-surface-2); }
+.btn-pag:disabled { opacity: 0.35; cursor: not-allowed; }
+.pag-info { font-size: 13px; color: var(--color-text-muted); }
+.tabla-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.loading-spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-link { background: none; border: none; color: var(--color-primary); cursor: pointer; text-decoration: underline; }
+
+/* ── Gestión de depósitos (ex /admin/depositos, ahora modal dentro de Stock) ── */
+.btn-ajustar--peligro { border-color: var(--color-danger); color: var(--color-danger); }
+.btn-ajustar--peligro:hover { background: var(--color-danger); color: var(--color-surface); }
+.btn-ajustar--exito { border-color: var(--color-success); color: var(--color-success); }
+.btn-ajustar--exito:hover { background: var(--color-success); color: var(--color-surface); }
+</style>
+
+<style>
+/* ── Punto 3: Movimientos de transferencia — diferenciación visual ── */
+.mov-row--transferencia {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.mov-tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+.mov-tipo-transferencia {
+  background: rgba(24, 95, 165, 0.15);
+  color: var(--color-primary);
+  border: 1px solid rgba(24, 95, 165, 0.3);
+}
+.mov-transferencia-cant {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+/* ── Punto 3: Costo promedio en modal de ajuste ── */
+.sa-costo {
+  color: var(--color-text-muted);
+  font-size: .88rem;
+}
+
+/* ── Modal buscador de producto para transferencia (centrado, independiente del drawer) ── */
+.mbt-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 500;
+  display: none;
+}
+.mbt-backdrop.open { display: block; }
+.mbt-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.97);
+  width: 480px;
+  max-width: 92vw;
+  max-height: 80vh;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  z-index: 501;
+  padding: 24px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.mbt-box.open { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.mbt-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mbt-titulo { font-size: 18px; font-weight: 700; }
+.mbt-subtitulo { font-size: 13px; color: var(--color-text-muted); margin-top: 3px; }
+.mbt-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--color-bg);
+  color: inherit;
+}
+.mbt-resultados { overflow-y: auto; max-height: 340px; display: flex; flex-direction: column; gap: 4px; }
+.mbt-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.mbt-item:hover { background: var(--color-bg); border-color: var(--color-border); }
+.mbt-item-nombre { font-size: 14px; font-weight: 600; }
+.mbt-item-codigo { font-size: 12px; color: var(--color-text-muted); }
+.mbt-item-stock { font-size: 12px; color: var(--color-text-muted); text-align: right; white-space: nowrap; }
+.mbt-empty, .mbt-loading, .mbt-hint {
+  padding: 18px 8px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+</style>
+</head>
+<body class="dash-stock-gentelella dash-gentelella">
+
+<!-- ── PRELOADER ── -->
+<div id="app-preloader" class="preloader">
+  <div class="preloader-logo">D</div>
+  <span class="preloader-text">Cargando stock…</span>
+  <div class="preloader-bar"></div>
+</div>
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Stock</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Consultá las cantidades disponibles de cada producto por depósito, y detectá de un vistazo qué está por debajo del mínimo o sin stock.
+</div>
+  </div>
+
+  <main class="main" id="vista-stock">
+
+    <!-- ── Overview de Stock — réplica de estructura de referencia ── -->
+    <section class="stock-ov" aria-label="Resumen de stock">
+
+      <!-- Resumen de solo lectura: montos/promedios, no son categorías filtrables.
+           "Stock crítico" (única categoría real) pasó a contador dentro del pill
+           "Sin stock" del filtro de tabla, más abajo — mismo criterio (UMBRAL_CRITICO). -->
+      <div class="franja-resumen-sololectura">
+        <span>Valorización de stock: <strong id="ov-kpi-valor">—</strong> <span class="stock-ov-kpi__delta" id="ov-kpi-valor-delta"></span></span>
+        <span class="sep">·</span>
+        <span>Productos en stock: <strong id="ov-kpi-productos">—</strong> <span class="stock-ov-kpi__delta" id="ov-kpi-productos-delta"></span></span>
+        <span class="sep">·</span>
+        <span>Rotación promedio: <strong id="ov-kpi-rotacion">—</strong> u/30d</span>
+      </div>
+
+      <!-- El gráfico de "Movimientos de stock" y el recuadro de "Cobertura de
+           catálogo con stock" se trasladaron a /admin/reportes-stock, donde
+           ya conviven con el resto de gráficos analíticos (Distribución,
+           Rotación). Esta página se enfoca en la operatoria (ajustes,
+           transferencias, alertas), no en analítica — ver reportes-stock.html
+           y reportes-stock.js. -->
+
+    </section>
+
+    <!-- ── Alertas de stock crítico ── -->
+    <div class="alertas-stock" id="alertas-stock" style="display:none">
+      <div class="alerta-stock-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <strong id="alerta-stock-txt"></strong>
+      </div>
+    </div>
+
+    <!-- ── Reposición sugerida (cálculo predictivo) ── -->
+    <div id="alertas-stock-auto" style="margin:8px 0;"></div>
+
+    <!-- ── Productos modificados recientemente ── -->
+    <div class="modif-panel" id="modif-panel">
+      <button type="button" class="modif-header" id="modif-toggle" onclick="toggleModificados()" aria-expanded="false" aria-controls="modif-body">
+        <span class="modif-header__left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span>Productos modificados</span>
+          <span class="modif-badge" id="modif-badge">—</span>
+        </span>
+        <svg class="modif-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="modif-body" id="modif-body">
+        <div class="modif-tabs">
+          <button type="button" class="modif-tab activa" data-p="hoy" onclick="selPeriodoModificados('hoy', this)">Hoy</button>
+          <button type="button" class="modif-tab" data-p="semana" onclick="selPeriodoModificados('semana', this)">Últimos 7 días</button>
+          <button type="button" class="modif-tab" data-p="mes" onclick="selPeriodoModificados('mes', this)">Últimos 30 días</button>
+        </div>
+        <div class="modif-lista" id="modif-lista">
+          <div class="loading-row"><span class="loading-spinner"></span> Cargando…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Filtros ── -->
+    <div class="filtros-bar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="input-busqueda" aria-label="Buscar en stock" placeholder="Nombre o código..." oninput="onBusqueda()" autocomplete="off" />
+      </div>
+
+      <div class="estado-pills">
+        <button type="button" class="e-pill activa" data-f="" onclick="selFiltroEstado('', this)">Todos</button>
+        <button type="button" class="e-pill e-pill-rojo"    data-f="critico"    onclick="selFiltroEstado('critico', this)">Sin stock <span class="n" id="pill-count-critico">0</span></button>
+        <button type="button" class="e-pill e-pill-amarillo" data-f="bajo"      onclick="selFiltroEstado('bajo', this)">Stock bajo</button>
+        <button type="button" class="e-pill e-pill-verde"   data-f="ok"         onclick="selFiltroEstado('ok', this)">Normal</button>
+        <button type="button" class="e-pill e-pill-amarillo" data-f="bajo_minimo" onclick="selFiltroEstado('bajo_minimo', this)" title="Productos por debajo de su stock mínimo definido (el mismo criterio que la alerta del panel principal)">Bajo su mínimo</button>
+      </div>
+
+      <div class="filtros-der">
+        <button type="button" class="btn-toggle-filtros-der" id="btn-toggle-filtros-der"
+                onclick="toggleFiltrosAvanzados()" aria-expanded="false" aria-controls="filtros-avanzados-stock">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          Más filtros
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="filtros-avanzados" id="filtros-avanzados-stock">
+          <select id="filtro-deposito" onchange="aplicarFiltros()" class="select-filtro">
+            <option value="">Todos los depósitos</option>
+          </select>
+          <select id="filtro-categoria" onchange="aplicarFiltros()" class="select-filtro">
+            <option value="">Todas las categorías</option>
+          </select>
+          <button type="button" class="btn btn--ghost" onclick="limpiarFiltros()">Limpiar</button>
+        </div>
+        <button type="button" class="btn btn--ghost" onclick="abrirModalDepositos()" title="Alta, edición y baja de depósitos">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/></svg>
+          Depósitos
+        </button>
+        <button type="button" class="btn-exportar" id="btn-transferir-stock" onclick="abrirBuscadorTransferencia()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Transferir stock
+        </button>
+        <button type="button" class="btn-exportar" onclick="exportarExcel()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar Excel
+        </button>
+        <!-- v628: escanear directo con la cámara de esta compu/celular, más
+             rápido que vincular un segundo dispositivo — se muestra como
+             acción primaria (destacada) porque es la más usada del día a
+             día para ajustar stock. -->
+        <button type="button" class="btn btn--primary" id="btn-escanear-camara-stock" onclick="abrirEscanerCamaraStock()"
+          title="Elegí un depósito puntual en el filtro para poder escanear">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Escanear con la cámara
+        </button>
+        <button type="button" class="btn btn--ghost" id="btn-vincular-celular-stock" onclick="abrirVincularCelularStock()"
+          title="Elegí un depósito puntual en el filtro para poder vincular el celular">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Vincular celular
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Tabla de stock ── -->
+    <div class="tabla-wrap table-responsive-cards">
+      <table class="tabla-stock table-compact">
+        <thead>
+            <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th class="thead-sep">Depósito</th>
+            <th class="th-num">Disponible</th>
+            <th class="th-num">Reservado</th>
+            <th class="th-num">Total</th>
+            <th class="th-num thead-sep">Costo prom.</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="9" class="tabla-loading">Cargando stock...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Paginación ── -->
+    <div class="paginacion-wrap" id="paginacion-wrap" style="display:none">
+      <button type="button" class="btn-pag" id="btn-pag-ant" onclick="irPagina(_page - 1)" aria-label="Página anterior">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+      </button>
+      <span class="pag-info" id="pag-info">Página 1 de 1</span>
+      <button type="button" class="btn-pag" id="btn-pag-sig" onclick="irPagina(_page + 1)" aria-label="Página siguiente">
+        Siguiente
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: buscar producto para transferir (previo al modal de ajuste)
+═════════════════════════════════════════════════════════════ -->
+<div class="mbt-backdrop" id="mbt-backdrop" onclick="cerrarBuscadorTransferencia()" aria-hidden="true"></div>
+
+<div class="mbt-box" id="mbt-box" role="dialog" aria-modal="true" aria-labelledby="mbt-titulo">
+  <div class="mbt-header">
+    <div>
+      <div class="mbt-titulo" id="mbt-titulo">Transferir stock</div>
+      <div class="mbt-subtitulo">Elegí el producto que querés mover entre depósitos</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarBuscadorTransferencia()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <input type="text" id="mbt-input" class="mbt-input" placeholder="Buscar por nombre o código…" autocomplete="off">
+
+  <div id="mbt-resultados" class="mbt-resultados"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: ajuste de stock
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="cerrarModal()" aria-hidden="true"></div>
+
+<div class="modal" id="modal-ajuste">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-titulo">Ajustar stock</h2>
+      <div class="modal-subtitulo" id="modal-subtitulo"></div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModal()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Stock actual -->
+  <div class="stock-actual-box" id="stock-actual-box"></div>
+
+  <!-- Formulario de ajuste -->
+  <div class="modal-seccion">
+    <div class="modal-sec-label">Registrar movimiento</div>
+
+    <div class="form-group">
+      <label class="form-label">
+        Tipo de movimiento
+        <span class="ayuda-contextual" data-tooltip="Ingreso suma stock, egreso lo resta, ajuste directo fija el total y transferencia lo mueve entre depósitos.">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </span>
+      </label>
+      <div class="tipo-btns" id="tipo-btns">
+        <button type="button" class="tipo-btn activo" data-tipo="ingreso"      onclick="selTipo('ingreso', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+          Ingreso
+        </button>
+        <button type="button" class="tipo-btn" data-tipo="egreso" onclick="selTipo('egreso', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          Egreso
+        </button>
+        <button type="button" class="tipo-btn" data-tipo="ajuste" onclick="selTipo('ajuste', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Ajuste directo
+        </button>
+        <button type="button" class="tipo-btn" data-tipo="transferencia" onclick="selTipo('transferencia', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Transferencia
+        </button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="label-cantidad">Cantidad a ingresar</label>
+        <input type="number" id="input-cantidad" class="form-input" min="1" step="1" placeholder="0" aria-label="Cantidad a ajustar" />
+      </div>
+      <div class="form-group" id="deposito-origen-wrap">
+        <label class="form-label">Depósito</label>
+        <select id="select-deposito" class="form-select"></select>
+      </div>
+    </div>
+
+    <!-- Solo visible en transferencia -->
+    <div class="form-group" id="deposito-destino-wrap" style="display:none">
+      <label class="form-label">Depósito destino</label>
+      <select id="select-deposito-destino" class="form-select"></select>
+    </div>
+
+    <!-- Solo visible en ajuste directo -->
+    <div class="form-group" id="stock-nuevo-wrap" style="display:none">
+      <label class="form-label">Stock total resultante</label>
+      <input type="number" id="input-stock-nuevo" class="form-input" min="0" step="1" placeholder="0" aria-label="Nuevo nivel de stock" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        Motivo <span class="form-requerido">*</span>
+        <span class="ayuda-contextual" data-tooltip="Elegí el motivo más específico — ayuda a mantener el historial de movimientos claro para futuras consultas.">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </span>
+      </label>
+      <select id="select-motivo" class="form-select">
+        <option value="">Seleccionar motivo...</option>
+        <optgroup label="Ingresos">
+          <option value="compra">Compra a proveedor</option>
+          <option value="devolucion_cliente">Devolución de cliente</option>
+          <option value="produccion">Producción propia</option>
+        </optgroup>
+        <optgroup label="Egresos">
+          <option value="venta_manual">Salida por venta no facturada</option>
+          <option value="merma">Merma / vencimiento</option>
+          <option value="rotura">Rotura / daño</option>
+          <option value="muestra">Muestra / regalo</option>
+        </optgroup>
+        <optgroup label="Ajustes">
+          <option value="inventario">Corrección de inventario</option>
+          <option value="conteo_fisico">Conteo físico</option>
+        </optgroup>
+        <optgroup label="Transferencias">
+          <option value="entre_depositos">Entre depósitos</option>
+        </optgroup>
+      </select>
+      <!-- v341: algunos motivos ya tienen un flujo dedicado (recepción de OC,
+           POS) que resuelve costo/lote/cliente/cobro de forma correcta —
+           usar el ajuste manual para esos casos deja el circuito contable
+           incompleto. Este aviso se puebla desde stock.js según el motivo
+           elegido y, cuando corresponde, bloquea el guardado. -->
+      <div id="motivo-redirect-aviso" class="motivo-redirect-aviso" style="display:none"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notas adicionales</label>
+      <input type="text" id="input-notas" class="form-input" placeholder="Opcional..." maxlength="200" aria-label="Notas del ajuste" />
+    </div>
+
+    <!-- Preview del resultado -->
+    <div class="preview-resultado" id="preview-resultado" style="display:none">
+      <div class="preview-label">Vista previa del resultado</div>
+      <div class="preview-body" id="preview-body"></div>
+    </div>
+
+    <div class="form-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-guardar" onclick="btnAsyncClick(this, guardarAjuste)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Registrar movimiento
+      </button>
+    </div>
+  </div>
+
+  <!-- Historial de movimientos del producto -->
+  <div class="modal-seccion" id="historial-seccion">
+    <div class="modal-sec-label">Historial de movimientos</div>
+    <div id="historial-lista">
+      <div class="loading-row">Cargando historial...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── SheetJS para exportar ── -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<!-- ── Supabase ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- ── ECharts (overview de stock) — piloto de la migración desde Chart.js ── -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
+<script src="/frontend/shared/echarts-wrapper.js?v1"></script>
+<script>inicializarTemaECharts();</script>
+
+  <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/api-client.js?v279" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+  <script src="/shared/offline-core.js?v1"></script>
+  <script src="/frontend/admin/js/stock-offline.js?v3"></script>
+  <script type="module" src="/frontend/admin/js/stock.js?v282"></script>
+
+  <!-- v617: "Vincular celular" para buscar producto por código escaneado
+       y abrir directo su ajuste de stock. Mismo circuito que el POS, ver
+       frontend/shared/vincular-celular.js. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/frontend/shared/vincular-celular.js?v1"></script>
+
+  <!-- v628: escaneo directo con la cámara de este dispositivo (compu o
+       celular), sin depender de vincular un segundo dispositivo. -->
+  <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
+  <script src="/frontend/shared/camera-scanner.js?v1"></script>
+  <script src="/frontend/admin/js/stock-scanner-remoto.js?v1"></script>
+
+<!-- ── REQ-4: Modal Proyección de Stock ── -->
+<div class="modal-overlay" id="modal-proyeccion-stock" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.6);z-index:1000;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="modal-proyeccion-tit">
+  <div class="modal-box" style="background:var(--color-surface);border-radius: var(--radius-xl);width:min(480px,95vw);max-height:90vh;overflow-y:auto;padding:20px 24px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-size:16px;margin:0;" id="modal-proyeccion-tit">Proyección de Stock</h2>
+      <button type="button" onclick="cerrarModalProyeccion()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="proyeccion-body">Cargando...</div>
+  </div>
+</div>
+
+<!-- ── Gestión de depósitos (ex /admin/depositos) ──────────────────────── -->
+<div class="modal-overlay" id="modal-depositos" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.6);z-index:1000;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="modal-depositos-tit" onclick="cerrarModalDepositosSiFondo(event)">
+  <div class="modal-box" style="background:var(--color-surface);border-radius:var(--radius-xl);width:min(680px,95vw);max-height:88vh;overflow-y:auto;padding:20px 24px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h2 style="font-size:16px;margin:0;" id="modal-depositos-tit">Depósitos</h2>
+      <button type="button" onclick="cerrarModalDepositos()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:12.5px;color:var(--color-text-muted);margin:0 0 14px;">Ubicaciones físicas donde guardás stock (depósito central, sucursal, camión, etc.). Cada producto puede tener stock en más de uno. El marcado como «Principal» es el que se usa por defecto al cargar un producto nuevo.</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <select id="filtro-deposito-admin-estado" class="select-filtro" onchange="cargarDepositosAdmin()">
+        <option value="true">Activos</option>
+        <option value="">Todos</option>
+        <option value="false">Inactivos</option>
+      </select>
+      <button type="button" class="btn-primario" onclick="abrirModalDepositoNuevo()" style="padding:7px 14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo depósito
+      </button>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla-stock">
+        <thead>
+          <tr>
+            <th>Depósito</th>
+            <th>Dirección</th>
+            <th>Responsable</th>
+            <th style="text-align:center">Principal</th>
+            <th>Estado</th>
+            <th class="td-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-depositos-admin">
+          <tr><td colspan="6" class="tabla-empty">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Sub-modal: nuevo / editar depósito -->
+<div class="modal-overlay" id="modal-deposito-form" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.6);z-index:1001;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="modal-deposito-form-tit" onclick="cerrarModalDepositoFormSiFondo(event)">
+  <div class="modal-box" style="background:var(--color-surface);border-radius:var(--radius-xl);width:min(440px,92vw);max-height:88vh;overflow-y:auto;padding:20px 24px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="font-size:16px;margin:0;" id="modal-deposito-form-tit">Nuevo depósito</h2>
+      <button type="button" onclick="cerrarModalDepositoForm()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px;">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" id="dep-f-nombre" class="form-input" placeholder="Ej: Depósito central, Sucursal Norte..." aria-label="Nombre del depósito" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dirección</label>
+        <input type="text" id="dep-f-direccion" class="form-input" placeholder="Calle y número" aria-label="Dirección" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Responsable</label>
+        <input type="text" id="dep-f-responsable" class="form-input" placeholder="Nombre de quien lo administra (opcional)" aria-label="Responsable" />
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;">
+          <input type="checkbox" id="dep-f-es-principal" />
+          Usar como depósito principal
+        </label>
+      </div>
+    </div>
+
+    <div class="form-acciones">
+      <button type="button" class="btn-secundario" onclick="cerrarModalDepositoForm()">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-guardar-deposito" onclick="btnAsyncClick(this, guardarDeposito)" aria-live="polite">Guardar depósito</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  function ocultarPreloader() {
+    var el = document.getElementById("app-preloader");
+    if (!el) return;
+    el.classList.add("oculto");
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+  setTimeout(ocultarPreloader, 3000); // fallback 3s
+  window.ocultarPreloader = ocultarPreloader;
+  window.addEventListener("load", function(){ setTimeout(ocultarPreloader, 500); });
+})();
+</script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

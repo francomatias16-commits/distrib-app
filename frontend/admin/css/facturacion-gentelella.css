@@ -1,0 +1,520 @@
+/**
+ * facturacion-gentelella.css — Reskin "Gentelella v4" de la pantalla Facturación
+ * ─────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/facturacion.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-facturacion-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella { background: var(--ge-bg) !important; }
+body.dash-facturacion-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-facturacion-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-facturacion-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-facturacion-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-facturacion-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* Botón "Nueva NC" */
+body.dash-facturacion-gentelella .btn-nuevo-nc {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-facturacion-gentelella .btn-nuevo-nc:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* Links de topbar con estilos inline (Configurar ARCA / Enviar a mi contador) */
+body.dash-facturacion-gentelella .topbar a[href*="facturacion-config"],
+body.dash-facturacion-gentelella .topbar a[href*="export-contable"] {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+body.dash-facturacion-gentelella .topbar a[href*="facturacion-config"]:hover,
+body.dash-facturacion-gentelella .topbar a[href*="export-contable"]:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Banner de error ARCA
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella #banner-error {
+  background: rgba(231,76,60,.08) !important;
+  border: 1px solid rgba(231,76,60,.25) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-facturacion-gentelella #banner-error-txt {
+  color: var(--ge-red) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: box-shadow .15s, border-color .15s !important;
+}
+body.dash-facturacion-gentelella .kpi-card.clicable {
+  cursor: pointer !important;
+}
+body.dash-facturacion-gentelella .kpi-card.clicable:hover {
+  border-color: var(--ge-teal) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-facturacion-gentelella .kpi-card.activa {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 2px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pills de filtro de estado
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .e-pill {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-facturacion-gentelella .e-pill:hover {
+  background: var(--ge-chip-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-facturacion-gentelella .e-pill.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros de fecha + buscador
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella #filtro-rango-wrap input[type="date"],
+body.dash-facturacion-gentelella #input-busqueda,
+body.dash-facturacion-gentelella #filtro-periodo {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella #filtro-rango-wrap input[type="date"]:focus,
+body.dash-facturacion-gentelella #input-busqueda:focus,
+body.dash-facturacion-gentelella #filtro-periodo:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-facturacion-gentelella #input-busqueda::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel de facturas / tabla
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella #panel-facturas,
+body.dash-facturacion-gentelella .panel-facturas {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-facturacion-gentelella .tabla-loading {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+
+/* Cabecera de tabla */
+body.dash-facturacion-gentelella thead th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-facturacion-gentelella .fila-factura td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella .fila-factura:hover td {
+  background: var(--ge-teal-light) !important;
+  cursor: pointer !important;
+}
+body.dash-facturacion-gentelella .factura-numero {
+  color: var(--ge-ink) !important;
+  font-weight: 600 !important;
+}
+body.dash-facturacion-gentelella .factura-pedido {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+}
+body.dash-facturacion-gentelella .td-total {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-facturacion-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-facturacion-gentelella .fila-factura:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Botones de acción en tabla */
+body.dash-facturacion-gentelella .btn-icon {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-facturacion-gentelella .btn-icon:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-facturacion-gentelella .btn-icon.icon-primary {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-facturacion-gentelella .btn-icon.icon-primary:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-facturacion-gentelella .btn-reintentar {
+  border: 1px solid var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+  background: rgba(240,173,78,.08) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-facturacion-gentelella .btn-reintentar:hover {
+  background: rgba(240,173,78,.18) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Badges de estado de factura
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .badge-estado {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+body.dash-facturacion-gentelella .badge-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+body.dash-facturacion-gentelella .badge-pendiente {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-facturacion-gentelella .badge-pendiente .badge-dot {
+  background: var(--ge-orange) !important;
+}
+
+body.dash-facturacion-gentelella .badge-emitida {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-facturacion-gentelella .badge-emitida .badge-dot {
+  background: var(--ge-teal) !important;
+}
+
+body.dash-facturacion-gentelella .badge-error {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-facturacion-gentelella .badge-error .badge-dot {
+  background: var(--ge-red) !important;
+}
+
+body.dash-facturacion-gentelella .badge-anulada {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-facturacion-gentelella .badge-anulada .badge-dot {
+  background: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-facturacion-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de detalle de factura
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella #modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-facturacion-gentelella #modal-detalle {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-facturacion-gentelella #modal-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+body.dash-facturacion-gentelella #modal-subtitulo {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella #modal-error-seccion,
+body.dash-facturacion-gentelella #modal-error-box {
+  background: rgba(231,76,60,.08) !important;
+  border: 1px solid rgba(231,76,60,.2) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-red) !important;
+  font-size: 12px !important;
+}
+
+/* Campos de detalle (md-*) */
+body.dash-facturacion-gentelella [id^="md-"] {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella .md-label,
+body.dash-facturacion-gentelella .modal-field-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+
+/* Tabla de ítems en modal */
+body.dash-facturacion-gentelella #md-items-seccion table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+body.dash-facturacion-gentelella #md-items-seccion th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 8px 10px !important;
+}
+body.dash-facturacion-gentelella #md-items-seccion td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+}
+
+/* Confirm anular */
+body.dash-facturacion-gentelella #confirm-anular-seccion {
+  background: rgba(231,76,60,.06) !important;
+  border: 1px solid rgba(231,76,60,.2) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-facturacion-gentelella #motivo-anulacion {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella #motivo-anulacion:focus {
+  border-color: var(--ge-red) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(231,76,60,.1) !important;
+}
+
+/* Botones del modal */
+body.dash-facturacion-gentelella .modal-footer,
+body.dash-facturacion-gentelella .modal-acciones {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-facturacion-gentelella .btn-secundario,
+body.dash-facturacion-gentelella .modal-footer .btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella .btn-secundario:hover,
+body.dash-facturacion-gentelella .modal-footer .btn--ghost:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-facturacion-gentelella .btn-primario,
+body.dash-facturacion-gentelella .modal-footer .btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-facturacion-gentelella .btn-primario:hover,
+body.dash-facturacion-gentelella .modal-footer .btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-facturacion-gentelella .topbar-right {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  body.dash-facturacion-gentelella .e-pill {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modales secundarios — overlay, modal, header, secciones
+   ════════════════════════════════════════════════════════════ */
+body.dash-facturacion-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-facturacion-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-facturacion-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-facturacion-gentelella .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-facturacion-gentelella .modal-header h2,
+body.dash-facturacion-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-facturacion-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+body.dash-facturacion-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-facturacion-gentelella .modal-seccion {
+  padding: 16px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-facturacion-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  margin-bottom: 10px !important;
+}
+body.dash-facturacion-gentelella .modal-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-facturacion-gentelella .modal-subtitulo {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+  margin: 2px 0 0 !important;
+}

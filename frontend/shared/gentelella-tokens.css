@@ -1,0 +1,71 @@
+/**
+ * gentelella-tokens.css — Tokens de diseño compartidos del reskin admin
+ * ─────────────────────────────────────────────────────────────────────────────
+ * v3 (2026-07-26): se retira la paleta "Electric Blue" corporativa (alineada
+ * a SaaS genérico) y se reemplaza por el sistema "Hoja de Ruta" — ver
+ * /shared/tokens.css y /DESIGN_SYSTEM_HOJA_DE_RUTA.md en la raíz del repo.
+ * Los NOMBRES de variable se mantienen intactos (--ge-teal, --ge-sidebar,
+ * etc.) a propósito: son consumidos con !important por ~40 archivos
+ * *-gentelella.css y por gentelella-nav.css en ~45 pantallas, y renombrarlas
+ * hoy implicaría tocar esos 40 archivos. Cambiando solo el valor acá, el
+ * refresco visual se propaga solo a todas las pantallas que ya los usan.
+ *
+ * TODA pantalla que reciba este reskin debe importar este archivo
+ * (via <link>, antes del CSS específico de esa pantalla) en vez de que un
+ * agente externo vuelva a extraer/inventar estos valores. Si el día de
+ * mañana cambia la paleta, se cambia acá una sola vez y se propaga a todas
+ * las pantallas que ya lo usan.
+ *
+ * NO agregar reglas de selector acá — este archivo es solo variables.
+ * Las reglas de cada pantalla (dashboard-gentelella.css, pedidos-gentelella.css,
+ * etc.) viven en su propio archivo y consumen estas variables.
+ */
+
+:root {
+  --ge-bg:         #F5F2EA;
+  --ge-panel:      #FCFAF5;
+  --ge-ink:        #16181D;
+  --ge-ink-soft:   #4B4A45;
+  --ge-muted:      #6B695F;
+  --ge-border:     #DAD3C0;
+
+  /* Acento: antes teal #26B99A → Electric Blue #2563EB → ahora amarillo
+     señalética de depósito (--color-primary en tokens.css). Se conserva el
+     nombre "teal" por compatibilidad con los ~40 archivos que lo consumen. */
+  --ge-teal:       #B87A00;
+  --ge-teal-dark:  #8F5F00;
+  --ge-teal-light: rgba(232,160,0,.14);
+  --ge-blue:       #2E6088;
+  --ge-orange:     #8F5F00;
+  --ge-red:        #B3261E;
+  --ge-purple:     #5B4A8F;
+
+  /* Sidebar oscura — grafito casi negro, mismo --ink que el resto del
+     sistema, no un navy separado (para que las ~40 pantallas con reskin y
+     las ~12 sin reskin compartan el mismo nav). */
+  --ge-sidebar:    #16181D;
+  --ge-sidebar-2:  #1E2128;
+  --ge-sidebar-text:  #C9C6BA;
+  --ge-sidebar-muted: #8E8C82;
+
+  --ge-chip-bg:       #EAE4D6;
+  --ge-warning-text:  #7A4A00;
+  --ge-warning-bg:    #FBEBC7;
+
+  /* Color de marca de WhatsApp — no es parte de la paleta del sistema,
+     se mantiene igual porque es una marca externa reconocible. */
+  --ge-whatsapp:      #25D366;
+
+  --ge-info-text:     #1E3A52;
+
+  /* Radios — documento impreso, no "look 2013 cuadrado" ni soft-SaaS grande. */
+  --ge-radius-card: 6px;
+  --ge-radius-lg:   8px;
+  --ge-radius-btn:  4px;
+  --ge-radius-pill: 9999px;
+
+  /* Sombras — planas, tipo hoja apoyada sobre hoja (ver --shadow-fluffy en
+     tokens.css), no elevación SaaS difusa. */
+  --ge-shadow:    0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05);
+  --ge-shadow-lg: 0 1px 0 rgba(22,24,29,.05), 3px 5px 0 rgba(22,24,29,.08);
+}

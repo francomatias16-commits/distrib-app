@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/cliente/manifest.json" />
+  <meta name="theme-color" content="#F5F2EA" />
+  <title>Acceso — Portal Clientes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/cliente/pwa-init.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Paleta local del login (celeste) — no pisa los tokens globales */
+      --login-bg-1: #F0F7FD;
+      --login-bg-2: #DCEAF9;
+      --login-bg-3: #C3DDF5;
+      --login-card-bg: rgba(255,255,255,.58);
+      --login-card-border: rgba(255,255,255,.85);
+      --login-accent: #2E6DB4;
+      --login-accent-dark: #1B4E85;
+      --login-text: #1B3A5C;
+      --login-text-light: #5C7699;
+      --login-border: #C7DDF3;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: var(--login-text);
+      background: linear-gradient(135deg, var(--login-bg-1) 0%, var(--login-bg-2) 55%, var(--login-bg-3) 100%);
+    }
+
+    .card {
+      position: relative;
+      background: var(--login-card-bg);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      border: 1px solid var(--login-card-border);
+      border-radius: 24px;
+      box-shadow:
+        0 24px 60px rgba(27,58,92,.16),
+        0 2px 8px rgba(46,109,180,.08),
+        inset 0 1px 0 rgba(255,255,255,.6);
+      width: 100%;
+      max-width: 440px;
+      padding: 4.25rem 2.75rem 2.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: visible;
+    }
+
+    .logo-circle {
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.7);
+      border: 2px solid var(--login-accent);
+      box-shadow: 0 8px 20px rgba(27,58,92,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--login-accent-dark);
+      margin: 0;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .logo-circle svg {
+      width: 46px;
+      height: 46px;
+      display: block;
+      fill: none;
+      stroke: var(--login-accent-dark);
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .card h1 {
+      font-family: var(--font-family-display);
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--login-text);
+      text-align: center;
+      margin-bottom: .3rem;
+    }
+
+    .card > p {
+      font-size: .98rem;
+      color: var(--login-text-light);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .alerta {
+      width: 100%;
+      display: none;
+      align-items: flex-start;
+      gap: .5rem;
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger-mid);
+      color: var(--color-danger);
+      border-radius: var(--radius-lg);
+      padding: .8rem 1.05rem;
+      font-size: .92rem;
+      margin-bottom: 1.25rem;
+    }
+    .alerta.show { display: flex; }
+
+    .form-wrap { width: 100%; }
+
+    .field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      border-bottom: 1.5px solid var(--login-border);
+      padding: .65rem .1rem;
+      transition: border-color .15s;
+    }
+    .field-wrap + .field-wrap { margin-top: 1rem; }
+    .field-wrap:focus-within { border-color: var(--login-accent); }
+
+    .field-wrap svg.icon-field {
+      color: var(--login-text-light);
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+    .field-wrap:focus-within svg.icon-field { color: var(--login-accent); }
+
+    .field-wrap input {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 0;
+      font-size: 1.05rem;
+      font-family: inherit;
+      outline: none;
+      color: var(--login-text);
+    }
+    .field-wrap input::placeholder { color: var(--login-text-light); font-style: italic; }
+    .field-wrap svg.icon-field { width: 20px; height: 20px; }
+
+    .btn-toggle-pass {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--login-text-light);
+      padding: 0;
+      display: flex;
+      flex-shrink: 0;
+    }
+    .btn-toggle-pass:hover { color: var(--login-accent-dark); }
+
+    .row-aux {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.05rem;
+      font-size: .88rem;
+    }
+    .row-aux label {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      color: var(--login-text-light);
+      cursor: pointer;
+      user-select: none;
+    }
+    .row-aux input[type="checkbox"] { accent-color: var(--login-accent); width: 16px; height: 16px; cursor: pointer; }
+    .row-aux a {
+      color: var(--login-accent-dark);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .row-aux a:hover { color: var(--login-text); text-decoration: underline; }
+
+    .btn-ingresar {
+      width: 100%;
+      padding: .95rem;
+      background: transparent;
+      color: var(--login-accent-dark);
+      border: 1.5px solid var(--login-accent);
+      border-radius: var(--radius-full);
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      transition: background .15s, color .15s, box-shadow .15s, transform .15s;
+    }
+    .btn-ingresar:hover:not(:disabled) {
+      background: var(--login-accent);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(46,109,180,.3);
+      transform: translateY(-1px);
+    }
+    .btn-ingresar:active:not(:disabled) { transform: translateY(0); filter: brightness(.98); }
+    .btn-ingresar:disabled { opacity: .6; cursor: not-allowed; }
+
+    .spinner {
+      width: 17px;
+      height: 17px;
+      border: 2px solid rgba(46,109,180,.3);
+      border-top-color: var(--login-accent-dark);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-ingresar.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .card-footer {
+      margin-top: 1.6rem;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--login-text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+    }
+
+    /* ── Modal de reset por WhatsApp (v719) ─────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(27,58,92,.35);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 50;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem 1.85rem;
+      box-shadow: 0 24px 60px rgba(27,58,92,.25);
+    }
+    .modal-card h2 {
+      font-size: 1.15rem;
+      color: var(--login-text);
+      margin-bottom: .4rem;
+    }
+    .modal-card p.modal-sub {
+      font-size: .88rem;
+      color: var(--login-text-light);
+      margin-bottom: 1.4rem;
+      line-height: 1.4;
+    }
+    .modal-card .field-wrap { margin-bottom: 0; }
+    .modal-step { display: none; }
+    .modal-step.show { display: block; }
+    .modal-msg {
+      display: none;
+      align-items: flex-start;
+      gap: .5rem;
+      border-radius: 10px;
+      padding: .7rem .9rem;
+      font-size: .85rem;
+      margin-top: 1rem;
+    }
+    .modal-msg.show { display: flex; }
+    .modal-msg.err { background: #FDECEC; color: #B3261E; }
+    .modal-msg.ok  { background: #E7F5EC; color: #1E7A43; }
+    .modal-actions {
+      display: flex;
+      gap: .7rem;
+      margin-top: 1.5rem;
+    }
+    .modal-actions .btn-ingresar { margin-top: 0; }
+    .btn-link-volver {
+      background: none;
+      border: none;
+      color: var(--login-text-light);
+      font-size: .85rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .btn-link-volver:hover { color: var(--login-text); }
+
+    .brand {
+      margin-top: 1.5rem;
+      color: rgba(27,58,92,.45);
+      font-size: .85rem;
+    }
+
+    @media (max-width: 420px) {
+      .card { padding: 3.5rem 1.5rem 1.75rem; border-radius: 22px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/shared/a11y-focus.css?v=1" />
+</head>
+<body>
+
+<div class="card">
+
+  <div class="logo-circle" id="logoEmpresa">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+    </svg>
+  </div>
+  <h1>Iniciar sesión</h1>
+  <p id="nombreEmpresa">Portal de clientes</p>
+
+  <div class="alerta" id="alertaError">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="textoError">Email o contraseña incorrectos.</span>
+  </div>
+
+  <div class="form-wrap">
+    <div class="field-wrap">
+      <svg class="icon-field" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.64 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+      </svg>
+      <input type="tel" id="inputEmail" placeholder="Número de WhatsApp"
+        aria-label="Número de WhatsApp" autocomplete="tel" inputmode="numeric" />
+    </div>
+
+    <div class="field-wrap">
+      <svg class="icon-field" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <input type="password" id="inputPass" class="input-pass"
+        aria-label="Contraseña" autocomplete="current-password" placeholder="••••••••" />
+      <button type="button" class="btn-toggle-pass" id="btnTogglePass" title="Mostrar contraseña">
+        <svg id="eyeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="row-aux">
+      <label>
+        <input type="checkbox" id="inputRecordar">
+        Recordarme
+      </label>
+      <a href="#" id="linkOlvide">¿Olvidaste tu contraseña?</a>
+    </div>
+  </div>
+
+  <button type="button" class="btn-ingresar" id="btnIngresar">
+    <span class="spinner" id="spinner"></span>
+    <span id="btnLabel">Ingresar</span>
+  </button>
+
+  <div class="card-footer">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    Acceso exclusivo para clientes registrados
+  </div>
+</div>
+
+<div class="brand">Sistema de distribución · Fluxo</div>
+
+<!-- Modal reset de contraseña por WhatsApp (v719) -->
+<div class="modal-overlay" id="modalReset">
+  <div class="modal-card">
+
+    <div class="modal-step show" id="pasoTelefono">
+      <h2>Recuperar contraseña</h2>
+      <p class="modal-sub">Te mandamos un código de 6 dígitos por WhatsApp al número con el que ingresás.</p>
+      <div class="field-wrap">
+        <input type="tel" id="resetTelefono" placeholder="Número de WhatsApp"
+          aria-label="Número de WhatsApp" autocomplete="tel" inputmode="numeric" />
+      </div>
+      <div class="modal-msg" id="resetMsg1"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-link-volver" id="btnCancelarReset1">Cancelar</button>
+        <button type="button" class="btn-ingresar" id="btnEnviarCodigo" style="flex:1">
+          <span class="spinner" id="spinnerEnviarCodigo"></span>
+          <span id="btnEnviarCodigoLabel">Enviar código</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-step" id="pasoCodigo">
+      <h2>Ingresá el código</h2>
+      <p class="modal-sub" id="resetSub2">Te llegó un WhatsApp con un código de 6 dígitos. Escribilo junto con tu nueva contraseña.</p>
+      <div class="field-wrap">
+        <input type="text" id="resetCodigo" placeholder="Código de 6 dígitos"
+          aria-label="Código recibido por WhatsApp" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
+      </div>
+      <div class="field-wrap" style="margin-top:1rem">
+        <input type="password" id="resetPassNueva" placeholder="Nueva contraseña"
+          aria-label="Nueva contraseña" autocomplete="new-password" />
+      </div>
+      <div class="modal-msg" id="resetMsg2"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-link-volver" id="btnVolverPaso1">Volver</button>
+        <button type="button" class="btn-ingresar" id="btnConfirmarCodigo" style="flex:1">
+          <span class="spinner" id="spinnerConfirmarCodigo"></span>
+          <span id="btnConfirmarCodigoLabel">Guardar</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  window.ENV?.SUPABASE_URL || '',
+  window.ENV?.SUPABASE_ANON_KEY || '',
+  { auth: { storageKey: 'sb-cliente-auth' } }
+);
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Si ya tiene sesión activa → ir directo al catálogo
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const cliente = await resolverCliente(session.user.id);
+    if (cliente) {
+      window.location.href = '/cliente/catalogo';
+      return;
+    }
+    await sb.auth.signOut();
+  }
+
+  cargarNombreEmpresa();
+
+  document.getElementById('inputEmail').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('inputPass').focus();
+  });
+  document.getElementById('inputPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') ingresar();
+  });
+  document.getElementById('btnIngresar').addEventListener('click', ingresar);
+  document.getElementById('btnTogglePass').addEventListener('click', togglePass);
+  document.getElementById('linkOlvide').addEventListener('click', e => {
+    e.preventDefault();
+    abrirModalReset();
+  });
+
+  document.getElementById('btnCancelarReset1').addEventListener('click', cerrarModalReset);
+  document.getElementById('btnVolverPaso1').addEventListener('click', volverAPasoTelefono);
+  document.getElementById('btnEnviarCodigo').addEventListener('click', enviarCodigoReset);
+  document.getElementById('btnConfirmarCodigo').addEventListener('click', confirmarCodigoReset);
+  document.getElementById('resetTelefono').addEventListener('keydown', e => {
+    if (e.key === 'Enter') enviarCodigoReset();
+  });
+  document.getElementById('resetPassNueva').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmarCodigoReset();
+  });
+});
+
+// ── Reset de contraseña por WhatsApp (v719) ──────────────────────────────
+let telefonoResetActual = null; // se recuerda entre paso 1 y 2 para confirmar-codigo-whatsapp
+
+function abrirModalReset() {
+  // Prellenar con lo que ya haya tipeado en el login, si algo.
+  document.getElementById('resetTelefono').value = document.getElementById('inputEmail').value.trim();
+  mostrarPasoModal('pasoTelefono');
+  ocultarMsgReset('resetMsg1');
+  ocultarMsgReset('resetMsg2');
+  document.getElementById('modalReset').classList.add('show');
+}
+
+function cerrarModalReset() {
+  document.getElementById('modalReset').classList.remove('show');
+}
+
+function volverAPasoTelefono() {
+  mostrarPasoModal('pasoTelefono');
+  ocultarMsgReset('resetMsg2');
+}
+
+function mostrarPasoModal(idPaso) {
+  document.getElementById('pasoTelefono').classList.remove('show');
+  document.getElementById('pasoCodigo').classList.remove('show');
+  document.getElementById(idPaso).classList.add('show');
+}
+
+function mostrarMsgReset(idMsg, texto, tipo) {
+  const el = document.getElementById(idMsg);
+  el.textContent = texto;
+  el.className = `modal-msg show ${tipo}`;
+}
+function ocultarMsgReset(idMsg) {
+  document.getElementById(idMsg).classList.remove('show');
+}
+
+async function enviarCodigoReset() {
+  const telRaw = document.getElementById('resetTelefono').value.trim();
+  ocultarMsgReset('resetMsg1');
+
+  if (!telRaw) {
+    mostrarMsgReset('resetMsg1', 'Ingresá tu número de WhatsApp.', 'err');
+    return;
+  }
+
+  const btn = document.getElementById('btnEnviarCodigo');
+  btn.disabled = true;
+  document.getElementById('spinnerEnviarCodigo').style.display = 'inline-block';
+  document.getElementById('btnEnviarCodigoLabel').textContent = 'Enviando...';
+
+  try {
+    const resp = await fetch('/api/auth/reset-password-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefono: telRaw }),
+    });
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      mostrarMsgReset('resetMsg1', data.error || 'No se pudo enviar el código. Intentá de nuevo.', 'err');
+      return;
+    }
+
+    // El backend siempre responde ok:true (no revela si el número existe),
+    // así que acá se avanza al paso 2 sin más chequeo.
+    telefonoResetActual = telRaw;
+    document.getElementById('resetSub2').textContent =
+      `Te llegó un WhatsApp con un código de 6 dígitos al ${telRaw}. Escribilo junto con tu nueva contraseña.`;
+    document.getElementById('resetCodigo').value = '';
+    document.getElementById('resetPassNueva').value = '';
+    mostrarPasoModal('pasoCodigo');
+  } catch {
+    mostrarMsgReset('resetMsg1', 'Error de conexión. Verificá tu internet.', 'err');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('spinnerEnviarCodigo').style.display = 'none';
+    document.getElementById('btnEnviarCodigoLabel').textContent = 'Enviar código';
+  }
+}
+
+async function confirmarCodigoReset() {
+  const codigo = document.getElementById('resetCodigo').value.trim();
+  const passNueva = document.getElementById('resetPassNueva').value;
+  ocultarMsgReset('resetMsg2');
+
+  if (!codigo || !passNueva) {
+    mostrarMsgReset('resetMsg2', 'Completá el código y la nueva contraseña.', 'err');
+    return;
+  }
+  if (passNueva.length < 6) {
+    mostrarMsgReset('resetMsg2', 'La nueva contraseña debe tener al menos 6 caracteres.', 'err');
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmarCodigo');
+  btn.disabled = true;
+  document.getElementById('spinnerConfirmarCodigo').style.display = 'inline-block';
+  document.getElementById('btnConfirmarCodigoLabel').textContent = 'Guardando...';
+
+  try {
+    const resp = await fetch('/api/auth/confirmar-codigo-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefono: telefonoResetActual, codigo, password_nuevo: passNueva }),
+    });
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      mostrarMsgReset('resetMsg2', data.error || 'No se pudo actualizar la contraseña.', 'err');
+      return;
+    }
+
+    mostrarMsgReset('resetMsg2', 'Contraseña actualizada. Ya podés ingresar.', 'ok');
+    setTimeout(() => {
+      cerrarModalReset();
+      document.getElementById('inputEmail').value = telefonoResetActual;
+      document.getElementById('inputPass').focus();
+    }, 1400);
+  } catch {
+    mostrarMsgReset('resetMsg2', 'Error de conexión. Verificá tu internet.', 'err');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('spinnerConfirmarCodigo').style.display = 'none';
+    document.getElementById('btnConfirmarCodigoLabel').textContent = 'Guardar';
+  }
+}
+
+async function cargarNombreEmpresa() {
+  try {
+    // Auditoría Etapa 2 (v232, corregido v278): pantalla sin sesión → usa
+    // la función pública whitelisteada (id/nombre/logo_url), no la tabla
+    // empresas completa. Antes era una vista SECURITY DEFINER implícita
+    // (v_empresas_publico); v278 la reemplazó por esta función explícita
+    // por el mismo motivo de siempre (RLS bypass declarado, no heredado).
+    const { data } = await sb.rpc('empresa_publica_actual').maybeSingle();
+    if (!data) return;
+    document.getElementById('nombreEmpresa').textContent = data.nombre;
+    document.title = `Acceso — ${data.nombre}`;
+    const logo = document.getElementById('logoEmpresa');
+    if (data.logo_url) {
+      logo.innerHTML = `<img src="${data.logo_url}" style="width:100%;height:100%;object-fit:cover;" alt="">`;
+    } else {
+      logo.textContent = data.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    }
+  } catch {}
+}
+
+async function resolverCliente(userId) {
+  const { data } = await sb.from('clientes').select('id,empresa_id').eq('usuario_id', userId).maybeSingle();
+  return data;
+}
+
+async function ingresar() {
+  const telRaw = document.getElementById('inputEmail').value.trim();
+  const pass   = document.getElementById('inputPass').value;
+  ocultarError();
+
+  if (!telRaw || !pass) {
+    mostrarError('Completá el número de WhatsApp y la contraseña.');
+    return;
+  }
+
+  // Normalizar número → email ficticio (mismo algoritmo que el backend)
+  let digits = telRaw.replace(/\D/g, '');
+  if (!digits.startsWith('54')) {
+    if (digits.startsWith('0')) digits = digits.slice(1);
+    digits = '54' + digits;
+  }
+  const email = `${digits}@portal.distrib`;
+
+  const btn = document.getElementById('btnIngresar');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  document.getElementById('btnLabel').textContent = 'Ingresando...';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (error || !data.session) {
+      mostrarError('Número o contraseña incorrectos.');
+      return;
+    }
+
+    // Verificar que el usuario tiene un cliente asociado
+    const cliente = await resolverCliente(data.session.user.id);
+    if (!cliente) {
+      await sb.auth.signOut();
+      mostrarError('Tu usuario no está asociado a ningún cliente. Contactá a tu distribuidora.');
+      return;
+    }
+
+    window.location.href = '/cliente/catalogo';
+
+  } catch {
+    mostrarError('Error de conexión. Verificá tu internet.');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    document.getElementById('btnLabel').textContent = 'Ingresar';
+  }
+}
+
+function mostrarError(msg) {
+  document.getElementById('textoError').textContent = msg;
+  document.getElementById('alertaError').classList.add('show');
+}
+
+function ocultarError() {
+  document.getElementById('alertaError').classList.remove('show');
+}
+
+function togglePass() {
+  const input = document.getElementById('inputPass');
+  const icon  = document.getElementById('eyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+</script>
+</body>
+</html>

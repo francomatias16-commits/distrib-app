@@ -1,0 +1,466 @@
+/**
+ * riesgo-cheques-gentelella.css — Reskin "Gentelella v4" de la pantalla Riesgo de cheques
+ * ─────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lean riesgo-cheques.js:
+ * solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-riesgo-cheques-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella { background: var(--ge-bg) !important; }
+body.dash-riesgo-cheques-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-riesgo-cheques-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-riesgo-cheques-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-riesgo-cheques-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-riesgo-cheques-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-riesgo-cheques-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-riesgo-cheques-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb + intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPIs (fkpi grid)
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .fkpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-riesgo-cheques-gentelella .fkpi-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+}
+body.dash-riesgo-cheques-gentelella .fkpi-val {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-riesgo-cheques-gentelella .fkpi-val.rojo    { color: var(--ge-red) !important; }
+body.dash-riesgo-cheques-gentelella .fkpi-val.amarillo{ color: var(--ge-orange) !important; }
+body.dash-riesgo-cheques-gentelella .fkpi-val.azul     { color: var(--ge-blue) !important; }
+body.dash-riesgo-cheques-gentelella .fkpi-sub {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Alerta de caída de score (alerta-inline warning)
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .alerta-inline.warning {
+  background: rgba(240,173,78,.15) !important;
+  border: 1px solid rgba(240,173,78,.3) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-warning-text) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel "Consulta libre al BCRA"
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-riesgo-cheques-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-riesgo-cheques-gentelella #cuit-libre,
+body.dash-riesgo-cheques-gentelella #bcra-libre-entidad,
+body.dash-riesgo-cheques-gentelella #bcra-libre-numero,
+body.dash-riesgo-cheques-gentelella #buscar-riesgo,
+body.dash-riesgo-cheques-gentelella #filtro-categoria-riesgo {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-riesgo-cheques-gentelella #cuit-libre:focus,
+body.dash-riesgo-cheques-gentelella #bcra-libre-entidad:focus,
+body.dash-riesgo-cheques-gentelella #bcra-libre-numero:focus,
+body.dash-riesgo-cheques-gentelella #buscar-riesgo:focus,
+body.dash-riesgo-cheques-gentelella #filtro-categoria-riesgo:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-riesgo-cheques-gentelella #cuit-libre::placeholder,
+body.dash-riesgo-cheques-gentelella #buscar-riesgo::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-riesgo-cheques-gentelella .filtros-bar label {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla principal
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .tabla thead th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 14px !important;
+  white-space: nowrap !important;
+}
+body.dash-riesgo-cheques-gentelella .tabla tbody td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-riesgo-cheques-gentelella .tabla tbody tr:last-child td { border-bottom: none !important; }
+body.dash-riesgo-cheques-gentelella .tabla tbody tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-riesgo-cheques-gentelella .col-sticky-end { background: var(--ge-panel) !important; }
+body.dash-riesgo-cheques-gentelella .tabla tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
+body.dash-riesgo-cheques-gentelella .monto { font-weight: 600 !important; color: var(--ge-ink) !important; }
+body.dash-riesgo-cheques-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  padding: 32px !important;
+}
+
+/* Avatar de cliente (riesgo-cliente-fila / riesgo-cliente-avatar) */
+body.dash-riesgo-cheques-gentelella .riesgo-cliente-fila {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+body.dash-riesgo-cheques-gentelella .riesgo-cliente-avatar {
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Score badges (mismas categorías/tokens que clientes-gentelella)
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .score-badge { border-radius: var(--ge-radius-pill) !important; }
+body.dash-riesgo-cheques-gentelella .score-premium   { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-riesgo-cheques-gentelella .score-bueno     { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-riesgo-cheques-gentelella .score-normal    { background: rgba(52,152,219,.12) !important; color: var(--ge-info-text) !important; }
+body.dash-riesgo-cheques-gentelella .score-riesgo    { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+body.dash-riesgo-cheques-gentelella .score-bloqueado { background: var(--ge-bg) !important; color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Botones secundarios chicos ("Verificar" / "Ver cheques")
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Sección "Consulta libre al BCRA" — card prominente
+   ════════════════════════════════════════════════════════════ */
+
+/* Contenedor principal */
+body.dash-riesgo-cheques-gentelella .bcra-consulta {
+  background: var(--ge-panel) !important;
+  border: 1px solid rgba(52,152,219,.3) !important;
+  border-top: 3px solid var(--ge-blue) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: 0 2px 10px rgba(52,152,219,.12), var(--ge-shadow) !important;
+  overflow: hidden !important;
+  margin-bottom: 20px !important;
+}
+
+/* Header */
+body.dash-riesgo-cheques-gentelella .bcra-consulta-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px 20px !important;
+  background: linear-gradient(135deg, rgba(52,152,219,.08) 0%, rgba(52,152,219,.03) 100%) !important;
+  border-bottom: 1px solid rgba(52,152,219,.15) !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-header-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  background: rgba(52,152,219,.15) !important;
+  color: var(--ge-blue) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-header-text {
+  flex: 1 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-title {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--ge-ink) !important;
+  line-height: 1.2 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-subtitle {
+  font-size: 11px !important;
+  color: var(--ge-blue) !important;
+  font-weight: 500 !important;
+  margin-top: 2px !important;
+  opacity: .8 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-badge {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  color: var(--ge-blue) !important;
+  background: rgba(52,152,219,.12) !important;
+  border: 1px solid rgba(52,152,219,.25) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  padding: 3px 10px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Grid de paneles */
+body.dash-riesgo-cheques-gentelella .bcra-consulta-panels {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  gap: 0 !important;
+  padding: 20px !important;
+  align-items: start !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-consulta-divider {
+  width: 1px !important;
+  background: var(--ge-border) !important;
+  align-self: stretch !important;
+  margin: 0 20px !important;
+}
+
+/* Panel individual */
+body.dash-riesgo-cheques-gentelella .bcra-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-top {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: var(--ge-radius-btn) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-icon--cuit {
+  background: rgba(184,122,0,.12) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-icon--cheque {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-blue) !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--ge-ink) !important;
+  line-height: 1.3 !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-desc {
+  font-size: 12px !important;
+  color: var(--ge-ink-soft) !important;
+  margin: 0 !important;
+  line-height: 1.55 !important;
+}
+
+/* Formulario del panel */
+body.dash-riesgo-cheques-gentelella .bcra-panel-form {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-panel-form--cheque {
+  flex-wrap: wrap !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-input {
+  flex: 1 !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  transition: border-color .15s !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-input:focus {
+  outline: none !important;
+  border-color: var(--ge-blue) !important;
+  box-shadow: 0 0 0 3px rgba(52,152,219,.12) !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-select {
+  min-width: 150px !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-input--numero {
+  flex: 0 0 auto !important;
+  width: 130px !important;
+}
+
+/* Botón Verificar — primario teal */
+body.dash-riesgo-cheques-gentelella .bcra-btn-verificar {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: background .15s !important;
+}
+
+body.dash-riesgo-cheques-gentelella .bcra-btn-verificar:hover {
+  background: var(--ge-teal-dark) !important;
+  color: var(--ge-panel) !important;
+}
+
+/* Resultado de denuncia */
+body.dash-riesgo-cheques-gentelella .bcra-resultado {
+  font-size: 12px !important;
+  min-height: 0 !important;
+}
+
+/* Responsive — stack vertical en pantallas pequeñas */
+@media (max-width: 700px) {
+  body.dash-riesgo-cheques-gentelella .bcra-consulta-panels {
+    grid-template-columns: 1fr !important;
+  }
+  body.dash-riesgo-cheques-gentelella .bcra-consulta-divider {
+    width: auto !important;
+    height: 1px !important;
+    margin: 4px 0 16px !important;
+    align-self: auto !important;
+  }
+  body.dash-riesgo-cheques-gentelella .bcra-input--numero {
+    width: 100% !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de verificación oficial BCRA
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-riesgo-cheques-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-riesgo-cheques-gentelella .modal-box h2,
+body.dash-riesgo-cheques-gentelella .modal-box h3,
+body.dash-riesgo-cheques-gentelella .modal-box h4 {
+  color: var(--ge-ink) !important;
+}
+body.dash-riesgo-cheques-gentelella .modal-box .tabla {
+  border: 1px solid var(--ge-border) !important;
+}
+body.dash-riesgo-cheques-gentelella .modal-box .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-riesgo-cheques-gentelella .modal-box .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-riesgo-cheques-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}

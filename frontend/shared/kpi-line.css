@@ -1,0 +1,182 @@
+/**
+ * kpi-line.css — Tarjetas de indicador: resumen numérico de cada pantalla,
+ * en todas las pantallas del admin.
+ * ──────────────────────────────────────────────────────────────────
+ * v3 (2026-08) — Reemplaza la tira de "manifiesto" (perforaciones,
+ * casilleros divididos por líneas punteadas, numeración 01·02·03) por
+ * un grid de tarjetas individuales: número grande, línea corta de
+ * color debajo, label en negrita y una descripción chica que explica
+ * qué significa el dato — sin tener que adivinarlo.
+ *
+ * Idea central:
+ *   - Cada indicador es su propia tarjeta (fondo propio, borde, sombra
+ *     leve, esquinas redondeadas) en vez de un casillero dentro de una
+ *     tira continua — más fácil de escanear, mejor en pantallas chicas
+ *     porque cada tarjeta es una unidad que puede reacomodarse sola.
+ *   - El número va centrado y en tinta uniforme (no coloreado por
+ *     estado) — el color de estado se expresa en el filete corto debajo
+ *     del número y en el label, como una etiqueta de estado, no como
+ *     semáforo de dígitos.
+ *   - La descripción (kpi-line-sub) deja de ser un dato secundario
+ *     suelto y pasa a ser una explicación breve de una línea sobre qué
+ *     es y de dónde sale el número — igual que un subtítulo de card.
+ *
+ * Markup esperado (SIN CAMBIOS respecto a versiones anteriores — mismos
+ * ids/clases; kpi-line-sub es opcional pero se recomienda siempre):
+ *   <div class="kpi-line">
+ *     <span class="kpi-line-item {color}">
+ *       <span class="kpi-line-val" id="...">123</span>
+ *       <span class="kpi-line-lbl">Label</span>
+ *       <span class="kpi-line-sub" id="...">Descripción breve</span>
+ *     </span>
+ *     ...
+ *   </div>
+ *
+ * Se carga DESPUÉS de gentelella-fkpi.css (que sigue existiendo por si
+ * alguna pantalla no migrada todavía lo necesita) para que estas reglas
+ * puedan convivir sin colisión de especificidad.
+ */
+
+body.dash-gentelella .kpi-line {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  margin-bottom: 16px !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  position: static !important;
+  counter-reset: none !important;
+}
+
+/* Ya no hay perforación superior — cada tarjeta es autónoma. */
+body.dash-gentelella .kpi-line::before {
+  content: none !important;
+}
+
+body.dash-gentelella .kpi-line-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  gap: 2px !important;
+  padding: 20px 14px 16px !important;
+  margin: 0 !important;
+  background: var(--color-surface, #FCFAF5) !important;
+  border: 1px solid var(--color-border, #C7BFA9) !important;
+  border-left: 1px solid var(--color-border, #C7BFA9) !important;
+  border-radius: var(--radius-lg, 10px) !important;
+  box-shadow: var(--shadow-fluffy, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+  counter-increment: none !important;
+  min-width: 0 !important;
+  transition: transform var(--transition-fast, 120ms ease), box-shadow var(--transition-fast, 120ms ease) !important;
+}
+
+body.dash-gentelella .kpi-line-item:first-child {
+  border-left: 1px solid var(--color-border, #C7BFA9) !important;
+  padding-left: 14px !important;
+}
+
+body.dash-gentelella .kpi-line-val {
+  font-family: var(--font-family-display, 'Oswald', 'Arial Narrow', sans-serif) !important;
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: .01em !important;
+  color: var(--color-text, #16181D) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Filete corto de color — reemplaza a la banderita/numeración de la
+   versión anterior. Separa el número del label, como el subrayado de
+   acento del diseño de referencia. */
+body.dash-gentelella .kpi-line-val::after {
+  content: "" !important;
+  display: block !important;
+  width: 38px !important; height: 3px !important;
+  margin: 8px auto 6px !important;
+  border-radius: 2px !important;
+  background: var(--color-border, #C7BFA9) !important;
+}
+body.dash-gentelella .kpi-line-item.rojo     .kpi-line-val::after { background: var(--color-danger-mid,  #B3261E) !important; }
+body.dash-gentelella .kpi-line-item.amarillo .kpi-line-val::after { background: var(--color-warning-mid, #B87A00) !important; }
+body.dash-gentelella .kpi-line-item.azul     .kpi-line-val::after { background: var(--color-info-mid,    #2E6088) !important; }
+body.dash-gentelella .kpi-line-item.verde    .kpi-line-val::after { background: var(--color-success-mid, #1F5B4A) !important; }
+body.dash-gentelella .kpi-line-item.morado   .kpi-line-val::after { background: var(--violeta-mid,        #5B4A8F) !important; }
+
+body.dash-gentelella .kpi-line-lbl {
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--color-text, #16181D) !important;
+  white-space: normal !important;
+}
+/* La numeración de renglón (01 · 02 ·…) queda retirada del diseño. */
+body.dash-gentelella .kpi-line-lbl::before {
+  content: none !important;
+}
+
+body.dash-gentelella .kpi-line-item.rojo     .kpi-line-lbl { color: var(--color-danger-mid,  #B3261E) !important; }
+body.dash-gentelella .kpi-line-item.amarillo .kpi-line-lbl { color: var(--color-warning-mid, #B87A00) !important; }
+body.dash-gentelella .kpi-line-item.azul     .kpi-line-lbl { color: var(--color-info-mid,    #2E6088) !important; }
+body.dash-gentelella .kpi-line-item.verde    .kpi-line-lbl { color: var(--color-success-mid, #1F5B4A) !important; }
+body.dash-gentelella .kpi-line-item.morado   .kpi-line-lbl { color: var(--violeta-mid,        #5B4A8F) !important; }
+
+body.dash-gentelella .kpi-line-sub {
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 11.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  color: var(--color-text-light, #6B695F) !important;
+  margin-top: 3px !important;
+  max-width: 24ch !important;
+}
+body.dash-gentelella .kpi-line-sub::before {
+  content: none !important;
+}
+
+/* ── Tarjetas clickeables (filtros de facturación / saas-billing) ──
+   Se distinguen con un borde de acento y, al activarse, con fondo
+   tintado + borde sólido del color de estado — como una tarjeta
+   "seleccionada", en vez del subrayado inferior anterior. */
+body.dash-gentelella .kpi-line-item.kpi-card.clicable,
+body.dash-gentelella .kpi-line-item.saas-kpi {
+  cursor: pointer !important;
+  font: inherit !important;
+  text-align: center !important;
+  transition: background var(--transition-fast, 120ms ease), border-color var(--transition-fast, 120ms ease), transform var(--transition-fast, 120ms ease) !important;
+}
+body.dash-gentelella .kpi-line-item.kpi-card.clicable:hover,
+body.dash-gentelella .kpi-line-item.saas-kpi:hover {
+  background: var(--color-surface-2, #EAE4D6) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-gentelella .kpi-line-item.kpi-card.activa,
+body.dash-gentelella .kpi-line-item.saas-kpi.activo {
+  background: var(--color-primary-bg, rgba(232,160,0,.14)) !important;
+  border-color: var(--color-primary, #B87A00) !important;
+  box-shadow: inset 0 0 0 1px var(--color-primary, #B87A00), var(--shadow-fluffy, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+}
+body.dash-gentelella .kpi-line-item.kpi-card.activa .kpi-line-val,
+body.dash-gentelella .kpi-line-item.saas-kpi.activo .kpi-line-val {
+  color: var(--color-primary-dark, #8F5F00) !important;
+}
+
+@media (max-width: 640px) {
+  body.dash-gentelella .kpi-line {
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)) !important;
+    gap: 8px !important;
+  }
+  body.dash-gentelella .kpi-line-item {
+    padding: 14px 10px 12px !important;
+  }
+  body.dash-gentelella .kpi-line-item:first-child { padding-left: 10px !important; }
+  body.dash-gentelella .kpi-line-val { font-size: 23px !important; }
+  body.dash-gentelella .kpi-line-val::after { width: 30px !important; margin: 6px auto 4px !important; }
+  body.dash-gentelella .kpi-line-lbl { font-size: 11.5px !important; }
+  body.dash-gentelella .kpi-line-sub { font-size: 10.5px !important; max-width: 18ch !important; }
+}

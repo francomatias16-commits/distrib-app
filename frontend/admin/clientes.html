@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Clientes — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes.css?v=197" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes-ciclos.css?v=196" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-clientes-gentelella dash-gentelella">
+
+<!-- ── PRELOADER ── -->
+<div id="app-preloader" class="preloader">
+  <div class="preloader-logo">D</div>
+  <span class="preloader-text">Cargando clientes…</span>
+  <div class="preloader-bar"></div>
+</div>
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Clientes</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Gestioná datos fiscales, direcciones de entrega, lista de precios y el estado de cuenta corriente de cada cliente, incluyendo bloqueos por score o deuda.
+</div>
+  </div>
+
+  <main class="main">
+
+    <!-- ── Toggle de vista ── -->
+    <div class="estado-pills" id="vista-toggle" style="margin-bottom:14px;">
+      <button type="button" class="e-pill activa" id="vtab-clientes" onclick="cambiarVista('clientes')">Clientes</button>
+      <button type="button" class="e-pill" id="vtab-precios" onclick="cambiarVista('precios')">Precios especiales</button>
+      <button type="button" class="e-pill" id="vtab-direcciones" onclick="cambiarVista('direcciones')">Direcciones</button>
+      <button type="button" class="e-pill" id="vtab-listas" onclick="cambiarVista('listas')">Listas de precio</button>
+    </div>
+
+    <!-- ══════════ Vista: Clientes ══════════ -->
+    <div id="vista-clientes">
+
+    <!-- ── Filtros ── -->
+    <div class="filtros-bar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="input-busqueda" aria-label="Buscar cliente" placeholder="Nombre, razón social o CUIT..." autocomplete="off" />
+      </div>
+
+      <div class="estado-pills">
+        <button type="button" class="e-pill activa" data-f="" onclick="selFiltroEstado('', this)">Todos</button>
+        <button type="button" class="e-pill e-pill-verde"    data-f="activo"    onclick="selFiltroEstado('activo', this)">Activos</button>
+        <button type="button" class="e-pill e-pill-rojo"     data-f="inactivo"  onclick="selFiltroEstado('inactivo', this)">Inactivos</button>
+        <button type="button" class="e-pill e-pill-amarillo" data-f="deuda"     onclick="selFiltroEstado('deuda', this)">Con deuda</button>
+        <button type="button" class="e-pill e-pill-rojo"     data-f="riesgo"    onclick="selFiltroEstado('riesgo', this)">En riesgo</button>
+      </div>
+
+      <div class="filtros-der">
+        <select id="filtro-zona" onchange="aplicarFiltros()" class="select-filtro">
+          <option value="">Todas las zonas</option>
+        </select>
+        <button type="button" class="btn btn--ghost" onclick="limpiarFiltros()">Limpiar</button>
+        <button type="button" class="btn-ver-catalogo" id="btn-ver-catalogo" onclick="verCatalogoCliente()" title="Abrir el catálogo tal como lo ve un cliente, en una pestaña nueva">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Ver catálogo
+        </button>
+        <div class="topbar-mas-acciones">
+          <button type="button" class="btn-exportar" id="btn-mas-acciones" aria-haspopup="true" aria-expanded="false">
+            <svg id="btn-mas-acciones-icon-exportar" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="btn-mas-acciones-texto">Más acciones</span>
+            <svg id="btn-mas-acciones-chevron" class="topbar-mas-acciones-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu" id="menu-mas-acciones" role="menu" hidden>
+            <button type="button" class="dropdown-item" id="btn-geocodificar-lote" onclick="geocodificarPendientesLote()" role="menuitem" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="btn-geocodificar-lote-texto">Geocodificar pendientes</span>
+            </button>
+            <button type="button" class="dropdown-item" onclick="exportarExcel()" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn--primary" onclick="abrirModalNuevo()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo cliente
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Tabla ── -->
+    <div class="tabla-wrap table-responsive-cards">
+      <table class="tabla-clientes">
+        <thead>
+            <tr>
+            <th>Cliente</th>
+            <th>CUIT</th>
+            <th>Zona</th>
+            <th class="thead-sep">Teléfono</th>
+            <th class="th-num">Límite crédito</th>
+            <th class="th-num">Saldo deuda</th>
+            <th>Estado</th>
+            <th class="thead-sep">Confianza</th>
+            <th class="col-sticky-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="8" class="tabla-loading">Cargando clientes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación — IDs estáticos para evitar dependencia del inject dinámico -->
+    <div id="paginacion-clientes" class="paginacion-container" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 0;">
+      <button type="button" id="btn-prev" class="btn-pag" onclick="cambiarPagina(-1)" disabled>Anterior</button>
+      <span id="info-pag" style="font-size:13px;color:var(--color-text-secondary);">Página 1</span>
+      <button type="button" id="btn-next" class="btn-pag" onclick="cambiarPagina(1)" disabled>Siguiente</button>
+    </div>
+
+    </div><!-- /vista-clientes -->
+
+    <!-- ══════════ Vista: Precios especiales (global) ══════════ -->
+    <div id="vista-precios" style="display:none">
+      <div class="filtros-bar">
+        <div class="search-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="input-busqueda-precios" aria-label="Buscar precio especial" placeholder="Cliente o producto..." oninput="filtrarPrecios()" autocomplete="off" />
+        </div>
+        <div class="filtros-der">
+          <button type="button" class="btn btn--primary" onclick="abrirModalPrecio()">+ Precio especial</button>
+        </div>
+      </div>
+
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-clientes">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th class="th-num">Precio especial</th>
+              <th>Notas</th>
+              <th>Actualizado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-precios-body">
+            <tr><td colspan="6" class="tabla-loading">Cargando precios...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ Vista: Direcciones de entrega (global) ══════════ -->
+    <div id="vista-direcciones" style="display:none">
+      <div class="filtros-bar">
+        <div class="search-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="input-busqueda-direcciones" aria-label="Buscar dirección" placeholder="Cliente, domicilio o localidad..." oninput="filtrarDirecciones()" autocomplete="off" />
+        </div>
+        <div class="filtros-der">
+          <button type="button" class="btn btn--primary" onclick="abrirModalDireccion()">+ Dirección</button>
+        </div>
+      </div>
+
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-clientes">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th class="thead-sep">Etiqueta</th>
+              <th>Domicilio</th>
+              <th>Localidad</th>
+              <th class="thead-sep">Provincia</th>
+              <th>Principal</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-direcciones-body">
+            <tr><td colspan="7" class="tabla-loading">Cargando direcciones...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ Vista: Listas de precio (global) ══════════ -->
+    <div id="vista-listas" style="display:none">
+      <div class="filtros-bar">
+        <select id="filtro-activa-listas" class="select-filtro" onchange="cargarListasPreciosTab()">
+          <option value="true">Activas</option>
+          <option value="">Todas</option>
+          <option value="false">Inactivas</option>
+        </select>
+        <div class="filtros-der">
+          <button type="button" class="btn btn--primary" onclick="abrirModalListaPrecio()">+ Nueva lista</button>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--color-text-muted);margin:0 0 12px">
+        Condiciones comerciales distintas por grupo de clientes (mayorista, minorista, revendedor...). Se asignan desde la pestaña "Comercial" de la ficha de cada cliente. La marcada como «Predeterminada» es la que se usa si el cliente no tiene una asignada.
+      </p>
+
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-clientes">
+          <thead>
+            <tr>
+              <th>Lista</th>
+              <th style="text-align:center">Predeterminada</th>
+              <th>Estado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-listas-body">
+            <tr><td colspan="4" class="tabla-loading">Cargando listas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta / edición de cliente
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="cerrarModal()" aria-hidden="true"></div>
+
+<div class="modal" id="modal-cliente">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-titulo">Nuevo cliente</h2>
+      <div class="modal-subtitulo" id="modal-subtitulo">Completá los datos del cliente</div>
+      <div id="badge-origen-migracion"></div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModal()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Tabs del modal -->
+  <div class="modal-tabs" id="modal-tabs" role="tablist" aria-label="Secciones del cliente">
+    <button type="button" role="tab" aria-selected="true"  aria-controls="panel-datos"     class="modal-tab activo"  data-tab="datos"     id="tab-btn-datos"     onclick="selTab('datos', this)">Datos</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="panel-comercial" class="modal-tab"         data-tab="comercial" id="tab-btn-comercial" onclick="selTab('comercial', this)">Comercial</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="panel-historial" class="modal-tab"         data-tab="historial" id="tab-historial"     onclick="selTab('historial', this)" hidden>Historial</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="panel-cta"       class="modal-tab"         data-tab="cta"       id="tab-cta"           onclick="selTab('cta', this)" hidden>Cuenta cte.</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="panel-comprobantes" class="modal-tab"       data-tab="comprobantes" id="tab-comprobantes" onclick="selTab('comprobantes', this)" hidden>Comprobantes hist.</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="panel-bloqueos"     class="modal-tab"         data-tab="bloqueos"     id="tab-bloqueos"     onclick="selTab('bloqueos', this)" hidden>Bloqueos</button>
+  </div>
+
+  <!-- ── Tab: Datos ── -->
+  <div class="tab-panel" id="panel-datos" role="tabpanel" aria-labelledby="tab-btn-datos">
+    <div class="modal-seccion">
+      <div class="modal-sec-label">Identificación</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Razón social <span class="form-requerido">*</span></label>
+          <input type="text" id="f-razon_social" class="form-input" placeholder="Ej: El Almacén SRL" maxlength="120" aria-label="Razón social" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre fantasía</label>
+          <input type="text" id="f-nombre_fantasia" class="form-input" placeholder="Opcional" maxlength="80" aria-label="Nombre de fantasía" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            CUIT
+            <span class="ayuda-contextual" data-tooltip="Código Único de Identificación Tributaria. Once dígitos, formato XX-XXXXXXXX-X. Lo pide AFIP para emitir factura A o B.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="text" id="f-cuit" class="form-input" placeholder="20-12345678-9" maxlength="13" aria-label="CUIT" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            Condición IVA
+            <span class="ayuda-contextual" data-tooltip="Define cómo se le factura al cliente. Si no estás seguro, Consumidor final es la opción más común para ventas al público.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <select id="f-condicion_iva" class="form-select">
+            <option value="consumidor_final">Consumidor final</option>
+            <option value="responsable_inscripto">Responsable inscripto</option>
+            <option value="monotributista">Monotributista</option>
+            <option value="exento">Exento</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-seccion">
+      <div class="modal-sec-label">Contacto y dirección</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" id="f-telefono" class="form-input" placeholder="+54 3462 000000" maxlength="30" aria-label="Teléfono" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="f-email" class="form-input" placeholder="mail@cliente.com" maxlength="80" aria-label="Email" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Domicilio</label>
+        <input type="text" id="f-domicilio" class="form-input" placeholder="Calle y número" maxlength="160" aria-label="Domicilio" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Localidad</label>
+          <input type="text" id="f-localidad" class="form-input" placeholder="Ciudad" maxlength="80" aria-label="Localidad" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zona</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="f-zona_id" class="form-select" style="flex:1">
+              <option value="">Sin zona</option>
+            </select>
+            <button type="button" class="btn-secundario" id="btn-nueva-zona-rapida"
+                    title="Crear una zona nueva sin salir de este formulario"
+                    onclick="crearZonaRapida()"
+                    style="flex:0 0 auto;padding:8px 10px;white-space:nowrap">
+              + Zona
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            Latitud
+            <span class="ayuda-contextual" data-tooltip="Coordenada geográfica de latitud. Podés obtenerla desde Google Maps haciendo clic derecho sobre la ubicación del cliente.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="number" id="f-lat" class="form-input" step="any" placeholder="-34.6037" min="-90" max="90" aria-label="Latitud" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitud</label>
+          <input type="number" id="f-lng" class="form-input" step="any" placeholder="-58.3816" min="-180" max="180" aria-label="Longitud" />
+        </div>
+      </div>
+      <div class="form-group">
+        <button type="button" id="btn-geocodificar" class="btn btn-secondary btn-sm"
+                onclick="geocodificarClienteActual()"
+                style="display:inline-flex;align-items:center;gap:6px;font-size:.82rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Buscar coordenadas desde el domicilio
+        </button>
+        <span id="geocodificar-status" style="font-size:.8rem;color:var(--color-text-light);margin-left:8px;"></span>
+      </div>
+      <div class="form-group" id="map-link-row" style="display:none">
+        <a id="map-link" href="#" target="_blank" rel="noopener noreferrer"
+           style="display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--color-primary);text-decoration:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ver ubicación en Google Maps
+        </a>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notas internas</label>
+      <textarea id="f-notas" class="form-input form-textarea" placeholder="Observaciones del cliente..." maxlength="500" rows="3"></textarea>
+    </div>
+    <div id="score-exacto-dato" style="padding:10px 0 2px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:28px;"></div>
+  </div>
+
+  <!-- ── Tab: Comercial ── -->
+  <div class="tab-panel" id="panel-comercial" role="tabpanel" aria-labelledby="tab-btn-comercial">
+    <div class="modal-seccion">
+      <div class="modal-sec-label">Condiciones comerciales</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            Vendedor asignado
+            <span class="ayuda-contextual" data-tooltip="Vendedor predeterminado para los pedidos de este cliente. Se usa cuando se genera un pedido automático o desde el piloto automático.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <select id="f-vendedor_id_default" class="form-select">
+            <option value="">Sin vendedor asignado</option>
+          </select>
+        </div>
+        <div class="form-group"><!-- spacer --></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lista de precios</label>
+          <select id="f-lista_precio_id" class="form-select">
+            <option value="">Lista por defecto</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            Días de crédito
+            <span class="ayuda-contextual" data-tooltip="Cantidad de días que el cliente tiene para pagar después de la entrega. Se usa para calcular el vencimiento de la factura en Cobranzas. Dejá 0 si siempre paga al contado.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="number" id="f-dias_credito" class="form-input" min="0" step="1" placeholder="0" aria-label="Días de crédito" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            Límite de crédito ($)
+            <span class="ayuda-contextual" data-tooltip="Monto máximo de deuda que el sistema le va a permitir acumular antes de avisarte. Dejá 0 para no establecer límite.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="number" id="f-limite_credito" class="form-input" min="0" step="100" placeholder="0" aria-label="Límite de crédito" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select id="f-activo" class="form-select">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de deuda (solo en edición) -->
+    <div id="resumen-deuda" style="display:none">
+      <div class="modal-sec-label" style="margin-bottom:12px">Situación crediticia</div>
+      <div class="credito-grid" id="credito-grid"></div>
+    </div>
+
+    <!-- REQ-07: Piloto Automático (ciclos de compra + pedido sugerido) -->
+    <div id="ciclos-section"></div>
+  </div>
+
+  <!-- ── Tab: Historial ── -->
+  <!-- ── Tab: Historial (REQ-14) ── -->
+  <div class="tab-panel" id="panel-historial" role="tabpanel" aria-labelledby="tab-historial">
+    <p class="ni-section-label">Notas internas</p>
+    <div class="ni-lista" id="historial-lista">
+      <div class="loading-row">Cargando notas...</div>
+    </div>
+    <hr class="ni-divider">
+    <div id="historial-form"></div>
+  </div>
+
+  <!-- ── Tab: Cuenta corriente ── -->
+  <div class="tab-panel" id="panel-cta" role="tabpanel" aria-labelledby="tab-cta">
+    <div id="cta-lista">
+      <div class="loading-row">Cargando cuenta corriente...</div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Bloqueos de cliente ── -->
+  <div class="tab-panel" id="panel-bloqueos" role="tabpanel" aria-labelledby="tab-bloqueos">
+    <p class="ni-section-label">Historial de bloqueos — registro de cada vez que el cliente fue bloqueado o desbloqueado.</p>
+    <div id="bloqueos-lista">
+      <div class="loading-row">Cargando historial de bloqueos...</div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Comprobantes fiscales históricos (migración 177, solo lectura) ── -->
+  <div class="tab-panel" id="panel-comprobantes" role="tabpanel" aria-labelledby="tab-comprobantes">
+    <p class="ni-section-label">Comprobantes previos a la migración — solo informativo, no genera CAE ni movimientos de cuenta corriente.</p>
+    <div id="comprobantes-lista">
+      <div class="loading-row">Cargando comprobantes...</div>
+    </div>
+  </div>
+
+  <!-- Acciones del form (solo visible en tabs datos/comercial) -->
+  <div class="form-acciones" id="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+    <button type="button" class="btn-peligro" id="btn-baja" onclick="btnAsyncClick(this, confirmarBaja)" style="display:none">
+      Dar de baja
+    </button>
+    <button type="button" class="btn-primario" id="btn-guardar" onclick="btnAsyncClick(this, guardarCliente)" aria-live="polite">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Guardar cliente
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta de precio especial
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-precio-backdrop" onclick="cerrarModalPrecio()" aria-hidden="true" style="display:none"></div>
+
+<div class="modal" id="modal-precio" style="display:none">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo">Precio especial</h2>
+      <div class="modal-subtitulo">Asigná un precio distinto al de lista para un cliente y producto</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalPrecio()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <select id="fp-cliente_id" class="form-select"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Producto</label>
+        <select id="fp-producto_id" class="form-select"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio especial ($)</label>
+        <input type="number" id="fp-precio" class="form-input" min="0" step="0.01" placeholder="0.00" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <input type="text" id="fp-notas" class="form-input" placeholder="Motivo, acuerdo, vencimiento..." />
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalPrecio()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-precio" onclick="btnAsyncClick(this, guardarPrecioCliente)" aria-live="polite">
+      Guardar precio
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta / edición de dirección de entrega
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-direccion-backdrop" onclick="cerrarModalDireccion()" aria-hidden="true" style="display:none"></div>
+
+<div class="modal" id="modal-direccion" style="display:none">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-direccion-titulo">Dirección de entrega</h2>
+      <div class="modal-subtitulo">Direcciones adicionales de reparto para un cliente</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalDireccion()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <input type="hidden" id="fd-id" value="" />
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <select id="fd-cliente_id" class="form-select"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Etiqueta (opcional)</label>
+        <input type="text" id="fd-etiqueta" class="form-input" placeholder="Depósito, Sucursal centro..." />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Domicilio</label>
+        <input type="text" id="fd-domicilio" class="form-input" placeholder="Calle y número" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Localidad</label>
+        <input type="text" id="fd-localidad" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Provincia</label>
+        <input type="text" id="fd-provincia" class="form-input" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <input type="text" id="fd-notas" class="form-input" placeholder="Horario de recepción, referencias..." />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="fd-es_principal" style="width:auto" />
+          Marcar como dirección principal de entrega
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalDireccion()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-direccion" onclick="btnAsyncClick(this, guardarDireccion)" aria-live="polite">
+      Guardar dirección
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta / edición de lista de precio
+     (ex /admin/listas-precio, incorporada acá — ver nav-data.js)
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-lista-precio-backdrop" onclick="cerrarModalListaPrecio()" aria-hidden="true" style="display:none"></div>
+
+<div class="modal" id="modal-lista-precio" style="display:none">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-lista-precio-titulo">Nueva lista</h2>
+      <div class="modal-subtitulo">Condición comercial para un grupo de clientes</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalListaPrecio()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <input type="hidden" id="fl-id" value="" />
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" id="fl-nombre" class="form-input" placeholder="Ej: Mayorista, Minorista, Revendedor..." />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="fl-es_default" style="width:auto" />
+          Usar como lista predeterminada
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalListaPrecio()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-lista-precio" onclick="btnAsyncClick(this, guardarListaPrecio)" aria-live="polite">
+      Guardar lista
+    </button>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── SheetJS ── -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<!-- ── Supabase ── -->
+
+  <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/migracion-badge.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
+  <script type="module" src="/frontend/admin/js/clientes.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/clientes-ciclos.js?v1782328742714"></script>
+
+<!-- ── REQ-5: Modal Score Cliente ── -->
+<div class="modal-overlay" id="modal-score-cliente" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.6);z-index:1000;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="modal-score-titulo">
+  <div class="modal-box" style="background:var(--color-surface);border-radius: var(--radius-xl);width:min(500px,95vw);max-height:90vh;overflow-y:auto;padding:20px 24px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-size:16px;margin:0;" id="modal-score-titulo">Nivel de confianza del cliente</h2>
+      <button type="button" onclick="cerrarModalScore()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="score-cliente-body">Cargando...</div>
+  </div>
+</div>
+
+<!-- ── REQ-5: Panel Alertas de Score ── -->
+<div id="panel-alertas-score" style="display:none"></div>
+
+<script>
+(function() {
+  function ocultarPreloader() {
+    var el = document.getElementById("app-preloader");
+    if (!el) return;
+    el.classList.add("oculto");
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+  setTimeout(ocultarPreloader, 3000); // fallback 3s
+  window.ocultarPreloader = ocultarPreloader;
+  window.addEventListener("load", function(){ setTimeout(ocultarPreloader, 500); });
+})();
+</script>
+<script type="module">
+import { ProfileCard, onclickArg } from '/shared/adminlte-widgets.js';
+
+// Exponer función para que modal-detalle pueda usar profile card
+window.renderProfileCard = function(container, datos) {
+  // datos viene del JS de clientes (objeto cliente de Supabase)
+  ProfileCard.render(container, {
+    nombre: datos.razon_social || datos.nombre || '—',
+    rol: datos.tipo_cliente || 'Cliente',
+    score: datos.score || null,
+    bannerColor: datos.activo === false ? 'banner-danger' : 'banner-primary',
+    stats: [
+      { label: 'Pedidos', value: datos.total_pedidos ?? '—' },
+      { label: 'Deuda', value: datos.deuda_total ? '$' + Number(datos.deuda_total).toLocaleString('es-AR') : '$0' },
+      { label: 'Zona', value: datos.zona || '—' }
+    ],
+    lista: [
+      { label: 'CUIT', value: datos.cuit || '—' },
+      { label: 'Teléfono', value: datos.telefono || '—' },
+      { label: 'Vendedor', value: datos.vendedor || '—' },
+      { label: 'Último pedido', value: datos.ultimo_pedido || '—' }
+    ],
+    acciones: [
+      { label: 'Ver pedidos', variant: 'primary', onclick: `verPedidosCliente(${onclickArg(datos.id)})` },
+      { label: 'WhatsApp', variant: 'success', onclick: `abrirWhatsapp(${onclickArg(datos.telefono)})` }
+    ]
+  });
+};
+</script>
+
+<!-- ── Modal Acceso Portal ─────────────────────────────────────────────────── -->
+<div id="modal-portal-overlay" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.5);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--color-surface);border-radius: var(--radius-xl);padding:1.5rem;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(22,24,29,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="margin:0;font-size:1.1rem;">Acceso al portal — <span id="modal-portal-nombre"></span></h3>
+      <button onclick="cerrarModalPortal()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div id="modal-portal-loading" style="display:none;flex-direction:column;align-items:center;gap:.75rem;padding:1.5rem 0;">
+      <div style="width:32px;height:32px;border:3px solid var(--color-primary);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></div>
+      <span style="color:var(--color-text-muted);">Generando acceso...</span>
+    </div>
+
+    <div id="modal-portal-info" style="margin-bottom:1.25rem;">
+      <p style="margin:0 0 1rem;color:var(--color-text-muted);font-size:.9rem;">
+        Se va a generar una contraseña aleatoria para este cliente. Luego vas a poder copiar el mensaje listo para mandar por WhatsApp.
+      </p>
+      <button id="btn-crear-acceso" onclick="btnAsyncClick(this, confirmarCrearAcceso)"
+        style="width:100%;padding:.75rem;background:var(--color-primary);color:var(--color-surface);border:none;border-radius: var(--radius-md);font-size:1rem;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Generar acceso y mensaje WhatsApp
+      </button>
+    </div>
+
+    <div id="modal-portal-resultado" style="display:none">
+      <p style="margin:0 0 .5rem;font-weight:600;color:var(--color-success);display:flex;align-items:center;gap:6px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>
+        Acceso generado correctamente
+      </p>
+      <p style="margin:0 0 .75rem;font-size:.85rem;color:var(--color-text-muted);">El mensaje ya está listo. Podés abrirlo directo en WhatsApp o copiarlo:</p>
+      <textarea id="portal-wa-texto" readonly
+        style="width:100%;min-height:160px;padding:.75rem;border:1px solid var(--color-border);border-radius: var(--radius-md);font-size:.85rem;line-height:1.5;resize:vertical;background:var(--color-bg);color:var(--color-text);font-family:inherit;box-sizing:border-box;"></textarea>
+      <div style="display:flex;gap:.75rem;margin-top:.75rem;">
+        <a id="btn-abrir-wa" href="#" target="_blank"
+          style="flex:1;padding:.65rem;background:#25d366;color:var(--color-surface);border:none;border-radius: var(--radius-md);font-weight:600;cursor:pointer;font-size:.9rem;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          Abrir en WhatsApp
+        </a>
+        <button id="btn-copiar-wa" onclick="copiarMensajeWA()"
+          style="padding:.65rem 1rem;background:var(--color-surface-2);color:var(--color-text);border:1px solid var(--color-border);border-radius: var(--radius-md);cursor:pointer;font-size:.9rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Copiar
+        </button>
+        <button onclick="cerrarModalPortal()"
+          style="padding:.65rem 1rem;background:var(--color-surface-2);color:var(--color-text);border:1px solid var(--color-border);border-radius: var(--radius-md);cursor:pointer;font-size:.9rem;">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.btn-portal {
+  padding: .35rem .7rem;
+  font-size: .78rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-left: .4rem;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.btn-portal:hover { background: var(--color-border); }
+.btn-portal--activo {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: var(--color-success-bg);
+}
+.btn-portal--activo:hover { background: #bbf7d0; }
+</style>
+
+<script>
+(function() {
+  function actualizarMapLink() {
+    var lat = parseFloat(document.getElementById('f-lat')?.value);
+    var lng = parseFloat(document.getElementById('f-lng')?.value);
+    var row = document.getElementById('map-link-row');
+    var link = document.getElementById('map-link');
+    if (row && link && !isNaN(lat) && !isNaN(lng)) {
+      link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      row.style.display = '';
+    } else if (row) {
+      row.style.display = 'none';
+    }
+  }
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'f-lat' || e.target.id === 'f-lng') actualizarMapLink();
+  });
+  window._actualizarMapLink = actualizarMapLink;
+})();
+</script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

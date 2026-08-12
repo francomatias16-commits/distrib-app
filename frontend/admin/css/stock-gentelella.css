@@ -1,0 +1,706 @@
+/**
+ * stock-gentelella.css — Reskin "Gentelella v4" de la pantalla Stock
+ * ──────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de stock.css / stock-overview.css y de
+ * /frontend/shared/gentelella-tokens.css (debe estar antes en <head>).
+ *
+ * Tres fuentes de estilos a cubrir:
+ *   1. stock.css — filtros, tabla, modal de ajuste, historial, badges
+ *   2. stock-overview.css — KPIs, gráfico, card lateral oscura, panel auto-reposición
+ *   3. Inline <style> en stock.html — .btn-pag, .mbt-box, .mov-tipo-transferencia, etc.
+ *
+ * La pantalla ya aplicaba TravelBox con --color-primary: #0D9488 sobre
+ * #vista-stock. Gentelella unifica con --ge-teal. La card lateral oscura
+ * (.stock-ov-target) se conserva oscura pero usa --ge-sidebar-2.
+ *
+ * Tokens (--ge-*): solo desde frontend/shared/gentelella-tokens.css.
+ * Scope: body.dash-stock-gentelella
+ *
+ * 2026-07-14: se corrigió una regresión — 5 usos de #7d4000 en vez de
+ * --ge-warning-text (KPI advertencia, badges crítico/bajo, pill amarilla).
+ * Nota: #fdb072 / #6fe3b4 (mini-badges sobre la card oscura lateral) se
+ * dejaron como estaban — son tintes claros ya existentes en
+ * stock-overview.css, pensados para contraste sobre fondo oscuro, no
+ * corresponden al mismo token de advertencia sobre fondo claro.
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella { background: var(--ge-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Preloader
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .preloader { background: var(--ge-sidebar-2) !important; }
+body.dash-stock-gentelella .preloader-logo { color: var(--ge-teal) !important; }
+body.dash-stock-gentelella .preloader-bar  { background: var(--ge-teal) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-stock-gentelella .topbar-title    { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-stock-gentelella .topbar-workspace { color: var(--ge-ink-soft) !important; }
+body.dash-stock-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-stock-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; }
+
+body.dash-stock-gentelella .btn-exportar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-stock-gentelella .btn-exportar:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb / page-intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Overview KPIs (stock-overview.css)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .stock-ov-kpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+/* Fondo pastel según variante del ícono */
+body.dash-stock-gentelella .stock-ov-kpi:has(.stock-ov-kpi__icon--danger) {
+  background: rgba(231,76,60,.08)    !important;
+  border-color: rgba(231,76,60,.25)  !important;
+}
+body.dash-stock-gentelella .stock-ov-kpi:has(.stock-ov-kpi__icon--warn) {
+  background: rgba(240,173,78,.12)   !important;
+  border-color: rgba(240,173,78,.3)  !important;
+}
+/* ícono por defecto (teal) → fondo verde pastel */
+body.dash-stock-gentelella .stock-ov-kpi:not(:has([class*="stock-ov-kpi__icon--"])) {
+  background: var(--ge-teal-light)   !important;
+  border-color: rgba(184,122,0,.3)  !important;
+}
+body.dash-stock-gentelella .stock-ov-kpi__label { color: var(--ge-ink-soft) !important; }
+/* Ícono KPI por defecto → teal */
+body.dash-stock-gentelella .stock-ov-kpi__icon {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+/* Ícono KPI advertencia → orange */
+body.dash-stock-gentelella .stock-ov-kpi__icon--warn {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+/* Ícono KPI peligro → red */
+body.dash-stock-gentelella .stock-ov-kpi__icon--danger {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-stock-gentelella .stock-ov-kpi__value { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .stock-ov-kpi__delta.up   { color: var(--ge-teal-dark) !important; }
+body.dash-stock-gentelella .stock-ov-kpi__delta.down { color: var(--ge-red) !important; }
+body.dash-stock-gentelella .stock-ov-kpi__hint { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Card de gráfico (stock-overview.css)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .stock-ov-chart-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-stock-gentelella .stock-ov-chart-card__head h3 { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .stock-ov-legend { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .stock-ov-legend i.ingreso { background: var(--ge-teal) !important; }
+body.dash-stock-gentelella .stock-ov-legend i.egreso  { background: var(--ge-orange) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Card lateral oscura (mantiene navy de Gentelella)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .stock-ov-target {
+  background: linear-gradient(160deg, var(--ge-sidebar-2), var(--ge-sidebar)) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-stock-gentelella .stock-ov-target__label { color: rgba(255,255,255,.6) !important; }
+body.dash-stock-gentelella .stock-ov-target__value { color: var(--ge-panel) !important; }
+body.dash-stock-gentelella .stock-ov-avatar { border-color: var(--ge-sidebar-2) !important; }
+body.dash-stock-gentelella .stock-ov-divider { background: rgba(255,255,255,.1) !important; }
+body.dash-stock-gentelella .stock-ov-mini__num { color: var(--ge-panel) !important; }
+body.dash-stock-gentelella .stock-ov-mini__sub { color: rgba(255,255,255,.55) !important; }
+body.dash-stock-gentelella .stock-ov-mini__badge {
+  background: rgba(240,173,78,.2) !important;
+  color: #fdb072 !important;
+}
+body.dash-stock-gentelella .stock-ov-mini__badge.ok {
+  background: rgba(184,122,0,.2) !important;
+  color: #6fe3b4 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel de reposición automática (stock-overview.css)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .stockauto-panel {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-stock-gentelella .stockauto-head {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-stock-gentelella .stockauto-head__icon {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-stock-gentelella .stockauto-head h3 { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .stockauto-head__sub { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .stockauto-head__count {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-stock-gentelella .stockauto-row { border-bottom-color: var(--ge-border) !important; }
+body.dash-stock-gentelella .stockauto-row:hover { background: var(--ge-bg) !important; }
+body.dash-stock-gentelella .stockauto-row__nombre { color: var(--ge-ink) !important; }
+/* Barras de urgencia: quiebre → red, critico → orange, bajo → orange-light, sin_proveedor → purple */
+body.dash-stock-gentelella .stockauto-row--quiebre    .stockauto-row__bar { background: var(--ge-red) !important; }
+body.dash-stock-gentelella .stockauto-row--critico    .stockauto-row__bar { background: var(--ge-orange) !important; }
+body.dash-stock-gentelella .stockauto-row--stock_bajo .stockauto-row__bar { background: rgba(240,173,78,.6) !important; }
+body.dash-stock-gentelella .stockauto-row--sin_proveedor .stockauto-row__bar { background: var(--ge-purple) !important; }
+/* Badges de tipo */
+body.dash-stock-gentelella .stockauto-row--quiebre    .stockauto-row__tipo { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+body.dash-stock-gentelella .stockauto-row--critico    .stockauto-row__tipo { background: rgba(240,173,78,.12) !important; color: var(--ge-warning-text) !important; }
+body.dash-stock-gentelella .stockauto-row--stock_bajo .stockauto-row__tipo { background: rgba(240,173,78,.1) !important; color: var(--ge-warning-text) !important; }
+body.dash-stock-gentelella .stockauto-row--sin_proveedor .stockauto-row__tipo { background: rgba(142,68,173,.12) !important; color: var(--ge-purple) !important; }
+/* Barras de urgencia fill */
+body.dash-stock-gentelella .stockauto-row__urgencia { background: rgba(0,0,0,.06) !important; }
+body.dash-stock-gentelella .stockauto-row--quiebre    .stockauto-row__urgencia i { background: var(--ge-red) !important; }
+body.dash-stock-gentelella .stockauto-row--critico    .stockauto-row__urgencia i { background: var(--ge-orange) !important; }
+body.dash-stock-gentelella .stockauto-row--stock_bajo .stockauto-row__urgencia i { background: rgba(240,173,78,.7) !important; }
+body.dash-stock-gentelella .stockauto-row--sin_proveedor .stockauto-row__urgencia i { background: var(--ge-purple) !important; }
+body.dash-stock-gentelella .stockauto-row__dias { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .stockauto-row__dias strong { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .stockauto-foot { border-top: 1px solid var(--ge-border) !important; }
+body.dash-stock-gentelella .stockauto-toggle { color: var(--ge-teal) !important; }
+body.dash-stock-gentelella .stockauto-row__ver { border-color: var(--ge-teal) !important; color: var(--ge-teal) !important; }
+body.dash-stock-gentelella .stockauto-row__ver:hover { background: var(--ge-teal) !important; color: var(--ge-panel) !important; }
+body.dash-stock-gentelella .stockauto-empty { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Aviso de redirección de motivo (v341: compra a proveedor / venta manual)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .motivo-redirect-aviso {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 12.5px;
+  line-height: 1.45;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+body.dash-stock-gentelella .motivo-redirect-aviso.aviso--bloqueante {
+  background: rgba(231,76,60,.08) !important;
+  border: 1px solid rgba(231,76,60,.25) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-stock-gentelella .motivo-redirect-aviso.aviso--info {
+  background: var(--ge-teal-light) !important;
+  border: 1px solid rgba(0,0,0,.06) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-stock-gentelella .motivo-redirect-aviso a {
+  color: var(--ge-teal) !important;
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+body.dash-stock-gentelella .motivo-redirect-aviso svg { flex: none; margin-top: 1px; }
+
+/* ════════════════════════════════════════════════════════════
+   Alerta de stock crítico (banner superior)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .alertas-stock {
+  background: rgba(231,76,60,.08) !important;
+  border: 1px solid rgba(231,76,60,.25) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Barra de filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .filtros-bar,
+body.dash-stock-gentelella #vista-stock .filtros-bar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+/* Search wrap */
+body.dash-stock-gentelella .search-wrap,
+body.dash-stock-gentelella #vista-stock .search-wrap {
+  background: var(--ge-bg) !important;
+  border: 1.5px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-stock-gentelella .search-wrap:focus-within,
+body.dash-stock-gentelella #vista-stock .search-wrap:focus-within {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-stock-gentelella .search-wrap input { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .search-wrap input::placeholder { color: var(--ge-muted) !important; }
+
+/* Pills */
+body.dash-stock-gentelella .e-pill,
+body.dash-stock-gentelella #vista-stock .e-pill {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-stock-gentelella .e-pill:hover { background: var(--ge-chip-bg) !important; transform: translateY(-1px) !important; }
+body.dash-stock-gentelella .e-pill.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+}
+body.dash-stock-gentelella .e-pill-rojo.activa {
+  background: rgba(231,76,60,.1) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-stock-gentelella .e-pill-amarillo.activa {
+  background: rgba(240,173,78,.12) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-stock-gentelella .e-pill-verde.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Selects y botón limpiar */
+body.dash-stock-gentelella .select-filtro,
+body.dash-stock-gentelella #vista-stock .select-filtro {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-stock-gentelella .select-filtro:focus { border-color: var(--ge-teal) !important; }
+body.dash-stock-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-stock-gentelella .btn.btn--ghost:hover { background: var(--ge-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de stock (stock.css + stock-overview.css)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .tabla-wrap,
+body.dash-stock-gentelella #vista-stock .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-stock-gentelella .tabla-stock thead,
+body.dash-stock-gentelella #vista-stock .tabla-stock thead {
+  background: var(--ge-bg) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-stock-gentelella .tabla-stock th,
+body.dash-stock-gentelella #vista-stock .tabla-stock th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-stock-gentelella .fila-stock,
+body.dash-stock-gentelella #vista-stock .fila-stock {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-stock-gentelella .fila-stock:hover td,
+body.dash-stock-gentelella #vista-stock .fila-stock:hover {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Textos de celda */
+body.dash-stock-gentelella .prod-nombre { color: var(--ge-ink) !important; font-weight: 500 !important; }
+body.dash-stock-gentelella .cod-producto { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .td-text { color: var(--ge-ink-soft) !important; }
+body.dash-stock-gentelella .td-muted { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .td-num { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .unidad { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .num-rojo    { color: var(--ge-red) !important; }
+body.dash-stock-gentelella .num-amarillo { color: var(--ge-orange) !important; }
+body.dash-stock-gentelella .num-verde   { color: var(--ge-teal-dark) !important; }
+
+/* Tabla loading/empty */
+body.dash-stock-gentelella .tabla-loading,
+body.dash-stock-gentelella .tabla-empty { color: var(--ge-muted) !important; }
+
+/* Avatar de producto (stock-overview) */
+body.dash-stock-gentelella .prod-avatar {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-stock-gentelella #vista-stock .fila-stock:nth-of-type(4n+2) .prod-avatar {
+  background: var(--ge-orange) !important;
+}
+body.dash-stock-gentelella #vista-stock .fila-stock:nth-of-type(4n+3) .prod-avatar {
+  background: var(--ge-blue) !important;
+}
+body.dash-stock-gentelella #vista-stock .fila-stock:nth-of-type(4n+4) .prod-avatar {
+  background: var(--ge-purple) !important;
+}
+
+/* Badges de estado */
+body.dash-stock-gentelella .badge-estado {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-stock-gentelella .badge-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-stock-gentelella .badge-ok .badge-dot { background: var(--ge-teal) !important; }
+body.dash-stock-gentelella .badge-bajo {
+  background: rgba(240,173,78,.12) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-stock-gentelella .badge-bajo .badge-dot { background: var(--ge-orange) !important; }
+body.dash-stock-gentelella .badge-critico {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-stock-gentelella .badge-critico .badge-dot { background: var(--ge-red) !important; }
+
+/* Botón ajustar */
+body.dash-stock-gentelella .btn-ajustar {
+  background: transparent !important;
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-stock-gentelella .btn-ajustar:hover {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  transform: translateY(-1px);
+}
+
+/* Botón kebab */
+body.dash-stock-gentelella .btn-kebab {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-stock-gentelella .btn-kebab:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación (override de inline styles de stock.html)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .btn-pag {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-stock-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-stock-gentelella .btn-pag:disabled { opacity: .35 !important; }
+body.dash-stock-gentelella .pag-info { color: var(--ge-muted) !important; }
+
+/* Spinner de carga */
+body.dash-stock-gentelella .loading-spinner {
+  border-color: var(--ge-border) !important;
+  border-top-color: var(--ge-teal) !important;
+}
+body.dash-stock-gentelella .btn-link { color: var(--ge-teal) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Movimientos de transferencia (inline styles)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .mov-row--transferencia {
+  background: var(--ge-teal-light) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: 0 var(--ge-radius-btn) var(--ge-radius-btn) 0 !important;
+}
+body.dash-stock-gentelella .mov-tipo-transferencia {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border: 1px solid rgba(184,122,0,.3) !important;
+}
+body.dash-stock-gentelella .mov-transferencia-cant { color: var(--ge-teal-dark) !important; }
+body.dash-stock-gentelella .sa-costo { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal buscador de producto para transferencia (mbt-*)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .mbt-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-stock-gentelella .mbt-box {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-stock-gentelella .mbt-titulo  { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .mbt-subtitulo { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .mbt-input {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-stock-gentelella .mbt-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+body.dash-stock-gentelella .mbt-item:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-stock-gentelella .mbt-item-nombre { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .mbt-item-codigo,
+body.dash-stock-gentelella .mbt-item-stock { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .mbt-empty,
+body.dash-stock-gentelella .mbt-loading,
+body.dash-stock-gentelella .mbt-hint { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal de ajuste de stock (lateral)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .modal-backdrop { background: rgba(42,63,84,.45) !important; }
+body.dash-stock-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+}
+body.dash-stock-gentelella .modal-titulo   { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .modal-subtitulo { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .modal-close {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+}
+body.dash-stock-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Stock actual box */
+body.dash-stock-gentelella .stock-actual-box {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-stock-gentelella .sa-label { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .sa-val   { color: var(--ge-ink) !important; }
+
+/* Secciones */
+body.dash-stock-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-stock-gentelella .form-label { color: var(--ge-ink-soft) !important; font-weight: 600 !important; }
+body.dash-stock-gentelella .form-requerido { color: var(--ge-red) !important; }
+body.dash-stock-gentelella .form-input,
+body.dash-stock-gentelella .form-select {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-stock-gentelella .form-input:focus,
+body.dash-stock-gentelella .form-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-stock-gentelella .form-input::placeholder { color: var(--ge-muted) !important; }
+
+/* Botones de tipo de movimiento */
+body.dash-stock-gentelella .tipo-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-stock-gentelella .tipo-btn:hover { background: var(--ge-bg) !important; }
+body.dash-stock-gentelella .tipo-btn.activo {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+
+/* Tooltip */
+body.dash-stock-gentelella .ayuda-contextual { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .ayuda-contextual::after {
+  background: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* Preview resultado */
+body.dash-stock-gentelella .preview-resultado {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-stock-gentelella .preview-label { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .prev-antes { color: var(--ge-muted) !important; }
+
+/* Acciones del form */
+body.dash-stock-gentelella .btn-secundario {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-stock-gentelella .btn-secundario:hover { background: var(--ge-bg) !important; }
+body.dash-stock-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: none !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-stock-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  opacity: 1 !important;
+}
+body.dash-stock-gentelella .btn-primario:disabled { opacity: .45 !important; }
+
+/* Historial de movimientos */
+body.dash-stock-gentelella .mov-row { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-stock-gentelella .mov-tipo { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .mov-meta { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .mov-ref  { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .mov-positivo { color: var(--ge-teal-dark) !important; }
+body.dash-stock-gentelella .mov-negativo { color: var(--ge-red) !important; }
+body.dash-stock-gentelella .loading-row,
+body.dash-stock-gentelella .empty-row { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal de proyección de stock (inline en stock.html)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella #modal-proyeccion-stock {
+  background: rgba(42,63,84,.6) !important;
+}
+body.dash-stock-gentelella #modal-proyeccion-stock .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-stock-gentelella .proy-resumen {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ge-ink-soft);
+  background: var(--ge-bg-soft, rgba(0,0,0,.03));
+  border-radius: var(--ge-radius-md, 6px);
+  padding: 10px 12px;
+  margin: 4px 0 14px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal header, overlay y secciones secundarias
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-stock-gentelella .modal-header h2,
+body.dash-stock-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-stock-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-stock-gentelella .modal-seccion {
+  padding: 14px 20px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   v42: fila agrupada por producto + detalle expandible (migración 396)
+   ════════════════════════════════════════════════════════════ */
+body.dash-stock-gentelella .btn-expandir-dep {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-stock-gentelella .btn-expandir-dep:hover,
+body.dash-stock-gentelella .btn-expandir-dep.expandido {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+body.dash-stock-gentelella .fila-stock-detalle td { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-stock-gentelella .td-detalle-depositos { background: var(--ge-bg) !important; }
+body.dash-stock-gentelella .detalle-depositos-loading,
+body.dash-stock-gentelella .detalle-depositos-grid .empty-row { color: var(--ge-muted) !important; }
+
+body.dash-stock-gentelella .detalle-dep-fila {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-stock-gentelella .detalle-dep-nombre { color: var(--ge-ink) !important; }
+body.dash-stock-gentelella .tag-principal {
+  color: var(--ge-teal-dark) !important;
+  background: var(--ge-teal-light) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+
+body.dash-stock-gentelella .btn-ajustar-mini {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-stock-gentelella .btn-ajustar-mini:hover {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+}

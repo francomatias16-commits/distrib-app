@@ -1,0 +1,170 @@
+/**
+ * microinteracciones.css — Overlay de microinteracciones v1
+ * ─────────────────────────────────────────────────────────────────────────
+ * Adapta el "cheatsheet de microanimaciones" (botones/tarjetas genéricos en
+ * Tailwind + React/Framer Motion) a la anatomía y los tokens YA existentes
+ * del proyecto (--color-primary, --radius-*, --transition-*, etc.).
+ * No se agregan colores, tipografías ni librerías nuevas: todo se apoya en
+ * `tokens.css` para que el resultado se sienta parte del mismo sistema y
+ * no un parche visual pegado encima.
+ *
+ * Qué NO se portó del cheatsheet, y por qué:
+ *  - Botones azul/índigo Tailwind, glow-border cónico rotativo, tilt 3D con
+ *    mousemove: son recursos de landing/producto genérico, no del tono
+ *    austero (papel/tinta, sombras de 1-4px) que ya tiene distrib. Aplicarlos
+ *    tal cual sería una regresión visual, no una mejora.
+ *  - Snippets de React/Framer Motion: el proyecto es vanilla JS, no hay
+ *    stack de componentes para portarlos.
+ *
+ * Qué SÍ se adaptó (ver detalle en cada bloque):
+ *  1. Feedback de :active (press) en todos los botones — hoy solo existía
+ *     hover, cero respuesta táctil al click real.
+ *  2. Utilidad opt-in para ícono que se desplaza dentro de un botón.
+ *  3. Utilidad opt-in de "relleno deslizante" (slide-fill) para CTAs
+ *     puntuales que hoy son ghost/soft.
+ *  4. Zoom de imagen en las tarjetas de producto del catálogo cliente.
+ *  5. Curva de rebote (spring-like) reutilizada donde ya había transform
+ *     en hover, en vez de easing lineal.
+ *
+ * Cargar SIEMPRE después de reskin-patch-v2-shadcn.css (mismo mecanismo:
+ * gana por orden de aparición + !important). Ningún selector cambia
+ * tamaño/padding de ningún botón — solo transform/box-shadow — por lo que
+ * es seguro incluso en la PWA de choferes (no reduce los touch targets).
+ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   0. Curva de rebote reutilizable (equivalente CSS de un spring suave,
+      sin Framer Motion)
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   1. FEEDBACK DE PRESIÓN (:active) — el gap real que tenía el proyecto.
+      Cubre todas las variantes de botón detectadas en el código
+      (BEM .btn--primary, legacy .btn-primario, AdminLTE .btn-primary,
+      y los ~30 alias en español ya existentes: .btn-guardar,
+      .btn-confirmar, .btn-agregar, etc.) sin tocar tamaño ni padding.
+   ══════════════════════════════════════════════════════════════════════ */
+button[class*="btn"]:not(:disabled):not(.btn--loading):active,
+a[class*="btn"]:not([aria-disabled="true"]):active,
+input[type="submit"][class*="btn"]:not(:disabled):active,
+input[type="button"][class*="btn"]:not(:disabled):active {
+  transform: translateY(1px) scale(.97) !important;
+  transition: transform 90ms ease !important;
+}
+
+/* Los botones "sello"/primary con sombra propia además achican la sombra
+   al presionar, para que el gesto de "hundirse" sea consistente con la
+   elevación que ya tienen en reposo/hover */
+button.btn--primary:not(:disabled):active,
+a.btn--primary:active,
+button.btn-primario:not(:disabled):active,
+a.btn-primario:active,
+button.btn-primary:not(:disabled):active,
+a.btn-primary:active {
+  box-shadow: 0 1px 2px rgba(184, 122, 0, .18) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   2. ÍCONO QUE SE DESPLAZA — opt-in, agregar la clase donde se quiera
+      (ej. "Siguiente", "Ver más", flechas de paginación). No afecta
+      botones que ya usan solo ícono (.btn--icon/.btn-icon).
+      Uso: <button class="btn btn--primary btn--icon-anim">Siguiente
+             <svg>...</svg></button>
+   ══════════════════════════════════════════════════════════════════════ */
+.btn--icon-anim svg,
+.btn--icon-anim .icon {
+  transition: transform 180ms var(--ease-spring);
+}
+.btn--icon-anim:hover svg,
+.btn--icon-anim:hover .icon {
+  transform: translateX(3px);
+}
+.btn--icon-anim.btn--icon-anim--left:hover svg,
+.btn--icon-anim.btn--icon-anim--left:hover .icon {
+  transform: translateX(-3px);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   3. RELLENO DESLIZANTE (slide-fill) — opt-in para CTAs puntuales que
+      hoy son ghost/outline y se quieran destacar más (ej. un único botón
+      de conversión en un empty-state). No reemplaza a .btn--ghost/
+      .btn-soft existentes: es una variante nueva, no un override.
+      Uso: <button class="btn btn--outline-primary btn--fill-hover">...
+   ══════════════════════════════════════════════════════════════════════ */
+.btn--fill-hover {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  transition: color 200ms ease !important;
+}
+.btn--fill-hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-101%);
+  background: var(--color-primary);
+  z-index: -1;
+  transition: transform 220ms var(--ease-spring);
+}
+.btn--fill-hover:hover {
+  color: #fff !important;
+}
+.btn--fill-hover:hover::before {
+  transform: translateX(0);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   4. ZOOM DE IMAGEN — catálogo del cliente (cliente/catalogo.html).
+      Solo tiene sentido acá: es el único lugar del proyecto con imágenes
+      de producto navegadas también desde desktop. No aplica al admin
+      (no hay fotos de producto en el panel operativo).
+   ══════════════════════════════════════════════════════════════════════ */
+.producto-img-wrap {
+  overflow: hidden !important;
+}
+.producto-img-wrap img {
+  transition: transform 300ms var(--ease-spring) !important;
+}
+.card-producto:hover .producto-img-wrap img {
+  transform: scale(1.06) !important;
+}
+.card-producto:hover {
+  box-shadow: 0 2px 4px rgba(15, 23, 42, .06), 0 10px 24px rgba(15, 23, 42, .10) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   5. CURVA DE REBOTE en transforms de hover ya existentes — mismo efecto
+      visual que tenían, easing más vivo. Se reasignan puntualmente
+      (no un "transition:all" global, para no pisar transiciones de color
+      ya afinadas en otros archivos).
+   ══════════════════════════════════════════════════════════════════════ */
+.fkpi,
+.kpi-card,
+.stat-card {
+  transition: box-shadow .18s ease, transform 200ms var(--ease-spring) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. ACCESIBILIDAD — mismo criterio que reskin-patch-v2-shadcn.css
+   ══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  button[class*="btn"]:active,
+  a[class*="btn"]:active,
+  input[class*="btn"]:active,
+  .btn--icon-anim svg,
+  .btn--icon-anim .icon,
+  .btn--fill-hover::before,
+  .producto-img-wrap img,
+  .card-producto,
+  .fkpi,
+  .kpi-card,
+  .stat-card {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

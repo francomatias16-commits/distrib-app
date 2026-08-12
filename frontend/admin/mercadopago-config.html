@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración Mercado Pago — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <style>
+    .cfg-wrap {
+      max-width: 1080px; margin: 0 auto; padding: 18px 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start;
+    }
+    .cfg-wrap > #alerta { grid-column: 1 / -1; margin-bottom: 0; }
+    .cfg-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    @media (max-width: 900px) {
+      .cfg-wrap { grid-template-columns: 1fr; max-width: 660px; }
+    }
+    .cfg-card { background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl); padding:22px 24px; margin-bottom:0; }
+    @media (max-width: 600px) {
+      .cfg-wrap { padding: 14px; }
+      .cfg-card { padding: 18px; }
+    }
+    .cfg-card h2 { font-size:16px; font-weight:600; margin:0 0 3px; }
+    .cfg-card .sub { font-size:12.5px; color:var(--color-text-muted); margin:0 0 14px; }
+    .form-group { margin-bottom:13px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:8px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md);
+      font-size:14px; box-sizing:border-box; outline:none; transition:border .15s;
+      font-family:inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--color-primary); }
+    .form-group .hint { font-size:11.5px; color:var(--color-text-light); margin-top:4px; }
+    .btn-primary { background:var(--color-primary); color:var(--color-surface); border:none; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; font-weight:500; cursor:pointer; }
+    .btn-primary:hover { background:var(--color-primary); }
+    .btn-danger { background:var(--color-surface); color:var(--color-danger-mid); border:1px solid #fca5a5; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; cursor:pointer; }
+    .btn-danger:hover { background:var(--color-danger-bg); }
+    .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+    .alerta { padding:11px 15px; border-radius: var(--radius-md); font-size:13px; margin-bottom:16px; display:none; }
+    .alerta-ok  { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+    .alerta-err { background:var(--color-danger-bg); color:var(--color-danger); border:1px solid #fca5a5; }
+    .alerta-inf { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius: var(--radius-full); font-size:12px; font-weight:500; margin-bottom:10px; }
+    .chip-ok  { background:#ecfdf5; color:#065f46; }
+    .chip-no  { background:var(--color-warning-bg); color:var(--color-warning); }
+    .paso { display:flex; gap:11px; align-items:flex-start; padding:8px 0; border-bottom:1px solid #f3f4f6; }
+    .paso:last-child { border-bottom:none; }
+    .paso-n { width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:var(--color-surface); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .paso-t { font-size:12.5px; color:var(--color-text); line-height:1.5; }
+    .paso-t code { background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-sm); font-size:11.5px; }
+    .paso-t a { color:var(--color-primary); }
+    hr.div { border:none; border-top:1px solid var(--color-border-soft); margin:14px 0; }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/mercadopago-config-gentelella.css" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-mercadopago-config-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/admin/dashboard" style="font-size:13px;color:var(--color-text-muted);text-decoration:none;margin-right:12px;">← Dashboard</a>
+      <h1 class="topbar-title">Configuración Mercado Pago</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Conectá tu cuenta para que el checkout online y el POS puedan cobrar con tarjeta o QR, y los pagos se acrediten automáticamente en el pedido.
+</div>
+
+  <main class="main">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
+    <div id="contenido" style="display:none">
+      <div class="cfg-wrap">
+
+        <div id="alerta" class="alerta"></div>
+
+        <div class="cfg-col cfg-col-left">
+          <!-- Estado actual -->
+          <div class="cfg-card" style="padding:14px 24px">
+            <div>
+              <span id="chip-estado" class="chip chip-no"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin conectar</span>
+            </div>
+            <p id="txt-estado" style="font-size:13px;color:var(--color-text-muted);margin:0">
+              Conectá tu cuenta de Mercado Pago para empezar a cobrar pedidos online.
+            </p>
+          </div>
+
+          <!-- Formulario -->
+          <div class="cfg-card">
+            <h2>Credenciales</h2>
+            <p class="sub">El Access Token se guarda cifrado. Nunca se vuelve a mostrar en este panel.</p>
+
+            <div class="form-group">
+              <label>Access Token <span style="color:var(--color-danger-mid)">*</span></label>
+              <input type="password" id="access_token" placeholder="APP_USR-xxxxxxxx-xxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxx" autocomplete="off" aria-label="Access Token">
+              <p class="hint">Empieza con <code>APP_USR-</code> (producción) o <code>TEST-</code> (prueba).</p>
+            </div>
+
+            <div class="form-group">
+              <label>Public Key <span style="color:var(--color-text-light)">(opcional, para el checkout)</span></label>
+              <input type="text" id="public_key" placeholder="APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" aria-label="Public Key">
+            </div>
+
+            <hr class="div">
+
+            <div class="acciones">
+              <button type="button" class="btn-primary" onclick="btnAsyncClick(this, guardarConfig)">Guardar y validar</button>
+              <button type="button" class="btn-danger" id="btn-desconectar" onclick="desconectar()" style="display:none">Desconectar cuenta</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cfg-col cfg-col-right">
+          <!-- Guía -->
+          <div class="cfg-card">
+            <h2>Cómo obtener tu Access Token</h2>
+            <p class="sub">Esto se hace una vez por empresa, con tu propia cuenta de Mercado Pago — Fluxo nunca ve tu contraseña de MP.</p>
+            <div class="paso"><span class="paso-n">1</span><p class="paso-t">Entrá a tu <a href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank">panel de desarrolladores de Mercado Pago</a> con la cuenta de tu negocio.</p></div>
+            <div class="paso"><span class="paso-n">2</span><p class="paso-t">Si no tenés una aplicación creada, hacé clic en <strong>"Crear aplicación"</strong> (cualquier nombre, por ejemplo "Fluxo").</p></div>
+            <div class="paso"><span class="paso-n">3</span><p class="paso-t">Entrá a la app → <strong>Credenciales de producción</strong> → copiá el <code>Access Token</code> (empieza con <code>APP_USR-</code>). Para probar primero, podés usar las <strong>Credenciales de prueba</strong> (empiezan con <code>TEST-</code>).</p></div>
+            <div class="paso"><span class="paso-n">4</span><p class="paso-t">Pegalo abajo y guardá. Vamos a validarlo contra Mercado Pago antes de guardarlo.</p></div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /contenido -->
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script>
+const API_BASE = window.ENV?.API_URL || '';
+
+async function init() {
+  await window.authReady;
+  const perfil = window.authCtx?.perfil;
+  if (!perfil || !['dueno','admin'].includes(perfil.rol)) {
+    window.location.href = '/admin/dashboard';
+    return;
+  }
+  if (window.authCtx?.perfil?.empresas) {
+    const nombre = window.authCtx.perfil.empresas.nombre || 'Admin';
+    const sidebar = document.getElementById('sidebar-empresa');
+    if (sidebar) sidebar.textContent = nombre;
+    const logo = document.getElementById('sidebar-logo');
+    if (logo) logo.textContent = nombre[0].toUpperCase();
+  }
+  if (perfil.nombre) document.getElementById('topbar-usuario').textContent = perfil.nombre;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('contenido').style.display = 'block';
+  await cargarConfig();
+}
+
+async function cargarConfig() {
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/config`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+
+    const chip = document.getElementById('chip-estado');
+    const txt  = document.getElementById('txt-estado');
+    const btnDesconectar = document.getElementById('btn-desconectar');
+
+    if (d.conectado) {
+      chip.className   = 'chip chip-ok';
+      chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Conectado';
+      txt.textContent  = `Cuenta de Mercado Pago conectada desde ${d.created_at ? new Date(d.created_at).toLocaleDateString('es-AR') : '—'}.`;
+      btnDesconectar.style.display = 'inline-block';
+    } else {
+      chip.className   = 'chip chip-no';
+      chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin conectar';
+      txt.textContent  = 'Conectá tu cuenta de Mercado Pago para empezar a cobrar pedidos online.';
+      btnDesconectar.style.display = 'none';
+    }
+
+    if (d.public_key) document.getElementById('public_key').value = d.public_key;
+    // access_token NUNCA se rellena: nunca viaja al frontend.
+  } catch(e) { console.error('[mp-config] cargarConfig:', e); }
+}
+
+async function guardarConfig() {
+  const access_token = document.getElementById('access_token').value.trim();
+  const public_key    = document.getElementById('public_key').value.trim();
+
+  if (!access_token) {
+    mostrarAlerta('err', 'Pegá tu Access Token de Mercado Pago.');
+    return;
+  }
+
+  mostrarAlerta('inf', 'Validando credenciales con Mercado Pago…');
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await getToken()}` },
+      body: JSON.stringify({ access_token, public_key: public_key || undefined })
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      const cuenta = d.cuenta?.nickname || d.cuenta?.email || '';
+      mostrarAlerta('ok', `Cuenta de Mercado Pago conectada correctamente${cuenta ? ' (' + cuenta + ')' : ''}.`);
+      document.getElementById('access_token').value = '';
+      await cargarConfig();
+    } else {
+      mostrarAlerta('err', `${d.error || 'Error al guardar'}`);
+    }
+  } catch(e) {
+    mostrarAlerta('err', 'Error de red al guardar.');
+  }
+}
+
+async function desconectar() {
+  if (!confirm('¿Desconectar la cuenta de Mercado Pago? Los clientes no podrán pagar online hasta que conectes una cuenta nuevamente.')) return;
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/config`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      mostrarAlerta('ok', 'Cuenta desconectada.');
+      await cargarConfig();
+    } else {
+      mostrarAlerta('err', `${d.error || 'Error al desconectar'}`);
+    }
+  } catch(e) {
+    mostrarAlerta('err', 'Error de red al desconectar.');
+  }
+}
+
+function mostrarAlerta(tipo, msg) {
+  const el = document.getElementById('alerta');
+  el.className = `alerta alerta-${tipo}`;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (tipo === 'ok') setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+async function getToken() {
+  const { data: { session } } = await window.authCtx.sb.auth.getSession();
+  return session?.access_token || '';
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

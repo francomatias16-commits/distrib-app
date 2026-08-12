@@ -1,0 +1,299 @@
+/**
+ * rentabilidad-producto-vendedor-gentelella.css — Reskin "Gentelella v4" de la pantalla
+ * Rentabilidad por Producto / Vendedor
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea rentabilidad-producto-vendedor.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-rentabilidad-producto-vendedor-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella { background: var(--ge-bg) !important; }
+body.dash-rentabilidad-producto-vendedor-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards — small-box (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-primary {
+  background: var(--ge-teal) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-success {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-secondary {
+  background: var(--ge-sidebar) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-info {
+  background: var(--ge-blue) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-warning {
+  background: var(--ge-orange) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box.bg-danger {
+  background: var(--ge-red) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box > .inner {
+  padding: 16px 18px 14px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box .inner h3 {
+  font-size: 20px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: var(--ge-panel) !important;
+  font-weight: 700 !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .small-box .inner p {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 12px !important;
+  margin-top: 3px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Gráfico
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .chart-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella #chart-titulo {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper + header
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* Toggle de vista: por producto / por vendedor */
+body.dash-rentabilidad-producto-vendedor-gentelella .view-toggle {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .view-toggle button {
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .view-toggle button.active {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar input,
+body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar input:focus,
+body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+/* Filas destacadas (mejor/peor margen) */
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla tr.fila-mejor td {
+  background: rgba(184,122,0,.08) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla tr.fila-peor td {
+  background: rgba(231,76,60,.06) !important;
+}
+/* Montos */
+body.dash-rentabilidad-producto-vendedor-gentelella .monto-rojo {
+  color: var(--ge-red) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .monto-verde {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .monto-gris {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de origen (Pedidos / POS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .chip {
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 9px !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .chip-origen-pedido {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .chip-origen-pos {
+  background: rgba(142,68,173,.13) !important;
+  color: var(--ge-purple) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-info {
+  color: var(--ge-muted) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-btn {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-btn:hover:not(:disabled):not(.activa) {
+  background: var(--ge-bg) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-btn.activa {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-btn:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+body.dash-rentabilidad-producto-vendedor-gentelella .paginacion-ellipsis {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-producto-vendedor-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar input,
+  body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+  body.dash-rentabilidad-producto-vendedor-gentelella .kpis-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-rentabilidad-producto-vendedor-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

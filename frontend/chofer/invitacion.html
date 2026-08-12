@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activar acceso — App Chofer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="manifest" href="/chofer/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f0f4f8; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+
+    .login-card {
+      background: #fff; width: 100%; max-width: 380px; border-radius: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      color: #fff; padding: 2rem 1.5rem 1.6rem; text-align: center;
+    }
+    .login-header .icon {
+      width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto .75rem;
+    }
+    .login-header h1 { font-size: 1.15rem; font-weight: 700; }
+    .login-header p { font-size: .8rem; opacity: .8; margin-top: .25rem; }
+
+    .login-body { padding: 1.5rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: .78rem; font-weight: 600; color: #374151;
+      margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .02em;
+    }
+    .form-group input {
+      width: 100%; padding: .75rem .85rem; border: 1px solid #d1d5db; border-radius: 10px;
+      font-size: .95rem; font-family: inherit; outline: none;
+    }
+    .form-group input:focus { border-color: #2563EB; }
+    .form-group .ayuda { font-size: .72rem; color: #9ca3af; margin-top: .3rem; }
+
+    .btn {
+      width: 100%; padding: .85rem; border: none; border-radius: 10px;
+      font-size: .95rem; font-weight: 600; cursor: pointer; margin-top: .4rem;
+    }
+    .btn-primary { background: #2563EB; color: #fff; }
+    .btn-primary:hover { background: #134a82; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .alerta {
+      border-radius: 8px; padding: .65rem .85rem; font-size: .85rem; margin-bottom: 1rem; display: none;
+    }
+    .alerta-err { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alerta-ok  { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+
+    .saludo { font-size: .95rem; color: #374151; margin-bottom: 1.1rem; line-height: 1.4; }
+    .saludo strong { color: #1D4ED8; }
+
+    .spinner-wrap { text-align: center; padding: 2.5rem 1.5rem; color: #6b7280; font-size: .9rem; }
+
+    .nota-pie { text-align: center; font-size: .75rem; color: #9ca3af; margin-top: 1.25rem; }
+  </style>
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/a11y-focus.css?v=1" />
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v4h-7V8z"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+      </div>
+      <h1>App Chofer</h1>
+      <p>Activá tu acceso para ver tu ruta del día</p>
+    </div>
+
+    <div class="login-body">
+      <div id="cargando" class="spinner-wrap">Validando tu invitación…</div>
+
+      <div id="contenido" style="display:none;">
+        <div id="alerta" class="alerta"></div>
+
+        <div id="saludo" class="saludo"></div>
+
+        <form id="formActivar">
+          <div class="form-group">
+            <label for="password">Elegí tu contraseña</label>
+            <input type="password" id="password" autocomplete="new-password" minlength="8" required>
+            <div class="ayuda">Mínimo 8 caracteres.</div>
+          </div>
+          <div class="form-group">
+            <label for="password2">Repetila</label>
+            <input type="password" id="password2" autocomplete="new-password" minlength="8" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="btnActivar">Activar acceso</button>
+        </form>
+      </div>
+
+      <p class="nota-pie">Este link es personal e intransferible.</p>
+    </div>
+  </div>
+
+  <script>
+    const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-chofer-auth' } });
+    const token = new URLSearchParams(window.location.search).get('t');
+
+    const elCargando  = document.getElementById('cargando');
+    const elContenido = document.getElementById('contenido');
+    const elAlerta     = document.getElementById('alerta');
+    const elSaludo     = document.getElementById('saludo');
+    const elForm       = document.getElementById('formActivar');
+
+    function mostrarError(msg) {
+      elCargando.style.display = 'none';
+      elContenido.style.display = 'block';
+      elForm.style.display = 'none';
+      elAlerta.className = 'alerta alerta-err';
+      elAlerta.textContent = msg;
+      elAlerta.style.display = 'block';
+    }
+
+    async function init() {
+      if (!token) return mostrarError('Este link no es válido. Pedile a tu contacto habitual que te comparta uno nuevo.');
+
+      try {
+        const resp = await fetch(`/api/chofer-invitacion?accion=ver&t=${encodeURIComponent(token)}`);
+        const data = await resp.json();
+        if (!resp.ok) return mostrarError(data.error || 'Este link no es válido.');
+
+        elCargando.style.display = 'none';
+        elContenido.style.display = 'block';
+        elSaludo.innerHTML = `¡Hola <strong>${escapeHtml(data.nombre)}</strong>! Elegí una contraseña para activar tu acceso.`;
+      } catch (err) {
+        mostrarError('No se pudo validar el link. Revisá tu conexión e intentá de nuevo.');
+      }
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    elForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnActivar');
+      elAlerta.style.display = 'none';
+
+      const password  = document.getElementById('password').value;
+      const password2 = document.getElementById('password2').value;
+
+      if (password !== password2) {
+        elAlerta.className = 'alerta alerta-err';
+        elAlerta.textContent = 'Las contraseñas no coinciden.';
+        elAlerta.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Activando...';
+      try {
+        const resp = await fetch(`/api/chofer-invitacion?accion=activar&t=${encodeURIComponent(token)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'No se pudo activar el acceso');
+
+        // Iniciar sesión ahí mismo con el email que devolvió el backend
+        const { error: signInError } = await sb.auth.signInWithPassword({ email: data.email, password });
+        if (signInError) {
+          // Poco probable, pero por las dudas mandamos al login normal
+          window.location.href = '/chofer/login';
+          return;
+        }
+
+        window.location.href = '/chofer';
+      } catch (err) {
+        elAlerta.className = 'alerta alerta-err';
+        elAlerta.textContent = err.message || 'No se pudo activar el acceso';
+        elAlerta.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Activar acceso';
+      }
+    });
+
+    init();
+  </script>
+  <script src="/chofer/pwa-init.js"></script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/cliente/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <title>Confirmar Pedido</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/cliente/pwa-init.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--color-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-xxl);
+      box-shadow: 0 4px 24px rgba(0,0,0,.10);
+      width: 100%;
+      max-width: 460px;
+      overflow: hidden;
+    }
+
+    .portal-card-header {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: #fff;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .portal-card-header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.2);
+      border-radius: var(--radius-full);
+      padding: .25rem .75rem;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .5px;
+      margin-bottom: .75rem;
+    }
+    .portal-card-header h2 { font-size: 1.25rem; font-weight: 700; }
+    .portal-card-header p  { font-size: .85rem; opacity: .8; margin-top: .25rem; }
+
+    .card-body { padding: 1.5rem; }
+
+    .section-label {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--color-text-muted);
+      margin-bottom: .75rem;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .6rem 0;
+      border-bottom: 1px solid var(--color-border-soft);
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-nombre { font-weight: 600; color: var(--color-text); font-size: .95rem; }
+    .item-unidad { font-size: .8rem; color: var(--color-text-muted); margin-left: .25rem; }
+    .item-cant   { font-size: .85rem; color: var(--color-text-muted); margin-right: .5rem; }
+    .item-precio { font-weight: 700; color: var(--color-primary); }
+
+    .total-box {
+      background: var(--color-primary-bg);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .total-label { font-weight: 600; color: var(--color-text-muted); }
+    .total-valor { font-size: 1.35rem; font-weight: 700; color: var(--color-primary); }
+
+    .btn-confirmar {
+      display: block;
+      width: 100%;
+      padding: .9rem;
+      margin-top: 1.25rem;
+      background: linear-gradient(135deg, var(--color-success-mid), var(--color-box-success));
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-confirmar:disabled { opacity: .6; cursor: not-allowed; }
+    .hint {
+      font-size: .8rem;
+      color: var(--color-text-light);
+      text-align: center;
+      margin-top: .75rem;
+    }
+
+    /* Etapa 5 offline (Mercado Pago) — botón de pago público, mismo look
+       que btn-confirmar pero en la paleta de "acción secundaria positiva"
+       (verde MP) para no confundirlo con "Confirmar Pedido". */
+    .btn-pagar {
+      display: block;
+      width: 100%;
+      padding: .9rem;
+      margin-top: .75rem;
+      background: linear-gradient(135deg, #00b1ea, #009ee3);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-pagar:disabled { opacity: .6; cursor: not-allowed; }
+    .pago-estado {
+      text-align: center;
+      font-size: .85rem;
+      padding: .5rem 0;
+      display: none;
+    }
+    .pago-estado.pendiente { color: var(--color-text-light); display: block; }
+    .pago-estado.error     { color: var(--color-danger, #e11d48); display: block; }
+
+    /* Estados */
+    .estado { display: none; text-align: center; padding: 2rem 1.5rem; }
+    .estado.activo { display: block; }
+    .estado-icono { font-size: 3rem; margin-bottom: 1rem; }
+    .estado h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
+    .estado p  { font-size: .9rem; color: var(--color-text-muted); }
+    .numero-pedido { font-size: .85rem; color: var(--color-text-light); margin-top: .5rem; }
+
+    /* Loading */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      color: var(--color-text-muted);
+      gap: 1rem;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--color-border-soft);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: .78rem;
+      color: var(--color-text-light);
+      text-align: center;
+    }
+  </style>
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span>Cargando tu pedido...</span>
+</div>
+
+<!-- Card principal -->
+<div class="card" id="card-main" style="display:none">
+  <div class="portal-card-header">
+    <div class="badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="1" y1="14" x2="3" y2="14"/><line x1="21" y1="14" x2="23" y2="14"/></svg>Pedido Habitual</div>
+    <h2 id="cliente-nombre">—</h2>
+    <p id="fecha-texto">—</p>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Items -->
+    <div id="seccion-items">
+      <div class="section-label">Productos sugeridos</div>
+      <div id="lista-items"></div>
+
+      <div class="total-box">
+        <span class="total-label">Total estimado</span>
+        <span class="total-valor" id="total-valor">—</span>
+      </div>
+
+      <!-- Acción -->
+      <div id="seccion-accion">
+        <button type="button" class="btn-confirmar" id="btn-confirmar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar Pedido</button>
+        <p class="hint">Tu pedido quedará pendiente de entrega</p>
+      </div>
+    </div>
+
+    <!-- Estado: confirmado -->
+    <div class="estado" id="estado-ok">
+      <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><circle cx="12" cy="12" r="10"/><polyline points="16 9 10.5 15 8 12.5"/></svg></div>
+      <h3 style="color:var(--color-success-mid)">¡Pedido confirmado!</h3>
+      <p>Recibirás la confirmación en breve. Gracias.</p>
+      <p class="numero-pedido">N° <strong id="numero-pedido">—</strong></p>
+
+      <!-- Etapa 5 offline (Mercado Pago) — solo se muestra si el backend
+           confirmó que la empresa tiene MP activo Y este pedido califica
+           para el link público (ver mp_disponible en ver-sugerido). -->
+      <div id="seccion-pagar" style="display:none">
+        <button type="button" class="btn-pagar" id="btn-pagar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Pagar con Mercado Pago</button>
+        <p class="pago-estado" id="pago-estado"></p>
+      </div>
+    </div>
+
+    <!-- Estado: pago recibido (retorno desde Mercado Pago) -->
+    <div class="estado" id="estado-pago-ok">
+      <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><circle cx="12" cy="12" r="10"/><polyline points="16 9 10.5 15 8 12.5"/></svg></div>
+      <h3 style="color:var(--color-success-mid)">¡Pago recibido!</h3>
+      <p>Ya estamos confirmando tu pedido — puede demorar unos minutos en reflejarse.</p>
+    </div>
+
+    <!-- Estado: pago pendiente (retorno desde Mercado Pago) -->
+    <div class="estado" id="estado-pago-pendiente">
+      <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <h3>Tu pago está siendo procesado</h3>
+      <p>Te confirmamos apenas Mercado Pago lo apruebe.</p>
+    </div>
+
+    <!-- Estado: error -->
+    <div class="estado" id="estado-error">
+      <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <h3>No pudimos confirmar el pedido</h3>
+      <p id="msg-error">—</p>
+    </div>
+
+    <!-- Estado: no encontrado -->
+    <div class="estado" id="estado-404">
+      <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <h3>Pedido no encontrado</h3>
+      <p>El link puede haber vencido o el pedido ya fue procesado.</p>
+    </div>
+
+  </div>
+</div>
+
+<footer>Pedido recibido vía WhatsApp</footer>
+
+<script>
+const params   = new URLSearchParams(location.search);
+const pedidoId = params.get('pedido');
+const pagoParam = params.get('pago');
+
+const fmt = n => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 0 });
+
+function mostrarEstado(id) {
+  ['estado-ok','estado-error','estado-404','estado-pago-ok','estado-pago-pendiente'].forEach(s => {
+    document.getElementById(s).classList.remove('activo');
+  });
+  document.getElementById('seccion-items')?.style && (document.getElementById('seccion-items').style.display = 'none');
+  document.getElementById(id).classList.add('activo');
+}
+
+async function cargar() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('card-main').style.display = '';
+
+  if (!pedidoId) { mostrarEstado('estado-404'); return; }
+
+  // Etapa 5 offline (Mercado Pago) — retorno desde el checkout de MP.
+  // 'exitoso'/'pendiente' se muestran tal cual sin reconsultar el pedido:
+  // el webhook (lib/handlers/pagos.js) ya corrió o está por correr del
+  // lado del servidor y puede haber movido el pedido a 'confirmado' —
+  // estado que ver-sugerido trata como "no encontrado" (no es un estado
+  // válido para ESTE link). Volver a pedir acá lo rompería en vez de
+  // confirmarlo. 'fallido' es distinto: el pedido sigue en 'pendiente'
+  // (el pago no llegó a moverlo), así que ahí sí seguimos con la carga
+  // normal más abajo para que pueda reintentar el pago.
+  if (pagoParam === 'exitoso')   { mostrarEstado('estado-pago-ok'); return; }
+  if (pagoParam === 'pendiente') { mostrarEstado('estado-pago-pendiente'); return; }
+
+  let p, mpDisponible;
+  try {
+    const resp = await fetch('/api/pedidos?accion=ver-sugerido&pedido_id=' + encodeURIComponent(pedidoId));
+    const body = await resp.json();
+    if (!body?.ok) { mostrarEstado('estado-404'); return; }
+    p = body.pedido;
+    mpDisponible = Boolean(body.mp_disponible);
+  } catch (netErr) {
+    mostrarEstado('estado-404');
+    return;
+  }
+
+  if (!p) { mostrarEstado('estado-404'); return; }
+
+  // Ya confirmado previamente
+  if (p.estado === 'pendiente') {
+    document.getElementById('numero-pedido').textContent = p.numero_pedido || pedidoId.slice(0,8).toUpperCase();
+    if (pagoParam === 'fallido') {
+      const pe = document.getElementById('pago-estado');
+      pe.className = 'pago-estado error';
+      pe.textContent = 'El pago no pudo procesarse. Podés reintentarlo cuando quieras.';
+    }
+    if (mpDisponible) _mostrarBotonPagar(pedidoId);
+    mostrarEstado('estado-ok');
+    return;
+  }
+
+  // No es sugerido (raro)
+  if (p.estado !== 'sugerido') { mostrarEstado('estado-404'); return; }
+
+  // Renderizar
+  const nombre = p.clientes?.nombre_fantasia || p.clientes?.razon_social || 'Cliente';
+  document.getElementById('cliente-nombre').textContent = nombre;
+  document.getElementById('fecha-texto').textContent =
+    new Date(p.fecha_pedido).toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+  document.getElementById('total-valor').textContent = fmt(p.total);
+
+  const lista = document.getElementById('lista-items');
+  lista.innerHTML = '';
+  (p.pedido_items || []).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML = `
+      <div>
+        <span class="item-nombre">${item.productos?.nombre || '—'}</span>
+        <span class="item-unidad">${item.productos?.unidad || ''}</span>
+      </div>
+      <div style="display:flex;align-items:center">
+        <span class="item-cant">x${item.cantidad}</span>
+        <span class="item-precio">${fmt(item.precio_unitario * item.cantidad)}</span>
+      </div>`;
+    lista.appendChild(div);
+  });
+
+  document.getElementById('seccion-items').style.display = '';
+}
+
+// Etapa 5 offline (Mercado Pago) — deja el botón listo pero avisa de
+// entrada si no hay conexión, en vez de dejar que el cliente lo apriete
+// y recién ahí se entere con un error genérico (mismo criterio que ya
+// se aplicó en pos.js/pos-offline.js para AFIP).
+function _mostrarBotonPagar(pedidoId) {
+  const seccion = document.getElementById('seccion-pagar');
+  const btn     = document.getElementById('btn-pagar');
+  const pe      = document.getElementById('pago-estado');
+  seccion.style.display = '';
+
+  function actualizarSegunConexion() {
+    if (navigator.onLine) {
+      btn.disabled = false;
+      btn.textContent = 'Pagar con Mercado Pago';
+      if (pe.textContent && pe.className.includes('pendiente')) {
+        pe.className = 'pago-estado';
+        pe.textContent = '';
+      }
+    } else {
+      btn.disabled = true;
+      btn.textContent = 'Pagar con Mercado Pago';
+      pe.className = 'pago-estado pendiente';
+      pe.textContent = 'Necesitás conexión a internet para pagar online — probá de nuevo cuando vuelva la señal.';
+    }
+  }
+  actualizarSegunConexion();
+  window.addEventListener('online',  actualizarSegunConexion);
+  window.addEventListener('offline', actualizarSegunConexion);
+
+  btn.addEventListener('click', async () => {
+    if (!navigator.onLine) { actualizarSegunConexion(); return; }
+    btn.disabled = true;
+    btn.textContent = 'Generando link de pago...';
+    pe.className = 'pago-estado';
+    pe.textContent = '';
+    try {
+      const resp = await fetch('/api/pagos/publico', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedido_id: pedidoId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.checkout_url) {
+        pe.className = 'pago-estado error';
+        pe.textContent = data.error || 'No se pudo iniciar el pago online.';
+        btn.disabled = false;
+        btn.textContent = 'Pagar con Mercado Pago';
+        return;
+      }
+      window.location.href = data.checkout_url;
+    } catch (e) {
+      pe.className = 'pago-estado error';
+      pe.textContent = 'No se pudo iniciar el pago online.';
+      btn.disabled = false;
+      btn.textContent = 'Pagar con Mercado Pago';
+    }
+  });
+}
+
+document.getElementById('btn-confirmar').addEventListener('click', async function() {
+  this.disabled = true;
+  this.textContent = 'Confirmando...';
+
+  let data;
+  try {
+    const resp = await fetch('/api/pedidos?accion=confirmar-sugerido', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pedido_id: pedidoId }),
+    });
+    data = await resp.json();
+  } catch (netErr) {
+    document.getElementById('msg-error').textContent = 'Error de conexión';
+    mostrarEstado('estado-error');
+    return;
+  }
+
+  if (!data?.ok) {
+    document.getElementById('msg-error').textContent = data?.error || 'Error desconocido';
+    mostrarEstado('estado-error');
+    return;
+  }
+
+  document.getElementById('numero-pedido').textContent = data.numero_pedido || pedidoId.slice(0,8).toUpperCase();
+  mostrarEstado('estado-ok');
+});
+
+cargar();
+</script>
+  <script src="/frontend/shared/chat-widget.js" defer data-chat-asistente="1"></script>
+</body>
+</html>

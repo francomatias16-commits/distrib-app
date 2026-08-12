@@ -1,0 +1,352 @@
+/**
+ * compras-gentelella.css — Reskin "Gentelella v4" de la pantalla Compras
+ * ───────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
+ * Proveedores/Cta.Cte.Proveedores) y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Nota: los botones "Recepciones" / "Comparar proveedores" en el topbar y la
+ * zona de escaneo OCR de remito traen color inline vía atributo style=""
+ * (ej. style="background:var(--color-bg-alt,...)"), no clases — quedan fuera
+ * del alcance de un reskin solo-CSS (mismo criterio aplicado en pantallas
+ * previas). Igual con los colores de discrepancias OCR y el badge
+ * "Descartada" del historial de recepciones, generados 100% inline en el JS.
+ *
+ * Scope: body.dash-compras-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella { background: var(--ge-bg) !important; }
+body.dash-compras-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-compras-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-compras-gentelella .topbar-workspace,
+body.dash-compras-gentelella .topbar-contador {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-compras-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-compras-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-compras-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Botón primario "Nueva orden" (los otros 2 botones del topbar traen su
+   propio color inline por style="", ver nota arriba) */
+body.dash-compras-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-compras-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .select-filtro,
+body.dash-compras-gentelella .input-fecha {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-compras-gentelella .select-filtro:focus,
+body.dash-compras-gentelella .input-fecha:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de órdenes de compra
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-compras-gentelella .tabla-main th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .tabla-main td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .tabla-main td.vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-compras-gentelella .tabla-main tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-compras-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-compras-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Botones de acción en tabla (Ver / Recepcionar / Factura) */
+body.dash-compras-gentelella .btn-tabla {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-compras-gentelella .btn-tabla:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-compras-gentelella .btn-tabla.primario {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-compras-gentelella .btn-tabla.primario:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-compras-gentelella .btn-tabla.peligro {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+}
+body.dash-compras-gentelella .btn-tabla.peligro:hover {
+  opacity: .85 !important;
+}
+
+/* Paginación */
+body.dash-compras-gentelella .paginacion-container,
+body.dash-compras-gentelella .info-pag {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-compras-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-compras-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-compras-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Badges de estado de la orden de compra
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .badge {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.dash-compras-gentelella .badge-borrador {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-compras-gentelella .badge-pendiente_aprobacion {
+  background: color-mix(in srgb, var(--ge-purple) 12%, transparent) !important;
+  color: var(--ge-purple) !important;
+}
+body.dash-compras-gentelella .badge-enviada {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-compras-gentelella .badge-confirmada {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-orange) !important;
+}
+body.dash-compras-gentelella .badge-recibida_parcial {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-compras-gentelella .badge-recibida {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-compras-gentelella .badge-cancelada {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modales (Nueva OC / Detalle / Recepción / Historial)
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-compras-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-compras-gentelella .modal-box-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .modal-box-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .modal-box-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-compras-gentelella .modal-box-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .modal-box-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* Formulario (Nueva orden) */
+body.dash-compras-gentelella .form-label,
+body.dash-compras-gentelella .form-sec-label {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-compras-gentelella .form-sec-label {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .form-input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-compras-gentelella .form-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-compras-gentelella .ayuda-contextual {
+  color: var(--ge-muted) !important;
+}
+body.dash-compras-gentelella .ayuda-contextual:hover {
+  color: var(--ge-teal) !important;
+}
+body.dash-compras-gentelella .ayuda-contextual::after {
+  background: var(--ge-ink) !important;
+}
+
+/* Tabla interna de ítems (OC nueva / detalle / recepción) */
+body.dash-compras-gentelella .inner-tabla th {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-compras-gentelella .inner-tabla td {
+  border-bottom: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .inner-tabla input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .inner-tabla input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+body.dash-compras-gentelella .inner-tabla select {
+  color: var(--ge-ink) !important;
+}
+
+/* Totales (Subtotal / IVA / Total) */
+body.dash-compras-gentelella .totales-box .t-label {
+  color: var(--ge-muted) !important;
+}
+body.dash-compras-gentelella .totales-box .t-val {
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .totales-box .t-total .t-label,
+body.dash-compras-gentelella .totales-box .t-total .t-val {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Barra de progreso de recepción */
+body.dash-compras-gentelella .progreso-recepcion {
+  color: var(--ge-muted) !important;
+}
+body.dash-compras-gentelella .barra-progreso {
+  background: var(--ge-border) !important;
+}
+body.dash-compras-gentelella .barra-progreso-fill {
+  background: var(--ge-teal) !important;
+}
+
+/* Botones de footer de modal */
+body.dash-compras-gentelella .btn-cancelar {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-compras-gentelella .btn-cancelar:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-compras-gentelella .btn-guardar-modal {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-compras-gentelella .btn-guardar-modal:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-compras-gentelella .btn-accion-modal {
+  background: var(--ge-orange) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cuerpo del modal-box
+   ════════════════════════════════════════════════════════════ */
+body.dash-compras-gentelella .modal-box-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  padding: 18px 22px !important;
+  overflow-y: auto !important;
+}

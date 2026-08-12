@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes Financieros - Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+    <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes-financieros-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-reportes-financieros-gentelella dash-gentelella">
+    <!-- Sidebar -->
+        <div id="nav-root"></div>
+
+        <!-- Main Content -->
+        <div class="layout">
+              <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Reportes financieros</h1>
+    </div>
+    <div class="topbar-right">
+      
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Seguí ingresos, cuentas por cobrar y por pagar, y el flujo de caja general del negocio.
+</div>
+
+            <div class="content-area">
+                <!-- Filtros -->
+                <div class="filtros-section">
+                    <div class="filtro-group">
+                        <label>Período:</label>
+                        <select id="filtroPeriodon">
+                            <option value="mes" selected>Este mes</option>
+                            <option value="trimestre">Este trimestre</option>
+                            <option value="año">Este año</option>
+                            <option value="personalizado">Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group" id="filtroPersonalizadoContainer" style="display:none">
+                        <label>Desde:</label>
+                        <input type="date" id="filtroFechaInicio" aria-label="Fecha inicio">
+                        <label>Hasta:</label>
+                        <input type="date" id="filtroFechaFin" aria-label="Fecha fin">
+                    </div>
+                    <button type="button" id="btnAplicarFiltros" class="btn btn--primary">Aplicar Filtros</button>
+                    <button type="button" id="btnExportarFinanzas" class="btn btn--ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button>
+                </div>
+
+                <!-- KPIs Financieros -->
+                <div class="franja-resumen-sololectura">
+  <span>Ingresos Totales: <strong id="kpiIngresos">$0</strong> <span id="kpiCambioIngresos">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Costos Totales: <strong id="kpiCostos">$0</strong> <span id="kpiCambioCostos">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Margen Bruto: <strong id="kpiMargen">$0</strong> <span id="kpiCambioMargen">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>% Margen: <strong id="kpiPorcentajeMargen">0%</strong> <span id="kpiCambioPorcentajeMargen">+0% vs período anterior</span></span>
+</div>
+
+                <!-- KPIs de Cobranza -->
+                <div class="franja-resumen-sololectura">
+  <span>Facturas Emitidas: <strong id="kpiFacturasEmitidas">$0</strong> <span id="kpiCambioFacturas">+0 vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Cobros Realizados: <strong id="kpiCobrosRealizados">$0</strong> <span id="kpiCambioCobros">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Deuda Pendiente: <strong id="kpiDeudaPendiente">$0</strong> <span id="kpiCambioDeuda">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Deuda Vencida: <strong id="kpiDeudaVencida">$0</strong> <span id="kpiCambioDeudaVencida">+0% vs período anterior</span></span>
+</div>
+
+                <!-- Gráfico de Flujo de Caja -->
+                <div class="chart-section">
+                    <h2>Flujo de Caja Diario</h2>
+                    <div class="chart-section-wrap">
+                        <div id="chartFlujoCaja" class="chart-section-el"></div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Ingresos vs Costos -->
+                <div class="chart-section">
+                    <h2>Ingresos vs Costos</h2>
+                    <div class="chart-section-wrap">
+                        <div id="chartIngresosVsCostos" class="chart-section-el"></div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Deuda por Cliente -->
+                <div class="ranking-section">
+                    <h2>Deuda Pendiente por Cliente</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Deuda Total</th>
+                                <th>Deuda Vencida</th>
+                                <th>Deuda por Vencer</th>
+                                <th>Días Promedio</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyDeuda">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen de Cobranzas -->
+                <div class="ranking-section">
+                    <h2>Resumen de Cobranzas</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Medio de Pago</th>
+                                <th>Cantidad</th>
+                                <th>Monto Total</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCobranzas">
+                            <tr><td colspan="4" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Evolución de Margen -->
+                <div class="ranking-section">
+                    <h2>Evolución del Margen Bruto</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Ingresos</th>
+                                <th>Costos</th>
+                                <th>Margen Bruto</th>
+                                <th>% Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyMargen">
+                            <tr><td colspan="5" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/frontend/env-config.js?v1782328742714"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
+    <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/reportes-financieros.js?v1782328742714"></script>
+</body>
+</html>

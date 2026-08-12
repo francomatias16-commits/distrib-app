@@ -1,0 +1,1187 @@
+/**
+ * AdminLTE Style Patch — añadido automáticamente
+ * Mejora visual sobre el CSS existente de la página
+ */
+
+/* Fondo AdminLTE */
+body { background: var(--color-bg, var(--color-surface-2)); font-family: var(--font-family, "Inter", sans-serif); }
+
+/* Cards mejoradas */
+/* .card styles inherited from adminlte-components.css (glass) */
+/* .card-header inherited from adminlte-components.css */
+.card-header h3 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+.card-footer { padding: 10px 16px; background: rgba(0,0,0,.02); border-top: 1px solid rgba(0,0,0,.08); font-size: 13px; color: var(--color-text-muted); }
+
+/* Panel headers */
+.panel-header, .section-header {
+  background: rgba(0,0,0,.02);
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+/* Tablas con fondo alternado */
+table th { background: var(--color-bg) !important; }
+tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
+
+/* [Etapa 4 · Media] .topbar-contador se removio de este archivo: estaba duplicado en 9 hojas de pagina con formas inconsistentes (radius-md vs radius-lg). Definicion canonica unica en shared/adminlte-components.css. */
+
+/* KPI cards — info-box style cuando son grid */
+.fkpi, .kpi-card:not(.small-box) {
+  background: var(--color-surface, var(--color-surface));
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Motor cards / auto cards */
+.motor-card, .regla-card, .trigger-card {
+  border: 1px solid rgba(0,0,0,.125);
+  box-shadow: var(--shadow-fluffy);
+}
+.motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
+
+/* Botones secundarios */
+.btn-exportar, .btn-importar {
+  border: 1px solid var(--color-border, var(--color-border-soft));
+  background: var(--color-surface, var(--color-surface));
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: all .12s; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-muted, var(--color-text-muted));
+}
+.btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
+.btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info-mid); color: var(--color-info); }
+
+/* Filtros */
+.filtros-section {
+  background: var(--color-surface, var(--color-surface));
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Main padding ajustado */
+.main { padding: 20px 24px; }
+
+
+/* [Etapa 4 · Media] segunda declaración de .topbar-contador removida de aquí (ganaba por cascada y usaba color-text-light, contraste bajo, y radius-lg inconsistente con otras páginas). Definición canónica única en shared/adminlte-components.css. */
+
+.btn-exportar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+}
+.btn-exportar:hover {
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.btn-nuevo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-surface);
+  cursor: pointer;
+  transition: opacity .12s;
+}
+.btn-nuevo:hover { opacity: .88; }
+
+.btn-ver-catalogo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-primary, var(--nav-facturacion));
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary, var(--nav-facturacion));
+  cursor: pointer;
+  transition: all .12s;
+}
+.btn-ver-catalogo:hover {
+  background: var(--color-primary, var(--nav-facturacion));
+  color: var(--color-surface);
+}
+
+/* ── Filtros ───────────────────────────────────────────────────── */
+.filtros-bar {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  color: var(--color-text-light);
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.search-wrap:focus-within {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+  color: var(--color-primary);
+}
+.search-wrap input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--color-text);
+  width: 100%;
+}
+.search-wrap input::placeholder { color: var(--color-text-light); }
+
+.estado-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.e-pill {
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0,0,0,.07);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+}
+.e-pill:hover { background: var(--color-bg); }
+.e-pill.activa {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.e-pill-rojo.activa    { background: var(--color-danger-bg);  border-color: var(--color-danger);  color: var(--color-danger); }
+.e-pill-amarillo.activa{ background: var(--color-warning-bg); border-color: var(--color-warning); color: var(--color-warning); }
+.e-pill-verde.activa   { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+
+.filtros-der {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.select-filtro {
+  padding: 6px 10px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  outline: none;
+}
+.select-filtro:focus { border-color: var(--color-primary); }
+
+.btn-limpiar {
+  padding: 6px 14px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.btn-limpiar:hover { background: var(--color-bg); }
+
+/* ── Tabla ─────────────────────────────────────────────────────── */
+.tabla-wrap {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.tabla-clientes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla-clientes thead {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tabla-clientes th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.th-num { text-align: left; }
+
+.fila-cliente {
+  border-bottom: 1px solid var(--color-border);
+  transition: background .15s ease;
+}
+.fila-cliente:last-child { border-bottom: none; }
+.fila-cliente:hover { background: var(--color-bg); }
+.fila-inactiva { opacity: .55; }
+
+.tabla-clientes td { padding: 11px 14px; vertical-align: middle; }
+
+/* Celda cliente con avatar */
+.td-cliente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.cli-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+
+.cli-nombre { font-weight: 600; font-size: 14px; }
+.cli-razon  { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+.cli-loc    { font-size: 11px; color: var(--color-text-light); margin-top: 1px; }
+
+.td-text { color: var(--color-text-muted); white-space: nowrap; }
+
+.tel-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.tel-link:hover { color: var(--color-primary); text-decoration: underline; }
+
+.td-num {
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.td-muted { color: var(--color-text-muted) !important; font-weight: 400 !important; }
+
+.num-rojo    { color: var(--color-danger); }
+.num-amarillo{ color: var(--color-warning); }
+.num-verde   { color: var(--color-success); }
+
+/* Badges de estado — sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) */
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.badge-critico { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: var(--color-danger); }
+.badge-critico .badge-dot { background: var(--color-danger); }
+.badge-bajo    { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-bajo .badge-dot { background: var(--color-warning); }
+.badge-ok      { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-ok .badge-dot { background: var(--color-success); }
+.badge-neutro  { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+.badge-neutro .badge-dot { background: var(--color-text-light); }
+
+/* Botón editar */
+.td-acciones { white-space: nowrap; }
+.btn-editar {
+  padding: 5px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, transform .1s ease;
+}
+.btn-editar:hover {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  transform: translateY(-1px);
+}
+
+.tabla-loading, .tabla-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-light);
+  font-size: 14px;
+}
+
+/* ── Modal ─────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 300;
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  right: -600px;
+  width: 580px;
+  max-width: 95vw;
+  height: 100vh;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  z-index: 400;
+  overflow-y: auto;
+  padding: 28px;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.modal.open { right: 0; }
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.modal-titulo   { font-size: 20px; font-weight: 700; }
+.modal-subtitulo{ font-size: 13px; color: var(--color-text-muted); margin-top: 3px; }
+
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.modal-close:hover { background: var(--color-bg); }
+
+/* Tabs */
+.modal-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 22px;
+}
+
+.modal-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+  margin-bottom: -1px;
+}
+.modal-tab:hover { color: var(--color-text); }
+.modal-tab.activo {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Tab panels */
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  flex: 1;
+}
+
+/* Secciones del form */
+.modal-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-sec-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Formulario ────────────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Ícono de ayuda contextual con tooltip CSS puro (sin dependencias jQuery/Bootstrap) */
+.ayuda-contextual {
+  position: relative;
+  display: inline-flex;
+  color: var(--color-text-light);
+  cursor: help;
+}
+.ayuda-contextual::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  width: 220px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 50;
+  box-shadow: var(--shadow-fluffy);
+}
+.ayuda-contextual:hover::after,
+.ayuda-contextual:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.form-requerido { color: var(--color-danger); }
+
+.form-input, .form-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color .12s;
+  font-family: inherit;
+}
+.form-input:focus, .form-select:focus { border-color: var(--color-primary); }
+
+.form-textarea { resize: vertical; min-height: 72px; }
+
+/* ── Crédito grid ──────────────────────────────────────────────── */
+.credito-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.credito-item {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credito-full { grid-column: 1 / -1; }
+
+.cred-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--color-text-muted);
+}
+
+.cred-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.val-rojo    { color: var(--color-danger); }
+.val-amarillo{ color: var(--color-warning); }
+.val-verde   { color: var(--color-success); }
+
+.barra-credito {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.barra-fill {
+  height: 100%;
+  border-radius: var(--radius-lg);
+  transition: width .4s ease;
+}
+.barra-verde   { background: var(--color-success); }
+.barra-amarillo{ background: var(--color-warning); }
+.barra-rojo    { background: var(--color-danger); }
+
+/* ── Historial pedidos ─────────────────────────────────────────── */
+.ped-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.ped-row:last-child { border-bottom: none; }
+.ped-left { display: flex; flex-direction: column; gap: 2px; }
+.ped-num  { font-size: 13px; font-weight: 600; }
+.ped-meta { font-size: 11px; color: var(--color-text-light); }
+.ped-total{ font-size: 14px; font-weight: 700; white-space: nowrap; }
+
+/* ── Tabla cuenta corriente ────────────────────────────────────── */
+.tabla-cta {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabla-cta th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.tabla-cta td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.tabla-cta tr:last-child td { border-bottom: none; }
+
+/* ── Acciones form ─────────────────────────────────────────────── */
+.form-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  margin-top: auto;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-secundario {
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: var(--color-surface);
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.btn-secundario:hover { background: var(--color-bg); }
+.btn-wa-pedido { border-color: #25D366; color: #25D366; }
+.btn-wa-pedido:hover { background: rgba(37,211,102,.08); }
+
+.btn-peligro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger);
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-danger);
+  margin-right: auto;
+}
+.btn-peligro:hover { background: var(--color-danger-bg); }
+
+.btn-primario {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .12s;
+}
+.btn-primario:hover    { opacity: .9; }
+.btn-primario:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Helpers historial/cta */
+.loading-row, .empty-row {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 14px;
+}
+
+/* ── Toast ─────────────────────────────────────────────────────── */
+/* v79-bloque4: estilo del toast unificado en /shared/tokens.css (.toast,
+   .toast--visible, .toast--success/danger/warning). No se redefine acá para
+   evitar dos fuentes de verdad — clientes.js usa window.toast() de
+   ui-utils.js, que aplica esas clases. */
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .filtros-der  { width: 100%; margin-left: 0; }
+  .form-row     { grid-template-columns: 1fr; }
+  .credito-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .proyeccion-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Tabla → Tarjetas en mobile (v79-bloque4) ──────────────────── */
+@media (max-width: 768px) {
+  .search-wrap { max-width: none; }
+
+  .table-responsive-cards .tabla-clientes,
+  .table-responsive-cards .tabla-clientes thead,
+  .table-responsive-cards .tabla-clientes tbody,
+  .table-responsive-cards .tabla-clientes th,
+  .table-responsive-cards .tabla-clientes td,
+  .table-responsive-cards .tabla-clientes tr {
+    display: block;
+  }
+  .table-responsive-cards .tabla-clientes thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .table-responsive-cards .fila-cliente {
+    border: 1px solid rgba(0,0,0,.07);
+    margin: 0 0 12px;
+    border-radius: var(--radius-lg);
+    padding: 4px 14px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .table-responsive-cards .fila-cliente:hover { background: var(--color-surface); }
+  .table-responsive-cards .tabla-clientes td {
+    border: none !important;
+    position: relative;
+    padding: 9px 0 9px 42%;
+    text-align: right;
+    border-bottom: 1px solid var(--color-bg) !important;
+    min-height: 20px;
+  }
+  .table-responsive-cards .tabla-clientes td:last-child { border-bottom: none !important; }
+  .table-responsive-cards .tabla-clientes td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 40%;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  /* La celda "Cliente" ya es autoexplicativa (avatar + nombre) → ancho completo, sin label */
+  .table-responsive-cards .td-cliente {
+    text-align: left;
+    padding: 12px 0;
+  }
+  .table-responsive-cards .td-cliente::before { display: none; }
+  .table-responsive-cards .td-acciones { text-align: left; padding-left: 0; }
+  .table-responsive-cards .td-acciones::before { display: none; }
+  .table-responsive-cards .btn-editar { width: 100%; padding: 8px; margin-top: 4px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REQ-5: Score Cliente — Estilos del Badge y Modal de Desglose
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Badge en tabla de clientes */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.score-premium  { background: rgba(234,179,8,.2);  color: var(--color-warning); }
+.score-bueno    { background: rgba(34,197,94,.15); color: var(--color-success-mid); }
+.score-normal   { background: rgba(59,130,246,.12);color: var(--color-primary); }
+.score-riesgo   { background: rgba(239,68,68,.15); color: var(--color-danger-mid); }
+.score-bloqueado{ background: rgba(107,114,128,.15);color: var(--color-text-light); }
+
+/* Score en tabla: botón clicable que hereda colores del badge */
+.score-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+.td-score { white-space: normal; }
+
+/* Frase de motivo de riesgo en la lista de clientes (debajo del badge) */
+.score-motivo-inline {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-danger, var(--color-danger-mid));
+  line-height: 1.3;
+  max-width: 160px;
+}
+
+/* Frase de motivo de riesgo en el modal de score */
+.score-motivo-frase {
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(239,68,68,.08);
+  border-left: 3px solid var(--color-danger, var(--color-danger-mid));
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 13px;
+  color: var(--color-danger, var(--color-danger-mid));
+}
+
+/* Modal de desglose */
+.score-desglose { display: flex; flex-direction: column; gap: 16px; padding: 4px 0; }
+.score-header   { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score-cat-badge{ padding: 4px 12px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; }
+.score-grid     { display: grid; gap: 10px; }
+
+/* Componente de score */
+.score-comp { background: var(--color-bg); border-radius: var(--radius-sm); padding: 10px 12px; }
+.score-comp-header  { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.score-comp-label   { font-size: 13px; font-weight: 600; }
+.score-comp-val     { font-size: 13px; color: var(--color-text-muted); }
+.score-comp-desc    { color: var(--color-text-muted); font-size: 11px; }
+
+.score-bar-wrap  { height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+.score-bar-fill  { height: 100%; border-radius: 3px; transition: width .3s; }
+.score-bar-fill--alta  { background: var(--color-success-mid); }
+.score-bar-fill--media { background: var(--color-warning-mid); }
+.score-bar-fill--baja  { background: var(--color-danger-mid); }
+
+.score-condiciones { font-size: 13px; padding: 8px 0; }
+.score-historial   { border-top: 1px solid var(--color-border); padding-top: 12px; }
+.score-historial strong { display: block; font-size: 12px; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 8px; }
+.score-hist-row    { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--color-border); font-size: 12px; }
+.score-hist-row time { color: var(--color-text-muted); min-width: 80px; }
+.score-hist-val  { font-weight: 700; min-width: 28px; text-align: right; }
+.score-acciones  { display: flex; justify-content: flex-end; padding-top: 4px; }
+
+/* Panel de alertas de score en la página de clientes */
+.panel-alertas-score { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 12px; }
+.panel-alerta-title { font-weight: 700; font-size: 13px; color: var(--color-danger-mid); margin-bottom: 8px; }
+.alerta-score-row   { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+.alerta-score-row strong { min-width: 140px; }
+.alerta-score-row span   { flex: 1; color: var(--color-text-muted); }
+
+/* Proyección modal en stock */
+.proyeccion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
+.proy-kpi        { background: var(--color-bg); border-radius: var(--radius-sm); padding: 10px; }
+.proy-kpi .kpi-label { display: block; font-size: 11px; color: var(--color-text-muted); margin-bottom: 4px; }
+.proy-alerta { background: rgba(239,68,68,.08); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.proy-ok     { background: rgba(34,197,94,.08); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--color-success-mid); font-size: 13px; }
+.alerta-stock-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REFACTOR VISUAL — Profundidad, contornos y color (Sección Clientes)
+   Objetivo: romper la monotonía del blanco plano, delinear las tarjetas
+   principales, separar filas de la tabla y modernizar badges/botones.
+   Cambios acotados a esta página únicamente (clientes.css sólo se
+   carga en /admin/clientes). Los selectores con prefijo #vista-clientes
+   y !important están así para poder pisar de forma segura y localizada
+   las reglas genéricas de /shared/reskin-patch.css (hoja global que se
+   carga después de este archivo).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* 1) Fondo de la app vs. superficie de las tarjetas ("flotan" en gris) */
+body { background: var(--color-bg); }
+
+.filtros-bar,
+.tabla-wrap {
+  background: var(--color-surface);
+}
+
+/* 2) Contornos definidos + sombra suave y moderna en las tarjetas principales */
+#vista-clientes .filtros-bar {
+  border: 1px solid var(--color-border-soft) !important;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  /* FIX (Matías): el desplegable "Más acciones" (.dropdown-menu, position:absolute)
+     quedaba tapado por la tarjeta de la tabla de abajo al abrirse. Mismo síntoma que
+     ya se resolvió antes en productos-modal-fix.css: en vez de perseguir qué regla
+     puntual le ganaba el stacking, forzamos a .filtros-bar a ser su propio contexto
+     de apilamiento por encima de todo lo que viene después en el DOM. */
+  position: relative;
+  z-index: 20;
+}
+
+/* El desplegable en sí, bien por encima de la tarjeta de la tabla (mismo criterio
+   que el resto de paneles flotantes de la app: preferir un z-index generoso a
+   quedar corto y que se tape). */
+#vista-clientes .dropdown-menu {
+  z-index: 9999 !important;
+}
+
+.tabla-wrap {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.search-wrap {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg);
+}
+.search-wrap:focus-within {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+/* Pills de filtro (Todos/Activos/Inactivos/Con deuda/En riesgo) con contorno visible */
+.e-pill { border: 1px solid var(--color-border-soft); }
+
+/* 3) Separación de filas + hover preciso (gris, no azulado) */
+#vista-clientes .tabla-clientes thead th {
+  border-bottom: 1px solid var(--color-border-soft) !important;
+}
+
+#vista-clientes .tabla-clientes tbody tr.fila-cliente td {
+  border-bottom: 1px solid var(--color-border-soft) !important;
+}
+#vista-clientes .tabla-clientes tbody tr.fila-cliente:last-child td {
+  border-bottom: none !important;
+}
+#vista-clientes .tabla-clientes tbody tr.fila-cliente:hover td {
+  background: var(--color-bg) !important;
+}
+
+/* 4) Badges de estado (Activo/Inactivo) → pastillas suaves y redondeadas */
+.badge-estado {
+  border-radius: var(--radius-full);
+  padding: 4px 11px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.badge-ok {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.badge-ok .badge-dot { background: var(--color-success); }
+
+.badge-critico {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.badge-critico .badge-dot { background: var(--color-danger); }
+
+/* Botón "Ver / Editar" → estilo consistente y profesional */
+.btn-editar {
+  padding: 6px 16px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.btn-editar:hover {
+  box-shadow: 0 2px 6px rgba(37, 99, 235, .25);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox" (Sección Clientes)
+   Inspirado en la referencia del usuario: acento turquesa, buscador tipo
+   píldora, chips de filtro a color, avatares circulares con badge de
+   estado superpuesto, tabla aireada con separación mínima entre filas.
+   Sigue acotado únicamente a /admin/clientes.
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-clientes {
+  --tb-accent:      var(--nav-ventas);
+  --tb-accent-dark: var(--nav-ventas);
+  --tb-accent-bg:   rgba(13,148,136,.10);
+  --tb-purple:      var(--nav-facturacion);
+  --tb-orange:      var(--color-warning-mid);
+  --tb-coral:       var(--color-danger-mid);
+  --tb-blue:        var(--color-info-mid);
+  --tb-pink:        var(--nav-fidelizacion);
+}
+
+/* ── Buscador tipo píldora ───────────────────────────────────────────── */
+#vista-clientes .search-wrap {
+  border: 1px solid var(--color-border-soft) !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--color-bg) !important;
+  padding: 9px 16px !important;
+}
+#vista-clientes .search-wrap svg { color: var(--tb-accent); }
+#vista-clientes .search-wrap:focus-within {
+  border-color: var(--tb-accent) !important;
+  background: var(--color-surface) !important;
+  box-shadow: 0 0 0 3px var(--tb-accent-bg) !important;
+}
+
+/* ── Chips de filtro tipo "criterio aplicado": píldora celeste uniforme,
+   chevron + cruz decorativos, igual que la referencia (Booking Id ▾ ✕) ── */
+#vista-clientes .e-pill {
+  border: 1px solid var(--nav-reportes-bg) !important;
+  border-radius: var(--radius-full) !important;
+  padding: 6px 12px 6px 15px !important;
+  font-weight: 600 !important;
+  background: var(--nav-reportes-bg) !important;
+  color: var(--nav-reportes) !important;
+  transition: all .15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+#vista-clientes .e-pill::after {
+  content: '\25BE';
+  margin-left: 8px;
+  font-size: 10px;
+  opacity: .7;
+}
+#vista-clientes .e-pill.activa {
+  background: var(--nav-reportes) !important;
+  border-color: var(--nav-reportes) !important;
+  color: var(--color-surface) !important;
+  box-shadow: 0 2px 6px rgba(95,199,222,.35) !important;
+}
+#vista-clientes .e-pill.activa::after {
+  content: '\25BE  \2715';
+  opacity: .9;
+}
+
+/* ── Tabla: aireada, separación mínima entre filas ───────────────────── */
+#vista-clientes .tabla-wrap {
+  border-radius: var(--radius-xl) !important;
+}
+#vista-clientes .tabla-clientes thead th {
+  background: transparent !important;
+  border-bottom: 1px solid var(--color-border-soft) !important;
+  color: var(--color-text-light) !important;
+  font-weight: 700 !important;
+  padding: 14px 16px !important;
+}
+#vista-clientes .tabla-clientes tbody tr.fila-cliente td {
+  border-bottom: 1px solid var(--color-bg) !important;
+  padding: 16px !important;
+}
+#vista-clientes .tabla-clientes tbody tr.fila-cliente:hover td {
+  background: var(--tb-accent-bg) !important;
+}
+
+/* ── Avatar circular a color (rota entre 5 tonos) + badge de estado ──── */
+#vista-clientes .td-cliente { position: relative; }
+#vista-clientes .cli-avatar {
+  width: 42px; height: 42px;
+  font-size: 13px;
+  position: relative;
+  color: var(--color-surface) !important;
+  background: var(--tb-purple) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
+}
+#vista-clientes tr.fila-cliente:nth-of-type(5n+2) .cli-avatar { background: var(--tb-orange) !important; }
+#vista-clientes tr.fila-cliente:nth-of-type(5n+3) .cli-avatar { background: var(--tb-coral)  !important; }
+#vista-clientes tr.fila-cliente:nth-of-type(5n+4) .cli-avatar { background: var(--tb-accent) !important; }
+#vista-clientes tr.fila-cliente:nth-of-type(5n+5) .cli-avatar { background: var(--tb-blue)   !important; }
+
+#vista-clientes .cli-avatar::after {
+  content: '\2713';
+  position: absolute;
+  right: -3px; bottom: -3px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--color-success-mid);
+  border: 2px solid var(--color-surface);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+#vista-clientes tr.fila-inactiva .cli-avatar::after {
+  content: '\2715';
+  background: var(--color-danger-mid);
+}
+
+/* ── Columna Zona → "ciudad" destacada, como Option Status en la referencia */
+#vista-clientes td[data-label="Zona"] {
+  color: var(--tb-coral) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+  letter-spacing: .02em !important;
+}
+
+/* ── Botón de acceso a portal → círculo de ícono, como los chips de
+   servicio (casa/vuelo/valija) de la referencia ─────────────────────── */
+#vista-clientes .btn-portal {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 1.5px solid var(--color-border-soft) !important;
+  background: var(--color-surface) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 6px !important;
+  vertical-align: middle !important;
+}
+#vista-clientes .btn-portal::after {
+  content: '\1F512';
+  font-size: 13px;
+  color: var(--color-text-light);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+}
+#vista-clientes .btn-portal.btn-portal--activo {
+  border-color: var(--tb-accent) !important;
+  background: var(--tb-accent-bg) !important;
+}
+#vista-clientes .btn-portal.btn-portal--activo::after {
+  content: '\1F511';
+  color: var(--tb-accent-dark);
+}
+
+/* ── Paginación inferior → círculos suaves, acento turquesa (sólo en
+   esta página; el archivo compartido /shared/pagination.css no se toca) */
+#vista-clientes #paginacion-clientes .btn-pag {
+  border-radius: var(--radius-full) !important;
+  border: 1px solid var(--color-border-soft) !important;
+  padding: 7px 18px !important;
+  font-weight: 600 !important;
+}
+#paginacion-clientes .btn-pag:hover:not(:disabled) {
+  border-color: var(--tb-accent) !important;
+  color: var(--tb-accent-dark) !important;
+  background: var(--tb-accent-bg) !important;
+}
+
+/* ── Números destacados (saldo / límite) ─────────────────────────────── */
+#vista-clientes .td-num { font-size: 13.5px; font-weight: 700 !important; }
+#vista-clientes .num-verde   { color: var(--color-success-mid) !important; }
+#vista-clientes .num-amarillo{ color: var(--color-warning-mid) !important; }
+#vista-clientes .num-rojo    { color: var(--color-danger-mid) !important; }
+
+/* ── Badges de estado — pastillas con punto ──────────────────────────── */
+#vista-clientes .badge-estado {
+  padding: 5px 13px !important;
+  font-size: 11.5px !important;
+}
+#vista-clientes .badge-dot { width: 7px; height: 7px; }
+
+/* ── Botón "Ver / Editar" — píldora sólida turquesa ──────────────────── */
+#vista-clientes .btn-editar {
+  border: none !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--tb-accent) !important;
+  color: var(--color-surface) !important;
+  padding: 7px 18px !important;
+  box-shadow: 0 2px 5px rgba(13,148,136,.25) !important;
+}
+#vista-clientes .btn-editar:hover {
+  background: var(--tb-accent-dark) !important;
+  box-shadow: 0 3px 8px rgba(13,148,136,.35) !important;
+  transform: translateY(-1px);
+}
+
+/* ── Score de confianza — reforzar forma píldora ─────────────────────── */
+#vista-clientes .score-badge-btn { border-radius: var(--radius-full) !important; }

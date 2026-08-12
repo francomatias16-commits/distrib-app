@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Lo que le debo a mis proveedores · Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/cc-proveedores-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-cc-proveedores-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Lo que le debo a mis proveedores</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Registrá las facturas de compra y sus pagos, y seguí cuánto le debés a cada proveedor y qué vence primero.
+</div>
+  </div>
+
+  <main class="main" id="vista-cc-proveedores">
+
+    <!-- KPIs ──────────────────────────────────────────────────────── -->
+    <!-- "Facturas con diferencias" era el único KPI ya clicable (filtraba
+         por filtro-solo-diferencias) -> pasa a pestaña FiltroTabs. Los
+         otros 4 son montos/conteos agregados sin filtro propio en la tabla
+         (no corresponden a ninguna opción de filtro-estado ni filtro-proveedor)
+         -> franja de solo lectura. -->
+    <div class="barra-filtros" id="filtro-tabs-cc-proveedores"></div>
+    <div class="franja-resumen-sololectura">
+      <span>Proveedores con saldo: <strong id="kv-proveedores">—</strong></span>
+      <span class="sep">·</span>
+      <span>Total facturado: <strong id="kv-facturado">—</strong></span>
+      <span class="sep">·</span>
+      <span>Total pagado: <strong id="kv-pagado">—</strong></span>
+      <span class="sep">·</span>
+      <span>Saldo pendiente: <strong id="kv-saldo">—</strong></span>
+    </div>
+
+    <!-- Filtros ───────────────────────────────────────────────────── -->
+    <div class="filtros-bar">
+      <select id="filtro-proveedor" class="select-filtro" onchange="aplicarFiltros()" style="min-width:220px">
+        <option value="">Todos los proveedores</option>
+      </select>
+      <select id="filtro-estado" class="select-filtro" onchange="aplicarFiltros()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="parcial">Pago parcial</option>
+        <option value="pagada">Pagada</option>
+        <option value="anulada">Anulada</option>
+      </select>
+      <label class="oculto" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-muted);cursor:pointer;white-space:nowrap">
+        <input type="checkbox" id="filtro-solo-diferencias" onchange="aplicarFiltros()" />
+        ⚠ Sólo con diferencias
+      </label>
+      <div class="filtros-der">
+        <input type="date" id="filtro-desde" class="input-fecha" onchange="aplicarFiltros()" title="Desde" aria-label="Fecha desde" />
+        <input type="date" id="filtro-hasta" class="input-fecha" onchange="aplicarFiltros()" title="Hasta" aria-label="Fecha hasta" />
+        <button type="button" class="btn btn--primary" onclick="abrirModalFactura()" id="btn-nueva-factura">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva factura
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de facturas ─────────────────────────────────────────── -->
+    <div class="tabla-wrap">
+      <table class="tabla-main">
+        <thead>
+            <tr>
+            <th>N° Factura</th>
+            <th>Proveedor</th>
+            <th class="thead-sep">OC vinculada</th>
+            <th>Fecha</th>
+            <th class="thead-sep">Vence</th>
+            <th style="text-align:left">Total</th>
+            <th style="text-align:left">Pagado</th>
+            <th style="text-align:left" class="thead-sep">Saldo</th>
+            <th>Estado</th>
+            <th class="col-sticky-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-facturas">
+          <tr><td colspan="10" class="vacio">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- Menú flotante único para las acciones secundarias de cada fila (Cruce OC /
+     Registrar pago). Se reposiciona por JS al hacer click en el botón "⋮" de
+     cualquier fila, en vez de tener 3 botones fijos por fila que no siempre
+     entran en pantalla. -->
+<div class="dropdown-menu" id="menu-acciones-fila" role="menu" hidden style="position:fixed"></div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Modal: Nueva / Ver factura
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-factura" role="dialog" aria-modal="true" aria-label="Factura de proveedor" onclick="cerrarSiFondo(event,'modal-factura')">
+  <div class="modal-box wide" style="max-width:760px">
+    <div class="modal-box-header">
+      <h2 id="modal-factura-titulo">Nueva factura de proveedor</h2>
+      <button type="button" class="modal-box-close" onclick="cerrarModal('modal-factura')" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-box-body">
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" role="tablist" aria-label="Secciones de la factura">
+        <button type="button" role="tab" aria-selected="true"  aria-controls="panel-datos"  class="tab-btn active" id="tab-datos"  onclick="cambiarTab('datos')">Datos</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="panel-items" class="tab-btn"        id="tab-items" onclick="cambiarTab('items')">Ítems</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="panel-cruce" class="tab-btn" id="tab-cruce" onclick="cambiarTab('cruce')" hidden>Cruce OC</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="panel-pagos" class="tab-btn" id="tab-pagos" onclick="cambiarTab('pagos')" hidden>Pagos</button>
+      </div>
+
+      <!-- Tab: Datos generales -->
+      <div id="panel-datos">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group">
+            <label>Proveedor *</label>
+            <select id="f-proveedor" onchange="onProveedorChange()" style="width:100%">
+              <option value="">Seleccionar...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>OC vinculada
+              <span class="ayuda-contextual" data-tooltip="Si esta factura corresponde a una orden de compra ya recibida, vinculala acá: vas a poder importar los ítems automáticamente y comparar precios y cantidades contra lo pedido.">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </span>
+            </label>
+            <select id="f-orden" style="width:100%">
+              <option value="">Sin OC</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>N° Factura *</label>
+            <input type="text" id="f-numero" placeholder="A 0001-00012345" style="width:100%" aria-label="Número de factura"/>
+          </div>
+          <div class="form-group">
+            <label>Tipo
+              <span class="ayuda-contextual" data-tooltip="Es la letra del comprobante que te dio el proveedor (la ves en el encabezado de la factura, en grande). Afecta cómo se discrimina el IVA en tus registros.">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </span>
+            </label>
+            <select id="f-tipo" style="width:100%">
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="M">M</option>
+              <option value="X">X (sin tipo)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha factura *</label>
+            <input type="date" id="f-fecha" style="width:100%" aria-label="Fecha"/>
+          </div>
+          <div class="form-group">
+            <label>Fecha vencimiento</label>
+            <input type="date" id="f-vencimiento" style="width:100%" aria-label="Fecha de vencimiento"/>
+          </div>
+          <div class="form-group">
+            <label>IVA %</label>
+            <select id="f-iva-pct" onchange="recalcularTotales()" style="width:100%">
+              <option value="0">0%</option>
+              <option value="10.5">10,5%</option>
+              <option value="21" selected>21%</option>
+              <option value="27">27%</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notas</label>
+            <input type="text" id="f-notas" placeholder="Observaciones..." style="width:100%" aria-label="Notas"/>
+          </div>
+        </div>
+
+        <!-- Resumen de totales — visible en tab Datos -->
+        <div id="resumen-datos" style="margin-top:16px;padding:14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Subtotal</div>
+            <div style="font-size:18px;font-weight:600" id="resumen-subtotal">$0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">IVA</div>
+            <div style="font-size:18px;font-weight:600" id="resumen-iva">$0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Total</div>
+            <div style="font-size:22px;font-weight:700;color:var(--color-primary)" id="resumen-total">$0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Ítems de la factura -->
+      <div id="panel-items" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:13px;color:var(--color-text-muted)">Ítems de la factura</span>
+          <button type="button" class="btn btn--primary" style="padding:5px 14px;font-size:12px" onclick="btnAsyncClick(this, agregarItemFactura)">+ Agregar ítem</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:var(--color-surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted)">
+                <th style="padding:8px;text-align:left">Descripción</th>
+                <th style="padding:8px;text-align:left;width:90px">Cant.</th>
+                <th style="padding:8px;text-align:left;width:120px">Precio unit.</th>
+                <th style="padding:8px;text-align:left;width:120px">Subtotal</th>
+                <th style="padding:8px;width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-items-factura">
+              <tr id="fila-vacia-items"><td colspan="5" style="padding:20px;text-align:center;color:var(--color-text-muted)">Todavía no hay ítems. Agregá uno o importalos desde la OC.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Totales dentro del panel Ítems -->
+        <div style="margin-top:12px;padding:12px 14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Subtotal</div>
+            <div style="font-size:16px;font-weight:600" id="resumen-subtotal-items">$0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">IVA</div>
+            <div style="font-size:16px;font-weight:600" id="resumen-iva-items">$0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Total</div>
+            <div style="font-size:20px;font-weight:700;color:var(--color-primary)" id="resumen-total-items">$0,00</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;text-align:right">
+          <button type="button" onclick="importarItemsDesdeOC()" id="btn-importar-oc" style="font-size:12px;padding:5px 14px;border:1px solid var(--color-border);border-radius: var(--radius-sm);background:var(--color-bg-alt);cursor:pointer;display:none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Importar desde OC
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab: Cruce OC vs Factura -->
+      <div id="panel-cruce" style="display:none">
+        <div id="cruce-contenido">
+          <p style="color:var(--color-text-muted);text-align:center;padding:30px">Guarde la factura primero para ver el cruce con la OC.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Pagos -->
+      <div id="panel-pagos" style="display:none">
+        <div id="pagos-contenido">
+          <p style="color:var(--color-text-muted);text-align:center;padding:30px">Cargando...</p>
+        </div>
+        <div id="pago-form-wrapper" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-border)">
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Registrar pago</h3>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label>Monto *</label>
+              <input type="number" id="pago-monto" min="0.01" step="1" data-money placeholder="0" style="width:100%" aria-label="Monto del pago"/>
+            </div>
+            <div class="form-group">
+              <label>Medio</label>
+              <select id="pago-medio" style="width:100%">
+                <option value="transferencia">Transferencia</option>
+                <option value="cheque">Cheque</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="pago-fecha" style="width:100%" aria-label="Fecha del pago"/>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;display:none" id="pago-cheque-wrapper">
+              <label>Cheque en cartera</label>
+              <select id="pago-cheque-id" style="width:100%">
+                <option value="">Cargando cheques disponibles...</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label>Referencia</label>
+              <input type="text" id="pago-referencia" placeholder="Opcional (se completa solo si elegís un cheque)" style="width:100%" aria-label="Referencia de pago"/>
+            </div>
+          </div>
+          <div style="text-align:right;margin-top:10px">
+            <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, guardarPago)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:5px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Registrar pago</button>
+          </div>
+        </div>
+        <p id="pago-form-saldada" style="display:none;text-align:center;padding:14px;color:var(--color-success-mid);font-weight:600;margin-top:14px;border-top:1px solid var(--color-border)">✓ Factura saldada — no hay saldo pendiente.</p>
+      </div>
+
+    </div>
+    <div class="modal-box-footer" style="display:flex;justify-content:space-between;align-items:center">
+      <button type="button" class="btn-secundario" onclick="cerrarModal('modal-factura')">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-factura" onclick="btnAsyncClick(this, guardarFactura)" aria-live="polite">
+        Guardar factura
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Modal: Detalle de cruce OC ↔ Factura (fullscreen)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-cruce" role="dialog" aria-modal="true" aria-label="Cruce con orden de compra" onclick="cerrarSiFondo(event,'modal-cruce')">
+  <div class="modal-box wide" style="max-width:900px">
+    <div class="modal-box-header">
+      <h2>Cruce OC ↔ Factura</h2>
+      <button type="button" class="modal-box-close" onclick="cerrarModal('modal-cruce')" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-box-body" id="cruce-modal-body">
+      Cargando...
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── Tabs ─────────────────────────────────────────────── */
+.tab-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+.tab-btn:hover { color: var(--color-text); }
+
+/* ── KPI cards ────────────────────────────────────────── */
+.kpi-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+}
+.kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+.kpi-valor { font-size: 22px; font-weight: 700; }
+
+/* ── Badge de estado factura ──────────────────────────── */
+.badge-pendiente { background:var(--color-warning-bg);color:var(--color-warning); }
+.badge-parcial   { background:#dbeafe;color:#1e40af; }
+.badge-pagada    { background:#dcfce7;color:#166534; }
+.badge-anulada   { background:var(--color-surface-2);color:var(--color-text-muted); }
+.badge-vencida   { background:#fee2e2;color:var(--color-danger); }
+
+/* ── Cruce de ítems ───────────────────────────────────── */
+.cruce-table { width:100%;border-collapse:collapse;font-size:12px }
+.cruce-table th { padding:7px 10px;text-align:left;background:var(--color-surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);font-weight:600 }
+.cruce-table td { padding:8px 10px;border-bottom:1px solid var(--color-border) }
+.cruce-ok   { color: var(--color-success-mid) }
+.cruce-warn { color: var(--color-warning-mid); font-weight:600 }
+.cruce-err  { color: var(--color-danger-mid); font-weight:600 }
+
+/* ── Items factura inline table ───────────────────────── */
+.item-row td { padding: 5px 8px; border-bottom: 1px solid var(--color-border) }
+.item-row input { border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;font-family:inherit }
+.item-row input:focus { outline:none;border-color:var(--color-primary) }
+</style>
+
+<script src="/frontend/env-config.js?v=125"></script>
+<!-- FIX v125: CDN supabase-js mantenido para compatibilidad con auth-ready.js global -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script>
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+</script>
+<script src="/frontend/admin/js/auth.js?v1782670000000"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+<script type="module" src="/frontend/admin/js/cc-proveedores.js?v282"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

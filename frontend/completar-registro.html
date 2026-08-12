@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Completá tu registro — Fluxo</title>
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --azul:    var(--color-primary);
+      --azul-h:  var(--color-primary-dark);
+      --bg:      var(--color-bg);
+      --surface: var(--color-surface);
+      --border:  var(--color-border);
+      --text:    var(--color-text);
+      --muted:   var(--color-text-muted);
+      --error:   var(--color-danger-mid);
+      --radius:  var(--radius-lg);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      background: var(--azul);
+      padding: 16px 24px;
+    }
+    .top-bar .logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      text-decoration: none;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 60px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.07);
+    }
+
+    .card-header { margin-bottom: 24px; }
+    .card-header h1 { font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+    .card-header p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    .cuenta-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F5F4EF;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .cuenta-chip .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--azul);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .cuenta-chip .info { line-height: 1.35; overflow: hidden; }
+    .cuenta-chip .info strong { display: block; font-size: 13px; }
+    .cuenta-chip .info span { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .field label .req { color: var(--error); margin-left: 2px; }
+    .field input {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .field input:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+    .field input.error { border-color: var(--error); }
+    .field-error {
+      font-size: 12px;
+      color: var(--error);
+      margin-top: 4px;
+      display: none;
+    }
+    .field-error.visible { display: block; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--azul);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background .15s, opacity .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) { background: var(--azul-h); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-submit .spinner {
+      width: 16px; height: 16px;
+      border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 16px;
+      display: none;
+    }
+    .alert.error { background: #FEF2F2; border: 1px solid #FECACA; color: var(--error); display: block; }
+
+    .estado {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .estado .spinner-grande {
+      width: 30px; height: 30px;
+      border: 3px solid var(--border);
+      border-top-color: var(--azul);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin .8s linear infinite;
+    }
+  </style>
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/a11y-focus.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<header class="top-bar">
+  <a href="/" class="logo">Fluxo</a>
+</header>
+
+<main>
+  <div class="card">
+
+    <!-- Estado inicial: verificando sesión -->
+    <div class="estado" id="estado-verificando">
+      <div class="spinner-grande"></div>
+      Verificando tu cuenta…
+    </div>
+
+    <!-- Formulario: faltan datos de la empresa -->
+    <div id="form-wrap" style="display:none">
+      <div class="card-header">
+        <h1>Ya casi terminamos</h1>
+        <p>Solo necesitamos los datos de tu empresa para activar tu cuenta.</p>
+      </div>
+
+      <div class="cuenta-chip">
+        <div class="avatar" id="chip-avatar">?</div>
+        <div class="info">
+          <strong id="chip-nombre">—</strong>
+          <span id="chip-email">—</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="empresa_nombre">Razón social <span class="req">*</span></label>
+        <input type="text" id="empresa_nombre" name="empresa_nombre"
+               placeholder="Distribuidora San Martín S.R.L." autocomplete="organization">
+        <div class="field-error" id="err-empresa_nombre"></div>
+      </div>
+
+      <div class="field">
+        <label for="empresa_cuit">CUIT <span class="req">*</span></label>
+        <input type="text" id="empresa_cuit" name="empresa_cuit"
+               placeholder="20-12345678-9" maxlength="13" autocomplete="off">
+        <div class="field-error" id="err-empresa_cuit"></div>
+      </div>
+
+      <div class="alert" id="alert-global"></div>
+
+      <button class="btn-submit" id="btn-completar" type="button">
+        <span class="btn-text">Activar mi cuenta</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- Estado: ya tenía cuenta, redirigiendo -->
+    <div class="estado" id="estado-redirigiendo" style="display:none">
+      <div class="spinner-grande"></div>
+      ¡Ya tenés cuenta! Entrando al panel…
+    </div>
+
+    <!-- Estado: sin sesión válida -->
+    <div class="estado" id="estado-sin-sesion" style="display:none">
+      No encontramos una sesión activa.<br><br>
+      <a href="/registro" style="color:var(--azul);font-weight:700;">Volver a intentar el registro →</a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  const sb = window.supabaseClient || (window.supabaseClient = supabase.createClient(
+    window.ENV?.SUPABASE_URL || '',
+    window.ENV?.SUPABASE_ANON_KEY || '',
+    { auth: { storageKey: 'sb-admin-auth' } }
+  ));
+
+  function show(id) {
+    ['estado-verificando', 'form-wrap', 'estado-redirigiendo', 'estado-sin-sesion']
+      .forEach(x => document.getElementById(x).style.display = (x === id ? '' : 'none'));
+  }
+
+  function showErr(fieldId, msg) {
+    const el = document.getElementById('err-' + fieldId);
+    const input = document.getElementById(fieldId);
+    if (el) { el.textContent = msg; el.classList.toggle('visible', !!msg); }
+    if (input) input.classList.toggle('error', !!msg);
+  }
+  function setAlert(msg) {
+    const el = document.getElementById('alert-global');
+    el.textContent = msg;
+    el.className = 'alert' + (msg ? ' error' : '');
+  }
+  function setLoading(on) {
+    const btn = document.getElementById('btn-completar');
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+  }
+
+  function validarCUIT(cuit) {
+    const c = cuit.replace(/[-\s]/g, '');
+    if (!/^\d{11}$/.test(c)) return false;
+    const mult = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    const suma = mult.reduce((acc, m, i) => acc + m * parseInt(c[i]), 0);
+    const resto = suma % 11;
+    const vrf = resto === 0 ? 0 : resto === 1 ? 9 : 11 - resto;
+    return vrf === parseInt(c[10]);
+  }
+
+  const cuitInput = document.getElementById('empresa_cuit');
+  cuitInput.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 2)  v = v.slice(0,2) + '-' + v.slice(2);
+    if (v.length > 11) v = v.slice(0,11) + '-' + v.slice(11);
+    this.value = v;
+  });
+
+  let sesionActual = null;
+
+  async function init() {
+    // Le da un instante a supabase-js para terminar de procesar el token
+    // que vuelve en la URL tras el redirect del proveedor OAuth.
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      show('estado-sin-sesion');
+      return;
+    }
+    sesionActual = session;
+
+    const { data: usuario } = await sb
+      .from('usuarios')
+      .select('empresa_id')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (usuario?.empresa_id) {
+      // Ya estaba registrado (ej. tocó "Continuar con Google" para loguearse) → directo al panel.
+      show('estado-redirigiendo');
+      const { data: empresa } = await sb
+        .from('empresas')
+        .select('setup_completado')
+        .eq('id', usuario.empresa_id)
+        .single();
+      window.location.href = (empresa && empresa.setup_completado === false)
+        ? '/admin/setup-wizard'
+        : '/admin/dashboard';
+      return;
+    }
+
+    // Falta completar el alta → mostramos el mini-formulario.
+    const nombre = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email;
+    const email  = session.user.email || '';
+    document.getElementById('chip-nombre').textContent = nombre;
+    document.getElementById('chip-email').textContent  = email;
+    document.getElementById('chip-avatar').textContent = (nombre || '?').trim().charAt(0).toUpperCase();
+
+    show('form-wrap');
+  }
+
+  document.getElementById('btn-completar').addEventListener('click', async function () {
+    setAlert('');
+    let ok = true;
+
+    const nombreEmpresa = document.getElementById('empresa_nombre').value.trim();
+    showErr('empresa_nombre', '');
+    if (!nombreEmpresa) { showErr('empresa_nombre', 'Requerido'); ok = false; }
+
+    const cuit = document.getElementById('empresa_cuit').value;
+    showErr('empresa_cuit', '');
+    if (!cuit.trim()) {
+      showErr('empresa_cuit', 'Requerido'); ok = false;
+    } else if (!validarCUIT(cuit)) {
+      showErr('empresa_cuit', 'CUIT inválido — verificá los dígitos'); ok = false;
+    }
+
+    if (!ok || !sesionActual) return;
+
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/registro-social', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + sesionActual.access_token,
+        },
+        body: JSON.stringify({ empresa_nombre: nombreEmpresa, empresa_cuit: cuit }),
+      });
+      const data = await resp.json();
+
+      if (!resp.ok || !data.ok) {
+        setAlert(data.error || 'Error al activar la cuenta. Intentá de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      window.location.href = '/admin/setup-wizard';
+    } catch (err) {
+      setAlert('Error de conexión. Verificá tu internet e intentá de nuevo.');
+      setLoading(false);
+    }
+  });
+
+  document.querySelectorAll('#empresa_nombre, #empresa_cuit').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-completar').click();
+    });
+  });
+
+  init();
+})();
+</script>
+
+</body>
+</html>

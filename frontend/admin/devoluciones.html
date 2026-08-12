@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Devoluciones — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/devoluciones-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=196" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-devoluciones-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Devoluciones</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Registrá mercadería que vuelve de un pedido entregado, decidí si repone stock o genera nota de crédito, y seguí el estado de cada devolución.
+</div>
+
+  <main class="main" id="vista-devoluciones">
+
+    <div class="barra-filtros" id="filtro-tabs-devoluciones"></div>
+
+    <div class="tabla-wrap">
+      <div class="tabla-header">
+        <h2>Historial de devoluciones</h2>
+        <div class="filtros-bar" style="flex-wrap:wrap;gap:8px">
+          <input type="text" id="buscar-dev" aria-label="Buscar devolución" placeholder="Buscar por cliente..." oninput="filtrarDevoluciones()">
+          <select id="filtro-estado" onchange="filtrarDevoluciones()" class="oculto">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="aprobada">Aprobada</option>
+            <option value="rechazada">Rechazada</option>
+          </select>
+          <select id="filtro-motivo" onchange="filtrarDevoluciones()">
+            <option value="">Todos los motivos</option>
+            <option value="producto_defectuoso">Producto defectuoso</option>
+            <option value="error_pedido">Error de pedido</option>
+            <option value="cliente_arrepentido">Cliente arrepentido</option>
+            <option value="vencido">Vencido</option>
+            <option value="otro">Otro</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-text-muted)">
+            Desde <input type="date" id="filtro-fecha-desde" onchange="filtrarDevoluciones()">
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-text-muted)">
+            Hasta <input type="date" id="filtro-fecha-hasta" onchange="filtrarDevoluciones()">
+          </label>
+          <button type="button" class="btn btn--ghost" onclick="exportarDevolucionesCSV()">Exportar CSV</button>
+          <button type="button" class="btn btn-success" onclick="abrirModalNuevaDevolucion()">+ Registrar devolución</button>
+        </div>
+      </div>
+      <div class="tabla-overflow">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Motivo</th>
+              <th>Foto</th>
+              <th>Estado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-devoluciones"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Panel lateral: detalle de la devolución -->
+<div class="detalle-panel" id="panel-devolucion">
+  <div class="detalle-panel-header">
+    <h3 id="panel-dev-titulo">Devolución</h3>
+    <button type="button" class="btn-cerrar-panel" onclick="cerrarPanel()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="detalle-panel-body" id="panel-dev-body">
+    <!-- contenido dinámico -->
+  </div>
+  <div class="detalle-panel-footer" id="panel-dev-footer">
+    <!-- botones dinámicos (aprobar / rechazar, según estado y rol) -->
+  </div>
+</div>
+
+<!-- Modal: registrar devolución manual (sin pasar por la app del chofer) -->
+<div class="modal-backdrop" id="modal-backdrop-devolucion" onclick="cerrarModalNuevaDevolucion()" aria-hidden="true" style="display:none"></div>
+<div class="modal" id="modal-nueva-devolucion" style="display:none;max-width:640px">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo">Registrar devolución</h2>
+      <div class="modal-subtitulo">Alta manual — no requiere pasar por la app del chofer</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalNuevaDevolucion()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <div class="modal-sec-label">Datos generales</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <label style="font-size:12px;color:var(--color-text-muted)">Cliente *</label>
+        <select id="nd-cliente" style="width:100%" onchange="ndCargarPedidosCliente()">
+          <option value="">Seleccionar cliente...</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--color-text-muted)">Pedido de origen (opcional)</label>
+        <select id="nd-pedido" style="width:100%">
+          <option value="">Sin vincular a un pedido</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <label style="font-size:12px;color:var(--color-text-muted)">Motivo *</label>
+        <select id="nd-motivo" style="width:100%">
+          <option value="producto_defectuoso">Producto defectuoso</option>
+          <option value="error_pedido">Error de pedido</option>
+          <option value="cliente_arrepentido">Cliente arrepentido</option>
+          <option value="vencido">Vencido</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <label style="font-size:12px;color:var(--color-text-muted)">Notas</label>
+    <textarea id="nd-notas" rows="2" style="width:100%" placeholder="Detalle adicional..."></textarea>
+    <label style="font-size:12px;color:var(--color-text-muted);display:block;margin-top:8px">Foto (opcional)</label>
+    <input type="file" id="nd-foto" accept="image/*">
+  </div>
+
+  <div class="modal-seccion">
+    <div class="modal-sec-label">Ítems devueltos</div>
+    <div id="nd-picker-container"></div>
+    <div id="nd-items-container" style="margin-top:10px"></div>
+  </div>
+
+  <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px">
+    <button type="button" class="btn btn--ghost" onclick="cerrarModalNuevaDevolucion()">Cancelar</button>
+    <button type="button" class="btn btn-success" id="nd-btn-guardar" onclick="guardarNuevaDevolucion()">Registrar devolución</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/producto-picker.js?v196"></script>
+  <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+  <script src="/frontend/admin/js/devoluciones.js?v283"></script>
+</body>
+</html>

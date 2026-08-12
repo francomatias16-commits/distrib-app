@@ -1,0 +1,92 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   tienda-nav.css — Zócalo (barra de navegación inferior) del portal cliente
+   Usado por: inicio, catalogo, carrito, pedidos, cuenta.
+   Reemplaza los bloques .nav-bottom / .nav-item / .badge que antes estaban
+   duplicados (y ligeramente distintos) en cada página.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.nav-bottom {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  z-index: 100;
+  background: var(--glass-modal);
+  border-top: 1px solid var(--color-border-soft);
+  box-shadow: 0 -10px 24px -12px rgba(22, 24, 29, .18);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .22rem;
+  position: relative;
+  padding: .6rem .25rem .5rem;
+  text-decoration: none;
+  color: var(--color-text-light);
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .2s ease;
+}
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+  transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Píldora de sección activa: banda translúcida detrás del ícono, no del texto */
+.nav-item.activo {
+  color: var(--color-primary);
+}
+
+.nav-item.activo::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 42px;
+  height: 26px;
+  transform: translateX(-50%);
+  background: var(--color-primary-bg);
+  border-radius: 13px;
+}
+
+.nav-item.activo svg {
+  transform: translateY(-1px) scale(1.06);
+}
+
+.nav-item:active svg {
+  transform: scale(.88);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item svg { transition: none; }
+}
+
+.badge {
+  position: absolute;
+  top: 1px;
+  right: calc(50% - 20px);
+  z-index: 2;
+  background: linear-gradient(135deg, var(--color-danger-mid), var(--color-danger));
+  color: var(--color-surface);
+  font-size: .6rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--color-surface);
+}

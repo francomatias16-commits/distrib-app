@@ -1,0 +1,259 @@
+/**
+ * observabilidad-gentelella.css — Reskin "Gentelella v4" de la pantalla
+ * "Salud del sistema" (Fase 8, PLAN_ERP_SINCRONIZACION_2026.md)
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/shared/gentelella-tokens.css y de
+ * anomalias-gentelella.css (mismo grupo "Alertas automáticas": Avisos
+ * operativos / Movimientos raros / Salud del sistema comparten look & feel).
+ * observabilidad.html define su estructura en un bloque <style> inline
+ * (obs-toolbar, obs-cards, obs-tabla, obs-barras...); este archivo la
+ * viste, sin tocar ningún id/clase que lea observabilidad.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Los colores de estado (error/pendiente/procesado) no son de marca — son el
+ * semáforo semántico ya usado en el resto del admin (rojo/ámbar/verde sobre
+ * fondo pastel), se mantienen tal cual para no romper esa convención.
+ *
+ * Scope: body.dash-anomalias-gentelella (ya presente en <body> de esta pantalla)
+ */
+
+body.dash-anomalias-gentelella #contenido-obs { background: transparent !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Panel contenedor — mismo lenguaje que #contenido-anomalias:
+   toda la pantalla vive dentro de una única hoja de papel.
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella #bloque-salud,
+body.dash-anomalias-gentelella #skeleton-salud {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-anomalias-gentelella #skeleton-salud { padding: 20px !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Toolbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-toolbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) var(--ge-radius-card) 0 0 !important;
+  padding: 18px 22px !important;
+}
+body.dash-anomalias-gentelella .obs-toolbar h2 {
+  color: var(--ge-ink) !important;
+  font-size: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+body.dash-anomalias-gentelella .obs-toolbar h2::before {
+  content: "" !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: var(--ge-teal) !important;
+  box-shadow: 0 0 0 4px var(--ge-teal-light) !important;
+  flex-shrink: 0 !important;
+}
+body.dash-anomalias-gentelella .obs-select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+  font-weight: 500 !important;
+}
+body.dash-anomalias-gentelella .obs-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-anomalias-gentelella .btn-refrescar {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-anomalias-gentelella .btn-refrescar:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-anomalias-gentelella .btn-refrescar:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Secciones — separadas por una línea, no solo por padding,
+   con eyebrow de acento en vez de un <h3> suelto.
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-seccion {
+  padding: 22px 22px 20px !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .obs-seccion:first-child { border-top: none !important; }
+body.dash-anomalias-gentelella .obs-seccion h3 {
+  color: var(--ge-ink) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  margin: 0 0 14px !important;
+  padding-left: 10px !important;
+  border-left: 3px solid var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-card {
+  border: 1px solid var(--ge-border) !important;
+  border-left-width: 3px !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+  box-shadow: var(--ge-shadow) !important;
+  padding: 14px 16px !important;
+  transition: box-shadow .18s ease, transform .18s ease !important;
+}
+body.dash-anomalias-gentelella .obs-card:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-anomalias-gentelella .obs-card .valor {
+  color: var(--ge-ink) !important;
+  font-size: 26px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+body.dash-anomalias-gentelella .obs-card .label {
+  color: var(--ge-muted) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .03em !important;
+}
+body.dash-anomalias-gentelella .obs-card.card-error {
+  border-left-color: #B3261E !important;
+  background: rgba(179,38,30,.06) !important;
+}
+body.dash-anomalias-gentelella .obs-card.card-error .valor { color: #B3261E !important; }
+body.dash-anomalias-gentelella .obs-card.card-pendiente {
+  border-left-color: var(--ge-warning-text) !important;
+  background: var(--ge-warning-bg) !important;
+}
+body.dash-anomalias-gentelella .obs-card.card-pendiente .valor { color: var(--ge-warning-text) !important; }
+body.dash-anomalias-gentelella .obs-card.card-procesado {
+  border-left-color: #166534 !important;
+  background: rgba(22,101,52,.07) !important;
+}
+body.dash-anomalias-gentelella .obs-card.card-procesado .valor { color: #166534 !important; }
+body.dash-anomalias-gentelella .obs-card-nota {
+  color: var(--ge-muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+  margin-top: 4px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tablas
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-tabla {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  overflow: hidden !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+body.dash-anomalias-gentelella .obs-tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .03em !important;
+  font-size: 11px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .obs-tabla td {
+  color: var(--ge-ink-soft) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .obs-tabla tbody tr:last-child td { border-bottom: none !important; }
+body.dash-anomalias-gentelella .obs-tabla tbody tr:hover td { background: var(--ge-bg) !important; }
+
+body.dash-anomalias-gentelella .badge-estado {
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em !important;
+  padding: 3px 10px !important;
+}
+body.dash-anomalias-gentelella .badge-error     { background: rgba(179,38,30,.10) !important; color: #B3261E !important; }
+body.dash-anomalias-gentelella .badge-pendiente { background: var(--ge-warning-bg) !important; color: var(--ge-warning-text) !important; }
+body.dash-anomalias-gentelella .badge-procesado { background: rgba(22,101,52,.10) !important; color: #166534 !important; }
+body.dash-anomalias-gentelella .badge-sin-listener {
+  border-radius: var(--ge-radius-pill) !important;
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .02em !important;
+  padding: 2px 8px !important;
+  margin-left: 6px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Barras "Pedidos por hora" — pista + relleno con el acento,
+   extremos redondeados, etiqueta de hora en versalita chica.
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-barra-fila { font-size: 12.5px !important; }
+body.dash-anomalias-gentelella .obs-barra-hora {
+  color: var(--ge-muted) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+body.dash-anomalias-gentelella .obs-barra-track {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  height: 12px !important;
+}
+body.dash-anomalias-gentelella .obs-barra-fill {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  transition: width .3s ease !important;
+}
+body.dash-anomalias-gentelella .obs-barra-cant {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Vacío / skeleton
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .obs-vacio {
+  color: var(--ge-muted) !important;
+  background: var(--ge-bg) !important;
+  border: 1px dashed var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  padding: 22px 20px !important;
+}
+body.dash-anomalias-gentelella .sk-obs {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* Última sección: aire suficiente para no quedar tapada por el
+   widget flotante de chat (fuera del scope de esta pantalla). */
+body.dash-anomalias-gentelella .obs-seccion:last-child { padding-bottom: 40px !important; }
+
+@media (max-width: 600px) {
+  body.dash-anomalias-gentelella .obs-toolbar { padding: 14px 16px !important; }
+  body.dash-anomalias-gentelella .obs-seccion { padding: 16px 16px 14px !important; }
+  body.dash-anomalias-gentelella .obs-card .valor { font-size: 22px !important; }
+}

@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suscripciones SaaS — Fluxo</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785600000000" />
+  <link rel="stylesheet" href="/frontend/shared/kpi-line.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/saas-billing-gentelella.css" />
+  <style>
+    /* ── Config CBU banner ─────────────────────────────────── */
+    .saas-cbu-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .saas-cbu-banner code {
+      background: var(--color-surface);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-sm);
+      padding: 2px 7px;
+      font-family: monospace;
+    }
+
+    /* ── Tabla ─────────────────────────────────────────────── */
+    .saas-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .saas-table thead th {
+      background: var(--color-surface-2);
+      border-bottom: 1px solid var(--color-border-soft);
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-text);
+      white-space: nowrap;
+    }
+    .saas-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+    .saas-table tbody tr:hover { background: #fafafa; }
+    .saas-table tbody tr.saas-row--alerta { background: #fff5f5; }
+    .saas-table td { padding: 10px 12px; vertical-align: middle; }
+
+    /* ── Badges ────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge--trial      { background:var(--color-warning-bg); color:var(--color-warning); }
+    .badge--activo     { background:#dcfce7; color:#166534; }
+    .badge--suspendido { background:#fee2e2; color:var(--color-danger); }
+    .badge--cancelado  { background:var(--color-surface-2); color:var(--color-text-muted); }
+    .badge--pendiente  { background:var(--color-warning-bg); color:var(--color-warning); }
+    .badge--enviada    { background:#dbeafe; color:#1e40af; }
+    .badge--pagada     { background:#dcfce7; color:#166534; }
+    .badge--vencida    { background:#fee2e2; color:var(--color-danger); }
+
+    /* ── Botón confirmar pago ──────────────────────────────── */
+    .btn-confirmar {
+      background: #16a34a;
+      color: var(--color-surface);
+      border: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, opacity .15s;
+    }
+    .btn-confirmar:hover    { background: #15803d; }
+    .btn-confirmar:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ── Modal config CBU ──────────────────────────────────── */
+    .saas-modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1000;
+    }
+    .saas-modal {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-surface);
+      border-radius: var(--radius-xxl);
+      padding: 28px;
+      z-index: 1001;
+      width: min(420px, 94vw);
+      box-shadow: 0 20px 40px rgba(0,0,0,.18);
+    }
+    .saas-modal h3 { margin: 0 0 18px; font-size: 16px; font-weight: 700; }
+    .f-group { margin-bottom: 14px; }
+    .f-group label { display: block; font-size: 12px; font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
+    .f-group input { width: 100%; box-sizing: border-box; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 10px; font-size: 13px; }
+    .f-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── Toast ─────────────────────────────────────────────── */
+    #saas-toast {
+      display: none;
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      background: #1e293b;
+      color: var(--color-surface);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    #saas-toast.ok    { background: #15803d; }
+    #saas-toast.error { background: #b91c1c; }
+
+    /* ── Texto secundario ──────────────────────────────────── */
+    .txt-muted   { color: var(--color-text-light); font-size: 12px; }
+    .txt-danger  { color: var(--color-danger-mid); font-size: 12px; font-weight: 600; }
+    .txt-mono    { font-family: monospace; font-size: 12px; }
+    .txt-empty   { color: #d1d5db; }
+
+    /* ── Planes disponibles (self-serve upgrade/downgrade, vista tenant) ── */
+    .planes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+    .plan-tarjeta {
+      border: 1.5px solid #e5e7eb;
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .plan-tarjeta--actual { border-color: #2563EB; background: #f0f6fc; }
+    .plan-tarjeta__nombre { font-size: 14px; font-weight: 700; color: #111827; }
+    .plan-tarjeta__precio { font-size: 20px; font-weight: 800; color: #111827; }
+    .plan-tarjeta__precio small { font-size: 12px; font-weight: 500; color: var(--color-text-muted); }
+    .plan-tarjeta__limites { font-size: 12px; color: var(--color-text-muted); line-height: 1.6; flex: 1; }
+    .plan-tarjeta__btn {
+      margin-top: 6px; border: none; border-radius: var(--radius-md); padding: 8px 12px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .plan-tarjeta__btn--upgrade   { background: #2563EB; color: var(--color-surface); }
+    .plan-tarjeta__btn--downgrade { background: var(--color-surface-2); color: var(--color-text); }
+    .plan-tarjeta__btn:disabled   { background: var(--color-surface-2); color: var(--color-text-light); cursor: default; }
+    .plan-tarjeta__badge-actual {
+      align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--color-info-mid);
+      background: #dbeafe; border-radius: var(--radius-full); padding: 2px 8px;
+    }
+    .planes-nota { font-size: 12px; color: var(--color-text-light); padding: 0 16px 16px; margin: 0; }
+  </style>
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-saas-billing-gentelella dash-gentelella">
+<div id="nav-root"></div>
+
+<!-- ── Toast ──────────────────────────────────────────────────── -->
+<div id="saas-toast"></div>
+
+<!-- ── Modal config CBU ───────────────────────────────────────── -->
+<div class="saas-modal-overlay" id="modal-overlay"></div>
+<div class="saas-modal" id="modal-config">
+  <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración de cobros</h3>
+  <div class="f-group">
+    <label>CBU</label>
+    <input type="text" id="cfg-cbu" placeholder="0000003100012345678901" maxlength="22">
+  </div>
+  <div class="f-group">
+    <label>Alias</label>
+    <input type="text" id="cfg-alias" placeholder="fluxo.cobros">
+  </div>
+  <div class="f-group">
+    <label>Titular</label>
+    <input type="text" id="cfg-titular" placeholder="Nombre del titular">
+  </div>
+  <div class="f-group">
+    <label>Banco</label>
+    <input type="text" id="cfg-banco" placeholder="Banco Galicia">
+  </div>
+  <div class="f-group">
+    <label>Precio mensual ($)</label>
+    <input type="number" id="cfg-precio" placeholder="15000" min="0" step="100">
+  </div>
+  <div class="f-group">
+    <label>Email admin (recibe alertas)</label>
+    <input type="email" id="cfg-email" placeholder="admin@tudominio.com">
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn-sec" onclick="cerrarConfig()">Cancelar</button>
+    <button type="button" class="btn-prim" onclick="btnAsyncClick(this, guardarConfig)">Guardar</button>
+  </div>
+</div>
+
+<!-- ── Contenido principal ────────────────────────────────────── -->
+<div class="container" style="padding: 24px;">
+
+<!-- ══ Vista SUPERADMIN (MF Web Solutions) — is_saas_owner() === true ══ -->
+<div id="vista-admin" style="display:none;">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <div>
+      <h1 style="margin:0; font-size:20px; font-weight:700;">Suscripciones SaaS</h1>
+      <p style="margin:2px 0 0; color:var(--color-text-muted); font-size:13px;">Gestión de facturación y pagos por transferencia bancaria</p>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button type="button" class="btn-sec texto-chico" id="btn-reset-demo" onclick="resetDemo(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Resetear demo
+      </button>
+      <button type="button" class="btn-sec texto-chico" onclick="abrirConfig()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurar CBU / precios
+      </button>
+    </div>
+  </div>
+
+
+  <!-- Dashboard KPIs globales (saas_dashboard_kpis) -->
+  <div id="dash-kpis-strip" style="display:none;margin-bottom:16px;">
+    <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-muted);">KPIs globales en tiempo real</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-success-mid);" id="dk-activas">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Activas</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-warning-mid);" id="dk-trials">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Trials</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-danger-mid);" id="dk-suspendidas">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Suspendidas</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--nav-facturacion);" id="dk-morosos">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Morosos</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:150px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-text);" id="dk-mrr">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">MRR estimado</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-info-mid);" id="dk-alta-hoy">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Altas hoy</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-success-bg);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-success-mid);" id="dk-activadas">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Activadas (uso real)</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-warning-bg);border-radius: var(--radius-lg);padding:12px 18px;min-width:120px;">
+        <div style="font-size:22px;font-weight:800;color:var(--color-warning-mid);" id="dk-en-riesgo">—</div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Trial sin activar (3+ días)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner CBU -->
+  <div class="saas-cbu-banner" id="cbu-banner" style="display:none">
+    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:5px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><strong>CBU:</strong> <code id="banner-cbu">—</code></span>
+    <span><strong>Alias:</strong> <code id="banner-alias">—</code></span>
+    <span><strong>Precio mensual:</strong> <span id="banner-precio">—</span></span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-line">
+    <span class="kpi-line-item rojo saas-kpi" data-filtro="suspendido" onclick="toggleFiltro('suspendido')">
+      <span class="kpi-line-val" id="kpi-suspendidas">—</span>
+      <span class="kpi-line-lbl">Suspendidas</span>
+      <span class="kpi-line-sub">Bloqueadas por falta de pago</span>
+    </span>
+    <span class="kpi-line-item amarillo saas-kpi" data-filtro="vencidas" onclick="toggleFiltro('vencidas')">
+      <span class="kpi-line-val" id="kpi-vencidas">—</span>
+      <span class="kpi-line-lbl">Fact. vencidas</span>
+      <span class="kpi-line-sub">Con factura sin cobrar</span>
+    </span>
+    <span class="kpi-line-item amarillo saas-kpi" data-filtro="trial" onclick="toggleFiltro('trial')">
+      <span class="kpi-line-val" id="kpi-trials">—</span>
+      <span class="kpi-line-lbl">En trial</span>
+      <span class="kpi-line-sub">Período de prueba sin cargo</span>
+    </span>
+    <span class="kpi-line-item verde saas-kpi" data-filtro="activo" onclick="toggleFiltro('activo')">
+      <span class="kpi-line-val" id="kpi-activas">—</span>
+      <span class="kpi-line-lbl">Activas</span>
+      <span class="kpi-line-sub">Suscripción al día</span>
+    </span>
+  </div>
+
+  <!-- Tabla -->
+  <div class="seccion-tabla">
+    <div class="tabla-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:15px;">Empresas</h2>
+      <button type="button" class="btn-sec texto-chico" onclick="cargar()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="saas-table">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Estado</th>
+            <th>Última factura</th>
+            <th>Monto</th>
+            <th>Vencimiento</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="saas-tbody">
+          <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--color-text-light);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Migraciones (punto 12 del plan P2): sesiones de migración de todos los
+       tenants en curso/falladas o de los últimos 14 días. La RPC detrás
+       (migracion_superadmin_resumen, migración 175) ya valida is_saas_owner()
+       por su cuenta. -->
+  <div class="seccion-tabla" style="margin-top: 20px;">
+    <div class="tabla-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:15px;">Migraciones (todos los tenants)</h2>
+      <button type="button" class="btn-sec texto-chico" onclick="cargarMigraciones()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="saas-table">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Entidad</th>
+            <th>Estado</th>
+            <th>Filas</th>
+            <th>Válidas</th>
+            <th>Con error</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="saas-tbody-migraciones">
+          <tr><td colspan="7" style="text-align:center; padding:40px; color:var(--color-text-light);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Eventos de negocio (Fase 5 del plan ERP): vista cross-empresa de
+       eventos_negocio (pedido_creado, cliente_en_mora, cheques_por_vencer,
+       pedido_facturado, factura_anulada...) para todos los tenants — la
+       versión superadmin de "Qué pasó en mi negocio" (/admin/auditoria),
+       que cada empresa ve filtrada a la suya vía RLS. -->
+  <div class="seccion-tabla" style="margin-top: 20px;">
+    <div class="tabla-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin:0; font-size:15px;">Eventos de negocio (todos los tenants)</h2>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="evneg-filtro-empresa" class="texto-chico" onchange="cargarEventosNegocio(0)" style="padding:6px 8px; max-width:220px;">
+          <option value="">Todas las empresas</option>
+        </select>
+        <select id="evneg-filtro-tipo" class="texto-chico" onchange="cargarEventosNegocio(0)" style="padding:6px 8px;">
+          <option value="">Todos los tipos</option>
+          <option value="pedido_creado">pedido_creado</option>
+          <option value="pedido_facturado">pedido_facturado</option>
+          <option value="factura_anulada">factura_anulada</option>
+          <option value="cliente_en_mora">cliente_en_mora</option>
+          <option value="cheques_por_vencer">cheques_por_vencer</option>
+        </select>
+        <select id="evneg-filtro-estado" class="texto-chico" onchange="cargarEventosNegocio(0)" style="padding:6px 8px;">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="procesado">Procesado</option>
+          <option value="error">Error</option>
+        </select>
+        <button type="button" class="btn-sec texto-chico" onclick="cargarEventosNegocio(evnegOffset)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="saas-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Empresa</th>
+            <th>Tipo de evento</th>
+            <th>Estado</th>
+            <th>Origen</th>
+            <th>Payload</th>
+          </tr>
+        </thead>
+        <tbody id="saas-tbody-eventos-negocio">
+          <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--color-text-light);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 4px; flex-wrap:wrap; gap:8px;">
+      <span class="txt-muted" id="evneg-paginacion-info">—</span>
+      <div style="display:flex; gap:6px;">
+        <button type="button" class="btn-sec texto-chico" id="evneg-btn-prev" onclick="cargarEventosNegocio(Math.max(0, evnegOffset - evnegLimite))">‹ Anterior</button>
+        <button type="button" class="btn-sec texto-chico" id="evneg-btn-next" onclick="cargarEventosNegocio(evnegOffset + evnegLimite)">Siguiente ›</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="txt-muted" style="text-align:center; margin-top:16px;">
+    Los crons corren automáticamente: chequeo de trials y morosos diario · facturación el día 1 de cada mes.
+  </p>
+
+</div>
+<!-- ══ /Vista SUPERADMIN ══ -->
+
+<!-- ══ Vista TENANT (cada empresa cliente ve solo su propia suscripción) ══ -->
+<div id="vista-tenant" style="display:none;">
+
+  <div style="margin-bottom:20px;">
+    <h1 style="margin:0; font-size:20px; font-weight:700;">Mi suscripción</h1>
+    <p style="margin:2px 0 0; color:var(--color-text-muted); font-size:13px;">Estado de tu plan y forma de pago a MF Web Solutions</p>
+  </div>
+
+  <!-- Banner de estado (suspendida / trial) -->
+  <div id="tenant-banner-suspendida" style="display:none; background:var(--color-danger-bg); border:1px solid var(--color-danger-bg); border-radius: var(--radius-lg); padding:14px 16px; margin-bottom:16px; display:flex; align-items:flex-start; gap:10px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div>
+      <div style="font-weight:700; color:var(--color-danger); font-size:14px;">Tu cuenta está suspendida</div>
+      <div style="color:var(--color-danger); font-size:13px; margin-top:2px;" id="tenant-suspendida-detalle">Regularizá el pago pendiente para reactivarla. La reactivación es inmediata una vez confirmado el pago.</div>
+    </div>
+  </div>
+
+  <div id="tenant-banner-trial" style="display:none; background:var(--color-warning-bg); border:1px solid var(--color-warning-bg); border-radius: var(--radius-lg); padding:14px 16px; margin-bottom:16px;">
+    <span style="font-weight:700; color:var(--color-warning); font-size:14px;">Estás en período de prueba</span>
+    <span style="color:var(--color-warning); font-size:13px;"> — finaliza el <span id="tenant-trial-fin">—</span></span>
+  </div>
+
+  <!-- Card plan actual -->
+  <div class="seccion-tabla" style="margin-bottom:20px;">
+    <div class="tabla-header">
+      <h2 style="margin:0; font-size:15px;">Plan actual</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; padding:16px;">
+      <div>
+        <div class="txt-muted" style="margin-bottom:3px;">Plan</div>
+        <div style="font-size:16px;"><span class="badge" id="tenant-plan-badge">—</span></div>
+      </div>
+      <div>
+        <div class="txt-muted" style="margin-bottom:3px;">Precio mensual</div>
+        <div style="font-size:16px; font-weight:700;" id="tenant-precio">—</div>
+      </div>
+      <div>
+        <div class="txt-muted" style="margin-bottom:3px;">Estado</div>
+        <div style="font-size:16px;" id="tenant-estado">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card planes disponibles (self-serve upgrade/downgrade — plan comercial ítem 3) -->
+  <div class="seccion-tabla" style="margin-bottom:20px;">
+    <div class="tabla-header">
+      <h2 style="margin:0; font-size:15px;">Planes disponibles</h2>
+    </div>
+    <div class="planes-grid" id="tenant-planes-grid">
+      <p style="color:var(--color-text-light);font-size:13px;margin:0;">Cargando…</p>
+    </div>
+    <p class="planes-nota" id="tenant-planes-nota"></p>
+  </div>
+
+  <!-- Card forma de pago -->
+  <div class="saas-cbu-banner" id="tenant-cbu-banner">
+    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:5px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><strong>CBU:</strong> <code id="tenant-cbu">—</code></span>
+    <span><strong>Alias:</strong> <code id="tenant-alias">—</code></span>
+    <span><strong>Titular:</strong> <span id="tenant-titular">—</span></span>
+    <span><strong>Banco:</strong> <span id="tenant-banco">—</span></span>
+  </div>
+  <p class="txt-muted" style="margin:-10px 0 20px;">Una vez transferido, avisanos por soporte para que confirmemos el pago y quede reflejado acá.</p>
+
+  <!-- Historial de facturas -->
+  <div class="seccion-tabla">
+    <div class="tabla-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:15px;">Historial de facturas</h2>
+      <button type="button" class="btn-sec texto-chico" onclick="cargarSuscripcionTenant()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="saas-table">
+        <thead>
+          <tr>
+            <th>N° factura</th>
+            <th>Período</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th>Vencimiento</th>
+            <th>Pagada el</th>
+          </tr>
+        </thead>
+        <tbody id="tenant-tbody-facturas">
+          <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--color-text-light);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<!-- ══ /Vista TENANT ══ -->
+
+</div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785600000000"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+
+<script>
+/* ── Estado ─────────────────────────────────────────────────────── */
+let sb, allRows = [], filtroActivo = null;
+
+/* ── Toast ──────────────────────────────────────────────────────── */
+function toast(msg, tipo = 'ok') {
+  const el = document.getElementById('saas-toast');
+  el.textContent = msg;
+  el.className   = tipo;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+/* ── Helpers ────────────────────────────────────────────────────── */
+// XSS: el nombre de empresa (e.nombre) lo elige el dueño de cada tenant al
+// registrarse (registro.js) — no es texto confiable. Antes se armaba el
+// onclick interpolando '${e.nombre.replace(/'/g,"\\'")}' a mano, que solo
+// escapaba comillas simples y no las dobles ni el atributo HTML en sí
+// (una empresa con `"` en el nombre podía romper el atributo onclick="...".
+// onclickArg() delega el escape del string JS a JSON.stringify (que
+// escapa comillas/backslashes correctamente) y además escapa lo que hace
+// falta para el atributo HTML que lo contiene (", &, <, >).
+function onclickArg(valor) {
+  return JSON.stringify(String(valor ?? ''))
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+function fmtFecha(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-AR');
+}
+function fmtMonto(n) {
+  if (n == null) return '—';
+  return '$ ' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+}
+
+/* ── Filtros KPI ────────────────────────────────────────────────── */
+function toggleFiltro(f) {
+  filtroActivo = filtroActivo === f ? null : f;
+  document.querySelectorAll('.saas-kpi').forEach(el => {
+    el.classList.toggle('activo', el.dataset.filtro === filtroActivo);
+  });
+  renderTabla();
+}
+
+/* ── Render tabla ───────────────────────────────────────────────── */
+function renderTabla() {
+  const rows = allRows.filter(e => {
+    if (!filtroActivo)              return true;
+    if (filtroActivo === 'suspendido') return e.saas_suspendida;
+    if (filtroActivo === 'trial')      return e.saas_plan === 'trial';
+    if (filtroActivo === 'activo')     return e.saas_plan === 'activo' && !e.saas_suspendida;
+    if (filtroActivo === 'vencidas')   return e.ultima_factura_estado === 'vencida';
+    return true;
+  });
+
+  const tbody = document.getElementById('saas-tbody');
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--color-text-light);">Sin resultados para este filtro</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(e => {
+    const needsAction =
+      (e.saas_suspendida || e.ultima_factura_estado === 'vencida') &&
+      e.ultima_factura_id &&
+      e.ultima_factura_estado !== 'pagada';
+
+    const diasLabel = e.dias_para_vencer != null
+      ? e.dias_para_vencer >= 0
+        ? `vence en ${e.dias_para_vencer}d`
+        : `venció hace ${Math.abs(e.dias_para_vencer)}d`
+      : '';
+
+    const diasCls = e.dias_para_vencer != null && e.dias_para_vencer < 0 ? 'txt-danger' : 'txt-muted';
+
+    return `
+      <tr class="${needsAction ? 'saas-row--alerta' : ''}">
+        <td>
+          <div style="font-weight:600; color:var(--color-text);">${e.nombre}</div>
+          <div class="txt-muted">${e.email || ''}</div>
+          <div class="txt-muted">Alta: ${fmtFecha(e.alta)}</div>
+        </td>
+        <td>
+          <span class="badge badge--${e.saas_plan}">${e.saas_plan}</span>
+          ${e.saas_plan === 'trial' && e.saas_trial_fin
+            ? `<div class="txt-muted" style="margin-top:3px;">hasta ${fmtFecha(e.saas_trial_fin)}</div>`
+            : ''}
+          ${e.saas_suspendida_at
+            ? `<div class="txt-danger" style="margin-top:2px;">susp. ${fmtFecha(e.saas_suspendida_at)}</div>`
+            : ''}
+        </td>
+        <td>
+          ${e.ultima_factura_numero
+            ? `<div class="txt-mono">${e.ultima_factura_numero}</div>
+               <div class="txt-muted">${e.ultima_factura_periodo || ''}</div>
+               <span class="badge badge--${e.ultima_factura_estado}" style="margin-top:3px;">${e.ultima_factura_estado}</span>`
+            : `<span class="txt-empty">—</span>`}
+        </td>
+        <td style="font-weight:600; color:var(--color-text);">
+          ${fmtMonto(e.ultima_factura_monto)}
+        </td>
+        <td>
+          ${e.ultima_factura_vencimiento
+            ? `<div>${fmtFecha(e.ultima_factura_vencimiento)}</div>
+               <div class="${diasCls}">${diasLabel}</div>`
+            : `<span class="txt-empty">—</span>`}
+        </td>
+        <td>
+          ${needsAction
+            ? `<button class="btn-confirmar" onclick="btnAsyncClick(this, () => confirmarPago('${e.ultima_factura_id}',${onclickArg(e.nombre)},this))">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar pago
+               </button>`
+            : e.ultima_factura_estado === 'pagada'
+              ? `<span style="color:var(--color-success-mid); font-size:12px; font-weight:600;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Pagada ${fmtFecha(e.ultima_factura_pago)}</span>`
+              : `<span class="txt-empty">—</span>`}
+          ${e.saas_suspendida
+            ? `<button class="btn-prim" style="font-size:11px;margin-top:4px;display:block;" onclick="reactivarEmpresa('${e.id}',${onclickArg(e.nombre)},this)">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reactivar
+               </button>`
+            : `<button class="btn-sec" style="font-size:11px;margin-top:4px;display:block;" onclick="suspenderEmpresa('${e.id}',${onclickArg(e.nombre)},this)">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Suspender
+               </button>`}
+          <button class="btn-sec" style="font-size:11px;margin-top:4px;display:block;" onclick="cambiarPrecio('${e.id}',${onclickArg(e.nombre)},${e.saas_precio_mes || 15000})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Precio: ${fmtMonto(e.saas_precio_mes)}
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ── Cargar datos ───────────────────────────────────────────────── */
+async function cargar() {
+  // get_saas_panel_admin ya no tiene EXECUTE para authenticated; el mismo
+  // dato lo sirve el backend con service_role vía saas_panel_listar().
+  const { data: sess } = await sb.auth.getSession();
+  const token = sess?.session?.access_token;
+  if (!token) { toast('Sesión inválida', 'error'); return; }
+
+  let data;
+  try {
+    const resp = await fetch('/api/saas?_svc=empresas', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) { toast('Error cargando datos', 'error'); return; }
+    data = await resp.json();
+  } catch (_e) {
+    toast('Error de conexión', 'error');
+    return;
+  }
+
+  allRows = data || [];
+  renderTabla();
+  poblarFiltroEmpresaEventos();
+
+  // KPIs
+  document.getElementById('kpi-suspendidas').textContent = allRows.filter(e => e.saas_suspendida).length;
+  document.getElementById('kpi-vencidas').textContent    = allRows.filter(e => e.ultima_factura_estado === 'vencida').length;
+  document.getElementById('kpi-trials').textContent      = allRows.filter(e => e.saas_plan === 'trial').length;
+  document.getElementById('kpi-activas').textContent     = allRows.filter(e => e.saas_plan === 'activo' && !e.saas_suspendida).length;
+}
+
+/* ── Confirmar pago ─────────────────────────────────────────────── */
+async function confirmarPago(facturaId, nombreEmpresa, btn) {
+  if (!confirm(`¿Confirmás el pago de ${nombreEmpresa}?\nEsto reactivará la cuenta inmediatamente.`)) return;
+  btn.disabled     = true;
+  btn.textContent  = 'Procesando…';
+
+  const { data, error } = await sb.rpc('saas_confirmar_pago', { p_factura_id: facturaId });
+  if (error || !data?.ok) {
+    console.error('[saas-billing] confirmar pago:', error, data);
+    toast('No se pudo confirmar el pago', 'error');
+    btn.disabled    = false;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar pago';
+    return;
+  }
+
+  toast(`Pago confirmado — ${nombreEmpresa} reactivada`);
+  await cargar();
+}
+
+/* ── Config CBU ─────────────────────────────────────────────────── */
+async function abrirConfig() {
+  const { data } = await sb.from('saas_config').select('*').eq('id', 1).single();
+  if (data) {
+    document.getElementById('cfg-cbu').value     = data.cbu     || '';
+    document.getElementById('cfg-alias').value   = data.alias   || '';
+    document.getElementById('cfg-titular').value = data.titular || '';
+    document.getElementById('cfg-banco').value   = data.banco   || '';
+    document.getElementById('cfg-precio').value  = data.precio_mensual || 15000;
+    document.getElementById('cfg-email').value   = data.email_admin || '';
+  }
+  document.getElementById('modal-overlay').style.display = 'block';
+  document.getElementById('modal-config').style.display  = 'block';
+}
+
+function cerrarConfig() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  document.getElementById('modal-config').style.display  = 'none';
+}
+
+async function guardarConfig() {
+  const payload = {
+    cbu:            document.getElementById('cfg-cbu').value.trim(),
+    alias:          document.getElementById('cfg-alias').value.trim(),
+    titular:        document.getElementById('cfg-titular').value.trim(),
+    banco:          document.getElementById('cfg-banco').value.trim(),
+    precio_mensual: parseFloat(document.getElementById('cfg-precio').value) || 15000,
+    email_admin:    document.getElementById('cfg-email').value.trim(),
+    updated_at:     new Date().toISOString(),
+  };
+
+  const { error } = await sb.from('saas_config').update(payload).eq('id', 1);
+  if (error) { console.error('[saas-billing] guardar config:', error); toast('No se pudo guardar la configuración', 'error'); return; }
+
+  toast('Configuración guardada');
+  cerrarConfig();
+  actualizarBannerCBU(payload);
+}
+
+function actualizarBannerCBU(cfg) {
+  if (!cfg?.cbu) return;
+  document.getElementById('banner-cbu').textContent    = cfg.cbu;
+  document.getElementById('banner-alias').textContent  = cfg.alias;
+  document.getElementById('banner-precio').textContent = '$ ' + Number(cfg.precio_mensual).toLocaleString('es-AR');
+  document.getElementById('cbu-banner').style.display  = 'flex';
+}
+
+/* ── Guard de acceso (solo owner MF Web Solutions) ──────────────── */
+async function init() {
+  const ctx = await window.authReady;
+  sb = ctx.sb;
+
+  const { data: perfil } = await sb
+    .from('usuarios')
+    .select('rol, empresa_id, empresas(nombre)')
+    .eq('id', ctx.user.id)
+    .single();
+
+  // Guard via función SECURITY DEFINER (is_saas_owner)
+  const { data: ownerCheck } = await sb.rpc('is_saas_owner');
+  const esOwner = ownerCheck === true;
+
+  if (!esOwner) {
+    // Tenant normal (dueño de su propia empresa): ve su propia suscripción,
+    // no el panel global. Usa saas_mi_suscripcion()/saas_mis_facturas()
+    // (migración 319), que funcionan aunque la empresa esté suspendida —
+    // get_empresa_id() normal no serviría acá porque devuelve NULL para
+    // empresas suspendidas.
+    document.getElementById('vista-tenant').style.display = '';
+    await cargarSuscripcionTenant();
+    return;
+  }
+
+  document.getElementById('vista-admin').style.display = '';
+
+  // Cargar config para el banner
+  const { data: cfg } = await sb.from('saas_config').select('*').eq('id', 1).single();
+  if (cfg) actualizarBannerCBU(cfg);
+
+  await cargar();
+  await cargarMigraciones();
+  cargarDashboardKpis();
+  cargarEventosNegocio(0);
+
+  // Click fuera del modal → cerrar
+  document.getElementById('modal-overlay').addEventListener('click', cerrarConfig);
+}
+
+/* ── Vista tenant: mi propia suscripción ──────────────────────────── */
+async function cargarSuscripcionTenant() {
+  const [{ data: sus, error: errSus }, { data: facturas, error: errFact }] = await Promise.all([
+    sb.rpc('saas_mi_suscripcion'),
+    sb.rpc('saas_mis_facturas', { p_limit: 24 }),
+  ]);
+
+  if (errSus) {
+    console.error('[saas-billing] mi_suscripcion:', errSus);
+    toast('No se pudo cargar tu suscripción', 'error');
+    return;
+  }
+
+  // saas_mi_suscripcion() devuelve TABLE → array de 0 o 1 fila
+  const s = Array.isArray(sus) ? sus[0] : sus;
+  if (!s) {
+    toast('No se encontró información de suscripción para tu cuenta', 'error');
+    return;
+  }
+
+  document.getElementById('tenant-plan-badge').textContent = s.plan || '—';
+  document.getElementById('tenant-plan-badge').className   = `badge badge--${s.plan || ''}`;
+  document.getElementById('tenant-precio').textContent     = fmtMonto(s.precio_mensual);
+
+  const estadoEl = document.getElementById('tenant-estado');
+  if (s.suspendida) {
+    estadoEl.innerHTML = `<span class="badge badge--suspendido">suspendida</span>`;
+  } else if (s.plan === 'trial') {
+    estadoEl.innerHTML = `<span class="badge badge--trial">en prueba</span>`;
+  } else {
+    estadoEl.innerHTML = `<span class="badge badge--activo">activa</span>`;
+  }
+
+  // Banners
+  document.getElementById('tenant-banner-suspendida').style.display = s.suspendida ? 'flex' : 'none';
+  if (s.suspendida && s.suspendida_at) {
+    document.getElementById('tenant-suspendida-detalle').textContent =
+      `Suspendida desde el ${fmtFecha(s.suspendida_at)}. Regularizá el pago pendiente (ver abajo) para reactivarla — la reactivación es inmediata una vez confirmado.`;
+  }
+  document.getElementById('tenant-banner-trial').style.display = (!s.suspendida && s.plan === 'trial') ? '' : 'none';
+  if (s.trial_fin) document.getElementById('tenant-trial-fin').textContent = fmtFecha(s.trial_fin);
+
+  // Datos de pago (con fallback ya resuelto por la función)
+  document.getElementById('tenant-cbu').textContent     = s.cbu     || '—';
+  document.getElementById('tenant-alias').textContent   = s.alias   || '—';
+  document.getElementById('tenant-titular').textContent = s.titular || '—';
+  document.getElementById('tenant-banco').textContent   = s.banco   || '—';
+
+  // Historial de facturas
+  const tbody = document.getElementById('tenant-tbody-facturas');
+  if (errFact) {
+    console.error('[saas-billing] mis_facturas:', errFact);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-danger-mid);">No se pudo cargar el historial.</td></tr>`;
+    return;
+  }
+  if (!facturas || !facturas.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-text-light);">Todavía no tenés facturas generadas.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = facturas.map(f => `
+    <tr>
+      <td class="txt-mono">${f.numero}</td>
+      <td>${f.periodo}</td>
+      <td style="font-weight:600;">${fmtMonto(f.monto)}</td>
+      <td><span class="badge badge--${f.estado}">${f.estado}</span></td>
+      <td>${fmtFecha(f.fecha_vencimiento)}</td>
+      <td>${f.fecha_pago ? fmtFecha(f.fecha_pago) : '<span class="txt-empty">—</span>'}</td>
+    </tr>`).join('');
+
+  await cargarPlanesTenant(s);
+}
+
+/* ── Vista tenant: planes disponibles (self-serve upgrade/downgrade —
+   plan comercial ítem 3, portado desde mi-suscripcion.html / migración
+   187). elegible usa s.plan/s.suspendida (saas_mi_suscripcion, ya
+   corregido en 320); el tier actual viene de saas_mi_plan_tier()
+   (migración 321) porque saas_mi_suscripcion() no lo expone. ────────── */
+function fmtPrecioPlan(n) {
+  if (n == null) return 'A medida';
+  return n == 0 ? 'Gratis' : '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }) + ' <small>/mes</small>';
+}
+
+async function cargarPlanesTenant(s) {
+  const grid = document.getElementById('tenant-planes-grid');
+  const nota = document.getElementById('tenant-planes-nota');
+  if (!grid) return;
+
+  const [{ data: planes, error: errPlanes }, { data: tierActual, error: errTier }] = await Promise.all([
+    sb.from('planes_limites')
+      .select('tier, nombre_visible, precio_mes, max_usuarios, max_clientes, max_pedidos_mes')
+      .in('tier', ['basico', 'pro', 'enterprise'])
+      .order('precio_mes', { ascending: true, nullsFirst: false }),
+    sb.rpc('saas_mi_plan_tier'),
+  ]);
+
+  if (errPlanes || !planes) {
+    grid.innerHTML = '<p class="txt-danger" style="margin:0;">No se pudieron cargar los planes.</p>';
+    return;
+  }
+  if (errTier) console.error('[saas-billing] mi_plan_tier:', errTier);
+
+  const elegible = s.plan === 'activo' && !s.suspendida;
+
+  grid.innerHTML = planes.map(p => {
+    const esActual = tierActual === p.tier;
+    const esEnterprise = p.tier === 'enterprise';
+    const limites = [
+      `Usuarios: ${p.max_usuarios ?? 'ilimitado'}`,
+      `Clientes: ${p.max_clientes ?? 'ilimitado'}`,
+      `Pedidos/mes: ${p.max_pedidos_mes ?? 'ilimitado'}`,
+    ].join('<br>');
+
+    let boton;
+    if (esActual) {
+      boton = `<span class="plan-tarjeta__badge-actual">Tu plan actual</span>`;
+    } else if (esEnterprise) {
+      boton = `<button type="button" class="plan-tarjeta__btn plan-tarjeta__btn--downgrade" onclick="window.open('mailto:soporte@mfweb.com.ar?subject=Plan Enterprise')">Consultar</button>`;
+    } else if (!elegible) {
+      boton = `<button type="button" class="plan-tarjeta__btn" disabled>No disponible</button>`;
+    } else {
+      const esUpgrade = tierActual === 'basico' && p.tier === 'pro';
+      boton = `<button type="button" class="plan-tarjeta__btn ${esUpgrade ? 'plan-tarjeta__btn--upgrade' : 'plan-tarjeta__btn--downgrade'}" onclick="cambiarPlanTenant('${p.tier}')">
+        ${esUpgrade ? 'Subir a este plan' : 'Bajar a este plan'}
+      </button>`;
+    }
+
+    return `
+      <div class="plan-tarjeta ${esActual ? 'plan-tarjeta--actual' : ''}">
+        <div class="plan-tarjeta__nombre">${p.nombre_visible}</div>
+        <div class="plan-tarjeta__precio">${fmtPrecioPlan(p.precio_mes)}</div>
+        <div class="plan-tarjeta__limites">${limites}</div>
+        ${boton}
+      </div>`;
+  }).join('');
+
+  nota.textContent = elegible
+    ? 'El cambio de plan se aplica de inmediato; el nuevo precio impacta desde tu próxima factura.'
+    : 'Para cambiar de plan tu cuenta necesita estar activa y al día (no en trial ni suspendida).';
+}
+
+async function cambiarPlanTenant(tier) {
+  const nombrePlan = { basico: 'Básico', pro: 'Pro' }[tier] || tier;
+  if (!confirm(`¿Confirmás el cambio al plan ${nombrePlan}?`)) return;
+
+  const { data, error } = await sb.rpc('saas_tenant_cambiar_plan', { p_tier: tier });
+
+  if (error) {
+    console.error('[saas-billing] cambiar plan:', error);
+    toast('No se pudo cambiar el plan. Probá de nuevo.', 'error');
+    return;
+  }
+  if (!data?.ok) {
+    toast(data?.mensaje || 'No se pudo cambiar el plan.', 'error');
+    return;
+  }
+
+  toast(data.mensaje);
+  await cargarSuscripcionTenant();
+}
+window.cambiarPlanTenant = cambiarPlanTenant;
+
+/* ── Resetear demo pública (fn_reset_demo_v2 vía /api/saas/demo-reset) ─────
+   Si no existe snapshot todavía, el backend lo crea automáticamente y
+   reintenta el reset (no debería pasar en operación normal). ────────────── */
+async function resetDemo(btn) {
+  if (!confirm('¿Resetear la empresa demo a sus datos base?\nSe perderá cualquier cambio hecho en la demo desde el último snapshot.')) return;
+
+  const { data: sess } = await sb.auth.getSession();
+  const token = sess?.session?.access_token;
+  if (!token) { toast('Sesión no válida, reingresá', 'error'); return; }
+
+  const textoOriginal = btn.textContent;
+  btn.disabled    = true;
+  btn.textContent = 'Reseteando…';
+
+  try {
+    const resp = await fetch('/api/saas/demo-reset', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      toast('Error al resetear demo: ' + (data.error || resp.statusText), 'error');
+      return;
+    }
+    toast('Demo reseteada a sus datos base', 'ok');
+  } catch (e) {
+    console.error('[saas-billing] resetear demo:', e);
+    toast('Error de red al resetear demo', 'error');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = textoOriginal;
+  }
+}
+
+/* ── Reactivar empresa suspendida ────────────────────────────────── */
+// FIX (auditoría UX etapa 17, Hallazgo 1): antes hacía un UPDATE directo
+// contra Supabase con el cliente del navegador (sujeto a RLS) -- como
+// "empresas_update" solo deja tocar la propia empresa, este UPDATE
+// afectaba 0 filas en la empresa AJENA que el superadmin quería tocar,
+// sin tirar error, y el toast decía "reactivada correctamente" igual.
+// Ahora llama al endpoint real (/api/saas/reactivar), que usa
+// service_role a propósito para esto.
+async function reactivarEmpresa(empresaId, empresaNombre, btn) {
+  if (!confirm(`¿Reactivar "${empresaNombre}"? (esto no requiere pago)`)) return;
+  btn.disabled    = true;
+  btn.textContent = 'Procesando…';
+
+  try {
+    const { data: sess } = await sb.auth.getSession();
+    const token = sess?.session?.access_token;
+    const resp = await fetch('/api/saas/reactivar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ empresa_id: empresaId }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || data?.error) {
+      console.error('[saas-billing] reactivar:', data);
+      toast(data.error || 'No se pudo reactivar la cuenta', 'error');
+      btn.disabled    = false;
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Reactivar';
+      return;
+    }
+    toast('Empresa reactivada correctamente', 'ok');
+    await cargar();
+  } catch (e) {
+    console.error('[saas-billing] reactivar (red):', e);
+    toast('Error de red al reactivar la cuenta', 'error');
+    btn.disabled = false;
+  }
+}
+
+/* ── Suspender empresa manualmente ──────────────────────────────── */
+// Mismo fix que reactivarEmpresa (Hallazgo 1, etapa 17): usa /api/saas/suspender.
+async function suspenderEmpresa(empresaId, empresaNombre, btn) {
+  if (!confirm(`¿SUSPENDER "${empresaNombre}"? Se bloqueará el acceso inmediatamente.`)) return;
+  btn.disabled    = true;
+  btn.textContent = 'Procesando…';
+
+  try {
+    const { data: sess } = await sb.auth.getSession();
+    const token = sess?.session?.access_token;
+    const resp = await fetch('/api/saas/suspender', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ empresa_id: empresaId }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || data?.error) {
+      console.error('[saas-billing] suspender:', data);
+      toast(data.error || 'No se pudo suspender la cuenta', 'error');
+      btn.disabled    = false;
+      btn.innerHTML   = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Suspender';
+      return;
+    }
+    toast('Empresa suspendida correctamente', 'ok');
+    await cargar();
+  } catch (e) {
+    console.error('[saas-billing] suspender (red):', e);
+    toast('Error de red al suspender la cuenta', 'error');
+    btn.disabled = false;
+  }
+}
+
+/* ── Cambiar precio individual ──────────────────────────────────– */
+// Mismo fix (Hallazgo 1, etapa 17): usa /api/saas/precio.
+async function cambiarPrecio(empresaId, empresaNombre, precioActual) {
+  const nuevo = prompt(`Nuevo precio mensual para "${empresaNombre}" ($):\n\nPrecio actual: $${Number(precioActual).toLocaleString('es-AR')}`);
+  if (!nuevo || isNaN(nuevo) || parseInt(nuevo) <= 0) return;
+
+  try {
+    const { data: sess } = await sb.auth.getSession();
+    const token = sess?.session?.access_token;
+    const resp = await fetch('/api/saas/precio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ empresa_id: empresaId, precio: parseInt(nuevo) }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || data?.error) {
+      console.error('[saas-billing] cambiar precio:', data);
+      toast(data.error || 'No se pudo cambiar el precio', 'error');
+      return;
+    }
+    toast(`Precio actualizado a $${Number(nuevo).toLocaleString('es-AR')}`, 'ok');
+    await cargar();
+  } catch (e) {
+    console.error('[saas-billing] cambiar precio (red):', e);
+    toast('Error de red al cambiar el precio', 'error');
+  }
+}
+
+/* ── Migraciones (punto 12 del plan P2) ─────────────────────────── */
+// Llama directo vía sb.rpc (mismo patrón que el resto de esta página, no
+// pasa por /api/saas) — migracion_superadmin_resumen es SECURITY DEFINER y
+// valida is_saas_owner() por su cuenta (migración 175).
+const ETIQUETA_ESTADO_MIG = {
+  error: 'Error', confirmando: 'Confirmando', mapeado: 'Mapeado', validado: 'Validado',
+  subido: 'Subido', completado: 'Completado', cancelado: 'Cancelado', deshaciendo: 'Deshaciendo', deshecho: 'Deshecho',
+};
+
+function renderTablaMigraciones(filas) {
+  const tbody = document.getElementById('saas-tbody-migraciones');
+  if (!filas.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--color-text-light);">Sin sesiones recientes</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filas.map(f => {
+    const esError = f.estado === 'error';
+    return `
+      <tr>
+        <td>${f.empresa_nombre || '—'}</td>
+        <td>${f.entidad}</td>
+        <td><span style="${esError ? 'color:var(--color-danger-mid);font-weight:600;' : ''}">${ETIQUETA_ESTADO_MIG[f.estado] || f.estado}</span></td>
+        <td>${f.total_filas ?? 0}</td>
+        <td>${f.filas_validas ?? 0}</td>
+        <td>${f.filas_con_error ?? 0}</td>
+        <td>${fmtFecha(f.created_at)}</td>
+      </tr>`;
+  }).join('');
+}
+
+/* ── Dashboard KPIs globales (saas_dashboard_kpis) ──────────────────── */
+async function cargarDashboardKpis() {
+  // saas_dashboard_kpis ya no tiene EXECUTE para authenticated (migraciones
+  // 135/142/143 de auditoría de seguridad) — pasa por el backend con
+  // service_role, igual que el resto de los endpoints /api/saas/*.
+  const { data: sess } = await sb.auth.getSession();
+  const token = sess?.session?.access_token;
+  if (!token) return;
+
+  let d;
+  try {
+    const resp = await fetch('/api/saas/kpis', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) return;
+    d = await resp.json();
+  } catch (_e) {
+    return;
+  }
+  if (!d) return;
+  document.getElementById('dk-activas').textContent     = d.activas     ?? '—';
+  document.getElementById('dk-trials').textContent      = d.trials      ?? '—';
+  document.getElementById('dk-suspendidas').textContent = d.suspendidas  ?? '—';
+  document.getElementById('dk-morosos').textContent     = d.morosos     ?? '—';
+  document.getElementById('dk-mrr').textContent         = d.mrr != null
+    ? '$ ' + Number(d.mrr).toLocaleString('es-AR', { maximumFractionDigits: 0 })
+    : '—';
+  document.getElementById('dk-alta-hoy').textContent    = d.alta_hoy    ?? '—';
+  document.getElementById('dk-activadas').textContent   = d.activadas   ?? '—';
+  document.getElementById('dk-en-riesgo').textContent   = d.en_riesgo   ?? '—';
+  document.getElementById('dash-kpis-strip').style.display = '';
+}
+
+async function cargarMigraciones() {
+  const { data, error } = await sb.rpc('migracion_superadmin_resumen');
+  if (error) {
+    console.error('[saas-billing] cargar migraciones:', error);
+    document.getElementById('saas-tbody-migraciones').innerHTML =
+      `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--color-danger-mid);">No se pudieron cargar las migraciones.</td></tr>`;
+    return;
+  }
+  renderTablaMigraciones(data || []);
+}
+
+/* ── Eventos de negocio (Fase 5, cross-empresa) ─────────────────────
+   Igual patrón de auth que cargar()/cargarDashboardKpis(): token bearer
+   contra /api/saas (service_role del lado del backend, gate de
+   superadmin server-side) — no es una tabla que RLS deje leer cross-
+   empresa directo desde el cliente. */
+const EVNEG_ESTADO_LABEL = {
+  pendiente: { texto: 'Pendiente', clase: 'badge--pendiente' },
+  procesado: { texto: 'Procesado', clase: 'badge--activo' },
+  error:     { texto: 'Error',     clase: 'badge--suspendido' },
+};
+let evnegOffset = 0;
+const evnegLimite = 50;
+let evnegTotal = 0;
+
+// Pobla el <select> de empresa del filtro con la misma lista que ya trae
+// cargar() (GET /api/saas?_svc=empresas) — evita una consulta aparte.
+function poblarFiltroEmpresaEventos() {
+  const sel = document.getElementById('evneg-filtro-empresa');
+  if (!sel) return;
+  const valorPrevio = sel.value;
+  const opciones = allRows
+    .slice()
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    .map(e => `<option value="${e.id}">${window.sanitize(e.nombre)}</option>`)
+    .join('');
+  sel.innerHTML = `<option value="">Todas las empresas</option>${opciones}`;
+  if (valorPrevio && allRows.some(e => e.id === valorPrevio)) sel.value = valorPrevio;
+}
+
+async function cargarEventosNegocio(offset) {
+  evnegOffset = Math.max(offset || 0, 0);
+  const tbody = document.getElementById('saas-tbody-eventos-negocio');
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-text-light);">Cargando...</td></tr>`;
+
+  const { data: sess } = await sb.auth.getSession();
+  const token = sess?.session?.access_token;
+  if (!token) { toast('Sesión inválida', 'error'); return; }
+
+  const empresaId  = document.getElementById('evneg-filtro-empresa').value;
+  const tipoEvento = document.getElementById('evneg-filtro-tipo').value;
+  const estado     = document.getElementById('evneg-filtro-estado').value;
+  const params = new URLSearchParams({ _svc: 'eventos-negocio', limite: evnegLimite, offset: evnegOffset });
+  if (empresaId)  params.set('empresaId', empresaId);
+  if (tipoEvento) params.set('tipoEvento', tipoEvento);
+  if (estado)     params.set('estado', estado);
+
+  let body;
+  try {
+    const resp = await fetch(`/api/saas?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    body = await resp.json();
+  } catch (e) {
+    console.error('[saas-billing] cargar eventos-negocio:', e);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-danger-mid);">No se pudieron cargar los eventos de negocio.</td></tr>`;
+    return;
+  }
+
+  evnegTotal = body.total || 0;
+  renderTablaEventosNegocio(body.data || []);
+  renderPaginacionEventosNegocio();
+}
+
+function renderTablaEventosNegocio(filas) {
+  const tbody = document.getElementById('saas-tbody-eventos-negocio');
+  if (!filas.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-text-light);">Sin eventos para los filtros seleccionados.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filas.map(ev => {
+    const estadoInfo = EVNEG_ESTADO_LABEL[ev.estado] || { texto: ev.estado, clase: 'badge--cancelado' };
+    const fecha = ev.creado_en ? new Date(ev.creado_en).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const payloadTexto = (() => { try { return JSON.stringify(ev.payload); } catch { return ''; } })();
+    return `<tr>
+      <td>${fecha}</td>
+      <td>${window.sanitize(ev.empresas?.nombre || ev.empresa_id || '—')}</td>
+      <td style="font-family:monospace">${window.sanitize(ev.tipo_evento)}</td>
+      <td><span class="badge ${estadoInfo.clase}">${window.sanitize(estadoInfo.texto)}</span></td>
+      <td>${window.sanitize(ev.origen || '—')}</td>
+      <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:monospace; font-size:12px;" title="${window.sanitize(payloadTexto)}">${window.sanitize(payloadTexto)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPaginacionEventosNegocio() {
+  const info = document.getElementById('evneg-paginacion-info');
+  const btnPrev = document.getElementById('evneg-btn-prev');
+  const btnNext = document.getElementById('evneg-btn-next');
+  if (!evnegTotal) {
+    info.textContent = 'Sin eventos';
+  } else {
+    const desde = evnegOffset + 1;
+    const hasta = Math.min(evnegOffset + evnegLimite, evnegTotal);
+    info.textContent = `Mostrando ${desde}–${hasta} de ${evnegTotal}`;
+  }
+  btnPrev.disabled = evnegOffset === 0;
+  btnNext.disabled = evnegOffset + evnegLimite >= evnegTotal;
+}
+
+init();
+</script>
+</body>
+</html>

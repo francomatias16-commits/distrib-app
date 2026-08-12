@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Ventas - Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+    <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes-ventas-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-reportes-ventas-gentelella dash-gentelella">
+    <!-- Sidebar -->
+        <div id="nav-root"></div>
+
+        <!-- Main Content -->
+        <div class="layout">
+              <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Reportes de ventas</h1>
+    </div>
+    <div class="topbar-right">
+      
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Analizá facturación, unidades vendidas y evolución por período, producto, cliente o vendedor.
+</div>
+
+            <div class="content-area">
+                <!-- Filtros -->
+                <div class="filtros-section">
+                    <div class="filtro-group">
+                        <label>Período:</label>
+                        <select id="filtroPeriodon">
+                            <option value="hoy">Hoy</option>
+                            <option value="semana">Esta semana</option>
+                            <option value="mes" selected>Este mes</option>
+                            <option value="trimestre">Este trimestre</option>
+                            <option value="año">Este año</option>
+                            <option value="personalizado">Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group" id="filtroPersonalizadoContainer" style="display:none">
+                        <label>Desde:</label>
+                        <input type="date" id="filtroFechaInicio" aria-label="Fecha inicio">
+                        <label>Hasta:</label>
+                        <input type="date" id="filtroFechaFin" aria-label="Fecha fin">
+                    </div>
+                    <div class="filtro-group">
+                        <label>Vendedor:</label>
+                        <select id="filtroVendedor">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Zona:</label>
+                        <select id="filtroZona">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <button type="button" id="btnAplicarFiltros" class="btn btn--primary">Aplicar Filtros</button>
+                    <button type="button" id="btnExportarVentas" class="btn btn--ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button>
+                </div>
+
+                <!-- KPIs Principales -->
+                <div class="franja-resumen-sololectura">
+  <span>Total de Ventas: <strong id="kpiTotalVentas">$0</strong> <span id="kpiCambioVentas">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Cantidad de Pedidos: <strong id="kpiCantidadPedidos">0</strong> <span id="kpiCambioPedidos">+0 vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Ticket Promedio: <strong id="kpiTicketPromedio">$0</strong> <span id="kpiCambioTicket">+0% vs período anterior</span></span>
+  <span class="sep">·</span>
+  <span>Clientes Activos: <strong id="kpiClientesActivos">0</strong> <span id="kpiCambioClientes">+0 vs período anterior</span></span>
+</div>
+
+                <!-- Gráfico de Ventas por Día -->
+                <div class="chart-section">
+                    <h2>Ventas Diarias</h2>
+                    <div class="chart-section-wrap">
+                        <div id="chartVentasDiarias" class="chart-section-el"></div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Ventas por Categoría -->
+                <div class="chart-section">
+                    <h2>Ventas por Categoría</h2>
+                    <div class="chart-section-wrap">
+                        <div id="chartVentasCategorias" class="chart-section-el"></div>
+                    </div>
+                </div>
+
+                <!-- Ranking de Vendedores -->
+                <div class="ranking-section">
+                    <h2>Top 10 Vendedores</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Posición</th>
+                                <th>Vendedor</th>
+                                <th>Total Vendido</th>
+                                <th>Cantidad Pedidos</th>
+                                <th>Ticket Promedio</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyVendedores">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ranking de Clientes -->
+                <div class="ranking-section">
+                    <h2>Top 10 Clientes</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Posición</th>
+                                <th>Cliente</th>
+                                <th>Total Comprado</th>
+                                <th>Cantidad Pedidos</th>
+                                <th>Ticket Promedio</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyClientes">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ranking de Productos -->
+                <div class="ranking-section">
+                    <h2>Top 10 Productos Más Vendidos</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Posición</th>
+                                <th>Producto</th>
+                                <th>Cantidad Vendida</th>
+                                <th>Ingresos</th>
+                                <th>Margen Promedio</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyProductos">
+                            <tr><td colspan="6" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ranking de Zonas -->
+                <div class="ranking-section">
+                    <h2>Ventas por Zona</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Zona</th>
+                                <th>Total Vendido</th>
+                                <th>Cantidad Pedidos</th>
+                                <th>Ticket Promedio</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyZonas">
+                            <tr><td colspan="5" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/frontend/env-config.js?v1782328742714"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
+    <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/reportes-ventas.js?v1782328742714"></script>
+</body>
+</html>

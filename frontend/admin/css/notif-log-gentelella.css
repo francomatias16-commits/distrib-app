@@ -1,0 +1,234 @@
+/**
+ * notif-log-gentelella.css — Reskin "Gentelella v4" de Historial de notificaciones
+ * ──────────────────────────────────────────────────────────────────────────────────
+ * Pantalla: frontend/admin/notif-log.html
+ * Se carga DESPUÉS de /shared/tokens.css, /shared/adminlte-components.css,
+ * /frontend/admin/css/base-layout.css y /frontend/admin/css/finanzas.css (CSS base
+ * compartido con Cobranzas/Compras), y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * El propio notif-log.html trae un <style> inline con varios componentes propios
+ * de esta pantalla (badges de canal/tipo/estado, stats-bar, modal de payload,
+ * botón de exportar) definidos con --color-*/valores fijos. Este archivo los
+ * sobreescribe con tokens --ge-* sin tocar el <style> inline ni el HTML.
+ *
+ * Reusa patrones ya establecidos: .stat-chip sigue el mismo patrón que .fkpi en
+ * cobranzas-gentelella.css/vencimientos-gentelella.css; .modal-* sigue el patrón
+ * estándar de modal ya usado en varias pantallas previas.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo. Los tres colores de
+ * .badge-canal (whatsapp/email/push) no tienen tokens --ge-* dedicados de
+ * fondo/texto claro (solo existe --ge-whatsapp, un solo canal) — se mantienen
+ * como los define el <style> inline de notif-log.html (no se tocan, ya que no
+ * son valores duplicados en otras pantallas del reskin) y solo se ajusta el
+ * radio/tipografía para que calcen con el resto de pastillas Gentelella.
+ *
+ * Scope: body.dash-notif-log-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella { background: var(--ge-bg) !important; }
+body.dash-notif-log-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-notif-log-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-notif-log-gentelella .topbar-workspace,
+body.dash-notif-log-gentelella .topbar-fecha {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-notif-log-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-notif-log-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-notif-log-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Botón "Exportar CSV" (.btn-export, definido inline en notif-log.html) */
+body.dash-notif-log-gentelella .btn-export {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-notif-log-gentelella .btn-export:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* Botón secundario "Limpiar" / "Cargar más" / "Cerrar" / "Ver" */
+body.dash-notif-log-gentelella .btn.btn--secondary,
+body.dash-notif-log-gentelella .btn-secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-notif-log-gentelella .btn.btn--secondary:hover,
+body.dash-notif-log-gentelella .btn-secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Stats bar (.stats-bar / .stat-chip, definidos inline)
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella .stat-chip {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-notif-log-gentelella .stat-chip .val {
+  color: var(--ge-teal) !important;
+}
+body.dash-notif-log-gentelella .stat-chip .lbl {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella .filtros-bar input,
+body.dash-notif-log-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-notif-log-gentelella .filtros-bar input:focus,
+body.dash-notif-log-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla principal
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-notif-log-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-notif-log-gentelella table.tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-notif-log-gentelella table.tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-notif-log-gentelella table.tabla tr.fila-notif:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-notif-log-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-notif-log-gentelella table.tabla tr.fila-notif:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-notif-log-gentelella .tabla-footer {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-notif-log-gentelella .tabla-footer #lbl-count {
+  color: var(--ge-muted) !important;
+}
+
+/* Pastillas de canal (whatsapp/email/push) — se mantiene el color de cada
+   canal (definido inline en notif-log.html), solo se ajusta tipografía. */
+body.dash-notif-log-gentelella .badge-canal {
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 700 !important;
+}
+
+/* Pastilla de tipo (.badge-tipo, sin color propio en el inline: usa
+   --color-bg/--color-border/--color-text-secondary genéricos) */
+body.dash-notif-log-gentelella .badge-tipo {
+  background: var(--ge-chip-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+
+/* Estado de envío (.badge-ok / .badge-err, texto simple sin fondo en el inline) */
+body.dash-notif-log-gentelella .badge-ok {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-notif-log-gentelella .badge-err {
+  color: var(--ge-red) !important;
+}
+
+body.dash-notif-log-gentelella .destino-cell {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de payload
+   ════════════════════════════════════════════════════════════ */
+body.dash-notif-log-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-notif-log-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-notif-log-gentelella .modal-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-notif-log-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-notif-log-gentelella .modal-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-notif-log-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-notif-log-gentelella .modal-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-notif-log-gentelella #modal-payload-meta {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-notif-log-gentelella #modal-payload-pre {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}

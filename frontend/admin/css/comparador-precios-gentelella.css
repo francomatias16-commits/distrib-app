@@ -1,0 +1,292 @@
+/**
+ * comparador-precios-gentelella.css — Reskin "Gentelella v4" de la pantalla Comparador de Precios
+ * ──────────────────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea comparador-precios.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-comparador-precios-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella { background: var(--ge-bg) !important; }
+body.dash-comparador-precios-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-comparador-precios-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-comparador-precios-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-comparador-precios-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-comparador-precios-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Buscador de producto
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .buscador-wrap input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-comparador-precios-gentelella .buscador-wrap input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-comparador-precios-gentelella .buscador-wrap input::placeholder {
+  color: var(--ge-muted) !important;
+}
+/* Dropdown de resultados */
+body.dash-comparador-precios-gentelella #buscador-resultados {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-comparador-precios-gentelella #buscador-resultados .item {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-comparador-precios-gentelella #buscador-resultados .item:last-child {
+  border-bottom: none !important;
+}
+body.dash-comparador-precios-gentelella #buscador-resultados .item:hover {
+  background: var(--ge-teal-light) !important;
+  cursor: pointer !important;
+}
+body.dash-comparador-precios-gentelella #buscador-resultados .cod {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-family: monospace !important;
+}
+
+/* Filtro de meses */
+body.dash-comparador-precios-gentelella #filtro-meses {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-comparador-precios-gentelella #filtro-meses:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-comparador-precios-gentelella .kpi-value {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+body.dash-comparador-precios-gentelella .kpi-change {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-comparador-precios-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-comparador-precios-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .filtros-bar input,
+body.dash-comparador-precios-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-comparador-precios-gentelella .filtros-bar input:focus,
+body.dash-comparador-precios-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-comparador-precios-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-comparador-precios-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-comparador-precios-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-comparador-precios-gentelella .tabla tbody tr.clickable {
+  cursor: pointer !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Montos y badges (generados por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .monto-verde {
+  color: var(--ge-teal) !important;
+  font-weight: 700 !important;
+}
+body.dash-comparador-precios-gentelella .monto-gris {
+  color: var(--ge-muted) !important;
+}
+
+/* spread-badge: diferencia de precio entre proveedores */
+body.dash-comparador-precios-gentelella .spread-badge {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+}
+body.dash-comparador-precios-gentelella .spread-badge.bajo {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Vista detalle — fila mejor proveedor + badge
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .fila-mejor td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-comparador-precios-gentelella .badge-mejor {
+  display: inline-block !important;
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 2px 7px !important;
+  margin-left: 6px !important;
+  vertical-align: middle !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botón volver al ranking
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .btn-volver,
+body.dash-comparador-precios-gentelella [onclick*="mostrarVista('ranking')"] {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+body.dash-comparador-precios-gentelella .btn-volver:hover,
+body.dash-comparador-precios-gentelella [onclick*="mostrarVista('ranking')"]:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Empty state
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-comparador-precios-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-comparador-precios-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+  body.dash-comparador-precios-gentelella .buscador-wrap {
+    max-width: 100% !important;
+  }
+}

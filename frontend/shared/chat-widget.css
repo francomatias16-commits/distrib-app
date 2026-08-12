@@ -1,0 +1,409 @@
+/**
+ * frontend/shared/chat-widget.css
+ * Estilos del botón flotante + panel del asistente de ayuda.
+ * Usa las variables de /frontend/shared/tokens.css — cargar tokens.css antes.
+ */
+
+.chat-asistente-boton {
+  position: fixed;
+  right: var(--space-6, 24px);
+  bottom: var(--space-6, 24px);
+  height: 56px;
+  padding: 0 20px 0 16px;
+  border-radius: var(--radius-full, 9999px);
+  border: none;
+  background: var(--color-box-primary);
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-big, 0 8px 24px rgba(0,0,0,.18));
+  transition: transform var(--transition-base, 250ms ease), background var(--transition-base, 250ms ease);
+  z-index: 590;
+}
+.chat-asistente-boton:hover { transform: translateY(-2px) scale(1.04); background: var(--color-primary-dark); }
+.chat-asistente-boton svg { width: 24px; height: 24px; flex-shrink: 0; }
+.chat-asistente-boton--activo { background: var(--color-primary-dark); }
+/* Texto visible junto al ícono — que quede claro que es "trabajar con IA"
+   y no un botón de ayuda/soporte genérico. En pantallas chicas se colapsa
+   a un círculo con solo el ícono (como antes) para no comerse espacio. */
+.chat-asistente-boton-label {
+  font-size: var(--font-size-sm, .9375rem);
+  font-weight: var(--font-weight-semibold, 600);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .chat-asistente-boton { width: 56px; padding: 0; }
+  .chat-asistente-boton-label { display: none; }
+}
+
+/* BUG REAL (no solo de los tests): el botón es position:fixed y ningún
+   layout reserva espacio para él, así que flota LITERALMENTE encima de
+   cualquier control que caiga en la esquina inferior derecha (botones de
+   fila en tablas largas, "Ajustar stock", "Revocar", etc.) — los tapa e
+   intercepta el click para cualquier usuario real, no solo para
+   Playwright ("<button class="chat-asistente-boton"...> intercepts
+   pointer events"). Reservamos el alto del botón + margen como
+   padding-bottom del contenedor principal para que el contenido pueda
+   scrollear por debajo de él en vez de quedar tapado. */
+.main {
+  padding-bottom: calc(56px + var(--space-6, 24px) + var(--space-4, 16px));
+}
+
+.chat-asistente-panel {
+  position: fixed;
+  right: var(--space-6, 24px);
+  bottom: calc(56px + var(--space-6, 24px) + var(--space-3, 12px));
+  /* Antes 360x480 (quedaba chico apenas se adjuntaba una imagen o el
+     texto crecía). Ahora ocupa aproximadamente la mitad de la pantalla
+     en desktop, con un piso y un techo para no verse absurdo en
+     ventanas muy chicas o muy grandes. */
+  width: clamp(420px, 46vw, 760px);
+  max-width: calc(100vw - 32px);
+  height: clamp(560px, 78vh, 860px);
+  max-height: calc(100vh - 140px);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl, 24px);
+  box-shadow: var(--shadow-big, 0 8px 24px rgba(0,0,0,.18));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 590;
+  opacity: 0;
+  transform: translateY(12px) scale(.98);
+  pointer-events: none;
+  transition: opacity var(--transition-base, 250ms ease), transform var(--transition-base, 250ms ease);
+}
+.chat-asistente-panel--abierto {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.chat-asistente-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  background: var(--color-box-primary);
+  color: var(--color-surface);
+  font-weight: var(--font-weight-semibold, 600);
+  font-size: var(--font-size-md, 1.0625rem);
+  flex-shrink: 0;
+}
+.chat-asistente-cerrar {
+  background: none;
+  border: none;
+  color: var(--color-surface);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: .85;
+}
+.chat-asistente-cerrar:hover { opacity: 1; }
+
+.chat-asistente-header-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+/* Botón de manos libres (lee las respuestas en voz alta y, si el
+   navegador tiene reconocimiento de voz, vuelve a escuchar sola después
+   de cada respuesta — ver chat-widget.js). Arranca con [hidden] y el JS
+   lo muestra solo si el navegador soporta SpeechSynthesis. */
+.chat-asistente-manoslibres {
+  background: none;
+  border: none;
+  color: var(--color-surface);
+  cursor: pointer;
+  padding: 2px;
+  opacity: .85;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-full, 9999px);
+}
+.chat-asistente-manoslibres:hover { opacity: 1; }
+.chat-asistente-manoslibres svg { width: 19px; height: 19px; }
+.chat-asistente-manoslibres--activo {
+  opacity: 1;
+  background: rgba(255,255,255,.22);
+  box-shadow: 0 0 0 2px rgba(255,255,255,.35);
+}
+
+.chat-asistente-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  background: var(--color-surface-2);
+}
+
+.chat-asistente-mensaje { display: flex; flex-direction: column; max-width: 88%; }
+.chat-asistente-mensaje--propio { align-self: flex-end; align-items: flex-end; }
+.chat-asistente-mensaje:not(.chat-asistente-mensaje--propio) { align-self: flex-start; align-items: flex-start; }
+
+.chat-asistente-burbuja {
+  padding: 10px 14px;
+  border-radius: var(--radius-lg, 18px);
+  font-size: var(--font-size-sm, .875rem);
+  line-height: var(--line-height-base, 1.5);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-asistente-mensaje--propio .chat-asistente-burbuja {
+  background: var(--color-box-primary);
+  color: var(--color-surface);
+  border-bottom-right-radius: var(--radius-sm, 8px);
+}
+.chat-asistente-mensaje:not(.chat-asistente-mensaje--propio) .chat-asistente-burbuja {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-outline, inset 0 0 0 1px rgba(0,0,0,.06));
+  border-bottom-left-radius: var(--radius-sm, 8px);
+}
+
+/* Miniatura de la imagen adjunta, mostrada arriba del texto dentro de la
+   burbuja propia del usuario (ver imagenPreviewUrl en agregarMensaje()). */
+.chat-asistente-burbuja-imagen {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 6px;
+  object-fit: cover;
+}
+
+.chat-asistente-fuentes {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-light);
+  padding: 0 4px;
+}
+
+/* Propuesta de una tool de escritura (requiereConfirmacion:true, ver
+   lib/asistente-tools.js) esperando el click de Confirmar/Cancelar. Usa el
+   tono "warning" del sistema de diseño: no es un error, pero sí una acción
+   real que todavía no se hizo y que puede no deshacerse. */
+.chat-asistente-burbuja--confirmacion {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  box-shadow: var(--shadow-outline, inset 0 0 0 1px rgba(0,0,0,.06));
+  border-bottom-left-radius: var(--radius-sm, 8px);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.chat-asistente-confirmacion-acciones {
+  display: flex;
+  gap: var(--space-2, 8px);
+  margin-top: 6px;
+  align-self: flex-start;
+}
+.chat-asistente-confirmar,
+.chat-asistente-cancelar {
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  padding: 6px 16px;
+  font-size: var(--font-size-sm, .875rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: opacity var(--transition-fast, 150ms ease);
+}
+.chat-asistente-confirmar:disabled,
+.chat-asistente-cancelar:disabled { opacity: .5; cursor: default; }
+.chat-asistente-confirmar {
+  background: var(--color-danger-mid);
+  color: var(--color-surface);
+}
+.chat-asistente-confirmar:hover:not(:disabled) { background: var(--color-danger); }
+.chat-asistente-cancelar {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.chat-asistente-cancelar:hover:not(:disabled) { background: var(--color-border, rgba(0,0,0,.07)); }
+
+.chat-asistente-typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
+.chat-asistente-typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-text-light);
+  animation: chat-asistente-typing-bounce 1.2s infinite ease-in-out;
+}
+.chat-asistente-typing span:nth-child(2) { animation-delay: .15s; }
+.chat-asistente-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes chat-asistente-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: .5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.chat-asistente-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px);
+  border-top: 1px solid var(--color-border, rgba(0,0,0,.07));
+  background: var(--color-surface);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+/* Ahora es un <textarea> auto-expandible (ver ALTO_MAX_INPUT_PX/
+   autoAjustarAltoInput en chat-widget.js — mismo tope de 120px acá para
+   que el scroll interno arranque justo cuando el JS deja de agrandarlo). */
+.chat-asistente-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: var(--radius-lg, 18px);
+  font-size: var(--font-size-sm, .875rem);
+  font-family: inherit;
+  outline: none;
+  background: var(--color-surface-2);
+  resize: none;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: var(--line-height-base, 1.5);
+}
+.chat-asistente-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(184,122,0,.12); }
+
+/* Botón de adjuntar imagen — mismo tamaño/tono que el botón de dictado por
+   voz (.chat-asistente-mic), a su lado en el form. */
+.chat-asistente-adjuntar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-surface-2);
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
+}
+.chat-asistente-adjuntar:hover:not(:disabled) { background: var(--color-border, rgba(0,0,0,.07)); color: var(--color-text); }
+.chat-asistente-adjuntar:disabled { opacity: .5; cursor: not-allowed; }
+.chat-asistente-adjuntar svg { width: 16px; height: 16px; }
+
+/* Chip de "adjunto pendiente" — aparece arriba del textarea cuando el
+   usuario eligió/pegó una imagen todavía no enviada. Ocupa todo el ancho
+   del form (ver flex-wrap arriba) para no achicar el textarea. */
+.chat-asistente-adjunto {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-outline, inset 0 0 0 1px rgba(0,0,0,.06));
+}
+.chat-asistente-adjunto-miniatura {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 8px);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.chat-asistente-adjunto-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--color-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-asistente-adjunto-quitar {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
+}
+.chat-asistente-adjunto-quitar:hover { background: var(--color-danger-bg, rgba(211,47,47,.1)); color: var(--color-danger, #d32f2f); }
+
+.chat-asistente-enviar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-box-primary);
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease);
+}
+.chat-asistente-enviar:hover:not(:disabled) { background: var(--color-primary-dark); }
+.chat-asistente-enviar:disabled { opacity: .5; cursor: not-allowed; }
+.chat-asistente-enviar svg { width: 16px; height: 16px; }
+
+/* Botón de dictado por voz (Web Speech API, ver chat-widget.js). Arranca
+   con [hidden] y el JS lo muestra solo si el navegador soporta
+   SpeechRecognition / webkitSpeechRecognition. */
+.chat-asistente-mic {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-surface-2);
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
+}
+.chat-asistente-mic:hover:not(:disabled) { background: var(--color-border, rgba(0,0,0,.07)); color: var(--color-text); }
+.chat-asistente-mic:disabled { opacity: .5; cursor: not-allowed; }
+.chat-asistente-mic svg { width: 16px; height: 16px; }
+.chat-asistente-mic--grabando {
+  background: var(--color-danger-mid);
+  color: var(--color-surface);
+  animation: chat-asistente-mic-pulso 1.4s infinite ease-in-out;
+}
+.chat-asistente-mic--grabando:hover:not(:disabled) { background: var(--color-danger); }
+@keyframes chat-asistente-mic-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(211,47,47,.35); }
+  50% { box-shadow: 0 0 0 7px rgba(211,47,47,0); }
+}
+
+@media (max-width: 768px) {
+  /* En el panel admin, bajo 768px aparece la barra mobile inferior fija
+     (60px + safe-area, ver admin/css/nav.css). El botón/panel del chat
+     deben flotar por encima de esa barra en vez de quedar tapados. */
+  .chat-asistente-boton {
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+  }
+  .chat-asistente-panel {
+    bottom: calc(60px + env(safe-area-inset-bottom) + 56px + 12px);
+    max-height: calc(100vh - 60px - env(safe-area-inset-bottom) - 90px);
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-asistente-panel {
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+  .chat-asistente-boton { right: 16px; }
+}

@@ -1,0 +1,779 @@
+/**
+ * AdminLTE Style Patch — añadido automáticamente
+ * Mejora visual sobre el CSS existente de la página
+ */
+
+/* Fondo AdminLTE */
+body { background: var(--color-bg); font-family: var(--font-family); }
+
+/* Cards mejoradas */
+/* .card styles inherited from adminlte-components.css (glass) */
+/* .card-header inherited from adminlte-components.css */
+.card-header h3 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+.card-footer { padding: 10px 16px; background: rgba(0,0,0,.02); border-top: 1px solid rgba(0,0,0,.08); font-size: 13px; color: var(--color-text-muted); }
+
+/* Panel headers */
+.panel-header, .section-header {
+  background: rgba(0,0,0,.02);
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+/* Tablas con fondo alternado */
+table th { background: var(--color-bg) !important; }
+tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
+
+/* [Etapa 4 · Media] .topbar-contador se removió de este archivo: estaba duplicado en 9 hojas de página con formas inconsistentes (radius-md vs radius-lg). Definición canónica única en shared/adminlte-components.css. */
+
+/* KPI cards — info-box style cuando son grid */
+.fkpi, .kpi-card:not(.small-box) {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Motor cards / auto cards */
+.motor-card, .regla-card, .trigger-card {
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-fluffy);
+  transition: box-shadow .2s ease;
+}
+.motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big, var(--card-shadow)); }
+
+/* Botones secundarios */
+.btn-exportar, .btn-importar {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md, 10px); padding: 6px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: all .15s ease; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-muted);
+}
+.btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
+.btn-importar:hover { background: var(--color-primary-bg); border-color: var(--color-primary); color: var(--color-primary-dark); }
+
+/* Filtros */
+.filtros-section {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg, 14px);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Main padding ajustado */
+.main { padding: 20px 24px; }
+
+
+/* frontend/admin/css/compras.css
+   Compartido por proveedores.html y compras.html — v15 */
+
+/* ── Toast (variante .visible usada por los módulos nuevos) ─── */
+.toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.exito   { background: var(--color-success); }
+.toast.error   { background: var(--color-danger); }
+
+/* [Etapa 4 · Media] segunda declaración de .topbar-contador removida de aquí (ganaba por cascada y usaba radius-md, distinto al radius-lg/full de las demás páginas — la forma de la píldora cambiaba sin justificación de diseño). Definición canónica única en shared/adminlte-components.css. */
+
+/* ── Barra de filtros ─────────────────────────────────────────── */
+.filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  border-radius: var(--radius-md);
+  transition: box-shadow .15s ease;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-light);
+  transition: color .15s ease;
+  pointer-events: none;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.search-wrap input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+.search-wrap input:focus ~ svg { color: var(--color-primary); }
+
+.select-filtro {
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color .15s ease;
+}
+.select-filtro:focus { outline: none; border-color: var(--color-primary); }
+
+.input-fecha {
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.filtros-der {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* FIX (v707): a diferencia de otras páginas, este archivo no tenía
+   ningún ajuste responsive para .filtros-der — en mobile el padre
+   .filtros-bar fuerza columna + 100% de ancho (responsive-mobile.css)
+   pero estos ítems (fechas + "Comparar proveedores"/"Recepciones"/
+   "Nueva orden" en compras.html, o "Nueva factura" en cc-proveedores.html,
+   que reusa este mismo archivo) quedaban en una sola fila sin wrap,
+   pudiendo recortarse en pantallas chicas. */
+@media (max-width: 900px) {
+  .filtros-der { flex-wrap: wrap; width: 100%; }
+}
+
+/* ── Tabla ────────────────────────────────────────────────────── */
+.tabla-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+
+.tabla-main {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.tabla-main thead {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 1;
+}
+.tabla-main th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  background: rgba(0,0,0,.02);
+}
+.tabla-main td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-border-light, var(--color-border));
+  vertical-align: middle;
+  color: var(--color-text);
+}
+.tabla-main tbody tr { transition: background .15s ease; }
+.tabla-main tbody tr:hover { background: var(--color-bg); }
+.tabla-main td.vacio {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+/* ── Botones de tabla ─────────────────────────────────────────── */
+.acciones-td {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-tabla {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, transform .1s ease;
+}
+.btn-tabla:hover    { background: var(--color-bg); }
+.btn-tabla.primario {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+.btn-tabla.primario:hover { opacity: .88; transform: translateY(-1px); }
+.btn-tabla.peligro  {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-tabla.peligro:hover { opacity: .85; transform: translateY(-1px); }
+
+/* ── Badges (sello de estado) ────────────────────────────────────
+   Antes este archivo redefinía .badge con border-radius: var(--radius-lg)
+   (pill redondo), pisando el alias global .badge → sello de tokens.css.
+   Se retira esa redefinición de forma; cada .badge-* variante solo aporta
+   color/borde, la forma la hereda del sello global. */
+.badge-activo   { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-inactivo { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+
+/* Órdenes de compra */
+.badge-borrador          { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+.badge-pendiente_aprobacion { background: rgba(91,74,143,.12); color: var(--nav-facturacion); border-color: var(--nav-facturacion); }
+.badge-enviada           { background: var(--color-info-bg); color: var(--color-info-mid); border-color: var(--color-info-mid); }
+.badge-confirmada        { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-recibida_parcial  { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-recibida          { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-cancelada         { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); }
+
+/* Notas de crédito */
+.badge-pendiente   { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-emitida     { background: var(--color-info-bg); color: var(--color-info-mid); border-color: var(--color-info-mid); }
+.badge-aplicada    { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-anulada     { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+.badge-error_afip  { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); }
+
+
+/* ── Botón nuevo (topbar) ─────────────────────────────────────── */
+.btn-nuevo-comp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.btn-nuevo-comp:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ── Modal overlay (usado por compras/proveedores, no panel lateral) ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(22,24,29,.45);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal-box {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-big);
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.modal-box.wide { max-width: 780px; }
+.modal-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 1;
+}
+.modal-box-header h2 { font-size: 17px; font-weight: 700; margin: 0; }
+.modal-box-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+.modal-box-close:hover { background: var(--color-bg); }
+.modal-box-body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-box-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  background: var(--color-surface);
+}
+
+/* ── Formulario en modal ─────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Ícono de ayuda contextual con tooltip CSS puro (sin dependencias jQuery/Bootstrap) */
+.ayuda-contextual {
+  position: relative;
+  display: inline-flex;
+  color: var(--color-text-light);
+  cursor: help;
+  text-transform: none;
+}
+.ayuda-contextual::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  width: 220px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 50;
+  box-shadow: var(--shadow-fluffy);
+}
+.ayuda-contextual:hover::after,
+.ayuda-contextual:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.form-input {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color .15s ease;
+}
+.form-input:focus { outline: none; border-color: var(--color-primary); }
+.form-textarea { resize: vertical; min-height: 64px; }
+.form-sec-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  grid-column: 1 / -1;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+}
+
+/* ── Tabla interna en modales (items OC / NC) ────────────────── */
+.inner-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.inner-tabla th {
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.inner-tabla td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border-light, var(--color-border));
+}
+.inner-tabla input {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ── Totales box ─────────────────────────────────────────────── */
+.totales-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 10px 0 0;
+  font-size: 13px;
+}
+.totales-box .t-row { display: flex; gap: 20px; }
+.totales-box .t-label { color: var(--color-text-muted); }
+.totales-box .t-val   { font-weight: 600; min-width: 100px; text-align: right; }
+.totales-box .t-total .t-label,
+.totales-box .t-total .t-val { font-size: 15px; font-weight: 700; color: var(--color-text); }
+
+/* ── Progreso recepción ───────────────────────────────────────── */
+.progreso-recepcion {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.barra-progreso {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: 80px;
+}
+.barra-progreso-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+/* ── Botones modal footer ────────────────────────────────────── */
+.btn-cancelar {
+  padding: 9px 18px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.btn-cancelar:hover { background: var(--color-bg); }
+.btn-guardar-modal {
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+.btn-guardar-modal:hover    { opacity: .88; }
+.btn-guardar-modal:disabled { opacity: .5; cursor: not-allowed; }
+.btn-accion-modal {
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-warning);
+  color: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+.btn-accion-modal:hover { opacity: .88; }
+
+/* ── Tabla → Tarjetas en mobile (v79-bloque4) ──────────────────── */
+/* Genérico para .tabla-main: aplica a Proveedores y a cualquier otra
+   página de las 5 que comparten este CSS y agregue la clase
+   table-responsive-cards a su .tabla-wrap. */
+@media (max-width: 600px) {
+  .form-grid,
+  .form-grid.cols-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .search-wrap { max-width: none; }
+
+  .table-responsive-cards .tabla-main,
+  .table-responsive-cards .tabla-main thead,
+  .table-responsive-cards .tabla-main tbody,
+  .table-responsive-cards .tabla-main th,
+  .table-responsive-cards .tabla-main td,
+  .table-responsive-cards .tabla-main tr {
+    display: block;
+  }
+  .table-responsive-cards .tabla-main thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .table-responsive-cards .tabla-main tbody tr {
+    border: 1px solid rgba(0,0,0,.07);
+    margin: 0 0 12px;
+    border-radius: var(--radius-lg);
+    padding: 4px 14px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .table-responsive-cards .tabla-main tbody tr:hover { background: var(--color-surface); }
+  .table-responsive-cards .tabla-main td {
+    border: none !important;
+    position: relative;
+    padding: 9px 0 9px 42%;
+    text-align: right;
+    border-bottom: 1px solid var(--color-bg) !important;
+    min-height: 20px;
+  }
+  .table-responsive-cards .tabla-main td:last-child { border-bottom: none !important; }
+  .table-responsive-cards .tabla-main td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 40%;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  /* Acciones y la primera celda (nombre/identificación) van a ancho completo sin label */
+  .table-responsive-cards .tabla-main td[data-label="Proveedor"],
+  .table-responsive-cards .tabla-main td[data-label="Acciones"] {
+    text-align: left;
+    padding-left: 0;
+  }
+  .table-responsive-cards .tabla-main td[data-label="Proveedor"]::before,
+  .table-responsive-cards .tabla-main td[data-label="Acciones"]::before {
+    display: none;
+  }
+  .table-responsive-cards .acciones-td { flex-wrap: wrap; }
+  .table-responsive-cards .btn-tabla { flex: 1; justify-content: center; padding: 8px; }
+}
+
+/* ── Modal: portal de autogestión del proveedor (#10) ─────────────────── */
+.portal-cargando {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 16px 0;
+}
+.portal-error {
+  font-size: 13px;
+  color: var(--color-danger);
+  text-align: center;
+  padding: 16px 0;
+}
+.portal-link-box {
+  margin-bottom: 12px;
+}
+.portal-link-box .form-input {
+  font-size: 12px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  background: var(--color-bg);
+}
+.portal-acciones {
+  display: flex;
+  gap: 8px;
+}
+.portal-acciones .btn-tabla {
+  flex: 1;
+  justify-content: center;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox" (Compras y Proveedores)
+   Mismo archivo compartido por ambas páginas: se repite el bloque con
+   selectores #vista-compras / #vista-proveedores para no mezclar el acento
+   entre secciones aunque reutilicen las mismas clases (.tabla-main, .badge,
+   .search-wrap, etc). Redefine --color-primary* localmente en cada scope.
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-compras,
+#vista-proveedores {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-compras .filtros-bar,
+#vista-proveedores .filtros-bar {
+  border-bottom-color: var(--color-border-soft);
+}
+
+#vista-compras .search-wrap input,
+#vista-proveedores .search-wrap input,
+#vista-compras .select-filtro,
+#vista-proveedores .select-filtro,
+#vista-compras .input-fecha,
+#vista-proveedores .input-fecha {
+  border-radius: 999px;
+  border-color: var(--color-border);
+  background: var(--color-surface-2);
+}
+
+#vista-compras .tabla-main th,
+#vista-proveedores .tabla-main th {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 14px;
+}
+#vista-compras .tabla-main td,
+#vista-proveedores .tabla-main td {
+  border-bottom-color: var(--color-border-soft);
+  padding: 14px;
+}
+#vista-compras .tabla-main tbody tr:hover,
+#vista-proveedores .tabla-main tbody tr:hover {
+  background: var(--color-primary-bg);
+}
+
+#vista-compras .badge,
+#vista-proveedores .badge {
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+#vista-compras .btn-tabla,
+#vista-proveedores .btn-tabla {
+  border-radius: 999px;
+}
+#vista-compras .btn-tabla.primario,
+#vista-proveedores .btn-tabla.primario {
+  box-shadow: 0 2px 6px rgba(143,95,0,.25);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox / CRMHUB" (Cta. cte. Proveedores)
+   Tercer scope en este archivo compartido (junto a #vista-compras y
+   #vista-proveedores). Acento turquesa + avatar circular de proveedor
+   (helper avatarProveedor() en cc-proveedores.js).
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-cc-proveedores {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-cc-proveedores .kpi-card {
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 4px 20px rgba(22,24,29,.05);
+}
+
+#vista-cc-proveedores .filtros-bar { border-bottom-color: var(--color-border-soft); }
+#vista-cc-proveedores .select-filtro,
+#vista-cc-proveedores .input-fecha {
+  border-radius: 999px;
+  border-color: var(--color-border);
+  background: var(--color-surface-2);
+}
+
+#vista-cc-proveedores .tabla-main th { background: transparent; color: var(--color-text-muted); padding: 14px; }
+#vista-cc-proveedores .tabla-main td { border-bottom-color: var(--color-border-soft); padding: 14px; }
+#vista-cc-proveedores .tabla-main tbody tr:hover { background: var(--color-primary-bg); }
+
+#vista-cc-proveedores .prov-fila {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+#vista-cc-proveedores .prov-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
+}
+
+#vista-cc-proveedores .badge-fx { border-radius: 999px; padding: 5px 13px; font-weight: 700; }
+#vista-cc-proveedores .badge-pagada  { background: var(--color-success-bg); color: var(--color-success); }
+#vista-cc-proveedores .badge-vencida { background: var(--color-danger-bg); color: var(--color-danger); }
+#vista-cc-proveedores .badge-parcial { background: var(--color-warning-bg); color: var(--color-warning); }
+#vista-cc-proveedores .btn-tabla { border-radius: 999px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox / CRMHUB" (Vencimientos / Lotes)
+   Acento turquesa + colores faltantes para badge-warn/badge-muted (usados
+   por lotes.js pero sin color definido en ningún archivo del proyecto).
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-vencimientos {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-vencimientos .search-wrap input,
+#vista-vencimientos .select-filtro { border-radius: 999px; border-color: var(--color-border); background: var(--color-surface-2); }
+#vista-vencimientos .tabla-wrap { border-color: var(--color-border-soft); box-shadow: 0 4px 20px rgba(22,24,29,.05); }
+#vista-vencimientos .tabla-main th { background: transparent; color: var(--color-text-muted); padding: 14px; }
+#vista-vencimientos .tabla-main td { border-bottom-color: var(--color-border-soft); padding: 14px; }
+#vista-vencimientos .tabla-main tbody tr:hover { background: var(--color-primary-bg); }
+#vista-vencimientos .badge { border-radius: 999px; }
+#vista-vencimientos .badge-warn  { background: var(--color-warning-bg); color: var(--color-warning); }
+#vista-vencimientos .badge-muted { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid rgba(0,0,0,.07); }
+#vista-vencimientos .btn-pag { border-radius: 999px; }

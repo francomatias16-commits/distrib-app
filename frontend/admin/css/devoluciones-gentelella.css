@@ -1,0 +1,472 @@
+/**
+ * devoluciones-gentelella.css — Reskin "Gentelella v4" de la pantalla Devoluciones
+ * ─────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lean devoluciones.js:
+ * solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-devoluciones-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella { background: var(--ge-bg) !important; }
+body.dash-devoluciones-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-devoluciones-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-devoluciones-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-devoluciones-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-devoluciones-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards (finanzas-kpis / fkpi)
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .finanzas-kpis {
+  gap: 16px !important;
+}
+body.dash-devoluciones-gentelella .fkpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-devoluciones-gentelella .fkpi-label {
+  color: var(--ge-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+body.dash-devoluciones-gentelella .fkpi-val {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-devoluciones-gentelella .fkpi-val.verde {
+  color: var(--ge-teal) !important;
+}
+body.dash-devoluciones-gentelella .fkpi-val.rojo {
+  color: var(--ge-red) !important;
+}
+body.dash-devoluciones-gentelella .fkpi-val.amarillo {
+  color: var(--ge-orange) !important;
+}
+body.dash-devoluciones-gentelella .fkpi-sub {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-devoluciones-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-devoluciones-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .filtros-bar input,
+body.dash-devoluciones-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella .filtros-bar input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-devoluciones-gentelella .filtros-bar input:focus,
+body.dash-devoluciones-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 14px 16px !important;
+}
+body.dash-devoluciones-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 14px 16px !important;
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-devoluciones-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+  cursor: pointer !important;
+}
+body.dash-devoluciones-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-devoluciones-gentelella .tabla tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de estado (generados por chipEstado() en devoluciones.js)
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .chip {
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+}
+body.dash-devoluciones-gentelella .chip-amarillo {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-devoluciones-gentelella .chip-verde {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-devoluciones-gentelella .chip-rojo {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-devoluciones-gentelella .chip-gris {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botón icono en tabla (Ver detalle)
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .btn-icon {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-devoluciones-gentelella .btn-icon:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .paginacion-container {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-devoluciones-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-devoluciones-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Empty state
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Alerta inline (error en panel)
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .alerta-inline.danger {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border-left: 3px solid var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel lateral de detalle
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .detalle-panel {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+body.dash-devoluciones-gentelella .btn-cerrar-panel {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-devoluciones-gentelella .btn-cerrar-panel:hover {
+  color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+
+/* ── Filas de detalle (generadas por JS) ── */
+body.dash-devoluciones-gentelella .detalle-seccion {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-devoluciones-gentelella .detalle-fila-label {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-devoluciones-gentelella .detalle-fila-val {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+/* ── Opciones de revisión en footer ── */
+body.dash-devoluciones-gentelella .detalle-panel-opciones {
+  font-size: 12px !important;
+  color: var(--ge-muted) !important;
+}
+
+/* ── Botones de acción del panel ── */
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn {
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger {
+  background: var(--ge-red) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger:hover {
+  background: color-mix(in srgb, var(--ge-red) 80%, black) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-success {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-success:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-devoluciones-gentelella .finanzas-kpis {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  body.dash-devoluciones-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-devoluciones-gentelella .filtros-bar input,
+  body.dash-devoluciones-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-devoluciones-gentelella .finanzas-kpis {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cuerpo del panel lateral de devolución
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .detalle-panel-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  overflow-y: auto !important;
+  padding: 16px 20px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FIX — el modal de alta manual se cerraba solo al tocar
+   cualquier <select>/input.
+   Causa: .modal-backdrop y .modal en devoluciones.html están al
+   mismo nivel (hermanos), pero el .modal compartido de
+   adminlte-components.css asume estar ANIDADO adentro de
+   .modal-backdrop (por eso ese usa display:flex para centrarlo).
+   Como acá no hay anidamiento y este módulo nunca tuvo un
+   devoluciones.css propio (a diferencia de clientes.css/stock.css,
+   que sí definen su .modal con position:fixed + z-index propios),
+   el modal quedaba sin position ni z-index → flotaba en el flujo
+   normal de la página, y el backdrop (fixed, z-index más alto,
+   invisible) quedaba tapando todo por encima, interceptando cada
+   click — incluido el de abrir un <select> — y disparando su
+   onclick de cierre.
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella #modal-backdrop-devolucion {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(42,63,84,.55) !important;
+  z-index: 1000 !important;
+}
+body.dash-devoluciones-gentelella #modal-nueva-devolucion {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(640px, 92vw) !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  z-index: 1001 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal "Registrar devolución" (alta manual) — colores/tipografía
+   Mismo patrón que clientes-gentelella.css / stock-gentelella.css:
+   estas clases (.modal-titulo, .modal-subtitulo, .modal-seccion,
+   .modal-sec-label) no tienen ninguna regla en los CSS compartidos,
+   cada pantalla las tematiza acá.
+   ════════════════════════════════════════════════════════════ */
+body.dash-devoluciones-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-devoluciones-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+}
+body.dash-devoluciones-gentelella .modal-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 16px !important;
+}
+body.dash-devoluciones-gentelella .modal-titulo    { color: var(--ge-ink) !important; margin: 0 !important; }
+body.dash-devoluciones-gentelella .modal-subtitulo { color: var(--ge-muted) !important; font-size: 12px !important; }
+body.dash-devoluciones-gentelella .modal-close {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+}
+body.dash-devoluciones-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-devoluciones-gentelella .modal-seccion {
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 16px 0 !important;
+}
+body.dash-devoluciones-gentelella .modal-seccion:last-of-type { border-bottom: none !important; }
+body.dash-devoluciones-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+}
+body.dash-devoluciones-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  margin: 16px -28px -28px !important;
+}
+
+/* Ítems del alta manual (grid armado en renderNdItems()) */
+body.dash-devoluciones-gentelella #nd-items-container input {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* Checkbox de reposición parcial por ítem, en el panel de detalle */
+body.dash-devoluciones-gentelella .chk-item-reponer {
+  accent-color: var(--ge-teal) !important;
+}

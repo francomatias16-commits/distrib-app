@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soporte — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <style>
+    .soporte-wrap { max-width:880px; margin:0 auto; padding:32px 24px 48px; }
+
+    /* ── Hero + buscador ─────────────────────────────────────────── */
+    .soporte-hero { text-align:center; margin-bottom:36px; }
+    .soporte-hero h1 { font-size:26px; font-weight:700; color:var(--color-text); margin:0 0 8px; }
+    .soporte-hero p { font-size:14px; color:var(--color-text-muted); margin:0 0 20px; }
+    .soporte-buscador { position:relative; max-width:440px; margin:0 auto; }
+    .soporte-buscador svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--color-text-light); pointer-events:none; }
+    .soporte-buscador input {
+      width:100%; padding:11px 14px 11px 38px; font-size:14px; font-family:inherit;
+      border:1px solid var(--color-border); border-radius: var(--radius-xl);
+      background:var(--color-surface); color:var(--color-text);
+    }
+    .soporte-buscador input:focus { outline:none; border-color:var(--color-primary); box-shadow:0 0 0 3px var(--color-primary-bg); }
+
+    /* ── Contacto humano (AHORA arriba, es lo primero y más visible) ── */
+    .soporte-contacto {
+      background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl);
+      padding:20px 22px; margin-bottom:32px;
+    }
+    .soporte-contacto h2 { font-size:13px; font-weight:600; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:.03em; margin:0 0 10px; }
+    .canal-row {
+      display:flex; align-items:center; gap:12px;
+      padding:11px 0; border-bottom:1px solid var(--color-border-soft);
+    }
+    .canal-row:last-of-type { border-bottom:none; }
+    .canal-icono {
+      width:32px; height:32px; border-radius: var(--radius-lg); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .canal-icono svg { width:17px; height:17px; }
+    .canal-info { flex:1; min-width:0; }
+    .canal-titulo { font-size:13.5px; color:var(--color-text); margin:0; display:block; }
+    .canal-badge { font-size:11.5px; color:var(--color-text-light); }
+    .btn-canal {
+      font-size:13px; font-weight:500; color:var(--color-primary); text-decoration:none;
+      border:1px solid var(--color-border); border-radius: var(--radius-md); padding:6px 12px; white-space:nowrap;
+      background:none; font-family:inherit; cursor:pointer;
+    }
+    .btn-canal:hover { background:var(--color-surface-2); }
+    .soporte-nota { font-size:12.5px; color:var(--color-text-light); margin:14px 0 0; }
+
+    /* ── Grid de módulos (estilo tarjetas de producto) ───────────── */
+    .soporte-grid-titulo { font-size:13px; font-weight:600; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:.03em; margin:0 0 12px; }
+    .soporte-grid {
+      display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-bottom:8px;
+    }
+    .soporte-card {
+      background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl);
+      padding:18px; display:flex; flex-direction:column; gap:10px; text-align:left;
+      cursor:pointer; font-family:inherit; transition:border-color .12s ease, transform .12s ease;
+    }
+    .soporte-card:hover { border-color:var(--color-border); transform:translateY(-1px); }
+    .soporte-card:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+    .soporte-card-icono {
+      width:38px; height:38px; border-radius: var(--radius-lg); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .soporte-card-icono svg { width:19px; height:19px; }
+    .soporte-card-label { font-size:14px; font-weight:600; color:var(--color-text); margin:0; }
+    .soporte-card-link { font-size:13px; font-weight:500; color:var(--color-primary); display:flex; align-items:center; gap:3px; margin-top:auto; }
+    .soporte-card-link svg { width:13px; height:13px; transition:transform .12s ease; }
+    .soporte-card:hover .soporte-card-link svg { transform:translateX(2px); }
+    .soporte-vacio { grid-column:1 / -1; text-align:center; padding:32px 0; font-size:13px; color:var(--color-text-muted); }
+
+    @media (max-width: 760px) {
+      .soporte-grid { grid-template-columns:repeat(2, 1fr); }
+    }
+    @media (max-width: 460px) {
+      .soporte-grid { grid-template-columns:1fr; }
+      .soporte-wrap { padding:20px 14px 32px; }
+    }
+
+    /* ── Panel de FAQ por módulo ("página paralela") ──────────────
+       Se abre solo al hacer click en una tarjeta — no reemplaza ni
+       tapa el resto del sitio hasta que el usuario lo pide, y no
+       requiere pasar por el chat: todo el contenido está desglosado
+       por escrito, con acordeón para no saturar de golpe. */
+    .faq-overlay {
+      position:fixed; inset:0; background:rgba(15,23,42,.42); z-index:1000;
+      display:flex; justify-content:flex-end;
+      opacity:0; pointer-events:none; transition:opacity .16s ease;
+    }
+    .faq-overlay.abierto { opacity:1; pointer-events:auto; }
+    .faq-panel {
+      width:min(560px, 100%); height:100%; background:var(--color-surface);
+      display:flex; flex-direction:column; box-shadow:-8px 0 24px rgba(15,23,42,.12);
+      transform:translateX(24px); transition:transform .18s ease;
+    }
+    .faq-overlay.abierto .faq-panel { transform:translateX(0); }
+    .faq-panel-header {
+      display:flex; align-items:center; gap:12px; padding:18px 20px;
+      border-bottom:1px solid var(--color-border-soft); flex-shrink:0;
+    }
+    .faq-panel-icono { width:34px; height:34px; border-radius: var(--radius-lg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .faq-panel-icono svg { width:17px; height:17px; }
+    .faq-panel-titulo { font-size:16px; font-weight:700; color:var(--color-text); margin:0; flex:1; }
+    .faq-panel-cerrar {
+      width:30px; height:30px; border-radius: var(--radius-md); border:1px solid var(--color-border);
+      background:none; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; color:var(--color-text-muted);
+    }
+    .faq-panel-cerrar:hover { background:var(--color-surface-2); }
+    .faq-panel-cerrar svg { width:15px; height:15px; }
+    .faq-panel-body { flex:1; overflow-y:auto; padding:8px 20px 20px; }
+    .faq-grupo-titulo { font-size:12px; font-weight:600; color:var(--color-text-light); text-transform:uppercase; letter-spacing:.03em; margin:20px 0 8px; }
+    .faq-grupo-titulo:first-child { margin-top:14px; }
+    .faq-item { border-bottom:1px solid var(--color-border-soft); }
+    .faq-pregunta {
+      width:100%; text-align:left; background:none; border:none; font-family:inherit; cursor:pointer;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 0; font-size:13.5px; font-weight:600; color:var(--color-text);
+    }
+    .faq-pregunta svg { width:14px; height:14px; color:var(--color-text-light); flex-shrink:0; transition:transform .15s ease; }
+    .faq-item.abierta .faq-pregunta svg { transform:rotate(180deg); }
+    .faq-respuesta {
+      max-height:0; overflow:hidden; transition:max-height .18s ease;
+    }
+    .faq-item.abierta .faq-respuesta { max-height:400px; }
+    .faq-respuesta p { margin:0 0 14px; font-size:13.5px; line-height:1.55; color:var(--color-text-muted); }
+    .faq-vacio { text-align:center; padding:36px 12px; font-size:13.5px; color:var(--color-text-muted); }
+    .faq-panel-footer {
+      flex-shrink:0; padding:14px 20px; border-top:1px solid var(--color-border-soft);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .faq-panel-footer span { font-size:12.5px; color:var(--color-text-light); }
+    .btn-preguntar-ia {
+      font-size:13px; font-weight:600; color:#fff; background:var(--color-primary); border:none;
+      border-radius: var(--radius-md); padding:8px 14px; cursor:pointer; white-space:nowrap; font-family:inherit;
+    }
+    .btn-preguntar-ia:hover { filter:brightness(1.06); }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/soporte-gentelella.css" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-soporte-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Soporte</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <main class="main">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
+    <div id="contenido" style="display:none">
+      <div class="soporte-wrap">
+
+        <!-- Hero + buscador -->
+        <div class="soporte-hero">
+          <h1>¿En qué podemos ayudarte?</h1>
+          <p>Elegí un módulo para preguntarle al asistente de IA, o buscá directamente tu duda.</p>
+          <div class="soporte-buscador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="soporte-busqueda" placeholder="Buscar por palabra clave (ej: nota de crédito, stock, AFIP)" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Contacto humano / IA — primero, arriba, bien visible -->
+        <div class="soporte-contacto">
+          <h2>Hablar con alguien</h2>
+
+          <div class="canal-row">
+            <div class="canal-icono" style="background:var(--color-primary-bg); color:var(--color-primary);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="canal-info">
+              <span class="canal-titulo">Asistente de IA</span>
+              <span class="canal-badge">respuesta inmediata, disponible siempre</span>
+            </div>
+            <button type="button" class="btn-canal" id="btn-abrir-chat">Preguntar</button>
+          </div>
+
+          <div class="canal-row">
+            <div class="canal-icono" style="background:rgba(37,211,102,.13); color:#25D366;">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.14h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.37c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.24 8.24z"/></svg>
+            </div>
+            <div class="canal-info">
+              <span class="canal-titulo">WhatsApp · +54 9 3492 38-4984</span>
+              <span class="canal-badge">solo urgencias operativas</span>
+            </div>
+            <a class="btn-canal" id="link-wa" href="#" target="_blank" rel="noopener noreferrer">Escribir</a>
+          </div>
+
+          <div class="canal-row">
+            <div class="canal-icono" style="background:rgba(52,152,219,.13); color:#3498db;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+            </div>
+            <div class="canal-info">
+              <span class="canal-titulo">info@mfwebsolutions.com.ar</span>
+              <span class="canal-badge">consultas generales, errores, cambios</span>
+            </div>
+            <a class="btn-canal" href="mailto:info@mfwebsolutions.com.ar">Escribir</a>
+          </div>
+
+          <p class="soporte-nota">Atendemos de lunes a viernes de 9 a 18 hs (hora Argentina). Tiempo de respuesta habitual: mismo día hábil para urgencias, hasta 48 hs para el resto.</p>
+        </div>
+
+        <!-- Grid de módulos: cada tarjeta abre el panel de preguntas frecuentes -->
+        <p class="soporte-grid-titulo">O elegí un tema para ver las preguntas frecuentes</p>
+        <div class="soporte-grid" id="soporte-grid"></div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Panel de FAQ por módulo ("página paralela"): se abre solo al pedirlo -->
+<div class="faq-overlay" id="faq-overlay">
+  <div class="faq-panel" role="dialog" aria-modal="true" aria-labelledby="faq-panel-titulo">
+    <div class="faq-panel-header">
+      <span class="faq-panel-icono" id="faq-panel-icono"></span>
+      <h2 class="faq-panel-titulo" id="faq-panel-titulo"></h2>
+      <button type="button" class="faq-panel-cerrar" id="faq-panel-cerrar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="faq-panel-body" id="faq-panel-body"></div>
+    <div class="faq-panel-footer">
+      <span>¿No encontraste tu respuesta?</span>
+      <button type="button" class="btn-preguntar-ia" id="faq-panel-preguntar-ia">Preguntarle al asistente de IA</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/soporte-faqs-data.js?v1"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script>
+/**
+ * Tarjetas de "¿en qué te ayudamos?": una por espacio de trabajo real de
+ * la app (mismos ids/colores/íconos que window.NAV_WORKSPACES, ver
+ * nav-data.js — así si mañana se agrega o renombra un workspace, esta
+ * pantalla no queda desactualizada a mano). 'hoy' (Panel principal) se
+ * excluye a propósito: es una pantalla única sin sub-secciones, no un
+ * área temática sobre la que tenga sentido "pedir ayuda".
+ *
+ * keywords: términos adicionales para que el buscador encuentre la
+ * tarjeta aunque el usuario no escriba el nombre exacto del workspace
+ * (ej. "afip" -> Facturación, "remito" -> Depósito).
+ */
+const SOPORTE_TEMAS = [
+  { ws: 'ventas',        label: 'Ventas',              colorVar: 'ventas',       keywords: 'pos punto de venta pedidos presupuestos clientes cajas repartos whatsapp' },
+  { ws: 'deposito',      label: 'Depósito',             colorVar: 'deposito',     keywords: 'stock productos remitos compras proveedores devoluciones lotes vencimientos' },
+  { ws: 'cobros',        label: 'Cobros y pagos',       colorVar: 'cobros',       keywords: 'cobranzas cuenta corriente cheques riesgo mercadopago medios de pago' },
+  { ws: 'facturacion',   label: 'Facturación',          colorVar: 'facturacion',  keywords: 'afip factura electronica notas de credito debito comprobantes' },
+  { ws: 'fidelizacion',  label: 'Fidelización',         colorVar: 'fidelizacion', keywords: 'puntos recompensas canjes programa de puntos' },
+  { ws: 'reportes',      label: 'Reportes',             colorVar: 'reportes',     keywords: 'ventas stock financieros rentabilidad zona vendedor' },
+  { ws: 'config',        label: 'Configuración',        colorVar: 'config',       keywords: 'usuarios roles empresa plan saas facturacion config' },
+  // 'automatizacion' no tiene acento propio en nav-data.js — reutiliza el
+  // color de 'hoy' (ver color: 'var(--nav-hoy)' ahí), así que acá también
+  // apunta a --nav-hoy en vez de al inexistente --nav-automatizacion.
+  { ws: 'automatizacion',label: 'Alertas automáticas',  colorVar: 'hoy',          keywords: 'automatizacion reglas avisos notificaciones' },
+];
+
+function iconoDeWorkspace(wsId) {
+  const ws = (window.NAV_WORKSPACES || []).find(w => w.id === wsId);
+  return ws ? ws.icon : '';
+}
+
+function renderGridSoporte(filtro) {
+  const cont = document.getElementById('soporte-grid');
+  const q = (filtro || '').trim().toLowerCase();
+  const visibles = SOPORTE_TEMAS.filter(t =>
+    !q || t.label.toLowerCase().includes(q) || t.keywords.includes(q)
+  );
+
+  if (!visibles.length) {
+    cont.innerHTML = `<div class="soporte-vacio">No encontramos un módulo que coincida con "${q.replace(/</g,'&lt;')}". Probá con el asistente de IA usando el botón de abajo a la derecha.</div>`;
+    return;
+  }
+
+  cont.innerHTML = visibles.map(t => `
+    <button type="button" class="soporte-card" data-ws="${t.ws}">
+      <span class="soporte-card-icono" style="background:var(--nav-${t.colorVar}-bg); color:var(--nav-${t.colorVar});">${iconoDeWorkspace(t.ws)}</span>
+      <p class="soporte-card-label">${t.label}</p>
+      <span class="soporte-card-link">
+        Obtener ayuda con ${t.label}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </span>
+    </button>
+  `).join('');
+
+  cont.querySelectorAll('.soporte-card').forEach(card => {
+    card.addEventListener('click', () => abrirPanelFAQ(card.dataset.ws));
+  });
+}
+
+/**
+ * Panel de FAQ ("página paralela"): al hacer click en una tarjeta se abre
+ * este panel con TODA la info de preguntas frecuentes desglosada por
+ * escrito (acordeón, agrupada por artículo de docs/ayuda), sin pasar por
+ * el chat. El chat queda como salida para lo que no está cubierto acá.
+ */
+let faqAbiertaActual = null;
+
+function abrirPanelFAQ(wsId) {
+  const tema = SOPORTE_TEMAS.find(t => t.ws === wsId);
+  if (!tema) return;
+  faqAbiertaActual = wsId;
+
+  document.getElementById('faq-panel-icono').style.background = `var(--nav-${tema.colorVar}-bg)`;
+  document.getElementById('faq-panel-icono').style.color = `var(--nav-${tema.colorVar})`;
+  document.getElementById('faq-panel-icono').innerHTML = iconoDeWorkspace(tema.ws);
+  document.getElementById('faq-panel-titulo').textContent = tema.label;
+
+  const grupos = (window.SOPORTE_FAQS_DATA && window.SOPORTE_FAQS_DATA[wsId]) || [];
+  const body = document.getElementById('faq-panel-body');
+
+  if (!grupos.length) {
+    body.innerHTML = `<div class="faq-vacio">Todavía no cargamos preguntas frecuentes escritas para ${tema.label}. Usá el botón de abajo para preguntarle directamente al asistente de IA.</div>`;
+  } else {
+    body.innerHTML = grupos.map(grupo => `
+      <p class="faq-grupo-titulo">${grupo.titulo}</p>
+      ${grupo.faqs.map((item, i) => `
+        <div class="faq-item" data-grupo="${grupo.slug}" data-idx="${i}">
+          <button type="button" class="faq-pregunta">
+            <span>${item.q}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="faq-respuesta"><p>${item.a}</p></div>
+        </div>
+      `).join('')}
+    `).join('');
+
+    body.querySelectorAll('.faq-item').forEach(item => {
+      item.querySelector('.faq-pregunta').addEventListener('click', () => {
+        item.classList.toggle('abierta');
+      });
+    });
+  }
+
+  document.getElementById('faq-overlay').classList.add('abierto');
+}
+
+function cerrarPanelFAQ() {
+  document.getElementById('faq-overlay').classList.remove('abierto');
+  faqAbiertaActual = null;
+}
+
+async function init() {
+  await window.authReady;
+  const perfil = window.authCtx?.perfil;
+  if (!perfil) { window.location.href = '/admin/login'; return; }
+  if (perfil.nombre) document.getElementById('topbar-usuario').textContent = perfil.nombre;
+
+  const numero  = '5493492384984';
+  const mensaje = 'Hola, necesito soporte con Fluxo.';
+  document.getElementById('link-wa').href = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+
+  renderGridSoporte('');
+  const buscador = document.getElementById('soporte-busqueda');
+  buscador.addEventListener('input', () => renderGridSoporte(buscador.value));
+  // Enter con texto que no matchea ningún módulo (o directamente para ir
+  // a lo específico): manda la pregunta tal cual al asistente de IA.
+  buscador.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && buscador.value.trim()) {
+      window.abrirAsistenteIA && window.abrirAsistenteIA(buscador.value.trim());
+    }
+  });
+
+  document.getElementById('btn-abrir-chat').addEventListener('click', () => {
+    window.abrirAsistenteIA && window.abrirAsistenteIA('');
+  });
+
+  document.getElementById('faq-panel-cerrar').addEventListener('click', cerrarPanelFAQ);
+  document.getElementById('faq-overlay').addEventListener('click', (ev) => {
+    if (ev.target.id === 'faq-overlay') cerrarPanelFAQ();
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && faqAbiertaActual) cerrarPanelFAQ();
+  });
+  document.getElementById('faq-panel-preguntar-ia').addEventListener('click', () => {
+    const tema = SOPORTE_TEMAS.find(t => t.ws === faqAbiertaActual);
+    cerrarPanelFAQ();
+    window.abrirAsistenteIA && window.abrirAsistenteIA(tema ? `Necesito ayuda con ${tema.label}. ` : '');
+  });
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('contenido').style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+/**
+ * anomalias-gentelella.css — Reskin "Gentelella v4" de la pantalla Anomalías
+ * ("Movimientos raros")
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define su UI completa en un bloque <style> inline (cards de
+ * anomalía, pills de resumen, badges de severidad, modal de detalle JSON);
+ * este archivo lo sobreescribe todo bajo el scope, sin tocar ningún id/clase
+ * que lea anomalias.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-anomalias-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella { background: var(--ge-bg) !important; }
+body.dash-anomalias-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-anomalias-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-anomalias-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-anomalias-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-anomalias-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb + page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toolbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .anomalias-toolbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) var(--ge-radius-card) 0 0 !important;
+  padding: 18px 22px !important;
+}
+body.dash-anomalias-gentelella .anomalias-toolbar h2 {
+  color: var(--ge-ink) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+body.dash-anomalias-gentelella .anomalias-toolbar h2::before {
+  content: "" !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: var(--ge-teal) !important;
+  box-shadow: 0 0 0 4px var(--ge-teal-light) !important;
+  flex-shrink: 0 !important;
+}
+body.dash-anomalias-gentelella .dias-select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  height: 36px !important;
+}
+body.dash-anomalias-gentelella .dias-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-anomalias-gentelella .btn-analizar {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  height: 36px !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-anomalias-gentelella .btn-analizar:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-anomalias-gentelella .btn-analizar:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Contenedor general (toolbar + pills + lista comparten un panel)
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella #contenido-anomalias {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+
+/* Resumen (avisos.js/anomalias.js emiten .sello — estilo en tokens.css) */
+body.dash-anomalias-gentelella .anomalias-resumen {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cards de anomalía
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .anomalia-card {
+  border: 1px solid var(--ge-border) !important;
+  border-left-width: 4px !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: box-shadow .18s ease, transform .18s ease, opacity .2s !important;
+}
+body.dash-anomalias-gentelella .anomalia-card:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card:has(.badge-alta) {
+  border-left-color: var(--ge-red) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card:has(.badge-media) {
+  border-left-color: var(--ge-orange) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card.revisada {
+  border-left-color: var(--ge-border) !important;
+  box-shadow: none !important;
+}
+body.dash-anomalias-gentelella .anomalia-card.revisada:hover {
+  transform: none !important;
+}
+/* Ícono circular — mismo lenguaje que .kpi-icono del resto del admin
+   (círculo de color detrás del ícono), coloreado según severidad de
+   la tarjeta que lo contiene. */
+body.dash-anomalias-gentelella .anomalia-icono {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-top: 1px !important;
+  font-size: 16px !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card:has(.badge-alta) .anomalia-icono {
+  background: rgba(220,38,38,.10) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card:has(.badge-media) .anomalia-icono {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card.revisada .anomalia-icono {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-badge {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-anomalias-gentelella .badge-alta {
+  background: rgba(220,38,38,.10) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-anomalias-gentelella .badge-media {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-anomalias-gentelella .anomalia-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-anomalias-gentelella .anomalia-sub {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card__body {
+  color: var(--ge-ink) !important;
+}
+/* Chips de metadata (Quién / Entidad / Eventos / Monto / Fechas) —
+   antes fondo casi idéntico al de la tarjeta (invisibles); ahora
+   con borde y sombra propios para que se lean como tarjetas chicas
+   independientes, no como texto suelto. */
+body.dash-anomalias-gentelella .anomalia-meta-item {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-anomalias-gentelella .anomalia-meta-item__lbl {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-meta-item__val {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-toggle {
+  color: var(--ge-teal) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-toggle:hover {
+  color: var(--ge-teal-dark) !important;
+  text-decoration: underline !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-json {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-fila {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-lbl {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-evento {
+  border-bottom: 1px dashed var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-evento strong {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-card__footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  gap: 10px !important;
+}
+body.dash-anomalias-gentelella .btn-revisar {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease !important;
+}
+body.dash-anomalias-gentelella .btn-revisar:hover {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-anomalias-gentelella .btn-revisar.ya-revisada,
+body.dash-anomalias-gentelella .btn-revisar.ya-revisada:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal-light) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Vacío / skeleton
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .anomalias-vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalias-vacio .icono {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 50% !important;
+  background: var(--ge-teal-light) !important;
+  align-items: center !important;
+  margin: 0 auto 14px !important;
+}
+body.dash-anomalias-gentelella .anomalias-vacio .icono svg {
+  width: 26px !important;
+  height: 26px !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-anomalias-gentelella .anomalias-vacio h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-anomalias-gentelella .sk-anomalia {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal "Detalle del patrón"
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-anomalias-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-anomalias-gentelella .modal-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-anomalias-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-anomalias-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .modal-close:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-anomalias-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-anomalias-gentelella #modal-detalle-content {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-anomalias-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-anomalias-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-anomalias-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}

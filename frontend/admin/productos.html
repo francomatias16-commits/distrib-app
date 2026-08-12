@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Productos — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=227" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=227" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=227" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=227" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos.css?v=234" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=227" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=227" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos-modal-fix.css?v=2" />
+  <script src="/frontend/env-config.js"></script>
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-productos-gentelella dash-gentelella">
+
+<!-- ── PRELOADER ── -->
+<div id="app-preloader" class="preloader">
+  <div class="preloader-logo">D</div>
+  <span class="preloader-text">Cargando productos…</span>
+  <div class="preloader-bar"></div>
+</div>
+
+<!-- ── Sidebar ── -->
+<div id="nav-root"></div>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Productos</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <div class="productos-page" id="vista-productos">
+      <div class="productos-card">
+
+        <!-- ── Toolbar superior ── -->
+        <div class="prod-toolbar">
+          <div class="prod-toolbar-top">
+            <div>
+              <h2 class="prod-titulo">Productos</h2>
+              <p class="prod-subtitulo">Gestionar y sincronizar los datos de sus productos</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="prod-alerta-link" id="prod-alerta-link" onclick="verAlertas()" style="display:none"></span>
+              <!-- FIX v481: antes "Importar"/"Exportar CSV" vivían sueltos afuera de la
+                         tarjeta, y "Buscar imágenes automáticamente" era un ícono sin texto
+                         escondido abajo, en la fila de filtros. Ruben lo reportó como poco
+                         visible. Se agrupan las tres en un solo menú "Más funciones", con texto y
+                         descripción de cada una, así se identifican como lo que son: las
+                         acciones de gestión masiva del catálogo (en contraste con
+                         "Agregar producto" y "Columnas", que quedan visibles como antes
+                         por ser de uso más frecuente). -->
+              <div class="topbar-more-wrap">
+                <button type="button" class="btn-mas-funciones" id="btn-mas-funciones"
+                        onclick="toggleMenuMasFunciones(event)" aria-haspopup="true" aria-expanded="false">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                  </svg>
+                  Más funciones
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                <div class="menu-mas-funciones" id="menu-mas-funciones" hidden>
+                  <a href="/admin/migracion" class="menu-mas-funciones-item">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>
+                      <strong>Importar productos</strong>
+                      <small>Desde un archivo CSV o Excel</small>
+                    </span>
+                  </a>
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); exportarProductos()">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>
+                      <strong>Exportar CSV</strong>
+                      <small>Descarga el catálogo actual</small>
+                    </span>
+                  </button>
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, buscarImagenesAutomaticas)">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/>
+                      <path d="M3 16l4.5-4.5a2 2 0 0 1 2.8 0L15 16"/><path d="M14 13l1.7-1.7a2 2 0 0 1 2.8 0L21 14"/>
+                    </svg>
+                    <span>
+                      <strong>Buscar imágenes automáticamente</strong>
+                      <small>Completa fotos faltantes en segundo plano</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /prod-toolbar -->
+
+        <!-- ── Barra de filtros ── -->
+        <div class="prod-filtros">
+          <div class="prod-filtros-izq">
+            <span class="prod-filtros-label">Filtrar por</span>
+
+            <!-- Filtro de estado -->
+            <select id="prod-filtro-estado" class="prod-select-filtro" onchange="onFiltroEstado(this.value)" aria-label="Filtrar por estado">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="borrador">Borrador</option>
+              <option value="sin_stock">Sin stock</option>
+            </select>
+
+            <!-- Filtro de categoría -->
+            <select id="prod-filtro-cat" class="prod-select-filtro" onchange="onFiltroCat(this.value)" aria-label="Filtrar por categoría">
+              <option value="">Todas las categorías</option>
+            </select>
+
+            <!-- Filtro por origen de la foto (v392) -->
+            <select id="prod-filtro-foto" class="prod-select-filtro" onchange="onFiltroFoto(this.value)" aria-label="Filtrar por origen de la foto">
+              <option value="">Todas las fotos</option>
+              <option value="real">Foto real</option>
+              <option value="generica">Foto genérica</option>
+              <option value="sin_foto">Sin foto</option>
+            </select>
+
+            <!-- Buscador de nombre -->
+            <div class="prod-tag-input">
+              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input id="prod-tag-input" type="text" placeholder="Buscar por nombre o código..."
+                     autocomplete="off" aria-label="Buscar por nombre o categoría"
+                     oninput="onBusquedaTag(this.value)">
+            </div>
+
+            <!-- Indicador de selección -->
+            <span id="prod-sel-count" style="display:none;font-size:0.8rem;color:var(--color-primary);font-weight:600"></span>
+          </div>
+
+          <div class="prod-filtros-der">
+            <!-- Limpiar filtros -->
+            <button class="prod-icon-btn" aria-label="Limpiar filtros" onclick="limpiarFiltros()" title="Limpiar filtros">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.35"/>
+              </svg>
+            </button>
+
+            <!-- Agregar producto -->
+            <button class="prod-add-btn" aria-label="Nuevo producto" onclick="btnAsyncClick(this, agregarProducto)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5"  y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>Nuevo producto</span>
+            </button>
+          </div>
+        </div><!-- /prod-filtros -->
+
+        <!-- ── Navegación por meses ── -->
+        <div class="prod-nav">
+          <div class="prod-nav-meses">
+            <span class="prod-nav-year" id="prod-nav-year"></span>
+            <button class="prod-mes-btn prod-mes-todos" data-mes="todos">Todos</button>
+            <button class="prod-mes-btn" data-mes="0">Ene</button>
+            <button class="prod-mes-btn" data-mes="1">Feb</button>
+            <button class="prod-mes-btn" data-mes="2">Mar</button>
+            <button class="prod-mes-btn" data-mes="3">Abr</button>
+            <button class="prod-mes-btn" data-mes="4">May</button>
+            <button class="prod-mes-btn" data-mes="5">Jun</button>
+            <button class="prod-mes-btn" data-mes="6">Jul</button>
+            <button class="prod-mes-btn" data-mes="7">Ago</button>
+            <button class="prod-mes-btn" data-mes="8">Sep</button>
+            <button class="prod-mes-btn" data-mes="9">Oct</button>
+            <button class="prod-mes-btn" data-mes="10">Nov</button>
+            <button class="prod-mes-btn" data-mes="11">Dic</button>
+          </div>
+
+          <div class="prod-nav-right">
+            <span id="prod-total-label" class="prod-total-label"></span>
+            <button class="prod-edit-cols-btn" onclick="editarColumnas()" aria-label="Editar columnas visibles">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/>
+                <line x1="4" y1="12" x2="14" y2="12"/>
+                <line x1="4" y1="18" x2="10" y2="18"/>
+              </svg>
+              Columnas
+            </button>
+          </div>
+        </div><!-- /prod-nav -->
+
+        <!-- ── Tabla ── -->
+        <div class="prod-tabla-wrap">
+          <table class="prod-tabla" aria-label="Lista de productos">
+            <thead>
+            <tr>
+                <th style="width:40px">
+                  <input type="checkbox" id="prod-chk-all" class="prod-check"
+                         aria-label="Seleccionar todos los productos"
+                         onchange="toggleTodos(this.checked)">
+                </th>
+                <th class="prod-th-sort thead-sep" data-col="nombre" onclick="ordenarPor('nombre')">
+                  Nombre <span class="prod-sort-icon" id="sort-nombre"></span>
+                </th>
+                <th>Categoría</th>
+                <th class="thead-sep">Estado</th>
+                <th class="prod-th-sort thead-sep" data-col="fechaAct" onclick="ordenarPor('fechaAct')">
+                  Última Act. <span class="prod-sort-icon" id="sort-fechaAct"></span>
+                </th>
+                <th class="prod-th-sort prod-num" data-col="precio" onclick="ordenarPor('precio')">
+                  Precio <span class="prod-sort-icon" id="sort-precio"></span>
+                </th>
+                <th class="prod-num">Costo</th>
+                <th class="prod-th-sort prod-num" data-col="stock" onclick="ordenarPor('stock')">
+                  Stock <span class="prod-sort-icon" id="sort-stock"></span>
+                </th>
+                <th class="prod-num thead-sep">Margen</th>
+                <th>Ventas Goal</th>
+                <th class="col-sticky-end" style="width:48px"></th>
+              </tr>
+            </thead>
+            <tbody id="prod-tbody">
+              <tr>
+                <td colspan="11" class="prod-empty">
+                  <div class="prod-empty-spinner"></div>
+                  Cargando productos…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!-- /prod-tabla-wrap -->
+
+        <!-- ── Paginación ── -->
+        <div class="prod-pag-wrap" id="prod-pag-wrap" style="display:none">
+          <button type="button" class="prod-pag-btn" id="prod-btn-ant" onclick="irPagina(_page - 1)" aria-label="Página anterior">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Anterior
+          </button>
+          <span class="prod-pag-info" id="prod-pag-info">Página 1 de 1</span>
+          <button type="button" class="prod-pag-btn" id="prod-btn-sig" onclick="irPagina(_page + 1)" aria-label="Página siguiente">
+            Siguiente
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+      </div><!-- /productos-card -->
+    </div><!-- /productos-page -->
+
+  </main>
+</div><!-- /.layout -->
+
+<!-- ── Modal Nuevo/Editar producto ──────────────────────────────────────
+     Mismo patrón .modal-backdrop/.modal que usa Clientes, para que
+     Productos quede sincronizado con el resto de las secciones en vez
+     de depender de confirm()/alert() nativos sin conexión a la base. ── -->
+<div class="modal-backdrop" id="modal-backdrop-producto" onclick="cerrarModalProducto()" aria-hidden="true"></div>
+
+<div class="modal modal--producto" id="modal-producto" role="dialog" aria-modal="true" aria-labelledby="modal-prod-titulo">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-prod-titulo">Nuevo producto</h2>
+      <div class="modal-subtitulo" id="modal-prod-subtitulo">Completá los datos del producto</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalProducto()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="tab-panel">
+    <!-- v628/v630: el escaneo de código de barras es la acción más visible
+         del formulario — dos botones grandes, uno para escanear directo con
+         la cámara de este dispositivo (compu o celular) y otro para
+         vincular un celular aparte como lector remoto. v630: la explicación
+         larga pasa a un tooltip (ícono "i") para no ocupar una línea entera. -->
+    <div class="modal-seccion modal-seccion--scan">
+      <div class="modal-sec-label">Escanear código de barras</div>
+      <div class="scan-row">
+        <button type="button" class="btn-primario" id="btn-escanear-camara-producto" onclick="abrirEscanerCamaraProducto()"
+          title="Usa la cámara de esta computadora o celular para leer el código">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Escanear con la cámara
+        </button>
+        <button type="button" class="btn-secundario" id="btn-vincular-celular-producto" onclick="abrirVincularCelularProducto()"
+          title="Vincular un celular aparte como lector remoto">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Vincular celular
+        </button>
+        <span class="ayuda-contextual scan-ayuda" tabindex="0" data-tooltip="&quot;Escanear con la cámara&quot; funciona directo desde esta pantalla (compu o celular). &quot;Vincular celular&quot; usa otro dispositivo como lector remoto, útil si estás cargando productos desde la computadora sin cámara a mano.">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- v630 — Rediseño: el resto del formulario pasa a dos columnas para
+         que entre completo en una sola pantalla en desktop (antes era una
+         sola columna angosta que obligaba a scrollear mucho). Izquierda:
+         identificación + foto. Derecha: precio/stock + depósitos. -->
+    <div class="modal-grid-2col">
+      <div class="modal-col">
+        <div class="modal-seccion">
+          <div class="modal-sec-label">Identificación</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre <span class="form-requerido">*</span></label>
+              <input type="text" id="fp-nombre" class="form-input" placeholder="Ej: Arroz Largo Fino 1kg" maxlength="120" aria-label="Nombre del producto" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código</label>
+              <input type="text" id="fp-codigo" class="form-input" placeholder="Opcional — o escaneá arriba" maxlength="60" aria-label="Código" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Categoría</label>
+              <select id="fp-categoria_id" class="form-select" aria-label="Categoría" onchange="onCambioCategoriaFP(this)">
+                <option value="">Sin categoría</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <select id="fp-activo" class="form-select" aria-label="Estado">
+                <option value="true">Activo</option>
+                <option value="false">Borrador / inactivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- v353: subida de foto de producto (bucket Storage productos-fotos,
+             ya existía la columna productos.foto_url y se mostraba en catálogo/
+             carrito/compras, pero faltaba la carga desde el modal). -->
+        <div class="modal-seccion">
+          <div class="modal-sec-label">Foto</div>
+          <div class="foto-row">
+            <div id="fp-foto-preview-wrap" class="foto-preview-wrap">
+              <img id="fp-foto-preview" src="" alt="Foto del producto" style="width:100%;height:100%;object-fit:cover;display:none">
+              <svg id="fp-foto-preview-icono" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-text-muted)"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <div class="foto-controles">
+              <input type="file" id="fp-foto-input" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Foto del producto" />
+              <button type="button" id="fp-foto-quitar" class="btn-secundario foto-btn-quitar" style="display:none" onclick="quitarFotoProducto()">Quitar imagen</button>
+              <span class="foto-hint">JPG, PNG, WEBP o GIF. Máx. 5 MB.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-col">
+        <div class="modal-seccion">
+          <div class="modal-sec-label">Precios y stock</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Precio de venta</label>
+              <input type="number" id="fp-precio_base" class="form-input" min="0" step="0.01" aria-label="Precio de venta" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Costo</label>
+              <input type="number" id="fp-costo" class="form-input" min="0" step="0.01" aria-label="Costo" />
+            </div>
+          </div>
+          <div class="form-row form-row--1">
+            <div class="form-group">
+              <label class="form-label">
+                Stock mínimo
+                <span class="ayuda-contextual" data-tooltip="Debajo de esta cantidad el producto se marca como 'Sin Stock' y dispara la alerta de stock crítico del panel principal.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+              </label>
+              <input type="number" id="fp-stock_minimo" class="form-input" min="0" step="1" aria-label="Stock mínimo" />
+            </div>
+          </div>
+          <p class="form-nota">
+            El stock disponible se gestiona por depósito desde <a href="/admin/stock.html">Depósito → Stock</a>.
+            <span id="fp-link-receta" style="display:none"> · <a href="#" onclick="abrirModalReceta(); return false;">Gestionar receta (BOM) →</a></span>
+          </p>
+        </div>
+
+        <!-- fix v351: antes el alta de producto disparaba un trigger que creaba
+             una fila de stock en 0 en TODOS los depósitos de la empresa. Ahora
+             se elige explícitamente en qué depósito(s) arranca. Solo aplica al
+             alta; en edición el stock ya se gestiona desde Stock. -->
+        <div class="modal-seccion" id="fp-sec-depositos">
+          <div class="modal-sec-label">Depósitos</div>
+          <p class="form-nota" style="margin-bottom:6px">
+            Seleccioná en cuáles va a tener stock (empieza en 0, se ajusta desde Stock).
+          </p>
+          <div id="fp-depositos-lista" class="depositos-lista">
+            <!-- se completa dinámicamente desde cargarDepositosModal() -->
+          </div>
+          <div id="fp-depositos-error" style="display:none;color:var(--color-danger);font-size:12px;margin-top:6px">
+            Elegí al menos un depósito.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- v630 — Las 4 acciones viven juntas en un único footer fijo (antes
+       "Limpiar formulario" estaba arriba en el header y "Guardar/Cancelar"
+       al fondo del scroll, obligando a subir y bajar para usarlas juntas). -->
+  <div class="form-acciones">
+    <button type="button" class="btn-peligro" id="btn-eliminar-producto" style="display:none;margin-right:auto" onclick="btnAsyncClick(this, eliminarProducto)" aria-live="polite">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      Eliminar producto
+    </button>
+    <button type="button" class="btn btn--ghost" id="btn-limpiar-formulario-producto" onclick="limpiarFormularioProducto()"
+      title="Borra todos los campos del formulario">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.35"/></svg>
+      Limpiar formulario
+    </button>
+    <button type="button" class="btn-secundario" onclick="cerrarModalProducto()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-producto" onclick="btnAsyncClick(this, guardarProducto)" aria-live="polite">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Guardar producto
+    </button>
+  </div>
+</div>
+
+<!-- ── Mini-modal: nueva categoría rápida (sin salir del producto) ──────── -->
+<div id="modal-backdrop-cat-rapida" onclick="cerrarModalCategoriaRapidaSiFondo(event)" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.35);z-index:500"></div>
+<div id="modal-categoria-rapida" role="dialog" aria-modal="true" aria-label="Nueva categoría" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:501;background:var(--color-surface);border-radius:var(--radius-lg,14px);box-shadow:var(--shadow-big);width:100%;max-width:400px;padding:24px;">
+  <h2 class="modal-titulo" style="margin:0 0 16px">Nueva categoría</h2>
+  <div class="form-group">
+    <label class="form-label">Nombre *</label>
+    <input type="text" id="cat-nombre" class="form-input" placeholder="Ej: Almacén, Bebidas, Limpieza..." aria-label="Nombre de la categoría" />
+  </div>
+  <div class="form-acciones" style="margin-top:20px">
+    <button type="button" class="btn-secundario" onclick="cerrarModalCategoriaRapida()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-cat-rapida" onclick="btnAsyncClick(this, guardarCategoriaRapida)" aria-live="polite">Crear categoría</button>
+  </div>
+</div>
+
+<!-- ── Modal Receta (BOM) — v343: insumos que se descuentan automáticamente
+     al producir este producto vía "Producción propia" en Stock. ── -->
+<div class="modal-backdrop" id="modal-backdrop-receta" onclick="cerrarModalReceta()" aria-hidden="true"></div>
+<div class="modal" id="modal-receta" role="dialog" aria-modal="true" aria-labelledby="modal-receta-titulo">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-receta-titulo">Receta (BOM)</h2>
+      <div class="modal-subtitulo" id="modal-receta-subtitulo">Insumos que se descuentan al producir</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalReceta()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="tab-panel">
+    <p style="font-size:12px;color:var(--color-text-muted);margin:0 0 12px">
+      Por cada unidad producida de este producto, se descuenta la cantidad indicada de cada insumo
+      (del mismo depósito donde se registra la producción). Si no cargás ningún insumo, "Producción propia"
+      sigue funcionando igual que antes, sin descontar nada.
+    </p>
+
+    <div id="receta-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+
+    <div class="form-row" style="align-items:flex-end">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Insumo</label>
+        <select id="receta-select-insumo" class="form-select"></select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Cantidad por unidad</label>
+        <input type="number" id="receta-input-cantidad" class="form-input" min="1" step="1" placeholder="0" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <button type="button" class="btn-secundario" onclick="btnAsyncClick(this, agregarInsumoReceta)">Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalReceta()">Cerrar</button>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Supabase ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<!-- ── Nav ── -->
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/ui-utils.js"></script>
+<script src="/frontend/admin/js/auth-ready.js"></script>
+<script src="/frontend/admin/js/auth.js"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js"></script>
+
+<!-- ── Lógica de la sección ── -->
+<script src="/frontend/admin/js/productos.js?v=281"></script>
+
+<!-- v617: "Escanear con celular" para autocompletar el código al crear/editar
+     un producto. Mismo circuito que stock, ver frontend/shared/vincular-celular.js. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/frontend/shared/vincular-celular.js?v1"></script>
+
+<!-- v628: escaneo directo con la cámara de este dispositivo (compu o
+     celular), sin depender de vincular un segundo dispositivo. -->
+<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
+<script src="/frontend/shared/camera-scanner.js?v1"></script>
+<script src="/frontend/admin/js/productos-scanner-remoto.js?v1"></script>
+
+<!-- ── Preloader ocultador ── -->
+<script>
+(function() {
+  function ocultarPreloader() {
+    var el = document.getElementById("app-preloader");
+    if (!el) return;
+    el.classList.add("oculto");
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+  setTimeout(ocultarPreloader, 3000);
+  window.ocultarPreloader = ocultarPreloader;
+  window.addEventListener("load", function(){ setTimeout(ocultarPreloader, 500); });
+})();
+</script>
+
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

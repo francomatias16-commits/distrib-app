@@ -1,0 +1,312 @@
+/**
+ * automatizacion-gentelella.css — Reskin "Gentelella v4"
+ * ─────────────────────────────────────────────────────────────────────────
+ * Pantalla: Panel de Control de Automatización (frontend/admin/automatizacion.html)
+ * Reglas scopeadas bajo body.dash-automatizacion-gentelella para no romper
+ * el CSS heredado de automatizacion.css. Solo tokens --ge-* existentes en
+ * frontend/shared/gentelella-tokens.css — no se agregó ningún token nuevo.
+ *
+ * Notas de mapeo:
+ * - motor-status / kpi-* / tarea-badge / score-pill reusan el mismo patrón
+ *   de color que clientes-gentelella.css / stock-gentelella.css (ok→teal,
+ *   warn→orange, error→red, info→blue, idle/muted→ge-muted).
+ * - Los 5 acentos de ícono por motor (icon-piloto/cierre/rutas/stock/score)
+ *   se mapean 1:1 a los 5 tonos de marca disponibles (orange/teal/blue/
+ *   purple/red) — no había un 6to tono para "score", se reusa red en baja
+ *   opacidad solo como acento decorativo del ícono (no implica error).
+ */
+
+/* ── Topbar / breadcrumb / intro (patrón común ya usado en otras pantallas) */
+body.dash-automatizacion-gentelella .topbar-title { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .topbar-fecha,
+body.dash-automatizacion-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .page-intro {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-ink) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-automatizacion-gentelella .page-intro strong { color: var(--ge-teal-dark) !important; }
+
+/* ── Topbar del panel ────────────────────────────────────────────────────── */
+body.dash-automatizacion-gentelella .auto-topbar p,
+body.dash-automatizacion-gentelella #auto-fecha { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .auto-timestamp { color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .btn-refrescar-panel {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-automatizacion-gentelella .btn-refrescar-panel:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ── Chips de descripción de frecuencia (estilos inline en el HTML,
+     se sobreescriben acá porque son selectores por atributo/hijo, no
+     clases inventadas por nosotros) ────────────────────────────────────── */
+body.dash-automatizacion-gentelella .page-intro ~ div[style*="flex-wrap"] span {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ── Panel Push ──────────────────────────────────────────────────────────── */
+body.dash-automatizacion-gentelella .push-panel {
+  background: var(--ge-teal-light) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-automatizacion-gentelella .push-icon { color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .push-title { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .push-sub { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .btn-push-toggle {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .btn-push-toggle:hover { background: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .btn-push-toggle.btn-push--activo {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+body.dash-automatizacion-gentelella .push-prefs {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-automatizacion-gentelella .push-prefs__title { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .pref-toggle {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-automatizacion-gentelella .pref-toggle:hover { border-color: var(--ge-teal) !important; }
+body.dash-automatizacion-gentelella .pref-toggle input[type="checkbox"] { accent-color: var(--ge-teal) !important; }
+
+/* ── Grid + tarjeta de motor ─────────────────────────────────────────────── */
+body.dash-automatizacion-gentelella .motor-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-automatizacion-gentelella .motor-card:hover { box-shadow: var(--ge-shadow-lg) !important; }
+body.dash-automatizacion-gentelella .motor-card--activo { border-left: 3px solid var(--ge-teal) !important; }
+body.dash-automatizacion-gentelella .motor-card--error  { border-left: 3px solid var(--ge-red) !important; border-color: rgba(231,76,60,.3) !important; }
+body.dash-automatizacion-gentelella .motor-card--idle   { border-left: 3px solid var(--ge-orange) !important; }
+
+body.dash-automatizacion-gentelella .motor-card__header { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-automatizacion-gentelella .motor-card__title { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .motor-card__sub { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .motor-card__footer { border-top: 1px solid var(--ge-border) !important; background: var(--ge-bg) !important; }
+
+/* Ícono por motor — 1 tono de marca por motor (sin inventar un 6to color) */
+body.dash-automatizacion-gentelella .motor-card__icon {
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .icon-piloto { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-automatizacion-gentelella .icon-cierre { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .icon-rutas  { background: rgba(52,152,219,.12) !important; color: var(--ge-info-text) !important; }
+body.dash-automatizacion-gentelella .icon-stock  { background: rgba(142,68,173,.12) !important; color: var(--ge-purple) !important; }
+body.dash-automatizacion-gentelella .icon-score  { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+
+/* Status pill (mismo esquema ok/warn/error/idle/info usado en toda la app) */
+body.dash-automatizacion-gentelella .ms-ok      { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .ms-warn    { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-automatizacion-gentelella .ms-error   { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+body.dash-automatizacion-gentelella .ms-idle    { background: var(--ge-chip-bg) !important; color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .ms-loading { background: rgba(52,152,219,.12) !important; color: var(--ge-info-text) !important; }
+
+/* KPI mini row */
+body.dash-automatizacion-gentelella .motor-kpi { background: var(--ge-bg) !important; border-radius: var(--ge-radius-btn) !important; }
+body.dash-automatizacion-gentelella .motor-kpi__lbl { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .kpi-ok    { color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .kpi-warn  { color: var(--ge-warning-text) !important; }
+body.dash-automatizacion-gentelella .kpi-error { color: var(--ge-red) !important; }
+body.dash-automatizacion-gentelella .kpi-blue  { color: var(--ge-info-text) !important; }
+body.dash-automatizacion-gentelella .kpi-muted { color: var(--ge-muted) !important; }
+
+body.dash-automatizacion-gentelella .motor-ts { color: var(--ge-muted) !important; }
+
+/* Listas de items recientes */
+body.dash-automatizacion-gentelella .motor-list-label { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .motor-list-item { background: var(--ge-bg) !important; border-radius: var(--ge-radius-btn) !important; }
+body.dash-automatizacion-gentelella .empty-hint { color: var(--ge-muted) !important; }
+
+/* Barra de progreso (rutas) */
+body.dash-automatizacion-gentelella .motor-progress-wrap,
+body.dash-automatizacion-gentelella .mini-progress-wrap { background: var(--ge-border) !important; }
+body.dash-automatizacion-gentelella .motor-progress-fill,
+body.dash-automatizacion-gentelella .mini-progress-fill { background: var(--ge-teal) !important; }
+
+/* Distribución por barras (nivel de confianza) — colores por severidad,
+   mismo esquema que score-pill más abajo */
+body.dash-automatizacion-gentelella .score-bar-lbl { color: var(--ge-ink-soft) !important; }
+
+/* Badges de confianza (piloto automático) */
+body.dash-automatizacion-gentelella .tarea-badge.conf-alta  { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .tarea-badge.conf-media { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-automatizacion-gentelella .tarea-badge.conf-baja  { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+
+/* Score pill (nivel de confianza de clientes) — mismo esquema que
+   clientes-gentelella.css para consistencia entre pantallas */
+body.dash-automatizacion-gentelella .score-premium   { background: rgba(240,173,78,.15) !important; color: var(--ge-warning-text) !important; }
+body.dash-automatizacion-gentelella .score-bueno     { background: var(--ge-teal-light) !important; color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .score-normal    { background: rgba(52,152,219,.12) !important; color: var(--ge-info-text) !important; }
+body.dash-automatizacion-gentelella .score-riesgo    { background: rgba(231,76,60,.1) !important; color: var(--ge-red) !important; }
+body.dash-automatizacion-gentelella .score-bloqueado { background: var(--ge-bg) !important; color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .score-sin_score { background: var(--ge-bg) !important; color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .score-A,
+body.dash-automatizacion-gentelella .score-B,
+body.dash-automatizacion-gentelella .score-C,
+body.dash-automatizacion-gentelella .score-D {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border: 1px dashed var(--ge-border) !important;
+}
+
+/* Caja de monto pendiente (cierre financiero) */
+body.dash-automatizacion-gentelella .motor-monto-box {
+  background: rgba(240,173,78,.08) !important;
+  border: 1px solid rgba(240,173,78,.25) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .motor-monto-box span:first-child { color: var(--ge-ink-soft) !important; }
+body.dash-automatizacion-gentelella .motor-monto-box span:last-child { color: var(--ge-warning-text) !important; }
+
+/* Badge de tiempo real (rutas) */
+body.dash-automatizacion-gentelella .motor-realtime-badge {
+  background: rgba(52,152,219,.1) !important;
+  color: var(--ge-info-text) !important;
+}
+
+/* Botones de acción */
+body.dash-automatizacion-gentelella .btn-ejecutar {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .btn-ejecutar:hover { background: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .btn-ver-mas { color: var(--ge-info-text) !important; }
+body.dash-automatizacion-gentelella .btn-ver-mas:hover { color: var(--ge-teal-dark) !important; }
+body.dash-automatizacion-gentelella .btn-aprobar-orden {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .btn-aprobar-orden:hover { background: var(--ge-teal-dark) !important; }
+
+/* Skeleton de carga */
+body.dash-automatizacion-gentelella .sk-motor-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-automatizacion-gentelella .sk-line { background: var(--ge-border) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   Reglas personalizadas (Fase 6) — reskin Gentelella
+   Mismo patrón que reglas-precio-gentelella.css: solo tokens --ge-*
+   existentes en gentelella-tokens.css.
+   ══════════════════════════════════════════════════════════════ */
+body.dash-automatizacion-gentelella .reglas-auto-titulo { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .reglas-auto-sub { color: var(--ge-muted) !important; }
+
+body.dash-automatizacion-gentelella #reglas-auto-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-automatizacion-gentelella #tabla-reglas-auto th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-automatizacion-gentelella #tabla-reglas-auto td {
+  border-bottom: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-automatizacion-gentelella #tabla-reglas-auto tbody tr:hover td { background: var(--ge-bg) !important; }
+body.dash-automatizacion-gentelella #reglas-auto-empty { color: var(--ge-muted) !important; }
+
+/* ── Modal ────────────────────────────────────────────────────────────── */
+body.dash-automatizacion-gentelella .modal-backdrop { background: rgba(42,63,84,.45) !important; }
+body.dash-automatizacion-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-automatizacion-gentelella .modal-header { border-bottom: 1px solid var(--ge-border) !important; }
+body.dash-automatizacion-gentelella .modal-titulo { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .modal-subtitulo { color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .modal-close:hover {
+  color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
+}
+
+body.dash-automatizacion-gentelella .form-label { color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .form-input,
+body.dash-automatizacion-gentelella .form-select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .form-input:focus,
+body.dash-automatizacion-gentelella .form-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-automatizacion-gentelella .tooltip-info { color: var(--ge-muted) !important; }
+
+body.dash-automatizacion-gentelella .form-acciones { border-top: 1px solid var(--ge-border) !important; }
+body.dash-automatizacion-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-automatizacion-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+body.dash-automatizacion-gentelella .ra-cond-hint { color: var(--ge-muted) !important; }
+body.dash-automatizacion-gentelella .ra-cond-hint code { background: var(--ge-bg) !important; }
+
+body.dash-automatizacion-gentelella .ra-accion-box {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-automatizacion-gentelella .ra-accion-box__titulo { color: var(--ge-ink) !important; }
+body.dash-automatizacion-gentelella .ra-accion-box__nota { color: var(--ge-muted) !important; }
+
+body.dash-automatizacion-gentelella .ra-roles-grid label {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-automatizacion-gentelella .ra-roles-grid label:has(input:checked) {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+body.dash-automatizacion-gentelella .ra-roles-grid input { accent-color: var(--ge-teal) !important; }
+
+/* Badge de estado de la regla (Activa/Inactiva) — reusa .badge de tokens.css */
+body.dash-automatizacion-gentelella .badge--success {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}

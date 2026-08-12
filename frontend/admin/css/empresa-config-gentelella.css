@@ -1,0 +1,150 @@
+/**
+ * empresa-config-gentelella.css — Reskin "Gentelella v4" de la pantalla Datos de la empresa
+ * ─────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/base-layout.css, /frontend/admin/css/nav.css
+ * y de /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lea empresa-config.html (todo el JS de esta pantalla
+ * es inline): solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-empresa-config-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella { background: var(--ge-bg) !important; }
+body.dash-empresa-config-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-empresa-config-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-empresa-config-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-empresa-config-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cards (cfg-card)
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .cfg-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-empresa-config-gentelella .cfg-card h2 {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-empresa-config-gentelella .cfg-card .sub {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Formulario
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .form-group label {
+  color: var(--ge-ink) !important;
+}
+body.dash-empresa-config-gentelella .form-group .req {
+  color: var(--ge-red) !important;
+}
+body.dash-empresa-config-gentelella .form-group input,
+body.dash-empresa-config-gentelella .form-group select,
+body.dash-empresa-config-gentelella .form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-empresa-config-gentelella .form-group input:hover,
+body.dash-empresa-config-gentelella .form-group select:hover,
+body.dash-empresa-config-gentelella .form-group textarea:hover {
+  border-color: var(--ge-muted) !important;
+}
+body.dash-empresa-config-gentelella .form-group input:focus,
+body.dash-empresa-config-gentelella .form-group select:focus,
+body.dash-empresa-config-gentelella .form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-empresa-config-gentelella .form-group .hint {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Acciones / alertas
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .acciones {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-empresa-config-gentelella .guardado-ok {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-empresa-config-gentelella .alerta {
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-empresa-config-gentelella .alerta-ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border: 1px solid var(--ge-teal) !important;
+}
+body.dash-empresa-config-gentelella .alerta-err {
+  color: var(--ge-red) !important;
+  border: 1px solid var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Logo
+   ════════════════════════════════════════════════════════════ */
+body.dash-empresa-config-gentelella .logo-preview {
+  background: var(--ge-teal-light) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-lg) !important;
+}
+body.dash-empresa-config-gentelella .logo-preview--filled {
+  background: var(--ge-panel) !important;
+}
+body.dash-empresa-config-gentelella .logo-preview #logo-inicial {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-empresa-config-gentelella .btn-secondary {
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-empresa-config-gentelella .btn-secondary:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-muted) !important;
+}

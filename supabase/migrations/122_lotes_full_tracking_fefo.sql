@@ -1,0 +1,16 @@
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- MIGRACIÓN 122: LOTES = 100% tracking de stock con FEFO automático
+-- Aplicada en Supabase: 2026-06-29
+--
+-- Agrega soporte completo de lotes a todos los flujos que modifican stock:
+--   1. fn_lotes_consumir_fefo          → helper FEFO reutilizable
+--   2. recepcionar_orden_compra        → crea lote en cada recepción
+--   3. registrar_venta_pos             → consume FEFO en venta POS
+--   4. confirmar_despacho_stock        → consume FEFO en despacho/remito
+--   5. ajustar_stock                   → crea o consume FEFO en ajustes
+--   6. transferir_stock_entre_depositos→ mueve lotes entre depósitos
+--   7. rpc_registrar_devolucion_pos    → repone lote en devolución POS
+--   8. Backfill inicial                → lotes STOCK-INICIAL para stock existente
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- (Ver documento de sesión 2026-06-29 para el SQL completo de cada función)
+-- Ya aplicado directamente vía MCP — este archivo es el registro local.

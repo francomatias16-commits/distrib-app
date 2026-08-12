@@ -1,0 +1,218 @@
+/**
+ * reportes-ventas-gentelella.css — Reskin "Gentelella v4" de la pantalla Reportes de Ventas
+ * ──────────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lea reportes-ventas.js: solo
+ * redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Misma pantalla base (reportes.css) que reportes-financieros: mismo set de
+ * clases (.kpis-grid/.kpi-card/.chart-section/.ranking-section), sin
+ * .status-badge en esta pantalla (no lo usa reportes-ventas.js).
+ *
+ * Scope: body.dash-reportes-ventas-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella { background: var(--ge-bg) !important; }
+body.dash-reportes-ventas-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reportes-ventas-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-reportes-ventas-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-reportes-ventas-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .filtros-section {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reportes-ventas-gentelella .filtro-group label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+body.dash-reportes-ventas-gentelella .filtro-group select,
+body.dash-reportes-ventas-gentelella .filtro-group input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-reportes-ventas-gentelella .filtro-group select:focus,
+body.dash-reportes-ventas-gentelella .filtro-group input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* Botones (componente compartido .btn / .btn--primary / .btn--ghost) */
+body.dash-reportes-ventas-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-reportes-ventas-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal-dark) !important;
+}
+body.dash-reportes-ventas-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-reportes-ventas-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-left: 4px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reportes-ventas-gentelella .kpi-card h3 {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+}
+body.dash-reportes-ventas-gentelella .kpi-value {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-reportes-ventas-gentelella .kpi-change {
+  border-top: 1px solid var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-reportes-ventas-gentelella .kpi-change.positive {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-reportes-ventas-gentelella .kpi-change.negative {
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Gráficos
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .chart-section {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reportes-ventas-gentelella .chart-section h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tablas de ranking
+   ════════════════════════════════════════════════════════════ */
+body.dash-reportes-ventas-gentelella .ranking-section {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-section h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table thead {
+  background: var(--ge-bg) !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table th {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  font-size: 13px !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table tbody tr:nth-child(even) {
+  background: transparent !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-reportes-ventas-gentelella .ranking-table .loading,
+body.dash-reportes-ventas-gentelella .ranking-table .tabla-empty {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-reportes-ventas-gentelella .filtros-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-reportes-ventas-gentelella .kpis-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-reportes-ventas-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

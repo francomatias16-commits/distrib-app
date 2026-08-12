@@ -1,0 +1,565 @@
+/**
+ * productos-gentelella.css — Reskin "Gentelella v4" de la pantalla Productos
+ * ──────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/productos.css y de
+ * /frontend/shared/gentelella-tokens.css (debe estar antes en <head>).
+ *
+ * Nota de diseño: la pantalla tenía el mismo estilo "TravelBox" que Clientes
+ * (--tb-accent: #0D9488) más un acento morado (#5b5bd6) para ordenamiento,
+ * checkboxes y el mes activo. Gentelella unifica todo con --ge-teal.
+ * El botón "+" (prod-add-btn) pasa de negro (#111) a --ge-teal.
+ * Los avatares de colores rotativos se mapean a la paleta ge-*.
+ *
+ * Tokens (--ge-*): solo desde frontend/shared/gentelella-tokens.css.
+ * Scope: body.dash-productos-gentelella
+ *
+ * 2026-07-14: el texto azul oscuro de .prod-badge.borrador (#1a5f8b) se
+ * tokenizó como --ge-info-text al confirmarse como patrón repetido
+ * (ya había aparecido igual en clientes .score-normal).
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella { background: var(--ge-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Preloader
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .preloader { background: var(--ge-sidebar-2) !important; }
+body.dash-productos-gentelella .preloader-logo { color: var(--ge-teal) !important; }
+body.dash-productos-gentelella .preloader-bar  { background: var(--ge-teal) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-productos-gentelella .topbar-title    { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-productos-gentelella .topbar-workspace { color: var(--ge-ink-soft) !important; }
+body.dash-productos-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-productos-gentelella .topbar-usuario  { color: var(--ge-ink-soft) !important; }
+
+body.dash-productos-gentelella .btn-exportar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-productos-gentelella .btn-exportar:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Card contenedora
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .productos-card,
+body.dash-productos-gentelella #vista-productos .productos-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toolbar superior
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .prod-toolbar {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .prod-titulo    { color: var(--ge-ink) !important; }
+body.dash-productos-gentelella .prod-subtitulo { color: var(--ge-ink-soft) !important; }
+
+/* Chip de alerta de stock */
+body.dash-productos-gentelella .prod-alerta-link {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-productos-gentelella .prod-alerta-link:hover {
+  background: rgba(231,76,60,.18) !important;
+}
+
+/* Label "Filtrar por" */
+body.dash-productos-gentelella .prod-filtros-label { color: var(--ge-muted) !important; }
+
+/* Selects de filtro */
+body.dash-productos-gentelella .prod-select-filtro,
+body.dash-productos-gentelella #vista-productos .prod-select-filtro {
+  background-color: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-productos-gentelella .prod-select-filtro:focus,
+body.dash-productos-gentelella #vista-productos .prod-select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* Buscador píldora */
+body.dash-productos-gentelella .prod-tag-input,
+body.dash-productos-gentelella #vista-productos .prod-tag-input {
+  background: var(--ge-bg) !important;
+  border: 1.5px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: none !important;
+  padding: 7px 14px !important;
+}
+body.dash-productos-gentelella .prod-tag-input svg { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-tag-input:focus-within,
+body.dash-productos-gentelella #vista-productos .prod-tag-input:focus-within {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-panel) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-productos-gentelella .prod-tag-input:focus-within svg {
+  color: var(--ge-teal) !important;
+}
+body.dash-productos-gentelella .prod-tag-input input { color: var(--ge-ink) !important; }
+body.dash-productos-gentelella .prod-tag-input input::placeholder { color: var(--ge-muted) !important; }
+
+/* Botón limpiar filtros */
+body.dash-productos-gentelella .prod-icon-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-productos-gentelella .prod-icon-btn:hover,
+body.dash-productos-gentelella #vista-productos .prod-icon-btn:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* Botón "+" agregar producto */
+body.dash-productos-gentelella .prod-add-btn,
+body.dash-productos-gentelella #vista-productos .prod-add-btn {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: none !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-productos-gentelella .prod-add-btn:hover,
+body.dash-productos-gentelella #vista-productos .prod-add-btn:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Navegación de meses
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .prod-nav {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .prod-nav-year   { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-total-label { color: var(--ge-muted) !important; }
+
+body.dash-productos-gentelella .prod-mes-btn {
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-productos-gentelella .prod-mes-btn:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-productos-gentelella .prod-mes-btn.activo,
+body.dash-productos-gentelella #vista-productos .prod-mes-btn.activo {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+body.dash-productos-gentelella .prod-mes-todos {
+  border-radius: 0 !important;
+  border-right: 1px solid var(--ge-border) !important;
+}
+
+/* Botón "Columnas" */
+body.dash-productos-gentelella .prod-edit-cols-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-productos-gentelella .prod-edit-cols-btn:hover,
+body.dash-productos-gentelella #vista-productos .prod-edit-cols-btn:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de productos
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .prod-tabla-wrap,
+body.dash-productos-gentelella #vista-productos .prod-tabla-wrap {
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* Encabezado */
+body.dash-productos-gentelella .prod-tabla thead tr {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .prod-tabla thead th,
+body.dash-productos-gentelella #vista-productos .prod-tabla thead th {
+  background: transparent !important;
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+/* Ordenamiento */
+body.dash-productos-gentelella .prod-th-sort:hover,
+body.dash-productos-gentelella #vista-productos .prod-th-sort:hover {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-productos-gentelella .prod-sort-icon,
+body.dash-productos-gentelella #vista-productos .prod-sort-icon {
+  color: var(--ge-teal) !important;
+}
+
+/* Filas */
+body.dash-productos-gentelella .prod-tabla tbody tr {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .prod-tabla tbody tr:hover,
+body.dash-productos-gentelella #vista-productos .prod-tabla tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-productos-gentelella .prod-tabla tbody td { color: var(--ge-ink) !important; }
+
+/* Checkbox */
+body.dash-productos-gentelella .prod-check,
+body.dash-productos-gentelella #vista-productos .prod-check {
+  accent-color: var(--ge-teal) !important;
+  border-color: var(--ge-border) !important;
+}
+
+/* Avatar de producto */
+body.dash-productos-gentelella .prod-avatar,
+body.dash-productos-gentelella #vista-productos .prod-avatar {
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  background: var(--ge-teal) !important;
+  box-shadow: none !important;
+}
+/* Rotación de colores ge-* */
+body.dash-productos-gentelella #vista-productos tbody tr:nth-of-type(4n+2) .prod-avatar {
+  background: var(--ge-orange) !important;
+}
+body.dash-productos-gentelella #vista-productos tbody tr:nth-of-type(4n+3) .prod-avatar {
+  background: var(--ge-blue) !important;
+}
+body.dash-productos-gentelella #vista-productos tbody tr:nth-of-type(4n+4) .prod-avatar {
+  background: var(--ge-purple) !important;
+}
+
+/* Textos de celda */
+body.dash-productos-gentelella .prod-nombre-text { color: var(--ge-ink) !important; }
+body.dash-productos-gentelella .prod-cat-cell    { color: var(--ge-ink-soft) !important; }
+body.dash-productos-gentelella .prod-fecha       { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-precio      { color: var(--ge-ink) !important; }
+body.dash-productos-gentelella .prod-costo       { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-stock       { color: var(--ge-ink-soft) !important; }
+body.dash-productos-gentelella .prod-stock-cero  { color: var(--ge-red) !important; }
+
+/* Badges de estado */
+body.dash-productos-gentelella .prod-badge,
+body.dash-productos-gentelella #vista-productos .prod-badge {
+  border-radius: var(--ge-radius-pill) !important;
+  padding: 3px 10px !important;
+}
+body.dash-productos-gentelella .prod-badge.activo {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-productos-gentelella .prod-badge.borrador {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-info-text) !important;
+}
+body.dash-productos-gentelella .prod-badge.sin-stock {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Indicador de selección */
+body.dash-productos-gentelella #prod-sel-count { color: var(--ge-teal) !important; }
+
+/* Barra de progreso (ventas goal) */
+body.dash-productos-gentelella .prod-progress-wrap {
+  background: var(--ge-border) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-productos-gentelella .prod-progress-fill,
+body.dash-productos-gentelella #vista-productos .prod-progress-fill {
+  background: var(--ge-teal) !important;
+}
+
+/* Menú 3 puntos */
+body.dash-productos-gentelella .prod-menu-btn { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-menu-btn:hover,
+body.dash-productos-gentelella #vista-productos .prod-menu-btn:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Estado vacío / spinner */
+body.dash-productos-gentelella .prod-empty { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .prod-empty-spinner {
+  border-color: var(--ge-border) !important;
+  border-top-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .prod-pag-wrap {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .prod-pag-btn {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: none !important;
+}
+body.dash-productos-gentelella .prod-pag-btn:hover:not(:disabled),
+body.dash-productos-gentelella #vista-productos .prod-pag-btn:hover:not(:disabled) {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-productos-gentelella .prod-pag-btn:disabled { opacity: .35 !important; }
+body.dash-productos-gentelella .prod-pag-info { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal lateral (Nuevo/Editar producto)
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-productos-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .modal-titulo    { color: var(--ge-ink) !important; }
+body.dash-productos-gentelella .modal-subtitulo { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .modal-close {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+}
+body.dash-productos-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-productos-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .form-label {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 600 !important;
+}
+body.dash-productos-gentelella .form-requerido { color: var(--ge-red) !important; }
+body.dash-productos-gentelella .form-input,
+body.dash-productos-gentelella .form-select {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-productos-gentelella .form-input:focus,
+body.dash-productos-gentelella .form-select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-productos-gentelella .form-input::placeholder { color: var(--ge-muted) !important; }
+
+body.dash-productos-gentelella .ayuda-contextual { color: var(--ge-muted) !important; }
+body.dash-productos-gentelella .ayuda-contextual::after {
+  background: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+
+body.dash-productos-gentelella .form-acciones {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .btn-secundario {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-productos-gentelella .btn-secundario:hover { background: var(--ge-bg) !important; }
+body.dash-productos-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  border: none !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-productos-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+  opacity: 1 !important;
+}
+body.dash-productos-gentelella .btn-primario:disabled { opacity: .45 !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal header, secciones y tab-panel
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-productos-gentelella .modal-header h2,
+body.dash-productos-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-productos-gentelella .modal-seccion {
+  padding: 14px 20px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-productos-gentelella .tab-panel {
+  background: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Fix formulario de producto — layout 2 columnas (v632)
+
+   Problema: la regla genérica ".modal-seccion { padding:14px 20px; border-
+   bottom }" se aplicaba a TODAS las secciones, incluso las que viven dentro
+   del .modal-grid-2col. Esto generaba dos síntomas:
+
+   1. Doble padding: el .modal ya tiene padding:28px; agregar 20px laterales
+      a cada .modal-seccion dejaba los inputs a 48px del borde del modal y
+      la rejilla interna quedaba más estrecha de lo necesario.
+
+   2. Border-bottom asimétrico: la columna izquierda y la derecha tienen
+      secciones de distinta altura, por lo que los bordes no alineaban entre
+      sí, dando sensación de formulario "roto" horizontalmente.
+
+   Solución: las secciones DENTRO de .modal-col pierden padding lateral y
+   border-bottom propios. La separación visual la proveen el gap del
+   .tab-panel (22px), los propios .modal-sec-label (con su border-bottom
+   fino) y la línea vertical central del grid.
+
+   La sección de scan (fuera del grid) conserva sus estilos originales, solo
+   se ajusta su padding para que sea coherente con el contexto del modal.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* — Secciones dentro de las columnas del grid: reset de padding y border — */
+body.dash-productos-gentelella .modal--producto .modal-col > .modal-seccion {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+/* — Sección de escaneo (fuera del grid): mantiene la separación inferior
+     pero sin padding lateral extra (ya lo da el modal exterior). — */
+body.dash-productos-gentelella .modal--producto .modal-seccion--scan {
+  padding: 0 0 14px 0 !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+/* — Separador vertical entre columnas: línea sutil en el centro del gap — */
+body.dash-productos-gentelella .modal--producto .modal-grid-2col {
+  position: relative;
+}
+body.dash-productos-gentelella .modal--producto .modal-grid-2col::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50%);
+  width: 1px;
+  background: var(--ge-border);
+  pointer-events: none;
+}
+
+/* — El .modal-col derecho recibe un poco de padding izquierdo para que
+     su contenido no quede pegado a la línea divisoria. — */
+body.dash-productos-gentelella .modal--producto .modal-col:last-child {
+  padding-left: 16px !important;
+}
+body.dash-productos-gentelella .modal--producto .modal-col:first-child {
+  padding-right: 16px !important;
+}
+
+/* — Botones del footer (form-acciones): colores gentelella — */
+body.dash-productos-gentelella .btn-peligro {
+  border-radius: var(--ge-radius-btn) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-productos-gentelella .btn-peligro:hover {
+  background: rgba(231,76,60,.08) !important;
+}
+
+/* — Nota de formulario — */
+body.dash-productos-gentelella .form-nota {
+  color: var(--ge-muted) !important;
+}
+body.dash-productos-gentelella .form-nota a {
+  color: var(--ge-teal) !important;
+}
+body.dash-productos-gentelella .form-nota a:hover {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* — Lista de depósitos — */
+body.dash-productos-gentelella .depositos-lista {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+  padding: 6px !important;
+}
+
+/* — Preview de foto de producto — */
+body.dash-productos-gentelella .foto-preview-wrap {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+}
+
+/* — hint de foto — */
+body.dash-productos-gentelella .foto-hint {
+  color: var(--ge-muted) !important;
+}
+
+/* — Ayuda contextual (ícono "?") — */
+body.dash-productos-gentelella .ayuda-contextual::after {
+  color: var(--ge-panel) !important;
+}
+
+/* ─ Responsive: en pantallas < 760px el grid pasa a 1 col, quitamos la
+     línea divisoria y los paddings compensatorios. ─ */
+@media (max-width: 760px) {
+  body.dash-productos-gentelella .modal--producto .modal-grid-2col::after {
+    display: none !important;
+  }
+  body.dash-productos-gentelella .modal--producto .modal-col:last-child,
+  body.dash-productos-gentelella .modal--producto .modal-col:first-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}

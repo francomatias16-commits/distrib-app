@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  Harness de test — NO es una página de producción.
+
+  Carga los archivos REALES del repo (mismo <script src> que usa
+  frontend/chofer/remito.html) para ejercitar OfflineCore + ChoferOffline
+  en un browser de verdad (IndexedDB/Dexie real, eventos online/offline
+  reales, Service Worker real) sin necesitar el login/sesión completos de
+  remito.html.
+
+  Por qué este atajo es razonable: chofer-offline.js no lee el DOM salvo
+  para inyectar su propio badge (selector '.topbar', que sí incluimos acá
+  para que esa parte también se ejerza). Todo lo demás — encolar, outbox,
+  conflicto, sync — es lógica pura que no depende de la UI de remito.html.
+  Ver README de esta suite para el alcance exacto de cada portal.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Harness chofer-offline (test)</title>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+  <script src="/frontend/shared/offline-core.js?v1"></script>
+  <script src="/frontend/chofer/chofer-offline.js"></script>
+</body>
+</html>

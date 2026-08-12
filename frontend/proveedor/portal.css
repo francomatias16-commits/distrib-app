@@ -1,0 +1,294 @@
+/* frontend/proveedor/portal.css
+   Portal de autogestión del proveedor — pantalla pública, sin login.
+   Mismo sistema de tokens que el panel admin (tokens.css), simplificado:
+   sin sidebar, sin nav, pensado para abrirse desde WhatsApp en celular. */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+.portal-header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.portal-empresa {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.portal-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: var(--color-primary-bg);
+  color: var(--color-primary-dark);
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.portal-main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.portal-footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 11px;
+  color: var(--color-text-light);
+}
+
+/* ── Estados (loading / error) ─────────────────────────────────── */
+.portal-estado {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-text-muted);
+}
+.portal-estado p { margin: 12px 0 0; font-size: 14px; }
+.portal-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: portal-spin .7s linear infinite;
+}
+@keyframes portal-spin { to { transform: rotate(360deg); } }
+
+.portal-error-box {
+  text-align: center;
+  padding: 48px 20px;
+}
+.portal-error-box svg { color: var(--color-danger-mid); margin-bottom: 12px; }
+.portal-error-box h2 { font-size: 17px; margin: 0 0 6px; }
+.portal-error-box p { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+
+/* ── Saludo / proveedor ────────────────────────────────────────── */
+.portal-saludo {
+  margin-bottom: 20px;
+}
+.portal-saludo h1 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+.portal-saludo p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── Resumen ────────────────────────────────────────────────────── */
+.portal-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.portal-resumen-card {
+  background: var(--color-surface);
+  var(--radius-sm);
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+}
+.portal-resumen-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+.portal-resumen-valor {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── Secciones / listas de OC ──────────────────────────────────── */
+.portal-seccion-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 24px 0 10px;
+  color: var(--color-text);
+}
+.portal-seccion-titulo:first-of-type { margin-top: 0; }
+
+.portal-oc-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.portal-oc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.portal-oc-numero {
+  font-weight: 700;
+  font-size: 14px;
+}
+.portal-oc-fecha {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.portal-oc-total {
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+}
+.portal-oc-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.portal-badge-estado {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.estado-borrador, .estado-pendiente_aprobacion { background: var(--color-bg); color: var(--color-text-muted); }
+.estado-enviada                                { background: var(--color-info-bg); color: var(--color-info); }
+.estado-confirmada                             { background: var(--color-primary-bg); color: var(--color-primary-dark); }
+.estado-recibida_parcial                       { background: var(--color-warning-bg); color: var(--color-warning); }
+.estado-recibida                               { background: var(--color-success-bg); color: var(--color-success); }
+.estado-cancelada                              { background: var(--color-danger-bg); color: var(--color-danger); }
+
+.portal-oc-items {
+  margin-top: 10px;
+  border-top: 1px dashed var(--color-border);
+  padding-top: 8px;
+}
+.portal-oc-item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+  color: var(--color-text-muted);
+}
+.portal-oc-item-row span:first-child { color: var(--color-text); }
+
+.portal-vacio {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ── Acciones de escritura (confirmar entrega / subir factura) ────────── */
+.portal-oc-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+  flex-wrap: wrap;
+}
+.portal-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.portal-btn:hover { background: var(--color-bg); }
+.portal-btn:disabled { opacity: .6; cursor: default; }
+.portal-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+.portal-btn-primary:hover { background: var(--color-primary-dark); }
+
+.portal-confirmada {
+  font-size: 11px;
+  color: var(--color-success);
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.portal-form {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.portal-form input,
+.portal-form select {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  width: 100%;
+}
+.portal-form label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: -4px;
+}
+.portal-form-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+.portal-form-status.ok  { color: var(--color-success); }
+.portal-form-status.err { color: var(--color-danger); }
+
+.portal-badge-origen {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.portal-link-archivo {
+  display: inline-block;
+  font-size: 12px;
+  margin-top: 6px;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 480px) {
+  .portal-resumen { grid-template-columns: 1fr 1fr; }
+  .portal-resumen-card:last-child { grid-column: 1 / -1; }
+}

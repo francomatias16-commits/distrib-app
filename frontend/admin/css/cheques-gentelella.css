@@ -1,0 +1,404 @@
+/**
+ * cheques-gentelella.css — Reskin "Gentelella v4" de la pantalla Cheques
+ * ─────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ *
+ * Scope: body.dash-cheques-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella { background: var(--ge-bg) !important; }
+body.dash-cheques-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cheques-gentelella .topbar-title  { color: var(--ge-ink) !important; font-weight: 700 !important; }
+body.dash-cheques-gentelella .topbar-workspace { color: var(--ge-ink-soft) !important; }
+body.dash-cheques-gentelella .topbar-fecha  { color: var(--ge-muted) !important; font-size: 12px !important; }
+body.dash-cheques-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; font-size: 13px !important; }
+body.dash-cheques-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Botón "Nuevo cheque" */
+body.dash-cheques-gentelella .topbar .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-cheques-gentelella .topbar .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb + page-intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI grid (finanzas-kpis / fkpi)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .finanzas-kpis {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 14px !important;
+}
+body.dash-cheques-gentelella .fkpi {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  padding: 16px 18px !important;
+}
+body.dash-cheques-gentelella .fkpi-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+body.dash-cheques-gentelella .fkpi-val {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 20px !important;
+  display: block !important;
+}
+body.dash-cheques-gentelella .fkpi-val.azul   { color: var(--ge-blue) !important; }
+body.dash-cheques-gentelella .fkpi-val.amarillo { color: var(--ge-warning-text) !important; }
+body.dash-cheques-gentelella .fkpi-val.verde  { color: var(--ge-teal) !important; }
+body.dash-cheques-gentelella .fkpi-val.rojo   { color: var(--ge-red) !important; }
+body.dash-cheques-gentelella .fkpi-sub {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+  display: block !important;
+  margin-top: 2px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Alerta de vencimientos próximos
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .alerta-inline.warning {
+  background: rgba(240,173,78,.1) !important;
+  border: 1px solid rgba(240,173,78,.3) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-warning-text) !important;
+  font-size: 13px !important;
+  padding: 10px 14px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros (buscador + estado + checkbox)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella #buscar-cheque,
+body.dash-cheques-gentelella #filtro-estado-cheque {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cheques-gentelella #buscar-cheque:focus,
+body.dash-cheques-gentelella #filtro-estado-cheque:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cheques-gentelella #buscar-cheque::placeholder { color: var(--ge-muted) !important; }
+body.dash-cheques-gentelella label[for="filtro-vencidos-cheque"] {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de cheques
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-cheques-gentelella .tabla-wrap thead th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 14px !important;
+  white-space: nowrap !important;
+}
+body.dash-cheques-gentelella #tbody-cheques td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-cheques-gentelella #tbody-cheques tr:last-child td { border-bottom: none !important; }
+body.dash-cheques-gentelella #tbody-cheques tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-cheques-gentelella .monto { font-weight: 700 !important; color: var(--ge-ink) !important; }
+body.dash-cheques-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-cheques-gentelella #tbody-cheques tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-cheques-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  padding: 32px !important;
+}
+
+/* Botones de acción en tabla */
+body.dash-cheques-gentelella .btn-icon {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  padding: 4px 8px !important;
+}
+body.dash-cheques-gentelella .btn-icon:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+}
+/* Select inline de cambio de estado */
+body.dash-cheques-gentelella .btn.btn-sm.btn-secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 11px !important;
+}
+body.dash-cheques-gentelella .btn.btn-sm.btn-secondary:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de estado
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .chip {
+  display: inline-block !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+body.dash-cheques-gentelella .chip-azul {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-cheques-gentelella .chip-amarillo {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-cheques-gentelella .chip-verde {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-cheques-gentelella .chip-rojo {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-cheques-gentelella .chip-gris {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cheques-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-cheques-gentelella .btn-pag:disabled { opacity: .4 !important; cursor: not-allowed !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Modal de cheque (nuevo / editar)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .modal-backdrop,
+body.dash-cheques-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-cheques-gentelella #modal-cheque {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cheques-gentelella #modal-cheque-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+body.dash-cheques-gentelella .modal-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+/* Formulario dentro del modal */
+body.dash-cheques-gentelella .form-group label {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+body.dash-cheques-gentelella .form-group input,
+body.dash-cheques-gentelella .form-group select,
+body.dash-cheques-gentelella .form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  width: 100% !important;
+}
+body.dash-cheques-gentelella .form-group input:focus,
+body.dash-cheques-gentelella .form-group select:focus,
+body.dash-cheques-gentelella .form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cheques-gentelella .form-group input::placeholder,
+body.dash-cheques-gentelella .form-group textarea::placeholder {
+  color: var(--ge-muted) !important;
+}
+/* Footer del modal */
+body.dash-cheques-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-cheques-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cheques-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cheques-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-cheques-gentelella .btn.btn--primary:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-cheques-gentelella .btn.btn--primary:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  body.dash-cheques-gentelella .finanzas-kpis {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 420px) {
+  body.dash-cheques-gentelella .finanzas-kpis {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal interior (body, close, texto)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cheques-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cheques-gentelella .modal-header h2,
+body.dash-cheques-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-cheques-gentelella .modal-body {
+  font-size: 13px !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cheques-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+body.dash-cheques-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ── Z-INDEX ESCALADO: confirm por encima de #modal-cheque / #modal-bcra-denuncia ──
+   BUG REAL (no solo de los tests): ambos modales de esta página usan la
+   clase .modal-overlay (finanzas.css, z-index:500). window.confirmar()
+   usa --z-modal (default 400, shared/tokens.css). Con #modal-cheque
+   abierto (alta o edición) y --z-modal en 400, el diálogo de confirmación
+   de "¿Guardar los cambios...?" queda VISUALMENTE DETRÁS del modal — su
+   botón "ok" es inclickeable con mouse para cualquier usuario real, no
+   solo para Playwright ("<div class="form-grid">...</div> subtree
+   intercepts pointer events"). Confirmado corriendo cheques.spec.js contra
+   Chromium real. Mismo hallazgo y mismo fix ya aplicado para el caso
+   análogo de #modal-cobro en cobranzas-gentelella.css (y #modal-producto
+   en productos-modal-fix.css) — acá se replica scopeado a cheques.html.
+   --z-toast ya estaba bien (600 > 500). */
+:root {
+  --z-modal: 10100;
+}

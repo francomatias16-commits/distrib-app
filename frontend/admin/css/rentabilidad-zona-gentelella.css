@@ -1,0 +1,307 @@
+/**
+ * rentabilidad-zona-gentelella.css — Reskin "Gentelella v4" de la pantalla
+ * Rentabilidad por Zona / Ruta
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline (idéntico patrón a
+ * rentabilidad-producto-vendedor); este archivo los sobreescribe todos bajo el
+ * scope, sin tocar ningún id/clase que lea rentabilidad-zona.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Particularidades propias de esta pantalla (no vistas en rentabilidad-producto-vendedor):
+ *  - `.costo-km-card` (bloque de configuración de costo logístico por km).
+ *  - `.badge-aviso` ("Sin configurar", generado por JS cuando falta el costo/km).
+ *  - `.zona-mejor`/`.zona-peor` (equivalentes a fila-mejor/fila-peor de la otra pantalla).
+ *  - `.texto-chico` (texto de estado del guardado de costo/km).
+ *  - No tiene paginación ni chips de origen (no aplica en esta pantalla).
+ *
+ * Scope: body.dash-rentabilidad-zona-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella { background: var(--ge-bg) !important; }
+body.dash-rentabilidad-zona-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-zona-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-rentabilidad-zona-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-rentabilidad-zona-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-rentabilidad-zona-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-zona-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-rentabilidad-zona-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-rentabilidad-zona-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-rentabilidad-zona-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Costo logístico / km
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .costo-km-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-zona-gentelella .costo-km-card strong {
+  color: var(--ge-ink) !important;
+}
+body.dash-rentabilidad-zona-gentelella #costo-km-lectura {
+  color: var(--ge-ink) !important;
+}
+body.dash-rentabilidad-zona-gentelella #input-costo-km {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-rentabilidad-zona-gentelella #input-costo-km:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-rentabilidad-zona-gentelella .texto-chico {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards — small-box (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .small-box {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-primary {
+  background: var(--ge-teal) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-success {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-secondary {
+  background: var(--ge-sidebar) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-info {
+  background: var(--ge-blue) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-warning {
+  background: var(--ge-orange) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box.bg-danger {
+  background: var(--ge-red) !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box > .inner {
+  padding: 16px 18px 14px !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box .inner h3 {
+  font-size: 20px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: var(--ge-panel) !important;
+  font-weight: 700 !important;
+}
+body.dash-rentabilidad-zona-gentelella .small-box .inner p {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 12px !important;
+  margin-top: 3px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Gráfico
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .chart-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper + header
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* Toggle de vista: por zona / por ruta */
+body.dash-rentabilidad-zona-gentelella .view-toggle {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-rentabilidad-zona-gentelella .view-toggle button {
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-rentabilidad-zona-gentelella .view-toggle button.active {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .filtros-bar input,
+body.dash-rentabilidad-zona-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-zona-gentelella .filtros-bar input:focus,
+body.dash-rentabilidad-zona-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+/* Filas destacadas (mejor/peor margen neto) */
+body.dash-rentabilidad-zona-gentelella .tabla tr.zona-mejor td {
+  background: rgba(184,122,0,.08) !important;
+}
+body.dash-rentabilidad-zona-gentelella .tabla tr.zona-peor td {
+  background: rgba(231,76,60,.06) !important;
+}
+/* Montos */
+body.dash-rentabilidad-zona-gentelella .monto-rojo {
+  color: var(--ge-red) !important;
+}
+body.dash-rentabilidad-zona-gentelella .monto-verde {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-rentabilidad-zona-gentelella .monto-gris {
+  color: var(--ge-muted) !important;
+}
+
+/* Badge "Sin configurar" (costo/km faltante) */
+body.dash-rentabilidad-zona-gentelella .badge-aviso {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-warning-text) !important;
+  border: 1px solid rgba(240,173,78,.35) !important;
+  border-radius: var(--ge-radius-pill) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-rentabilidad-zona-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-rentabilidad-zona-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-rentabilidad-zona-gentelella .filtros-bar input,
+  body.dash-rentabilidad-zona-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+  body.dash-rentabilidad-zona-gentelella .kpis-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  body.dash-rentabilidad-zona-gentelella .costo-km-card span[style*="margin-left:auto"] {
+    margin-left: 0 !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-rentabilidad-zona-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

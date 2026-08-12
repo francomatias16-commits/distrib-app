@@ -1,0 +1,689 @@
+/**
+ * AdminLTE Style Patch — añadido automáticamente
+ * Mejora visual sobre el CSS existente de la página
+ */
+
+/* Fondo AdminLTE */
+body { background: var(--color-bg); font-family: var(--font-family); }
+
+/* Cards mejoradas */
+/* .card styles inherited from adminlte-components.css (glass) */
+/* .card-header inherited from adminlte-components.css */
+.card-header h3 { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+.card-footer { padding: 10px 16px; background: rgba(0,0,0,.02); border-top: 1px solid rgba(0,0,0,.08); font-size: 13px; color: var(--color-text-muted); }
+
+/* Panel headers */
+.panel-header, .section-header {
+  background: rgba(0,0,0,.02);
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+/* Tablas con fondo alternado */
+table th { background: var(--color-bg) !important; }
+tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
+
+/* [Etapa 4 · Media] .topbar-contador se removio de este archivo: estaba duplicado en 9 hojas de pagina con formas inconsistentes (radius-md vs radius-lg). Definicion canonica unica en shared/adminlte-components.css. */
+
+/* KPI cards — info-box style cuando son grid */
+.fkpi, .kpi-card:not(.small-box) {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Motor cards / auto cards */
+.motor-card, .regla-card, .trigger-card {
+  border: 1px solid rgba(0,0,0,.125);
+  box-shadow: var(--shadow-fluffy);
+}
+.motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
+
+/* Botones secundarios */
+.btn-exportar, .btn-importar {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: all .12s; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-muted);
+}
+.btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
+.btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info); color: var(--color-info); }
+
+/* Filtros */
+.filtros-section {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Main padding ajustado */
+.main { padding: 20px 24px; }
+
+
+/* admin/css/finanzas.css — Etapa 4: Pantallas I, J, K, L */
+
+/* ── Variables adicionales si no están en dashboard ─────────────── */
+/* (Se usa en conjunto con dashboard.css que tiene las :root vars)  */
+
+/* ── Grilla de resumen financiero ────────────────────────────────── */
+.finanzas-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.fkpi {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fkpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--color-text-muted);
+}
+
+.fkpi-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.fkpi-val.verde   { color: var(--color-success); }
+.fkpi-val.rojo    { color: var(--color-danger); }
+.fkpi-val.amarillo{ color: var(--color-warning); }
+
+.fkpi-sub {
+  font-size: 12px;
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+
+/* ── Filtros ─────────────────────────────────────────────────────── */
+.filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtros-bar input,
+.filtros-bar select {
+  padding: 7px 11px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+.filtros-bar input:focus,
+.filtros-bar select:focus { border-color: var(--color-primary); }
+.filtros-bar input[type="search"] { min-width: 220px; }
+
+/* ── Tabla estándar ──────────────────────────────────────────────── */
+.tabla-wrap {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tabla-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tabla-header h2 { font-size: 14px; font-weight: 700; }
+
+.tabla-overflow { overflow-x: auto; }
+
+table.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.tabla th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+table.tabla td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--color-bg);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+table.tabla tr:last-child td { border-bottom: none; }
+table.tabla tr:hover td { background: var(--color-bg); cursor: pointer; }
+table.tabla .monto { font-weight: 700; font-family: monospace; font-size: 13px; }
+table.tabla .monto-rojo  { color: var(--color-danger);  font-weight: 700; }
+table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
+
+/* ── Chips — sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) ───────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.chip-verde    { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.chip-rojo     { background: var(--color-danger-bg);  color: var(--color-danger); border-color: var(--color-danger); }
+.chip-amarillo { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.chip-gris     { background: var(--color-bg);         color: var(--color-text-muted); border-color: var(--color-text-light); }
+.chip-azul     { background: var(--color-primary-bg); color: var(--color-primary); border-color: var(--color-primary); }
+
+/* ── Semáforo de saldo ───────────────────────────────────────────── */
+.semaforo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.semaforo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.semaforo.verde   .semaforo-dot { background: var(--color-success); }
+.semaforo.rojo    .semaforo-dot { background: var(--color-danger); }
+.semaforo.amarillo .semaforo-dot { background: var(--color-warning); }
+
+/* ── Panel lateral de detalle ────────────────────────────────────── */
+.detalle-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 480px;
+  max-width: 95vw; /* evita overflow horizontal en mobile (< 480px) */
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .22s ease;
+  box-shadow: -4px 0 24px rgba(0,0,0,.08);
+}
+.detalle-panel.open { transform: translateX(0); }
+
+.detalle-panel-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.detalle-panel-header h3 { font-size: 15px; font-weight: 700; }
+
+.btn-cerrar-panel {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-light); padding: 4px; border-radius: var(--radius-sm);
+}
+.btn-cerrar-panel:hover { background: var(--color-bg); color: var(--color-text); }
+
+.detalle-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detalle-panel-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Sección dentro del detalle ──────────────────────────────────── */
+.detalle-seccion { display: flex; flex-direction: column; gap: 10px; }
+.detalle-seccion h4 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--color-text-muted);
+}
+
+.detalle-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-bg);
+}
+.detalle-fila:last-child { border-bottom: none; }
+.detalle-fila-label { color: var(--color-text-muted); }
+.detalle-fila-val   { font-weight: 600; text-align: right; }
+
+.saldo-resumen {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.saldo-total-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Movimientos de cta cte ──────────────────────────────────────── */
+.movimiento-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-bg);
+}
+.movimiento-row:last-child { border-bottom: none; }
+
+.movimiento-icono {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.movimiento-icono.debito  { background: var(--color-danger-bg);  color: var(--color-danger); }
+.movimiento-icono.credito { background: var(--color-success-bg); color: var(--color-success); }
+
+.movimiento-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.movimiento-desc  { font-size: 13px; font-weight: 500; }
+.movimiento-fecha { font-size: 11px; color: var(--color-text-light); }
+.movimiento-monto { font-size: 14px; font-weight: 700; font-family: monospace; }
+.movimiento-monto.debito  { color: var(--color-danger); }
+.movimiento-monto.credito { color: var(--color-success); }
+
+/* ── Modal ───────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 520px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+}
+.modal-lg { max-width: 680px; }
+
+.modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 15px; font-weight: 700; }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-light); padding: 4px; border-radius: var(--radius-sm);
+}
+.modal-close:hover { background: var(--color-bg); }
+
+.modal-body   { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+/* ── Formulario ──────────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid .span2 { grid-column: span 2; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--color-text-muted); }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px 11px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--color-primary); }
+.form-hint { font-size: 11px; color: var(--color-text-light); margin-top: 2px; }
+
+/* Ícono de ayuda contextual con tooltip CSS puro (sin dependencias jQuery/Bootstrap) */
+.ayuda-contextual {
+  position: relative;
+  display: inline-flex;
+  color: var(--color-text-light);
+  cursor: help;
+  text-transform: none;
+}
+.ayuda-contextual::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  width: 220px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 50;
+  box-shadow: var(--shadow-fluffy);
+}
+.ayuda-contextual:hover::after,
+.ayuda-contextual:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Botones ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; text-decoration: none; transition: opacity .15s;
+  white-space: nowrap;
+}
+.btn:hover { opacity: .88; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-primary   { background: var(--color-primary);   color: var(--color-surface); }
+.btn-success   { background: var(--color-success);   color: var(--color-surface); }
+.btn-danger    { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-mid); }
+.btn-secondary { background: var(--color-surface); color: var(--color-text); border: 1px solid rgba(0,0,0,.07); }
+.btn-secondary:hover { background: var(--color-bg); }
+.btn-ghost     { background: none; color: var(--color-text-muted); border: none; }
+.btn-sm        { padding: 6px 12px; font-size: 12px; }
+.btn-icon      { padding: 6px; border-radius: var(--radius-sm); background: none; border: none; cursor: pointer; color: var(--color-text-light); }
+.btn-icon:hover { background: var(--color-bg); color: var(--color-text); }
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 56px 24px;
+  color: var(--color-text-light); font-size: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.empty-state svg { opacity: .3; }
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+/* FIX (auditoría UX): este bloque local (clases .show/.ok/.err, opacity:0
+   por defecto) pisaba al toast unificado de /shared/tokens.css (que usa
+   .toast--visible/--success/--danger y se carga ANTES que este archivo).
+   Como acá se forzaba opacity:0 y nada volvía a ponerlo en 1 para la clase
+   .toast--visible, cualquier mostrarToast() en esta pantalla (y en las
+   otras páginas que comparten finanzas.css) quedaba invisible aunque se
+   disparara correctamente. Se elimina y se deja que tokens.css controle
+   el toast en toda la app.
+*/
+
+/* ── Tabs ────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 2px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 3px; width: fit-content;
+}
+.tab-btn {
+  padding: 7px 16px; border: none; border-radius: var(--radius-sm);
+  background: none; font-size: 13px; cursor: pointer;
+  color: var(--color-text-muted); font-weight: 500;
+  transition: all .15s;
+}
+.tab-btn.active {
+  background: var(--color-surface); color: var(--color-text);
+  font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+/* ── Tabs de nivel de página (fusión Cobranzas + Saldos por cliente) ──── */
+.tab-btn-principal {
+  padding: 10px 4px; border: none; border-bottom: 2px solid transparent;
+  background: none; font-size: 14px; cursor: pointer;
+  color: var(--color-text-muted); font-weight: 500;
+  transition: all .15s;
+}
+.tab-btn-principal.active {
+  color: var(--color-primary); font-weight: 600;
+  border-bottom-color: var(--color-primary);
+}
+.tab-btn-principal:hover { color: var(--color-text); }
+
+/* ── Alerta inline ───────────────────────────────────────────────── */
+.alerta-inline {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+}
+.alerta-inline.warning { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning-mid); }
+.alerta-inline.danger  { background: var(--color-danger-bg);  color: var(--color-danger);  border: 1px solid var(--color-danger-mid); }
+
+/* ── Nota tipo selector ──────────────────────────────────────────── */
+.nota-tipo-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.nota-tipo-btn {
+  padding: 12px; border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer; text-align: center;
+  font-size: 13px; font-weight: 600;
+  transition: all .15s;
+}
+.nota-tipo-btn.selected-credito { border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success); }
+.nota-tipo-btn.selected-debito  { border-color: var(--color-danger);  background: var(--color-danger-bg);  color: var(--color-danger); }
+
+/* ── Sidebar separator ───────────────────────────────────────────── */
+.sidebar-sep {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-light);
+  padding: 14px 20px 4px;
+}
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — Etapa 4 (finanzas: cta-cte, cheques, cobranzas,
+   notas, auditoría, vencimientos, notif-log, etc.)
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .finanzas-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .finanzas-kpis { grid-template-columns: 1fr; gap: 10px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .span2 { grid-column: span 1; }
+  .nota-tipo-selector { grid-template-columns: 1fr; }
+  .filtros-bar input[type="search"] { min-width: 0; width: 100%; }
+  .tabla-header { padding: 12px 14px; }
+  table.tabla th, table.tabla td { padding: 9px 12px; font-size: 12.5px; }
+  .detalle-panel-header, .detalle-panel-body, .detalle-panel-footer { padding-left: 14px; padding-right: 14px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox" (Cuenta corriente / vista Saldos)
+   Réplica del lenguaje visual de Clientes/Productos/Stock. Redefine
+   --color-primary* localmente (herencia por variables CSS) y ajusta forma
+   de píldoras/tabla. Acotado a #vista-saldos (no toca la vista Cobranzas
+   "¿A quién llamo hoy?" ni finanzas.css fuera de este bloque).
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-saldos {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-saldos .fkpi { border-color: var(--color-border-soft); box-shadow: 0 4px 20px rgba(22,24,29,.05); }
+
+#vista-saldos .tabla-wrap { border-color: var(--color-border-soft); box-shadow: 0 4px 20px rgba(22,24,29,.05); }
+#vista-saldos .filtros-bar input,
+#vista-saldos .filtros-bar select { border-radius: 999px; }
+
+#vista-saldos table.tabla th { background: transparent; color: var(--color-text-light); padding: 14px 16px; }
+#vista-saldos table.tabla td { padding: 15px 16px; border-bottom-color: var(--color-surface-2); }
+#vista-saldos table.tabla tr:hover td { background: var(--color-primary-bg); }
+
+/* ── Semáforo de saldo → sello, igual que badge-estado ── */
+#vista-saldos .semaforo {
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+#vista-saldos .semaforo.verde    { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+#vista-saldos .semaforo.rojo     { background: var(--color-danger-bg);  color: var(--color-danger); border-color: var(--color-danger); }
+#vista-saldos .semaforo.amarillo { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+
+#vista-saldos .btn-primary { border-radius: 999px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO AVANZADO — Estilo "TravelBox / CRMHUB"
+   (Devoluciones · Notas de crédito/débito · Cheques · Riesgo de cheques)
+   Todas comparten finanzas.css: se repite el bloque con su propio scope para
+   no mezclar acentos entre secciones. Redefine --color-primary* localmente
+   y airea la tabla .tabla / .chip ya existentes en cada una.
+   ════════════════════════════════════════════════════════════════════════ */
+
+#vista-devoluciones,
+#vista-notas,
+#vista-cheques,
+#vista-riesgo-cheques,
+#vista-vencimientos {
+  --color-primary:      var(--nav-deposito);
+  --color-primary-bg:   var(--nav-deposito-bg);
+  --color-primary-dark: var(--color-warning);
+}
+
+#vista-devoluciones .filtros-bar input,
+#vista-devoluciones .filtros-bar select,
+#vista-notas .filtros-bar input,
+#vista-notas .filtros-bar select,
+#vista-cheques .filtros-bar input,
+#vista-cheques .filtros-bar select,
+#vista-riesgo-cheques .filtros-bar input,
+#vista-riesgo-cheques .filtros-bar select {
+  border-radius: 999px;
+}
+
+#vista-devoluciones .tabla-wrap,
+#vista-notas .tabla-wrap,
+#vista-cheques .tabla-wrap,
+#vista-riesgo-cheques .tabla-wrap {
+  border-color: var(--color-border-soft);
+  box-shadow: 0 4px 20px rgba(22,24,29,.05);
+}
+
+#vista-devoluciones table.tabla th,
+#vista-notas table.tabla th,
+#vista-cheques table.tabla th,
+#vista-riesgo-cheques table.tabla th,
+#vista-vencimientos table.tabla th {
+  background: transparent;
+  color: var(--color-text-light);
+  padding: 14px 16px;
+}
+#vista-devoluciones table.tabla td,
+#vista-notas table.tabla td,
+#vista-cheques table.tabla td,
+#vista-riesgo-cheques table.tabla td,
+#vista-vencimientos table.tabla td {
+  padding: 15px 16px;
+  border-bottom-color: var(--color-surface-2);
+}
+#vista-devoluciones table.tabla tr:hover td,
+#vista-notas table.tabla tr:hover td,
+#vista-cheques table.tabla tr:hover td,
+#vista-riesgo-cheques table.tabla tr:hover td,
+#vista-vencimientos table.tabla tr:hover td {
+  background: var(--color-primary-bg);
+}
+
+/* .chip ya hereda el sello (doble borde, esquinas casi cuadradas) definido
+   en finanzas.css arriba — antes esta regla lo pisaba de vuelta a pill
+   redondeado en estas 5 vistas. */
+
+/* ── Riesgo de cheques: avatar circular del cliente (helper avatarCliente() en riesgo-cheques.js) ── */
+#vista-riesgo-cheques .riesgo-cliente-fila {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+#vista-riesgo-cheques .riesgo-cliente-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
+}
+#vista-riesgo-cheques .score-badge { border-radius: 999px; }

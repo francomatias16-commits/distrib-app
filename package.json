@@ -1,0 +1,63 @@
+{
+  "name": "distrib-app",
+  "version": "1.49.2",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@sentry/node": "^10.68.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "bcryptjs": "^2.4.3",
+    "bwip-js": "^4.5.1",
+    "docx": "^9.7.1",
+    "express": "^4.19.2",
+    "firebase-admin": "^14.2.0",
+    "gray-matter": "^4.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
+    "node-forge": "^1.4.0",
+    "pdfkit": "^0.15.0",
+    "playwright-core": "^1.56.1",
+    "web-push": "^3.6.7",
+    "ws": "^8.21.1"
+  },
+  "scripts": {
+    "check-schema": "node --experimental-vm-modules scripts/check-schema.js",
+    "check-schema:hints": "node --experimental-vm-modules scripts/check-schema.js --fix-hints",
+    "check-schema:json": "node --experimental-vm-modules scripts/check-schema.js --json",
+    "test:integration": "node scripts/test-integration.js",
+    "test:integration:verbose": "node scripts/test-integration.js --verbose",
+    "test:integration:no-cleanup": "node scripts/test-integration.js --no-cleanup",
+    "test:integration:json": "node scripts/test-integration.js --json",
+    "predeploy": "node scripts/check-migraciones-registro.js && node scripts/smoke-test-frontend.js && node scripts/check-asset-wiring.js && node scripts/check-api-wiring.js && node scripts/check-handler-dispatch.js",
+    "check-asset-wiring": "node scripts/check-asset-wiring.js",
+    "check-asset-wiring:json": "node scripts/check-asset-wiring.js --json",
+    "check-api-wiring": "node scripts/check-api-wiring.js",
+    "check-api-wiring:json": "node scripts/check-api-wiring.js --json",
+    "check-handler-dispatch": "node scripts/check-handler-dispatch.js",
+    "check-handler-dispatch:json": "node scripts/check-handler-dispatch.js --json",
+    "check-wiring:all": "node scripts/check-asset-wiring.js && node scripts/check-api-wiring.js && node scripts/check-handler-dispatch.js",
+    "cargar-embeddings-asistente": "node scripts/generar-embeddings-asistente.js",
+    "build": "node scripts/bump-sw-version.js && esbuild frontend/**/*.js --minify --outdir=dist --outbase=frontend",
+    "audit:security": "node scripts/audit-security-grants.js",
+    "audit:security:json": "node scripts/audit-security-grants.js --json",
+    "audit:funciones-fantasma": "node scripts/audit-funciones-fantasma.js",
+    "audit:funciones-fantasma:json": "node scripts/audit-funciones-fantasma.js --json",
+    "audit:all": "node scripts/audit-security-grants.js && node scripts/audit-funciones-fantasma.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test -c playwright.config.e2e.js",
+    "test:e2e:ui": "playwright test -c playwright.config.e2e.js --ui",
+    "loadtest": "node scripts/load-test.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "autocannon": "^7.15.0",
+    "esbuild": "^0.23.1",
+    "playwright": "^1.56.1",
+    "sharp": "^0.33.4",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,414 @@
+/**
+ * migracion-gentelella.css — Reskin "Gentelella v4" de la pantalla Migración
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Pantalla: Importar mis datos (frontend/admin/migracion.html)
+ * Se carga DESPUÉS de /frontend/admin/css/migracion.css (CSS base de esta pantalla)
+ * y de /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en el <head>).
+ *
+ * Reusa los patrones ya establecidos en usuarios-gentelella.css / automatizacion-gentelella.css
+ * para `.topbar`/`.breadcrumb-bar`/`.page-intro`/`.btn.btn--primary`/`.btn.btn--secondary`/
+ * `.btn.btn--ghost`.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-migracion-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella { background: var(--ge-bg) !important; }
+body.dash-migracion-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-migracion-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-migracion-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-migracion-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-migracion-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* Texto de ayuda debajo de cada título de paso */
+body.dash-migracion-gentelella .wizard-desc {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-migracion-gentelella h2,
+body.dash-migracion-gentelella h3 {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones (btn--primary / btn--secondary / btn--ghost)
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-migracion-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-migracion-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-migracion-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-migracion-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paso 0: CTA migración maestra + progreso general
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-maestra-cta {
+  border: 1px dashed var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-cta-texto strong { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella .mig-maestra-cta-texto span { color: var(--ge-ink-soft) !important; }
+
+body.dash-migracion-gentelella .mig-progreso-barra {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella .mig-progreso-fill {
+  background: var(--ge-teal) !important;
+}
+body.dash-migracion-gentelella .mig-progreso-texto {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Checklist guiado
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-ck-item {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-migracion-gentelella .mig-ck-orden {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-migracion-gentelella .mig-ck-item.ck-completo .mig-ck-orden {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-migracion-gentelella .mig-ck-icono { color: var(--ge-teal) !important; }
+body.dash-migracion-gentelella .mig-ck-desc { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-ck-prereq { color: var(--ge-warning-text) !important; }
+body.dash-migracion-gentelella .mig-ck-nota-ok { color: var(--ge-teal-dark) !important; }
+body.dash-migracion-gentelella .mig-ck-nota-gap {
+  color: var(--ge-warning-text) !important;
+  background: var(--ge-warning-bg) !important;
+  border: 1px solid var(--ge-orange) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-ck-link-admin {
+  color: var(--ge-teal-dark) !important;
+  border: 1px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-ck-link-admin:hover {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Pastillas de estado del checklist (Pendiente / En progreso / Completado / Con error) */
+body.dash-migracion-gentelella .mig-estado-pill {
+  background: var(--ge-chip-bg) !important;
+  border: 3px double var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.ck-pendiente {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.ck-en-progreso {
+  background: var(--ge-warning-bg) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.ck-completado {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.ck-error {
+  background: rgba(231,76,60,.1) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Historial de sesiones (Paso 0)
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-vacio { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-sesion-row {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .mig-sesion-meta { color: var(--ge-muted) !important; }
+
+body.dash-migracion-gentelella .mig-estado-pill.mig-estado-completado {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.mig-estado-error {
+  background: rgba(231,76,60,.1) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.mig-estado-cancelado,
+body.dash-migracion-gentelella .mig-estado-pill.mig-estado-deshecho {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-migracion-gentelella .mig-estado-pill.mig-estado-deshaciendo {
+  background: var(--ge-warning-bg) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+
+/* Panel superadmin (todos los tenants) */
+body.dash-migracion-gentelella #panel-superadmin-mig {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella #panel-superadmin-mig h3 { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella #panel-superadmin-mig table thead tr {
+  background: var(--ge-bg) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella #panel-superadmin-mig table th {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paso 1: subir archivo
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-dropzone {
+  border: 2px dashed var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-migracion-gentelella .mig-dropzone:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-migracion-gentelella .mig-dropzone svg { color: var(--ge-teal) !important; }
+body.dash-migracion-gentelella #estado-carga,
+body.dash-migracion-gentelella #estado-carga-maestra { color: var(--ge-ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Paso 2: mapear columnas
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-mapeo-row {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella .mig-mapeo-row label { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella .mig-mapeo-row select,
+body.dash-migracion-gentelella #select-hoja {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-mapeo-row select:focus,
+body.dash-migracion-gentelella #select-hoja:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-migracion-gentelella .mig-pista { color: var(--ge-muted) !important; }
+body.dash-migracion-gentelella .mig-destinos {
+  background: var(--ge-chip-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .mig-destinos-titulo { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella .mig-destinos-nota { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-advertencias {
+  background: var(--ge-warning-bg) !important;
+  border: 1px solid var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-sin-mapear {
+  background: var(--ge-chip-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-sin-mapear-nota { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-sin-mapear-ok { color: var(--ge-teal-dark) !important; }
+body.dash-migracion-gentelella #mapeo-progreso,
+body.dash-migracion-gentelella #confirmar-progreso,
+body.dash-migracion-gentelella #reintentar-progreso { color: var(--ge-ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Paso 3: revisar filas
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-stat-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .mig-stat-card.ok { border-color: var(--ge-teal) !important; }
+body.dash-migracion-gentelella .mig-stat-card.error { border-color: var(--ge-red) !important; }
+body.dash-migracion-gentelella .mig-stat-num { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella .mig-stat-label { color: var(--ge-ink-soft) !important; }
+
+body.dash-migracion-gentelella .e-pill {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-migracion-gentelella .e-pill:hover { background: var(--ge-chip-bg) !important; transform: translateY(-1px) !important; }
+body.dash-migracion-gentelella .e-pill.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+  font-weight: 600 !important;
+}
+
+body.dash-migracion-gentelella .mig-tabla-wrap {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-migracion-gentelella .mig-tabla-wrap th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella .mig-tabla-wrap td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella .mig-tabla-wrap tr.fila-error {
+  background: rgba(231,76,60,.06) !important;
+}
+body.dash-migracion-gentelella .mig-celda-errores { color: var(--ge-red) !important; }
+body.dash-migracion-gentelella .mig-vacio-celda { color: var(--ge-muted) !important; }
+body.dash-migracion-gentelella .mig-aviso-confirmar { color: var(--ge-ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Paso 4: resultado
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-resultado-ok svg { color: var(--ge-teal) !important; }
+body.dash-migracion-gentelella .mig-resultado-ok h2 { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella #resultado-detalle { color: var(--ge-ink-soft) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Migración maestra (detección multi-hoja)
+   ════════════════════════════════════════════════════════════ */
+body.dash-migracion-gentelella .mig-maestra-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-card-titulo strong { color: var(--ge-ink) !important; }
+body.dash-migracion-gentelella .mig-maestra-card-titulo select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-filas-count { color: var(--ge-ink-soft) !important; }
+
+body.dash-migracion-gentelella .mig-confianza-pill {
+  border-radius: var(--ge-radius-btn) !important;
+  border-width: 3px !important;
+  border-style: double !important;
+}
+body.dash-migracion-gentelella .mig-confianza-alta {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-migracion-gentelella .mig-confianza-media {
+  background: var(--ge-warning-bg) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-migracion-gentelella .mig-confianza-baja {
+  background: rgba(231,76,60,.1) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+
+body.dash-migracion-gentelella .mig-maestra-mapeo-item label { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-maestra-mapeo-item label .req { color: var(--ge-red) !important; }
+body.dash-migracion-gentelella .mig-maestra-mapeo-item select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-mapeo-item select.falta-requerido {
+  border-color: var(--ge-red) !important;
+}
+
+body.dash-migracion-gentelella .mig-maestra-progreso-item {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-progreso-item .detalle { color: var(--ge-ink-soft) !important; }
+
+body.dash-migracion-gentelella .mig-maestra-resultado-tabla th {
+  color: var(--ge-ink-soft) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-migracion-gentelella .mig-maestra-resultado-tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}

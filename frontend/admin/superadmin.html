@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel retirado — Fluxo</title>
+  <meta http-equiv="refresh" content="3;url=/admin/saas-billing" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif; background: var(--color-bg);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      background: #fff; border-radius: var(--radius-xxl); box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      padding: 2rem; max-width: 440px; text-align: center;
+    }
+    .icono { color: #2563EB; margin-bottom: .75rem; }
+    h1 { font-size: 1.05rem; font-weight: 700; color: #111827; margin-bottom: .5rem; }
+    p { font-size: .88rem; color: #6b7280; line-height: 1.5; margin-bottom: 1.25rem; }
+    a.btn {
+      display: inline-block; background: #2563EB; color: #fff; text-decoration: none;
+      font-weight: 700; font-size: .88rem; padding: .7rem 1.4rem; border-radius: var(--radius-lg);
+    }
+  </style>
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+</head>
+<body>
+  <div class="card">
+    <div class="icono">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+        <path d="M12 9v4"/><path d="M12 17h.01"/>
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      </svg>
+    </div>
+    <h1>Este panel fue retirado</h1>
+    <p>
+      El alta de empresas y la gestión de planes SaaS ahora se hacen desde el
+      panel de facturación SaaS. Vas a ser redirigido automáticamente en unos
+      segundos.
+    </p>
+    <a class="btn" href="/admin/saas-billing">Ir al panel de facturación SaaS</a>
+  </div>
+</body>
+</html>

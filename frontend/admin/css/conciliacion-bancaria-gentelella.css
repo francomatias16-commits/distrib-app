@@ -1,0 +1,287 @@
+/**
+ * conciliacion-bancaria-gentelella.css — Reskin "Gentelella v4" de la pantalla
+ * Conciliación bancaria (Cruzar con el banco)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * El CSS base de esta pantalla vive en un <style> inline dentro de
+ * conciliacion-bancaria.html (mismo patrón que reglas-precio/comparador-precios/
+ * fidelizacion) — este archivo sobreescribe todo bajo el scope, sin tocar el inline.
+ * No modifica ningún id/clase que lea conciliacion-bancaria.js:
+ * solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-conciliacion-bancaria-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella { background: var(--ge-bg) !important; }
+body.dash-conciliacion-bancaria-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-conciliacion-bancaria-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-conciliacion-bancaria-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb + intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel "Importar extracto" + drop-zone
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-conciliacion-bancaria-gentelella #wrap-import h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .drop-zone {
+  border: 2px dashed var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .drop-zone.dragover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .drop-zone code {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  padding: 1px 5px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Lista de extractos (lotes-wrap)
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .lotes-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lotes-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lotes-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-item {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-item:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-item.activo {
+  background: var(--ge-teal-light) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-nombre {
+  color: var(--ge-ink) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-meta {
+  color: var(--ge-muted) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-progreso {
+  background: var(--ge-border) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .lote-progreso-fill {
+  background: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPIs (kpi-card genérico de reportes.css)
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .kpi-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+}
+body.dash-conciliacion-bancaria-gentelella .kpi-valor {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de movimientos
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-conciliacion-bancaria-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-conciliacion-bancaria-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  font-size: 13px !important;
+}
+body.dash-conciliacion-bancaria-gentelella .tabla tr:last-child td { border-bottom: none !important; }
+body.dash-conciliacion-bancaria-gentelella .tabla tbody tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-conciliacion-bancaria-gentelella .col-sticky-end { background: var(--ge-panel) !important; }
+body.dash-conciliacion-bancaria-gentelella .tabla tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   Badges de estado / tipo
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .badge-estado {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-estado.pendiente {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-estado.conciliado {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-estado.descartado {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-tipo {
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-tipo.credito {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .badge-tipo.debito {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Candidatos de match
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .candidato-item {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .candidato-item .score.alto  { color: var(--ge-teal-dark) !important; }
+body.dash-conciliacion-bancaria-gentelella .candidato-item .score.medio { color: var(--ge-warning-text) !important; }
+body.dash-conciliacion-bancaria-gentelella .candidato-item .score.bajo  { color: var(--ge-red) !important; }
+body.dash-conciliacion-bancaria-gentelella .candidato-item button {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .candidato-item button:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .sin-candidatos {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Acciones de fila (Deshacer / Descartar)
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .fila-acciones button {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .fila-acciones button:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .fila-acciones button.danger {
+  color: var(--ge-red) !important;
+  border-color: rgba(231,76,60,.3) !important;
+}
+body.dash-conciliacion-bancaria-gentelella .fila-acciones button.danger:hover {
+  background: rgba(231,76,60,.08) !important;
+  border-color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}

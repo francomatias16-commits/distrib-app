@@ -1,0 +1,367 @@
+/**
+ * puntos-gentelella.css — Reskin "Gentelella v4" de la pantalla Puntos
+ * ──────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea puntos.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-puntos-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella { background: var(--ge-bg) !important; }
+body.dash-puntos-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-puntos-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-puntos-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-puntos-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-puntos-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-puntos-gentelella .kpi-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+body.dash-puntos-gentelella .kpi-valor {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toolbar + buscador
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .buscar-wrap svg {
+  color: var(--ge-muted) !important;
+}
+body.dash-puntos-gentelella #buscar-input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella #buscar-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-puntos-gentelella #buscar-input::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de puntos
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-puntos-gentelella .tabla-puntos th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 16px !important;
+}
+body.dash-puntos-gentelella .tabla-puntos td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 13px 16px !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella .tabla-puntos tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-puntos-gentelella .tabla-puntos tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-puntos-gentelella .tabla-loading {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella .cliente-nombre {
+  color: var(--ge-ink) !important;
+  font-weight: 500 !important;
+}
+body.dash-puntos-gentelella .cliente-email {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+}
+body.dash-puntos-gentelella .td-muted {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Badges de saldo (badge-low / badge-mid / badge-high)
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .badge {
+  display: inline-block !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+body.dash-puntos-gentelella .badge-low {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-puntos-gentelella .badge-mid {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-puntos-gentelella .badge-high {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .paginacion-container {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-puntos-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-puntos-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de puntos (backdrop + caja)
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella #modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-puntos-gentelella #modal-puntos {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-puntos-gentelella #modal-cliente-nombre {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-puntos-gentelella #modal-cliente-email {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-puntos-gentelella #modal-saldo {
+  color: var(--ge-teal) !important;
+  font-weight: 700 !important;
+}
+
+/* Tabs del modal */
+body.dash-puntos-gentelella .modal-tab {
+  color: var(--ge-ink-soft) !important;
+  background: none !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+body.dash-puntos-gentelella .modal-tab:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-puntos-gentelella .modal-tab.activo {
+  color: var(--ge-teal) !important;
+  border-bottom-color: var(--ge-teal) !important;
+}
+
+/* Historial en modal */
+body.dash-puntos-gentelella .tipo-badge {
+  display: inline-block !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 2px 8px !important;
+}
+body.dash-puntos-gentelella .tipo-compra {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-puntos-gentelella .tipo-canje {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-puntos-gentelella .tipo-ajuste {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-puntos-gentelella .mov-concepto {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+}
+body.dash-puntos-gentelella .pts-positivo {
+  color: var(--ge-teal) !important;
+  font-weight: 700 !important;
+}
+body.dash-puntos-gentelella .pts-negativo {
+  color: var(--ge-red) !important;
+  font-weight: 700 !important;
+}
+body.dash-puntos-gentelella .td-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+
+/* Formulario canje / acreditar en modal */
+body.dash-puntos-gentelella .form-grupo label,
+body.dash-puntos-gentelella .form-label {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-puntos-gentelella .form-input {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella .form-input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-puntos-gentelella .form-input::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* Preview de canje */
+body.dash-puntos-gentelella #canje-preview {
+  background: var(--ge-teal-light) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-teal-dark) !important;
+  font-size: 13px !important;
+}
+
+/* Acciones del modal */
+body.dash-puntos-gentelella .modal-acciones-pts {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-puntos-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-puntos-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-puntos-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-puntos-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-puntos-gentelella .btn-primario:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-puntos-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  body.dash-puntos-gentelella .kpis {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 420px) {
+  body.dash-puntos-gentelella .kpis {
+    grid-template-columns: 1fr !important;
+  }
+  body.dash-puntos-gentelella .toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-puntos-gentelella .buscar-wrap {
+    max-width: 100% !important;
+  }
+}

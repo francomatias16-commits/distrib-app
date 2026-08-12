@@ -1,0 +1,180 @@
+/* frontend/admin/css/clientes-ciclos.css
+   REQ-07 — Piloto Automático en ficha de cliente
+   Agregar: <link rel="stylesheet" href="/frontend/admin/css/clientes-ciclos.css" />
+   en clientes.html, junto a los demás estilos del panel de detalle. */
+
+/* ── Sección general ────────────────────────────────────────────────────── */
+.ficha-seccion {
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.ficha-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--color-text-muted);
+  margin: 0 0 12px;
+}
+
+.ciclo-notif-label {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+.ciclo-cargando,
+.ciclo-vacio {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.ciclo-sin-sugerido {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+/* ── Tabla de ciclos ────────────────────────────────────────────────────── */
+.ciclo-tabla-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+.ciclo-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .ciclo-sugerido-acciones { flex-wrap: wrap; }
+  .btn-wa-sugerencia, .btn-descartar-sugerencia { flex: 1 1 auto; justify-content: center; }
+}
+
+.ciclo-tabla th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 4px 6px 4px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ciclo-tabla td {
+  padding: 6px 6px 6px 0;
+  color: var(--color-text);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border-light, var(--color-border));
+}
+
+.ciclo-tabla tr:last-child td { border-bottom: none; }
+
+.ciclo-vencido {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* Badges de confianza */
+.ciclo-conf {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ciclo-conf.alta   { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.ciclo-conf.media  { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.ciclo-conf.baja   { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: var(--color-danger); }
+
+/* ── Card del pedido sugerido ───────────────────────────────────────────── */
+.ciclo-sugerido-card {
+  background: var(--color-bg-alt, var(--color-surface-2));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+
+.ciclo-sugerido-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ciclo-badge-sugerido {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ciclo-conf-pct {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+.ciclo-sugerido-items {
+  font-size: 12px;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.ciclo-sugerido-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+
+/* ── Botones de acción ──────────────────────────────────────────────────── */
+.ciclo-sugerido-acciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-wa-sugerencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #25D366; /* verde de marca WhatsApp, intencional */
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-wa-sugerencia:hover:not(:disabled) { background: #1ebe5a; }
+.btn-wa-sugerencia:disabled { opacity: .6; cursor: default; }
+
+.btn-descartar-sugerencia {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.btn-descartar-sugerencia:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}

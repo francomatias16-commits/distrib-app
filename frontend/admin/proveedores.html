@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Proveedores · Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=196" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/proveedores-gentelella.css?v=1" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-proveedores-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Proveedores</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Datos de contacto y fiscales de cada proveedor, y acceso a su cuenta corriente y portal de autogestión de facturas.
+</div>
+  </div>
+
+  <main class="main" id="vista-proveedores">
+
+    <!-- Filtros -->
+    <div class="filtros-bar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="busqueda" aria-label="Buscar proveedor" placeholder="Razón social, fantasía o CUIT..." autocomplete="off" />
+      </div>
+      <select id="filtro-activo" class="select-filtro" onchange="filtrar()">
+        <option value="true">Activos</option>
+        <option value="">Todos</option>
+        <option value="false">Inactivos</option>
+      </select>
+      <div class="filtros-der">
+        <button type="button" class="btn btn--primary" onclick="abrirModalNuevo()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo proveedor
+            </button>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-wrap table-responsive-cards">
+      <table class="tabla-main">
+        <thead>
+            <tr>
+            <th>Proveedor</th>
+            <th class="thead-sep">CUIT</th>
+            <th>Contacto</th>
+            <th class="thead-sep">Teléfono</th>
+            <th style="text-align:center">Pago</th>
+            <th class="thead-sep">Estado</th>
+            <th class="col-sticky-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-proveedores">
+          <tr><td colspan="7" class="vacio">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Panel: links de acceso activos del portal ──────────────────── -->
+    <div style="margin-top:28px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <h2 style="margin:0;font-size:16px;font-weight:700;">Links de acceso activos — Portal proveedor</h2>
+        <button type="button" class="btn btn--secondary btn--sm" onclick="cargarLinksActivos()">↻ Actualizar</button>
+      </div>
+      <p style="font-size:13px;color:var(--color-text-muted);margin:0 0 12px;">
+        Links vigentes generados para que los proveedores vean sus órdenes sin iniciar sesión.
+        Podés revocar cualquier link activo desde aquí.
+      </p>
+      <div id="tabla-links-activos-wrap" style="overflow-x:auto;">
+        <table class="tabla-main" id="tabla-links-activos">
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th class="thead-sep">Creado por</th>
+              <th>Creado el</th>
+              <th class="thead-sep">Expira el</th>
+              <th style="text-align:center">Usos</th>
+              <th class="thead-sep">Último uso</th>
+              <th>Estado</th>
+              <th class="col-sticky-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-links-activos">
+            <tr><td colspan="8" class="vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: nuevo / editar proveedor
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-proveedor" role="dialog" aria-modal="true" aria-label="Proveedor" onclick="cerrarModalSiFondo(event)">
+  <div class="modal-box">
+    <div class="modal-box-header">
+      <h2 id="modal-titulo">Nuevo proveedor</h2>
+      <button type="button" class="modal-box-close" onclick="cerrarModal()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="badge-origen-migracion" style="padding: 0 20px;"></div>
+    <div class="modal-box-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Razón social *</label>
+          <input type="text" id="f-razon_social" class="form-input" placeholder="Ej: García Distribuciones S.A." aria-label="Razón social" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Nombre de fantasía</label>
+          <input type="text" id="f-nombre_fantasia" class="form-input" placeholder="Nombre comercial (opcional)" aria-label="Nombre de fantasía" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            CUIT
+            <span class="ayuda-contextual" data-tooltip="Código Único de Identificación Tributaria. Once dígitos, formato XX-XXXXXXXX-X.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="text" id="f-cuit" class="form-input" placeholder="20-12345678-9" aria-label="CUIT" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            Condición IVA
+            <span class="ayuda-contextual" data-tooltip="Define cómo te factura el proveedor y cómo registrás la compra en el sistema impositivo.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <select id="f-condicion_iva" class="form-input">
+            <option value="responsable_inscripto">Responsable Inscripto</option>
+            <option value="monotributo">Monotributo</option>
+            <option value="exento">Exento</option>
+            <option value="consumidor_final">Consumidor Final</option>
+          </select>
+        </div>
+
+        <div class="form-sec-label">Contacto</div>
+        <div class="form-group">
+          <label class="form-label">Nombre de contacto</label>
+          <input type="text" id="f-contacto" class="form-input" placeholder="Nombre y apellido" aria-label="Contacto" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" id="f-telefono" class="form-input" placeholder="+54 11..." aria-label="Teléfono" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Email</label>
+          <input type="email" id="f-email" class="form-input" placeholder="compras@proveedor.com" aria-label="Email" />
+        </div>
+
+        <div class="form-sec-label">Condiciones y dirección</div>
+        <div class="form-group">
+          <label class="form-label">
+            Días de pago
+            <span class="ayuda-contextual" data-tooltip="Cantidad de días que tenés para pagarle al proveedor después de recibir la mercadería. Dejá 0 si es pago al contado.">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+          </label>
+          <input type="number" id="f-dias_pago" class="form-input" value="0" min="0" placeholder="0 = contado" aria-label="Días de pago" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Localidad</label>
+          <input type="text" id="f-localidad" class="form-input" placeholder="Ciudad" aria-label="Localidad" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Domicilio</label>
+          <input type="text" id="f-domicilio" class="form-input" placeholder="Calle y número" aria-label="Domicilio" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notas internas</label>
+          <textarea id="f-notas" class="form-input form-textarea" placeholder="Observaciones, condiciones especiales..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-box-footer">
+      <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar" onclick="btnAsyncClick(this, guardarProveedor)" aria-live="polite">Guardar proveedor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: portal de autogestión del proveedor (#10)
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-portal" role="dialog" aria-modal="true" aria-label="Portal de proveedor" onclick="cerrarModalPortalSiFondo(event)">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-box-header">
+      <h2 id="portal-titulo">Portal del proveedor</h2>
+      <button type="button" class="modal-box-close" onclick="cerrarModalPortal()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-box-body" id="portal-body">
+      <p class="portal-cargando">Generando link...</p>
+    </div>
+    <div class="modal-box-footer">
+      <button type="button" class="btn-cancelar" onclick="cerrarModalPortal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/migracion-badge.js?v1782328742714"></script>
+<script src="/frontend/admin/js/proveedores.js?v282"></script>
+<script type="module">
+import { ProfileCard, onclickArg } from '/shared/adminlte-widgets.js';
+
+window.renderProfileCardProveedor = function(container, datos) {
+  ProfileCard.render(container, {
+    nombre: datos.razon_social || datos.nombre || '—',
+    rol: datos.categoria || 'Proveedor',
+    score: datos.score || null,
+    bannerColor: 'banner-purple',
+    stats: [
+      { label: 'Compras', value: datos.total_compras ?? '—' },
+      { label: 'Deuda', value: datos.deuda ? '$' + Number(datos.deuda).toLocaleString('es-AR') : '$0' },
+      { label: 'Productos', value: datos.total_productos ?? '—' }
+    ],
+    lista: [
+      { label: 'CUIT', value: datos.cuit || '—' },
+      { label: 'Contacto', value: datos.contacto || '—' },
+      { label: 'Teléfono', value: datos.telefono || '—' },
+      { label: 'Condición', value: datos.condicion_pago || '—' }
+    ],
+    acciones: [
+      { label: 'Ver compras', variant: 'primary', onclick: `verComprasProveedor(${onclickArg(datos.id)})` },
+      { label: 'WhatsApp', variant: 'success', onclick: `abrirWhatsapp(${onclickArg(datos.telefono)})` }
+    ]
+  });
+};
+</script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

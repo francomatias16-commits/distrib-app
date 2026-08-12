@@ -1,0 +1,361 @@
+/**
+ * cc-proveedores-gentelella.css — Reskin "Gentelella v4" de Cta. Cte. Proveedores
+ * ───────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
+ * Compras/Proveedores, incluye .filtros-bar, .tabla-main, .modal-box, .form-grid,
+ * etc.) y del <style> inline en cc-proveedores.html (.tab-btn, .kpi-card,
+ * .badge-pendiente/parcial/pagada/anulada/vencida, .cruce-table, .item-row) —
+ * y de /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en <head>).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-cc-proveedores-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella { background: var(--ge-bg) !important; }
+body.dash-cc-proveedores-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cc-proveedores-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-cc-proveedores-gentelella .topbar-workspace,
+body.dash-cc-proveedores-gentelella .topbar-contador {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cc-proveedores-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-cc-proveedores-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-cc-proveedores-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botón primario (Nueva factura / Agregar ítem / Registrar pago /
+   Guardar factura / Importar desde OC)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+body.dash-cc-proveedores-gentelella .btn.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cc-proveedores-gentelella #btn-importar-oc {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cc-proveedores-gentelella #btn-importar-oc:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .kpi-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cc-proveedores-gentelella .kpi-label {
+  color: var(--ge-muted) !important;
+}
+body.dash-cc-proveedores-gentelella .kpi-valor {
+  color: var(--ge-ink) !important;
+}
+/* KPI "Saldo pendiente" trae background/color inline (var(--color-warning-bg)) —
+   se sobreescribe con selector de igual especificidad + !important para no
+   tocar el atributo style="" del HTML. */
+body.dash-cc-proveedores-gentelella #kpi-saldo {
+  background: rgba(240,173,78,.15) !important;
+}
+body.dash-cc-proveedores-gentelella #kv-saldo {
+  color: var(--ge-warning-text) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cc-proveedores-gentelella .select-filtro,
+body.dash-cc-proveedores-gentelella .input-fecha {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-cc-proveedores-gentelella .select-filtro:focus,
+body.dash-cc-proveedores-gentelella .input-fecha:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de facturas
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+  /* FIX: la tabla tiene 10 columnas y no entra en escritorios de
+     ~1366-1440px; sin esto el scroll horizontal queda deshabilitado
+     y la columna Acciones (Ver/Cruzar), que es sticky por
+     .col-sticky-end en shared/reskin-patch.css, se corta en vez de
+     quedar alcanzable. overflow-x pisa solo el eje horizontal del
+     `overflow: hidden` de arriba (mismo patrón que admin/css/stock.css). */
+  overflow-x: auto !important;
+}
+body.dash-cc-proveedores-gentelella .tabla-main th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cc-proveedores-gentelella .tabla-main td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cc-proveedores-gentelella .tabla-main td.vacio {
+  color: var(--ge-muted) !important;
+}
+body.dash-cc-proveedores-gentelella .tabla-main tbody tr:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-cc-proveedores-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-cc-proveedores-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Avatar circular del proveedor — el color de fondo es inline (paleta fija
+   en cc-proveedores.js), solo se ajusta forma/sombra acá. */
+body.dash-cc-proveedores-gentelella .prov-avatar {
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-cc-proveedores-gentelella .prov-fila span:last-child {
+  color: var(--ge-ink) !important;
+}
+
+/* Botones de acción en tabla (Ver / Cruce / Registrar pago) */
+body.dash-cc-proveedores-gentelella .btn-tabla {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-tabla:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* Paginación (inyectada por JS con .paginacion-container / .btn-pag) */
+body.dash-cc-proveedores-gentelella .paginacion-container {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-cc-proveedores-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Badges de estado de factura (definidos en <style> inline del HTML:
+   badge-pendiente/parcial/pagada/anulada/vencida). Mismos valores de
+   "Pendiente" y "Vencida" que ya existen para otras pantallas de
+   finanzas, tokenizados acá con --ge-*.
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .badge-fx {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.dash-cc-proveedores-gentelella .badge-pendiente {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-cc-proveedores-gentelella .badge-parcial {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-cc-proveedores-gentelella .badge-pagada {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-cc-proveedores-gentelella .badge-anulada {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cc-proveedores-gentelella .badge-vencida {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal (Nueva/Ver factura, Cruce OC ↔ Factura)
+   ════════════════════════════════════════════════════════════ */
+body.dash-cc-proveedores-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-header {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-header h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-close {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-footer {
+  background: var(--ge-panel) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* Tabs internas del modal (Datos / Ítems / Cruce OC / Pagos) */
+body.dash-cc-proveedores-gentelella .tab-btn {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+body.dash-cc-proveedores-gentelella .tab-btn:hover {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink) !important;
+  transform: translateY(-1px) !important;
+}
+body.dash-cc-proveedores-gentelella .tab-btn.active {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+  font-weight: 700 !important;
+}
+
+/* Formulario: labels, inputs y selects dentro del modal */
+body.dash-cc-proveedores-gentelella .form-group label {
+  color: var(--ge-ink-soft) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-body input[type="text"],
+body.dash-cc-proveedores-gentelella .modal-box-body input[type="number"],
+body.dash-cc-proveedores-gentelella .modal-box-body input[type="date"],
+body.dash-cc-proveedores-gentelella .modal-box-body select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  padding: 7px 10px !important;
+  font-size: 13px !important;
+}
+body.dash-cc-proveedores-gentelella .modal-box-body input:focus,
+body.dash-cc-proveedores-gentelella .modal-box-body select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-cc-proveedores-gentelella .ayuda-contextual {
+  color: var(--ge-muted) !important;
+}
+body.dash-cc-proveedores-gentelella .ayuda-contextual:hover {
+  color: var(--ge-teal) !important;
+}
+
+/* Ítems de factura (tabla inline del panel "Ítems") */
+body.dash-cc-proveedores-gentelella .item-row td {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-cc-proveedores-gentelella .item-row input {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-cc-proveedores-gentelella .item-row input:focus {
+  border-color: var(--ge-teal) !important;
+}
+
+/* Resumen de totales (Subtotal / IVA / Total) — bloques con estilo inline
+   que usan var(--color-bg-alt) y var(--color-primary); se ajusta el acento
+   del total al teal Gentelella vía el token de color-primary heredado por
+   la variable ya existente, sin tocar el HTML. */
+body.dash-cc-proveedores-gentelella #resumen-total,
+body.dash-cc-proveedores-gentelella #resumen-total-items {
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Cruce OC ↔ Factura */
+body.dash-cc-proveedores-gentelella .cruce-table th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-cc-proveedores-gentelella .cruce-table td {
+  border-bottom: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+}

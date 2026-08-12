@@ -1,0 +1,35 @@
+/**
+ * gentelella-nav.css — [DEPRECADO / NO-OP] Reskin "Gentelella v4" del riel
+ * de navegación lateral.
+ * ──────────────────────────────────────────────────────────────────────────
+ * Este archivo reskineaba el riel+panel oscuro de navegación viejo
+ * (selectores .nav-rail, .nav-ws-btn, .nav-panel, .nav-section-link,
+ * .nav-section-label, .nav-badge--*, .nav-rail-salir), bajo el selector
+ * body.dash-gentelella.
+ *
+ * nav.js v520 reemplazó ese riel+panel por el mega-menú overlay compartido
+ * (mismo componente que ya usaba dashboard.html): botón flotante
+ * #nav-menu-btn → panel modal centrado (#nav-menu-panel, .nav-ws,
+ * .nav-ws-link, .nav-menu-grid, .nav-menu-col). Ninguno de esos selectores
+ * viejos existe ya en el DOM de ninguna pantalla admin, así que TODAS las
+ * reglas de este archivo quedaron muertas — no rompen nada, pero tampoco
+ * hacen nada.
+ *
+ * Además, el mega-menú compartido (nav.css) no lee los tokens --ge-* de
+ * gentelella-tokens.css — usa los tokens globales de /shared/tokens.css
+ * (--color-primary, --color-surface, --color-border-soft, etc.), los
+ * mismos en pantallas con o sin reskin Gentelella. Por diseño, el nav se ve
+ * igual en todas las pantallas; el reskin Gentelella solo afecta al
+ * contenido propio de cada pantalla (KPIs, tablas, badges, etc. vía sus
+ * *-gentelella.css puntuales).
+ *
+ * Por qué este archivo sigue existiendo (no se borra):
+ * Está linkeado con <link rel="stylesheet" href=".../gentelella-nav.css">
+ * desde ~45 archivos HTML de frontend/admin. Eliminar el archivo generaría
+ * un 404 de CSS en todas esas pantallas por un <link> colgando. Se deja
+ * este archivo vacío de reglas (no-op) en su mismo path para no tener que
+ * tocar los ~45 HTML. Si en el futuro se quiere reskinear visualmente el
+ * mega-menú compartido, las reglas nuevas van acá, apuntando a los
+ * selectores reales: #nav-menu-btn, #nav-menu-panel, .nav-ws, .nav-ws-link,
+ * .nav-menu-grid, .nav-menu-col — no a los viejos .nav-rail/.nav-panel.
+ */

@@ -1,0 +1,338 @@
+/**
+ * fidelizacion-gentelella.css — Reskin "Gentelella v4" de la pantalla Fidelización
+ * ──────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea fidelizacion.js.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-fidelizacion-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella { background: var(--ge-bg) !important; }
+body.dash-fidelizacion-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-fidelizacion-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-fidelizacion-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-fidelizacion-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-fidelizacion-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-fidelizacion-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI small-box (generados por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .small-box {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-fidelizacion-gentelella .small-box.bg-primary {
+  background: var(--ge-teal) !important;
+}
+body.dash-fidelizacion-gentelella .small-box.bg-info {
+  background: var(--ge-blue) !important;
+}
+body.dash-fidelizacion-gentelella .small-box.bg-warning {
+  background: var(--ge-orange) !important;
+}
+body.dash-fidelizacion-gentelella .small-box.bg-success {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-fidelizacion-gentelella .small-box.bg-danger {
+  background: var(--ge-red) !important;
+}
+body.dash-fidelizacion-gentelella .small-box .inner h3 {
+  color: var(--ge-panel) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+body.dash-fidelizacion-gentelella .small-box .inner p {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabs de fidelización
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .fidel-tabs {
+  border-bottom: 2px solid var(--ge-border) !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tab {
+  color: var(--ge-ink-soft) !important;
+  background: none !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tab:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tab.activo {
+  color: var(--ge-teal) !important;
+  border-bottom-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper (fidel-tabla-wrap)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .fidel-tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tabla-header .btn--primary,
+body.dash-fidelizacion-gentelella .fidel-tabla-header .btn.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-fidelizacion-gentelella .fidel-tabla-header .btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody) — compartida entre tabs
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+}
+body.dash-fidelizacion-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-fidelizacion-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-fidelizacion-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-fidelizacion-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-fidelizacion-gentelella .tabla tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de estado de canje (chip-base + modificadores)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .chip-base {
+  display: inline-block !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+}
+body.dash-fidelizacion-gentelella .chip-pendiente {
+  background: rgba(240,173,78,.15) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-fidelizacion-gentelella .chip-aplicado {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-fidelizacion-gentelella .chip-expirado {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones de acción en tabla (btn--ghost)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .btn.btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-fidelizacion-gentelella .btn.btn--ghost:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tarjetas de recompensa (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .recomp-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-fidelizacion-gentelella .recomp-card:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-fidelizacion-gentelella .recomp-card.inactiva {
+  opacity: .5 !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-fidelizacion-gentelella .recomp-pts {
+  color: var(--ge-teal) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Formulario de configuración
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .config-form {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-fidelizacion-gentelella .f-group label {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+body.dash-fidelizacion-gentelella .f-group input,
+body.dash-fidelizacion-gentelella .f-group select,
+body.dash-fidelizacion-gentelella .f-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-fidelizacion-gentelella .f-group input:focus,
+body.dash-fidelizacion-gentelella .f-group select:focus,
+body.dash-fidelizacion-gentelella .f-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* Botón guardar config */
+body.dash-fidelizacion-gentelella .btn.btn--primary,
+body.dash-fidelizacion-gentelella button.btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-fidelizacion-gentelella .btn.btn--primary:hover,
+body.dash-fidelizacion-gentelella button.btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de recompensa (backdrop + caja)
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella #modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-fidelizacion-gentelella #modal-recompensa {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-fidelizacion-gentelella #modal-recomp-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+body.dash-fidelizacion-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-fidelizacion-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-fidelizacion-gentelella .fidel-tabs {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+  body.dash-fidelizacion-gentelella .fidel-kpis {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-fidelizacion-gentelella .fidel-kpis {
+    grid-template-columns: 1fr !important;
+  }
+}

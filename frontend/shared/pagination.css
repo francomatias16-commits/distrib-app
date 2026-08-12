@@ -1,0 +1,40 @@
+/* frontend/shared/pagination.css
+ * Controles de paginación (Anterior / Siguiente + contador) compartidos
+ * por todas las páginas de listado del panel admin. Antes vivían sólo en
+ * productos.css, así que páginas como clientes.js o compras.js inyectaban
+ * el markup pero sin estilos. Este archivo se carga globalmente para que
+ * se vea igual en todos lados.
+ */
+
+.paginacion-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 0 6px;
+}
+.btn-pag {
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,.07);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+}
+.btn-pag:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-pag:disabled {
+  opacity: .4;
+  cursor: default;
+}
+.info-pag {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  min-width: 80px;
+  text-align: center;
+}

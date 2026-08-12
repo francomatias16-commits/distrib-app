@@ -1,0 +1,269 @@
+/**
+ * auditoria-gentelella.css — Reskin "Gentelella v4" de la pantalla Auditoría
+ * ("Qué pasó en mi negocio")
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lea auditoria.js: solo redistribuye color,
+ * layout y forma.
+ *
+ * Base `finanzas.css` compartida con `cobranzas`/`cheques` — se reusan los mismos
+ * patrones de `.tabla-wrap`, `.col-sticky-end`, `.btn--secondary` y modal ya
+ * establecidos en `cobranzas-gentelella.css`. Particularidades propias de esta
+ * pantalla: `.tabla-footer` (botón "Cargar más" centrado), y el modal de detalle
+ * de cambio con `.diff-grid`/`.diff-col`/`.diff-field-changed` (comparación
+ * antes/después en dos columnas con `<pre>`).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-auditoria-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella { background: var(--ge-bg) !important; }
+body.dash-auditoria-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-auditoria-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-auditoria-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-auditoria-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-auditoria-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper + header + filtros
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-auditoria-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-auditoria-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+body.dash-auditoria-gentelella .filtros-bar input,
+body.dash-auditoria-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-auditoria-gentelella .filtros-bar input:focus,
+body.dash-auditoria-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 14px !important;
+  white-space: nowrap !important;
+}
+body.dash-auditoria-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-auditoria-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-auditoria-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-auditoria-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-auditoria-gentelella .tabla tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Barra de paginación */
+body.dash-auditoria-gentelella .tabla-footer {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-auditoria-gentelella .paginacion-info {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-auditoria-gentelella .paginacion-controles button {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-auditoria-gentelella .paginacion-controles button:hover:not(:disabled):not(.activo) {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-auditoria-gentelella .paginacion-controles button.activo {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-auditoria-gentelella .btn.btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-auditoria-gentelella .btn.btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal "Detalle del cambio"
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-auditoria-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-auditoria-gentelella .modal-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-auditoria-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-auditoria-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+}
+body.dash-auditoria-gentelella .modal-close:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-auditoria-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-auditoria-gentelella #modal-detalle-meta {
+  color: var(--ge-muted) !important;
+}
+
+/* Comparación antes/después */
+body.dash-auditoria-gentelella .diff-col h4 {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+body.dash-auditoria-gentelella .diff-col pre {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-auditoria-gentelella .diff-field-changed {
+  background: rgba(240,173,78,.15) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabs (Registro de cambios / Eventos de negocio — Fase 5)
+   ════════════════════════════════════════════════════════════ */
+body.dash-auditoria-gentelella .auditoria-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--ge-border, var(--color-border));
+}
+body.dash-auditoria-gentelella .auditoria-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+body.dash-auditoria-gentelella .auditoria-tab:hover {
+  color: var(--color-text);
+}
+body.dash-auditoria-gentelella .auditoria-tab.activo {
+  color: var(--color-primary, #2563EB);
+  border-bottom-color: var(--color-primary, #2563EB);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-auditoria-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-auditoria-gentelella .filtros-bar input,
+  body.dash-auditoria-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+}

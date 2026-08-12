@@ -1,0 +1,401 @@
+/**
+ * notas-gentelella.css — Reskin "Gentelella v4" de la pantalla Notas de Crédito/Débito
+ * ──────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/finanzas.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lean notas.js ni notas-credito.js:
+ * solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-notas-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella { background: var(--ge-bg) !important; }
+body.dash-notas-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-notas-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-notas-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-notas-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-notas-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .topbar-contador {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* CTA principal — Nueva Nota */
+body.dash-notas-gentelella .topbar-right .btn--primary {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-notas-gentelella .topbar-right .btn--primary:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-notas-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-notas-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .filtros-bar input,
+body.dash-notas-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .filtros-bar input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-notas-gentelella .filtros-bar input:focus,
+body.dash-notas-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .tabla th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 14px 16px !important;
+}
+body.dash-notas-gentelella .tabla td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 14px 16px !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .tabla tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-notas-gentelella .tabla tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+  cursor: pointer !important;
+}
+body.dash-notas-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-notas-gentelella .tabla tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* Monto con color semántico */
+body.dash-notas-gentelella .monto {
+  font-weight: 600 !important;
+}
+body.dash-notas-gentelella .monto-verde {
+  color: var(--ge-teal) !important;
+  font-weight: 600 !important;
+}
+body.dash-notas-gentelella .monto-rojo {
+  color: var(--ge-red) !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips (generados por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .chip {
+  border-radius: var(--ge-radius-pill) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+}
+body.dash-notas-gentelella .chip-verde {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-notas-gentelella .chip-rojo {
+  background: rgba(231,76,60,.12) !important;
+  color: var(--ge-red) !important;
+}
+/* chip-azul: estado "Emitida" — usa --ge-blue de los tokens */
+body.dash-notas-gentelella .chip-azul {
+  background: rgba(52,152,219,.12) !important;
+  color: var(--ge-blue) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botón icono en tabla
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .btn-icon {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-notas-gentelella .btn-icon:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .paginacion-container {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-notas-gentelella .btn-pag {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .btn-pag:hover:not(:disabled) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-notas-gentelella .btn-pag:disabled {
+  opacity: .4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Empty state
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .empty-state {
+  color: var(--ge-muted) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal overlay (Nueva Nota + Detalle)
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-notas-gentelella .modal-overlay > div,
+body.dash-notas-gentelella .modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+
+/* Modal header */
+body.dash-notas-gentelella .modal-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-notas-gentelella .modal-header h3,
+body.dash-notas-gentelella .modal-header h2 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+body.dash-notas-gentelella .modal-close,
+body.dash-notas-gentelella .btn-cerrar-modal {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-notas-gentelella .modal-close:hover,
+body.dash-notas-gentelella .btn-cerrar-modal:hover {
+  color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
+}
+
+/* Modal body */
+body.dash-notas-gentelella .modal-body {
+  background: var(--ge-panel) !important;
+}
+
+/* Formulario */
+body.dash-notas-gentelella .form-group label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+body.dash-notas-gentelella .form-group input,
+body.dash-notas-gentelella .form-group select,
+body.dash-notas-gentelella .form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .form-group input:focus,
+body.dash-notas-gentelella .form-group select:focus,
+body.dash-notas-gentelella .form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-notas-gentelella .form-group input::placeholder,
+body.dash-notas-gentelella .form-group textarea::placeholder {
+  color: var(--ge-muted) !important;
+}
+
+/* Botones de tipo nota (Crédito / Débito) */
+body.dash-notas-gentelella .nota-tipo-btn {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+body.dash-notas-gentelella .nota-tipo-btn:hover {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-notas-gentelella .nota-tipo-btn.selected-credito {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 700 !important;
+}
+body.dash-notas-gentelella .nota-tipo-btn.selected-debito {
+  background: rgba(231,76,60,.12) !important;
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  font-weight: 700 !important;
+}
+
+/* Modal footer */
+body.dash-notas-gentelella .modal-footer {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-notas-gentelella .modal-footer .btn--secondary {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-notas-gentelella .modal-footer .btn--secondary:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-notas-gentelella .modal-footer .btn--primary,
+body.dash-notas-gentelella #btn-guardar-nota {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-notas-gentelella .modal-footer .btn--primary:hover,
+body.dash-notas-gentelella #btn-guardar-nota:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-notas-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-notas-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-notas-gentelella .filtros-bar input,
+  body.dash-notas-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+  body.dash-notas-gentelella .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  body.dash-notas-gentelella .form-group.span2 {
+    grid-column: span 1 !important;
+  }
+}
+
+/* ── Z-INDEX ESCALADO: confirm por encima de #modal-nota ──
+   BUG REAL (no solo de los tests): #modal-nota usa la clase .modal-overlay
+   (finanzas.css, z-index:500). window.confirmar() usa --z-modal (default
+   400, shared/tokens.css). Con #modal-nota abierto, el diálogo de
+   confirmación de emisión ("Emitir"/"Revisar") queda VISUALMENTE DETRÁS
+   del modal — su botón "ok" es inclickeable con mouse para cualquier
+   usuario real, no solo para Playwright. Mismo hallazgo y mismo fix ya
+   aplicado en cheques-gentelella.css y cobranzas-gentelella.css — nunca
+   se replicó acá cuando notas.html adoptó el mismo patrón de modal.
+   --z-toast ya estaba bien (600 > 500). */
+:root {
+  --z-modal: 10100;
+}

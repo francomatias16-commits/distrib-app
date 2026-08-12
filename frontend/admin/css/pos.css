@@ -1,0 +1,1230 @@
+/**
+ * pos.css — Punto de venta (mostrador)
+ * Paleta: --nav-ventas (verde), mismo workspace que Pedidos/Presupuestos/Clientes.
+ * Fase 2: grilla de favoritos, vuelto grande, movimientos de caja,
+ *         descuento por línea, descuento global, PIN supervisor, reporte Z.
+ */
+
+.pos-main { gap: 16px; padding: 18px 16px !important; }
+
+.pos-card {
+  background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+
+/* ── Chip de turno en el topbar ── */
+.pos-turno-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--nav-ventas-bg, rgba(40,167,69,.15));
+  color: var(--nav-ventas, var(--color-box-success));
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+.pos-turno-chip::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--nav-ventas, var(--color-box-success));
+}
+
+/* ══════════════════ Pantalla: abrir turno ══════════════════ */
+.pos-turno-card {
+  max-width: 480px; margin: 24px auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.pos-turno-titulo { margin: 0; font-size: var(--font-size-xl); }
+.pos-turno-sub { margin: -8px 0 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+.pos-turnos-abiertos { display: flex; flex-direction: column; gap: 8px; }
+.pos-sec-label {
+  font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: .04em;
+  color: var(--color-text-light); font-weight: var(--font-weight-semibold); margin: 0;
+}
+.pos-turnos-lista { display: flex; flex-direction: column; gap: 8px; }
+.pos-turno-item {
+  display: flex; align-items: center; justify-content: space-between;
+  border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 10px 14px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.pos-turno-item:hover { border-color: var(--nav-ventas, var(--color-box-success)); background: var(--nav-ventas-bg, rgba(40,167,69,.08)); }
+.pos-turno-item-info { display: flex; flex-direction: column; gap: 2px; }
+.pos-turno-item-caja { font-weight: var(--font-weight-semibold); }
+.pos-turno-item-meta { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.pos-turno-o { text-align: center; font-size: var(--font-size-xs); color: var(--color-text-light); margin: 4px 0; }
+
+.pos-turno-form { display: flex; flex-direction: column; gap: 6px; }
+.pos-field-label {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary, var(--color-text-muted)); margin-top: 8px;
+}
+.pos-turno-error {
+  color: var(--color-danger-mid); background: var(--color-danger-bg); border-radius: var(--radius-md);
+  padding: 8px 12px; font-size: var(--font-size-sm); margin: 4px 0 0;
+}
+
+/* ── Alerta de "caja con turno abierto por otro usuario" ── */
+.pos-alerta-conflicto {
+  display: flex; flex-direction: column; gap: 8px;
+  color: var(--color-warning); background: var(--color-warning-bg); border: 1px solid var(--color-warning-bg);
+  border-radius: var(--radius-md); padding: 12px 14px; margin: 4px 0 0;
+  font-size: var(--font-size-sm);
+}
+.pos-alerta-conflicto-titulo { display: flex; align-items: center; gap: 6px; font-weight: var(--font-weight-semibold); }
+.pos-alerta-conflicto-detalle { color: var(--color-warning); opacity: .9; }
+.pos-alerta-conflicto-acciones { display: flex; gap: 8px; margin-top: 2px; }
+.pos-alerta-conflicto-acciones .btn { flex: none; }
+
+/* ══════════════════ Pantalla: venta ══════════════════ */
+.pos-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: start;
+  flex: 1;
+  min-height: 0;
+}
+@media (max-width: 980px) {
+  .pos-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .pos-caja-kpis { grid-template-columns: 1fr; }
+  .pos-item-fila { grid-template-columns: 1fr 44px 52px auto auto; gap: 4px; }
+}
+
+.pos-col-busqueda {
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 60vh;
+}
+.pos-busqueda-wrap {
+  display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+  padding: 10px 14px; color: var(--color-text-light);
+}
+.pos-busqueda-wrap:focus-within { border-color: var(--nav-ventas, var(--color-box-success)); color: var(--color-text); }
+.pos-input-producto {
+  flex: 1; border: none; outline: none; font-size: var(--font-size-md);
+  font-family: inherit; background: transparent; color: var(--color-text);
+}
+
+.pos-resultados { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 55vh; }
+.pos-resultados-vacio { color: var(--color-text-light); font-size: var(--font-size-sm); text-align: center; padding: 40px 10px; }
+
+.pos-producto-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 10px 14px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.pos-producto-card:hover { border-color: var(--nav-ventas, var(--color-box-success)); background: var(--nav-ventas-bg, rgba(40,167,69,.06)); }
+.pos-producto-card.sin-stock { opacity: .55; cursor: not-allowed; }
+.pos-producto-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pos-producto-nombre { font-weight: var(--font-weight-semibold); font-size: var(--font-size-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pos-producto-meta { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.pos-producto-precio { font-weight: var(--font-weight-bold); white-space: nowrap; }
+.pos-producto-stock { font-size: 11px; padding: 1px 8px; border-radius: var(--radius-full); white-space: nowrap; }
+.pos-producto-stock.ok  { background: var(--nav-ventas-bg, rgba(40,167,69,.15)); color: var(--nav-ventas, var(--color-box-success)); }
+.pos-producto-stock.bajo{ background: var(--color-warning-bg); color: var(--color-warning); }
+.pos-producto-stock.sin { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+
+/* ════════════ Fase 2 — ítem 13: Grilla de favoritos ════════════ */
+.pos-grilla-favoritos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pos-fav-btn {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+  gap: 4px;
+  min-width: 90px; max-width: 130px; flex: 1 1 90px;
+  padding: 10px 12px;
+  border: 2px solid var(--fav-color, var(--nav-ventas, var(--color-box-success)));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--fav-color, var(--color-box-success)) 8%, var(--color-surface));
+  cursor: pointer;
+  transition: background .12s, transform .1s;
+  text-align: left;
+  font-family: inherit;
+}
+.pos-fav-btn:hover {
+  background: color-mix(in srgb, var(--fav-color, var(--color-box-success)) 18%, var(--color-surface));
+  transform: translateY(-1px);
+}
+.pos-fav-btn:active { transform: translateY(0); }
+.pos-fav-nombre {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  color: var(--color-text); line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;
+}
+.pos-fav-precio {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-bold);
+  color: var(--fav-color, var(--nav-ventas, var(--color-box-success)));
+}
+.pos-fav-vacio {
+  color: var(--color-text-light); font-size: var(--font-size-xs); padding: 6px 0;
+}
+
+/* ── Columna carrito ── */
+.pos-col-carrito { display: flex; flex-direction: column; gap: 12px; }
+
+.pos-cliente-card { padding: 14px 18px; }
+.pos-cliente-actual { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pos-cliente-label { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.pos-cliente-nombre { font-weight: var(--font-weight-semibold); flex: 1; min-width: 0; }
+.pos-cliente-cambiar, .pos-cliente-quitar {
+  background: none; border: none; color: var(--nav-ventas, var(--color-box-success));
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); cursor: pointer;
+}
+.pos-cliente-quitar { color: var(--color-danger-mid); }
+.pos-buscador-cliente { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.pos-resultados-cliente { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+.pos-cliente-resultado {
+  padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: var(--font-size-sm);
+}
+.pos-cliente-resultado:hover { background: var(--nav-ventas-bg, rgba(40,167,69,.08)); }
+
+.pos-carrito-card { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.pos-carrito-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.pos-carrito-head h3 { margin: 0; font-size: var(--font-size-md); }
+.pos-vaciar { background: none; border: none; color: var(--color-danger-mid); font-size: var(--font-size-xs); cursor: pointer; }
+
+.pos-carrito-items { display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
+.pos-carrito-vacio { color: var(--color-text-light); font-size: var(--font-size-sm); text-align: center; padding: 24px 0; }
+
+/* Fase 2 — ítem 11: columna de descuento por línea */
+.pos-item-fila {
+  display: grid;
+  grid-template-columns: 1fr 52px 60px auto auto;
+  align-items: center; gap: 6px;
+  padding: 6px 0; border-bottom: 1px solid var(--color-border);
+}
+.pos-item-recien-agregado { animation: pos-flash-agregado 900ms ease-out; }
+@keyframes pos-flash-agregado {
+  0%   { background: var(--color-success-bg, var(--color-success-bg)); }
+  100% { background: transparent; }
+}
+.pos-item-nombre { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+.pos-item-precio-unit { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.pos-item-cant {
+  width: 52px; text-align: center; border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm); padding: 4px; font-family: inherit;
+}
+.pos-item-desc-wrap { display: flex; align-items: center; }
+.pos-item-desc {
+  width: 56px; text-align: center; border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm); padding: 4px; font-family: inherit;
+  font-size: 11px; color: var(--color-text-secondary, var(--color-text-muted));
+}
+.pos-item-desc:focus { border-color: var(--nav-ventas, var(--color-box-success)); outline: none; }
+.pos-item-subtotal { font-weight: var(--font-weight-semibold); min-width: 64px; text-align: left; }
+.pos-item-quitar { background: none; border: none; color: var(--color-text-light); cursor: pointer; padding: 2px; }
+.pos-item-quitar:hover { color: var(--color-danger-mid); }
+
+/* Fase 2 — ítem 12: descuento global */
+.pos-descuento-global-wrap {
+  border-top: 1px dashed var(--color-border);
+  padding-top: 8px; margin-top: 4px;
+}
+.pos-descuento-global-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.pos-desc-global-input { width: 80px !important; }
+.pos-desc-quitar-btn {
+  background: none; border: none; color: var(--color-text-light);
+  font-size: 18px; cursor: pointer; line-height: 1; padding: 2px 4px;
+}
+.pos-desc-quitar-btn:hover { color: var(--color-danger-mid); }
+
+.pos-totales { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.pos-totales-fila { display: flex; justify-content: space-between; font-size: var(--font-size-sm); color: var(--color-text-secondary, var(--color-text-muted)); }
+.pos-totales-total { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-text); border-top: 1px solid var(--color-border); padding-top: 6px; margin-top: 4px; }
+
+.pos-btn-cobrar {
+  width: 100%; margin-top: 12px;
+  background: var(--nav-ventas, var(--color-box-success)); border-color: var(--nav-ventas, var(--color-box-success));
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.pos-btn-cobrar:hover:not(:disabled) { background: var(--color-success); border-color: var(--color-success); }
+.pos-btn-cobrar:disabled { opacity: .5; cursor: not-allowed; }
+.pos-btn-cobrar-hint {
+  font-size: 11px; opacity: .75;
+  background: rgba(255,255,255,.2); border-radius: 3px; padding: 1px 5px;
+  font-weight: normal;
+}
+
+.pos-acciones-caja { display: flex; gap: 8px; }
+.pos-btn-cerrar-turno {
+  flex: 1;
+  background: none; border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 10px; color: var(--color-text-secondary, var(--color-text-muted)); font-size: var(--font-size-sm);
+  cursor: pointer; text-align: center;
+}
+.pos-btn-cerrar-turno:hover { background: var(--color-bg); }
+
+/* ══════════════════ Modales ══════════════════ */
+.pos-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: var(--z-modal, 400); padding: 16px;
+}
+.pos-modal {
+  background: var(--color-surface); border-radius: var(--radius-lg);
+  width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+  padding: 22px; box-shadow: var(--shadow-xl); display: flex; flex-direction: column; gap: 12px;
+}
+.pos-modal-head { display: flex; align-items: center; justify-content: space-between; }
+.pos-modal-head h2 { margin: 0; font-size: var(--font-size-lg); }
+.modal-close {
+  background: none; border: none; border-radius: var(--radius-sm);
+  padding: 4px; cursor: pointer; color: var(--color-text-muted);
+}
+.modal-close:hover { background: var(--color-bg); color: var(--color-text); }
+
+/* Alias de nombre usado por los modales de Fase 3 (cliente rápido, alerta
+   stock, facturar opcional) — misma apariencia que .pos-modal-head/.modal-close
+   para que no queden sin estilo por el drift de nombres. */
+.pos-modal-header { display: flex; align-items: center; justify-content: space-between; }
+.pos-modal-header h2, .pos-modal-titulo { margin: 0; font-size: var(--font-size-lg); }
+.pos-modal-cerrar {
+  background: none; border: none; border-radius: var(--radius-sm);
+  padding: 4px; cursor: pointer; color: var(--color-text-muted);
+  display: flex; align-items: center; justify-content: center;
+}
+.pos-modal-cerrar:hover { background: var(--color-bg); color: var(--color-text); }
+.pos-modal-body { display: flex; flex-direction: column; gap: 12px; }
+.pos-modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+.pos-modal-total { margin: 0; font-size: var(--font-size-md); }
+.pos-modal-total strong { color: var(--nav-ventas, var(--color-box-success)); }
+
+/* v612 — visor de cámara del escáner de código de barras */
+.pos-scanner-video-wrap {
+  position: relative; width: 100%; aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm); overflow: hidden;
+  background: #000;
+}
+.pos-scanner-video-wrap video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.pos-scanner-marco {
+  position: absolute; inset: 14% 10%;
+  border: 2px solid rgba(255,255,255,.85);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 999px rgba(0,0,0,.25);
+  pointer-events: none;
+}
+
+/* v612 — modal "Vincular celular" (celular como lector remoto del POS) */
+.pos-vc-body { align-items: center; text-align: center; }
+.pos-vc-estado { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.pos-vc-nota { font-size: var(--font-size-xs); color: var(--color-text-light); margin: 4px 0 0; }
+.pos-vc-nota a { color: var(--color-primary, #4f46e5); word-break: break-all; }
+.pos-vc-titulo-estado { margin: 6px 0 0; font-weight: 600; }
+
+.pos-vc-spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--color-border); border-top-color: var(--color-primary, #4f46e5);
+  animation: pos-vc-spin 0.8s linear infinite;
+}
+@keyframes pos-vc-spin { to { transform: rotate(360deg); } }
+
+.pos-vc-qr {
+  background: #fff; padding: 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); display: inline-flex;
+}
+.pos-vc-qr img, .pos-vc-qr canvas { display: block; }
+
+.pos-vc-esperando {
+  display: flex; align-items: center; gap: 6px; margin: 10px 0 0;
+  font-size: var(--font-size-sm); color: var(--color-text-light);
+}
+.pos-vc-punto {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-box-warning, #f59e0b);
+  animation: pos-vc-pulse 1.2s ease-in-out infinite;
+}
+@keyframes pos-vc-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.pos-vc-check {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--color-box-success, #16a34a); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.pos-vc-ultimo-codigo {
+  margin: 8px 0 0; font-size: var(--font-size-xs); font-family: var(--font-mono, monospace);
+  color: var(--color-text-light); background: var(--color-bg); padding: 4px 10px; border-radius: var(--radius-sm);
+}
+
+.pos-pagos-lista { display: flex; flex-direction: column; gap: 8px; }
+.pos-pago-fila { display: grid; grid-template-columns: 1.1fr 1fr auto; gap: 6px; align-items: center; }
+.pos-pago-fila select, .pos-pago-fila input { font-family: inherit; }
+
+.pos-btn-agregar-pago {
+  align-self: flex-start; background: none; border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md); padding: 6px 12px; font-size: var(--font-size-xs);
+  color: var(--nav-ventas, var(--color-box-success)); cursor: pointer;
+}
+.pos-pagos-resumen { border-top: 1px solid var(--color-border); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+
+/* Fase 2 — ítem 9: vuelto grande */
+.pos-vuelto-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--nav-ventas-bg, rgba(40,167,69,.12));
+  border: 2px solid var(--nav-ventas, var(--color-box-success));
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  animation: pos-vuelto-aparecer .2s ease-out;
+}
+@keyframes pos-vuelto-aparecer {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.pos-vuelto-label {
+  font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: .06em;
+  color: var(--nav-ventas, var(--color-box-success)); font-weight: var(--font-weight-semibold);
+}
+.pos-vuelto-monto {
+  font-size: 2.4rem; font-weight: var(--font-weight-bold);
+  color: var(--nav-ventas, var(--color-box-success)); line-height: 1;
+}
+
+.pos-modal-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.btn-secundario {
+  background: var(--color-surface); border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-md); padding: 8px 16px; font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold); cursor: pointer; color: var(--color-text-secondary, var(--color-text-muted));
+}
+.btn-secundario:hover { background: var(--color-bg); }
+
+.pos-cierre-sub { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pos-cierre-resumen { display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-sm); padding: 10px 12px; font-size: var(--font-size-sm); }
+.pos-cierre-resumen-fila { display: flex; justify-content: space-between; }
+.pos-cierre-resumen-fila.total { font-weight: 700; border-top: 1px solid var(--color-border); margin-top: 4px; padding-top: 6px; }
+.pos-cierre-resumen-vacio { color: var(--color-text-light); text-align: center; padding: 4px 0; }
+
+/* Ticket */
+.pos-ticket-ok { text-align: center; color: var(--nav-ventas, var(--color-box-success)); }
+.pos-ticket-ok h2 { margin: 8px 0 2px; color: var(--color-text); font-size: var(--font-size-lg); }
+.pos-ticket-ok p { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pos-modal-ticket { position: relative; }
+.pos-modal-ticket > .pos-modal-cerrar { position: absolute; top: 12px; right: 12px; }
+.pos-ticket-detalle { border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: 12px 0; display: flex; flex-direction: column; gap: 6px; font-size: var(--font-size-sm); }
+.pos-ticket-fila { display: flex; justify-content: space-between; }
+.pos-ticket-factura-estado { margin: 0; text-align: center; font-size: var(--font-size-sm); padding: 6px 0; }
+.pos-ticket-factura-estado.ok { color: var(--nav-ventas, var(--color-box-success)); }
+.pos-ticket-factura-estado.error { color: var(--color-danger, var(--color-danger-mid)); }
+.pos-ticket-factura-estado.pendiente { color: var(--color-text-light); }
+
+/* ════════════ Fase 2 — ítem 14: PIN supervisor ════════════ */
+.pos-modal-pin { max-width: 360px; }
+.pos-pin-input {
+  font-size: 1.6rem; letter-spacing: .3em;
+  text-align: center; font-weight: var(--font-weight-bold);
+}
+
+/* ════════════ Fase 2 — ítem 15: Reporte Z ════════════ */
+.pos-modal-z { max-width: 560px; }
+.pos-z-contenido { display: flex; flex-direction: column; gap: 0; font-size: var(--font-size-sm); }
+.pos-z-header {
+  text-align: center; padding: 10px 0 14px; border-bottom: 2px solid var(--color-border);
+  margin-bottom: 8px;
+}
+.pos-z-empresa { font-weight: var(--font-weight-bold); font-size: var(--font-size-md); }
+.pos-z-titulo {
+  font-size: var(--font-size-xs); letter-spacing: .1em; font-weight: var(--font-weight-semibold);
+  color: var(--color-text-light); margin: 4px 0 2px;
+}
+.pos-z-meta { font-size: var(--font-size-xs); color: var(--color-text-secondary, var(--color-text-muted)); }
+.pos-z-section { border-bottom: 1px dashed var(--color-border); padding: 8px 0; display: flex; flex-direction: column; gap: 3px; }
+.pos-z-row { display: flex; justify-content: space-between; gap: 10px; padding: 1px 0; }
+.pos-z-row.head { font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-light); font-weight: 600; margin-bottom: 2px; }
+.pos-z-row.total { font-weight: 700; border-top: 1px solid var(--color-border); padding-top: 4px; margin-top: 2px; }
+.pos-z-row.total-grande { font-size: var(--font-size-md); font-weight: 700; }
+.pos-z-row.ok   { color: var(--nav-ventas, var(--color-box-success)); font-weight: 600; }
+.pos-z-row.diferencia { color: var(--color-danger-mid); font-weight: 600; }
+.pos-z-ventas   { max-height: 180px; overflow-y: auto; }
+
+/* ════════════ Favoritos: panel admin ════════════ */
+.pos-fav-admin-fila {
+  display: grid; grid-template-columns: 24px 1fr 1fr 32px auto; align-items: center; gap: 8px;
+  border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 8px 10px; font-size: var(--font-size-sm);
+}
+.pos-fav-admin-pos { color: var(--color-text-light); font-size: var(--font-size-xs); }
+.pos-fav-admin-nombre { font-weight: var(--font-weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-fav-admin-etiqueta { font-size: var(--font-size-xs) !important; }
+.pos-fav-admin-color { width: 32px; height: 28px; border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; }
+
+/* ══════════════════ Etapa 4: panel Administrar ══════════════════ */
+.pos-btn-admin {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 6px 12px; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary, var(--color-text-muted)); cursor: pointer;
+}
+.pos-btn-admin:hover { background: var(--color-bg); border-color: var(--nav-ventas, var(--color-box-success)); color: var(--color-text); }
+
+/* ══════════════════ Barra de accesos del POS (quickbar) ══════════════════
+   Reemplaza el botón único "Administrar": deja todas las secciones de
+   caja y administración visibles como una barra de menú fija bajo el topbar. */
+.pos-quickbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 24px; overflow-x: auto;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,.03);
+  position: sticky; top: 60px; z-index: calc(var(--z-sticky, 100) - 1);
+  scrollbar-width: thin;
+}
+.pos-quickbar-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pos-quickbar-label {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: var(--font-weight-bold);
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--color-text-light); white-space: nowrap;
+  padding-left: 10px; margin-right: 6px; position: relative;
+}
+.pos-quickbar-label::before {
+  content: ''; position: absolute; left: 0; top: 1px; bottom: 1px;
+  width: 3px; border-radius: var(--radius-full);
+  background: var(--nav-ventas, var(--color-box-success));
+}
+.pos-quickbar-sep {
+  width: 1px; height: 26px; background: var(--color-border); flex-shrink: 0; border-radius: 1px;
+}
+.pos-quickbar-sep--sub { height: 20px; margin: 0 2px; opacity: .6; }
+
+.pos-quickbar-btn {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  padding: 7px 12px 7px 8px; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary, var(--color-text-muted)); cursor: pointer; line-height: 1.2;
+  transition: background .12s ease, color .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.pos-quickbar-btn-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: var(--radius-sm, 6px);
+  background: var(--color-bg, var(--color-surface-2)); color: var(--color-text-light);
+  flex-shrink: 0; transition: background .12s ease, color .12s ease;
+}
+.pos-quickbar-btn:hover {
+  background: var(--nav-ventas-bg, rgba(40,167,69,.1));
+  border-color: var(--nav-ventas, var(--color-box-success));
+  color: var(--nav-ventas, var(--color-box-success));
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+.pos-quickbar-btn:hover .pos-quickbar-btn-icon {
+  background: var(--color-surface); color: var(--nav-ventas, var(--color-box-success));
+}
+.pos-quickbar-btn:active { transform: translateY(1px); }
+.pos-quickbar-btn:focus-visible {
+  outline: 2px solid var(--nav-ventas, var(--color-box-success)); outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .pos-quickbar { padding: 9px 12px; top: 56px; gap: 10px; }
+  .pos-quickbar-btn { padding: 6px 10px 6px 6px; font-size: 12.5px; }
+  .pos-quickbar-btn-icon { width: 22px; height: 22px; }
+  .pos-quickbar-label { font-size: 10px; }
+}
+
+/* ── Panel de administración: layout tipo dashboard con sidebar ── */
+.pos-modal-overlay--admin { padding: 28px; }
+.pos-modal-admin {
+  max-width: 1180px; width: 100%;
+  height: 88vh; max-height: 88vh;
+  padding: 0; overflow: hidden;
+  display: flex; flex-direction: column; gap: 0;
+}
+.pos-admin-head {
+  padding: 20px 26px; border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+}
+.pos-admin-head h2 { font-size: var(--font-size-xl, 1.25rem); font-weight: var(--font-weight-bold); }
+.pos-admin-head-sub { margin: 2px 0 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+
+.pos-admin-layout { display: flex; flex: 1; min-height: 0; }
+
+.pos-admin-tabs {
+  display: flex; flex-direction: column; gap: 2px;
+  width: 210px; flex-shrink: 0; padding: 14px 12px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg, var(--color-surface-2));
+  overflow-y: auto;
+}
+.pos-admin-tabs-sep { height: 1px; background: var(--color-border); margin: 10px 4px; }
+.pos-admin-tab {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none; border-radius: var(--radius-md);
+  padding: 10px 12px; font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold); color: var(--color-text-secondary, var(--color-text-muted)); cursor: pointer;
+  text-align: left; border-left: 3px solid transparent;
+  transition: background .12s ease, color .12s ease;
+}
+.pos-admin-tab svg { flex-shrink: 0; opacity: .75; }
+.pos-admin-tab:hover { background: rgba(0,0,0,.05); color: var(--color-text); }
+.pos-admin-tab.activo {
+  background: var(--color-surface);
+  color: var(--nav-ventas, var(--color-box-success));
+  border-left-color: var(--nav-ventas, var(--color-box-success));
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.06));
+}
+.pos-admin-tab.activo svg { opacity: 1; }
+
+.pos-admin-content { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 28px; }
+
+.pos-admin-panel { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+.pos-admin-lista { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; }
+
+.pos-ventas-resumen-tabla { display: flex; flex-direction: column; margin-bottom: 12px; border: 1px solid var(--color-border,var(--color-surface-2)); border-radius: var(--radius-md); overflow: hidden; }
+.pos-ventas-resumen-fila {
+  display: grid; grid-template-columns: 1.4fr .8fr .8fr 1fr; gap: 8px;
+  padding: 7px 12px; font-size: var(--font-size-sm); align-items: center;
+}
+.pos-ventas-resumen-fila:not(.pos-ventas-resumen-header):not(.pos-ventas-resumen-total) {
+  cursor: pointer; border-top: 1px solid var(--color-border,var(--color-surface-2));
+}
+.pos-ventas-resumen-fila:not(.pos-ventas-resumen-header):not(.pos-ventas-resumen-total):hover {
+  background: var(--color-bg);
+}
+.pos-ventas-resumen-header {
+  font-weight: var(--font-weight-semibold); font-size: var(--font-size-xs);
+  color: var(--color-text-light); background: var(--color-bg); text-transform: uppercase;
+}
+.pos-ventas-resumen-fila span:nth-child(2), .pos-ventas-resumen-fila span:nth-child(3),
+.pos-ventas-resumen-fila span:nth-child(4) { text-align: left; }
+.pos-ventas-resumen-total {
+  font-weight: var(--font-weight-semibold); border-top: 2px solid var(--color-border,var(--color-border-soft));
+  background: var(--color-bg);
+}
+
+
+@media (max-width: 860px) {
+  .pos-modal-overlay--admin { padding: 0; }
+  .pos-modal-admin { max-width: 100%; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .pos-admin-layout { flex-direction: column; }
+  .pos-admin-tabs {
+    width: 100%; flex-direction: row; overflow-x: auto; overflow-y: visible;
+    border-right: none; border-bottom: 1px solid var(--color-border);
+    padding: 8px 10px; gap: 4px;
+  }
+  .pos-admin-tabs-sep { display: none; }
+  .pos-admin-tab { flex-shrink: 0; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .pos-admin-tab.activo { border-left-color: transparent; border-bottom-color: var(--nav-ventas, var(--color-box-success)); }
+  .pos-admin-content { padding: 16px; }
+  .pos-admin-panel { max-width: 100%; }
+}
+
+.pos-venta-fila, .pos-transf-fila {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius-md);
+  padding: 8px 12px; font-size: var(--font-size-sm);
+}
+.pos-venta-fila-info, .pos-transf-fila-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pos-venta-fila-num { font-weight: var(--font-weight-semibold); }
+.pos-venta-fila-meta, .pos-transf-fila-meta { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.pos-venta-fila-total { font-weight: var(--font-weight-semibold); white-space: nowrap; }
+.pos-venta-fila.anulada { opacity: .6; }
+.pos-venta-badge-anulada {
+  font-family: var(--font-family-display); font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 1px 8px; border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double; border-color: var(--color-danger);
+  background: var(--color-danger-bg); color: var(--color-danger-mid); white-space: nowrap;
+}
+.pos-venta-badge-facturada {
+  font-family: var(--font-family-display); font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 1px 8px; border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double; border-color: var(--color-info);
+  background: var(--color-info-bg); color: var(--color-info); white-space: nowrap; cursor: help;
+}
+.pos-venta-btn-anular {
+  background: none; border: 1px solid var(--color-danger-mid); color: var(--color-danger-mid); border-radius: var(--radius-sm);
+  padding: 4px 10px; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); cursor: pointer;
+  white-space: nowrap;
+}
+.pos-venta-btn-anular:hover { background: var(--color-danger-bg); }
+
+.pos-transf-producto-sel {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid var(--nav-ventas, var(--color-box-success)); border-radius: var(--radius-md);
+  padding: 8px 12px; font-size: var(--font-size-sm); background: var(--nav-ventas-bg, rgba(40,167,69,.06));
+}
+.pos-transf-producto-sel button {
+  background: none; border: none; color: var(--color-text-light); cursor: pointer; font-size: var(--font-size-xs);
+}
+
+/* ══════════════════ Print ══════════════════ */
+@media print {
+  /* Ticket normal */
+  body:not(.imprimiendo-z) * { visibility: hidden; }
+  body:not(.imprimiendo-z) #modal-ticket-overlay,
+  body:not(.imprimiendo-z) #modal-ticket-overlay * { visibility: visible; }
+  body:not(.imprimiendo-z) #modal-ticket-overlay {
+    position: absolute; inset: 0; background: var(--color-surface);
+  }
+  body:not(.imprimiendo-z) .pos-modal-acciones { display: none; }
+
+  /* Reporte Z */
+  body.imprimiendo-z * { visibility: hidden; }
+  body.imprimiendo-z #modal-z-overlay,
+  body.imprimiendo-z #modal-z-overlay * { visibility: visible; }
+  body.imprimiendo-z #modal-z-overlay { position: absolute; inset: 0; background: var(--color-surface); }
+  body.imprimiendo-z .pos-modal-acciones { display: none; }
+  body.imprimiendo-z .pos-modal-head button { display: none; }
+  body.imprimiendo-z .pos-z-ventas { max-height: none; overflow: visible; }
+}
+
+/* ══════════════════ Fase 4: Badges de promo/peso ══════════════════ */
+.pos-badge-promo {
+  display: inline-block;
+  background: var(--color-accent, var(--color-danger-mid));
+  color: var(--color-surface);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+  letter-spacing: .03em;
+}
+.pos-badge-peso {
+  display: inline-block;
+  background: var(--nav-compras, var(--color-info-mid));
+  color: var(--color-surface);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* ══════════════════ Panel Devoluciones (tab admin) ══════════════════ */
+.pos-dev-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.pos-dev-item-fila {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--color-border, var(--color-border-soft));
+}
+.pos-dev-item-nombre { flex: 1; font-size: var(--font-size-sm, 13px); }
+.pos-dev-item-cant-orig { color: var(--color-text-light); font-size: 12px; min-width: 60px; text-align: left; }
+.pos-dev-item-input { width: 70px; text-align: center; }
+.pos-dev-historial-fila {
+  background: var(--color-bg-alt, var(--color-surface-2));
+  border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 6px;
+  font-size: var(--font-size-sm, 13px);
+}
+.pos-dev-historial-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
+.pos-dev-historial-items { color: var(--color-text-light); }
+.pos-dev-monto { color: var(--nav-ventas, var(--color-box-success)); font-weight: 700; }
+
+/* ══════════════════ Panel Promociones (tab admin) ══════════════════ */
+.pos-promo-fila {
+  display: flex; align-items: center; gap: 8px; padding: 8px 0;
+  border-bottom: 1px solid var(--color-border, var(--color-border-soft));
+}
+.pos-promo-info { flex: 1; }
+.pos-promo-nombre { font-weight: 600; font-size: var(--font-size-sm, 13px); }
+.pos-promo-meta { font-size: 11px; color: var(--color-text-light); margin-top: 2px; }
+.pos-promo-badge {
+  padding: 2px 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600;
+  background: var(--color-bg-alt, var(--color-surface-2)); color: var(--color-text);
+}
+.pos-promo-badge.activa { background: var(--color-success-bg); color: var(--color-success); }
+.pos-promo-badge.inactiva { background: var(--color-danger-bg); color: var(--color-danger); }
+
+/* ══════════════════ Panel Estado de Caja (modal-movimiento profesional) ══════════════════ */
+.pos-modal-caja-pro { max-width: 520px; width: 100%; }
+
+.pos-caja-saldo-panel {
+  background: var(--color-bg-alt, var(--color-surface-2));
+  border: 1px solid var(--color-border, var(--color-border-soft));
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  min-height: 56px;
+}
+.pos-caja-saldo-loading {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--color-text-light); font-size: var(--font-size-sm, 13px);
+}
+@keyframes pos-spin { to { transform: rotate(360deg); } }
+.pos-spin { animation: pos-spin .8s linear infinite; }
+
+/* KPIs de saldo */
+.pos-caja-kpis {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  margin-bottom: 14px;
+}
+.pos-caja-kpi {
+  background: var(--color-bg, var(--color-surface));
+  border: 1px solid var(--color-border, var(--color-border-soft));
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.pos-caja-kpi--efectivo {
+  border-color: var(--color-box-success);
+  background: var(--color-success-bg);
+}
+.pos-caja-kpi-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--color-text-light);
+}
+.pos-caja-kpi-valor {
+  font-size: var(--font-size-md, 15px); font-weight: 700;
+  color: var(--color-text);
+}
+.pos-caja-kpi--efectivo .pos-caja-kpi-valor { color: var(--color-success); }
+
+/* Historial de movimientos */
+.pos-caja-hist-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.pos-caja-mov-lista {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 140px; overflow-y: auto;
+}
+.pos-caja-mov-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 7px;
+  background: var(--color-bg, var(--color-surface));
+  border: 1px solid var(--color-border, var(--color-border-soft));
+  font-size: var(--font-size-sm, 13px);
+}
+.pos-caja-mov--refuerzo { border-left: 3px solid var(--color-box-success); }
+.pos-caja-mov--sangria  { border-left: 3px solid var(--color-danger-mid); }
+.pos-caja-mov--retiro_final { border-left: 3px solid var(--color-warning-mid); }
+
+.pos-caja-mov-icono {
+  flex-shrink: 0; width: 22px; height: 22px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.pos-caja-mov--refuerzo    .pos-caja-mov-icono { background: var(--color-success-bg); color: var(--color-success); }
+.pos-caja-mov--sangria     .pos-caja-mov-icono { background: var(--color-danger-bg); color: var(--color-danger); }
+.pos-caja-mov--retiro_final .pos-caja-mov-icono { background: var(--color-warning-bg); color: var(--color-warning); }
+
+.pos-caja-mov-desc {
+  flex: 1; display: flex; flex-direction: column; gap: 1px;
+}
+.pos-caja-mov-desc small { color: var(--color-text-light); font-size: 11px; }
+.pos-caja-mov-monto { font-weight: 700; white-space: nowrap; font-size: var(--font-size-sm, 13px); }
+.pos-caja-mov-monto--plus  { color: var(--color-success); }
+.pos-caja-mov-monto--minus { color: var(--color-danger-mid); }
+
+/* Separador entre panel y formulario */
+.pos-caja-sep {
+  display: flex; align-items: center; gap: 10px;
+  margin: 2px 0 14px;
+  color: var(--color-text-light); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.pos-caja-sep::before, .pos-caja-sep::after {
+  content: ''; flex: 1; height: 1px; background: var(--color-border, var(--color-border-soft));
+}
+
+/* Formulario inline */
+.pos-caja-form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.pos-caja-form-col { flex: 1; }
+.pos-caja-form-col--monto { max-width: 140px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   REDISEÑO "mostrador clásico" — réplica de la captura de referencia
+   (panel de artículos + tabla de ticket a la izquierda, totales y cobro
+   en un panel oscuro a la derecha, accesos rápidos por categoría y
+   datos del cliente debajo). Mantiene todos los IDs originales para no
+   romper la lógica de pos.js — solo cambia estructura visual/CSS.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.pos-grid--facil {
+  display: grid;
+  /* clamp() en vez de un valor fijo: la columna de totales se achica
+     progresivamente en anchos intermedios (zoom del navegador, escalado
+     de sistema operativo, ventanas no maximizadas) en vez de forzar
+     siempre 232px y desbordar cuando no hay espacio real disponible. */
+  grid-template-columns: minmax(0, 1fr) clamp(196px, 16vw, 232px);
+  grid-template-areas: "ticket panel" "inferior inferior" "caja caja";
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+  max-width: 100%;
+}
+.pos-grid--facil > * { min-width: 0; }
+/* Red de seguridad: si por cualquier motivo (zoom, extensiones, ventana
+   angosta) el contenido igual no entra, preferimos un scroll horizontal
+   contenido acá adentro antes que recortar en silencio contra el borde
+   del navegador (ver CHANGELOG overflow POS). */
+.pos-grid--facil { overflow-x: auto; }
+
+/* ── Columna izquierda: buscador + tabla de ticket ── */
+.pos-grid--facil .pos-col-busqueda {
+  grid-area: ticket;
+  display: flex; flex-direction: column; gap: 0;
+  padding: 8px;
+  min-height: 54vh;
+}
+
+.pos-ticket-toolbar {
+  display: flex; align-items: stretch; gap: 8px;
+  margin-bottom: 8px;
+}
+.pos-buscador-container { position: relative; flex: 1; min-width: 0; }
+.pos-grid--facil .pos-busqueda-wrap {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  height: 60px;
+  padding: 0 18px;
+  gap: 12px;
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,.05));
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.pos-grid--facil .pos-busqueda-wrap svg { width: 22px; height: 22px; flex-shrink: 0; }
+.pos-grid--facil .pos-input-producto {
+  font-size: 18px;
+  font-weight: var(--font-weight-medium, 500);
+}
+.pos-grid--facil .pos-input-producto::placeholder { color: var(--color-text-light); font-weight: normal; }
+.pos-grid--facil .pos-busqueda-wrap:focus-within {
+  background: var(--color-surface);
+  border-color: var(--nav-ventas, var(--color-box-success));
+  box-shadow: 0 0 0 4px var(--nav-ventas-bg, rgba(40,167,69,.15));
+}
+
+.pos-btn-buscar-articulo {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  background: var(--color-surface);
+  border: 1.5px solid var(--nav-ventas, var(--color-box-success));
+  color: var(--nav-ventas, var(--color-box-success));
+  border-radius: var(--radius-md);
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease, box-shadow .12s ease;
+}
+.pos-btn-buscar-articulo svg { width: 18px; height: 18px; flex-shrink: 0; }
+.pos-btn-buscar-articulo:hover {
+  background: var(--nav-ventas, var(--color-box-success));
+  color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Estado "celular vinculado" del botón de la barra — se mantiene así aunque
+   el modal esté oculto, para que se vea de un vistazo que sigue conectado. */
+.pos-btn-buscar-articulo.pos-btn-vinculado {
+  background: var(--color-box-success);
+  border-color: var(--color-box-success);
+  color: var(--color-surface);
+}
+.pos-btn-buscar-articulo.pos-btn-vinculado:hover {
+  filter: brightness(0.92);
+}
+/* Mientras espera que escaneen el QR (vínculo generado, celular aún no
+   conectado): un aviso más sutil que el verde de "ya conectado". */
+.pos-btn-buscar-articulo.pos-btn-vinculo-pendiente {
+  border-style: dashed;
+  color: var(--color-text-light);
+}
+
+/* Resultados de búsqueda como desplegable flotante sobre la tabla */
+.pos-grid--facil .pos-resultados {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+  z-index: 20;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,.14));
+  padding: 8px;
+  max-height: 340px; overflow-y: auto;
+}
+/* Oculto por completo cuando solo contiene el mensaje vacío por defecto */
+.pos-grid--facil .pos-resultados:has(> .pos-resultados-vacio) {
+  display: none;
+}
+
+/* Tabla del ticket (artículos agregados a la venta actual) — imita la grilla de Fácil Virtual */
+.pos-ticket-tabla-wrap {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1; min-height: 0;
+}
+.pos-ticket-tabla-head,
+.pos-ticket-tabla-body .pos-item-fila {
+  display: grid;
+  /* Anchos ajustados (v249) para que la tabla completa entre en pantalla sin
+     recortarse: se redujeron los fijos y la descripción usa minmax(0, 1fr)
+     para poder achicarse en vez de forzar overflow horizontal de la página.
+     v317: min-width de piso para que, si aun así no entra (zoom, ventana
+     angosta), el wrap scrollee en vez de recortar la columna "Quitar" en
+     silencio contra el borde derecho (era invisible sin ningún indicio).
+     v426: las columnas de cantidad/% desc./unitario/importe quedaban tan
+     ajustadas que el stepper −/+ pegaba contra el input y el placeholder
+     "% desc" del descuento se recortaba a "% c" — se les da más aire y se
+     sube el min-width del wrap para que el scroll horizontal absorba la
+     diferencia en pantallas angostas en vez de re-apretar todo. */
+  grid-template-columns: 22px 58px minmax(0, 1fr) 100px 68px 82px 90px 32px;
+  min-width: 560px;
+  gap: 8px;
+  align-items: center;
+}
+.pos-ticket-tabla-head {
+  background: var(--nav-ventas, var(--color-success-mid));
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: 9px 12px;
+}
+.pos-ticket-tabla-head .col-num,
+.pos-ticket-tabla-head .col-cant,
+.pos-ticket-tabla-head .col-desc { text-align: center; }
+.pos-ticket-tabla-head .col-unit,
+.pos-ticket-tabla-head .col-imp { text-align: left; }
+
+.pos-ticket-tabla-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  background: var(--color-surface);
+}
+.pos-ticket-tabla-body .pos-carrito-vacio {
+  color: var(--color-text-light); font-size: var(--font-size-sm);
+  text-align: center; padding: 50px 10px;
+}
+
+.pos-ticket-tabla-body .pos-item-fila {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+}
+.pos-ticket-tabla-body .pos-item-fila:nth-child(even) {
+  background: var(--color-bg, var(--color-surface-2));
+}
+
+/* v317: "Quitar" sticky al borde derecho — con overflow-x:auto la fila
+   puede desbordar en pantallas angostas; sin esto el botón quedaba
+   invisible salvo que el operador supiera scrollear en plena venta. */
+.pos-ticket-tabla-head .col-op {
+  position: sticky; right: 0; z-index: 2;
+  background: var(--nav-ventas, var(--color-success-mid));
+}
+.pos-ticket-tabla-body .pos-item-fila .pos-item-quitar {
+  position: sticky; right: 0; z-index: 2;
+  background: var(--color-surface);
+}
+.pos-ticket-tabla-body .pos-item-fila:nth-child(even) .pos-item-quitar {
+  background: var(--color-bg, var(--color-surface-2));
+}
+.pos-item-num { text-align: center; color: var(--color-text-light); }
+.pos-item-codigo { color: var(--color-text-light); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pos-item-desc-col { min-width: 0; }
+.pos-item-desc-col .pos-item-nombre {
+  font-weight: var(--font-weight-medium, 500);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pos-item-unitario { text-align: left; color: var(--color-text-secondary, var(--color-text-muted)); white-space: nowrap; }
+.pos-ticket-tabla-body .pos-item-cant { width: 100%; }
+.pos-ticket-tabla-body .pos-item-desc { width: 100%; }
+.pos-ticket-tabla-body .pos-item-subtotal { min-width: 0; text-align: left; font-weight: var(--font-weight-semibold); white-space: nowrap; }
+
+/* Stepper +/- de cantidad (Paso 3: modificar cantidad sin romper cambiarCantidad()) */
+.pos-item-cant-stepper {
+  display: flex; align-items: stretch; gap: 3px;
+}
+.pos-item-cant-stepper .pos-item-cant {
+  width: 40px; flex: 1; min-width: 0;
+  border-radius: var(--radius-sm); text-align: center;
+  padding: 3px 2px; font-size: 13px;
+}
+.pos-item-cant-btn {
+  flex-shrink: 0; width: 22px;
+  border: 1px solid rgba(0,0,0,.07);
+  background: var(--color-bg, var(--color-surface-2));
+  color: var(--color-text-secondary, var(--color-text-muted));
+  font-size: 13px; line-height: 1; font-weight: var(--font-weight-bold);
+  cursor: pointer; padding: 0;
+}
+.pos-item-cant-btn:first-child { border-radius: var(--radius-sm); }
+.pos-item-cant-btn:last-child { border-radius: var(--radius-sm); }
+.pos-item-cant-btn:hover { background: var(--nav-ventas-bg, rgba(40,167,69,.15)); color: var(--nav-ventas, var(--color-box-success)); }
+.pos-item-desc-wrap .pos-item-desc { width: 100%; padding: 4px 6px; font-size: 12.5px; text-align: center; }
+
+/* ── Columna derecha: panel de totales + cobro (negro, como el mostrador) ── */
+.pos-grid--facil .pos-col-carrito {
+  grid-area: panel;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.pos-panel-totales {
+  background: var(--color-text);
+  color: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 2px;
+  box-shadow: var(--shadow-sm);
+}
+.pos-panel-totales .pos-totales-fila {
+  display: flex; justify-content: space-between;
+  color: var(--color-text-light);
+  font-size: 12.5px;
+  padding: 3px 0;
+}
+.pos-panel-totales .pos-totales-fila span:last-child { color: var(--color-surface-2); font-weight: var(--font-weight-semibold); }
+.pos-panel-totales .pos-totales-fila--iva { display: none; } /* el ticket ya muestra IVA incluido en el total */
+#pos-tot-descuento-global-fila span:last-child { color: var(--color-danger-mid) !important; }
+
+.pos-panel-totales .pos-descuento-global-wrap {
+  border-top: 1px dashed rgba(255,255,255,.15);
+  margin-top: 4px; padding-top: 6px;
+}
+.pos-panel-totales .pos-field-label { color: var(--color-text-light); font-size: 11px; }
+
+.pos-total-grande {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,.14);
+  margin-top: 6px; padding-top: 8px;
+}
+.pos-total-grande-label {
+  font-size: 12.5px;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-weight: var(--font-weight-semibold);
+}
+.pos-total-grande-monto {
+  font-size: 1.9rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-success-mid);
+  line-height: 1;
+}
+
+.pos-btn-cobrar {
+  width: 100%; margin-top: 10px;
+  background: var(--nav-ventas, var(--color-success-mid));
+  border: none; border-radius: var(--radius-sm);
+  color: var(--color-surface);
+  padding: 12px;
+  font-size: var(--font-size-md, 15px);
+  font-weight: var(--font-weight-bold);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer;
+  transition: background .12s ease, transform .05s ease;
+}
+.pos-btn-cobrar:hover:not(:disabled) { background: var(--color-success); }
+.pos-btn-cobrar:active:not(:disabled) { transform: translateY(1px); }
+.pos-btn-cobrar:disabled { opacity: .35; cursor: not-allowed; }
+.pos-btn-cobrar-hint {
+  font-size: 10px; opacity: .85;
+  background: rgba(255,255,255,.2); border-radius: 3px; padding: 1px 5px;
+  font-weight: normal;
+}
+
+.pos-panel-totales .pos-acciones-rapidas {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  margin-top: 8px;
+}
+.pos-btn-accion-rapida {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  background: transparent;
+  border: 1.5px solid var(--nav-ventas, var(--color-success-mid));
+  border-radius: var(--radius-sm);
+  padding: 7px 4px;
+  font-size: 11.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--nav-ventas, var(--color-success-mid));
+  cursor: pointer;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  min-width: 0;
+}
+.pos-btn-accion-rapida:hover { background: rgba(78,203,113,.12); }
+.pos-btn-accion-rapida .pos-btn-cobrar-hint { background: rgba(255,255,255,.12); color: inherit; }
+/* Cuando "Nueva venta" está oculto (carrito vacío) el otro botón ocupa todo el ancho */
+.pos-panel-totales .pos-acciones-rapidas:has(#btn-vaciar-carrito[style*="display: none"]) { grid-template-columns: 1fr; }
+
+/* Grilla de favoritos → accesos rápidos por categoría, estilo uniforme (sin colores ni precio).
+   v249: 3 columnas más compactas + altura máxima con scroll interno propio, para que una
+   lista larga de favoritos no empuje el resto de la columna derecha (cliente, cerrar caja)
+   fuera de la pantalla. */
+.pos-grid--facil .pos-grilla-favoritos {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+  max-height: 176px; overflow-y: auto; padding-right: 2px;
+}
+.pos-grid--facil .pos-fav-btn {
+  min-width: 0; max-width: none; flex: none;
+  min-height: 34px;
+  justify-content: center; align-items: center; text-align: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 5px 6px;
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,.05));
+}
+.pos-grid--facil .pos-fav-btn:hover {
+  background: var(--nav-ventas-bg, rgba(40,167,69,.1));
+  border-color: var(--nav-ventas, var(--color-box-success));
+  transform: none;
+}
+.pos-grid--facil .pos-fav-nombre {
+  color: var(--color-text); font-size: 11px; font-weight: var(--font-weight-semibold);
+  text-align: center; white-space: normal; line-height: 1.15;
+}
+/* Se oculta el precio: los accesos rápidos deben verse como botones de categoría, no como etiquetas de promoción */
+.pos-grid--facil .pos-fav-precio { display: none; }
+
+/* ── Fila inferior: datos de la venta + datos del cliente ── */
+.pos-col-inferior {
+  grid-area: inferior;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.pos-info-card { padding: 0; overflow: hidden; }
+.pos-info-card-tit {
+  margin: 0; padding: 6px 12px;
+  background: var(--nav-ventas, var(--color-success-mid)); color: var(--color-surface);
+  font-size: 12px; font-weight: var(--font-weight-semibold);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.pos-info-card-body { padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+.pos-info-fila { display: flex; justify-content: space-between; font-size: 12.5px; }
+.pos-info-fila span { color: var(--color-text-light); }
+.pos-info-fila strong { color: var(--color-text); font-weight: var(--font-weight-semibold); }
+
+.pos-col-inferior .pos-cliente-card { padding: 0; }
+.pos-col-inferior .pos-cliente-actual { padding: 8px 12px; }
+.pos-col-inferior .pos-buscador-cliente { padding: 0 12px 10px; }
+
+.pos-grid--facil .pos-acciones-caja { grid-area: caja; }
+
+@media (max-width: 1180px) {
+  .pos-grid--facil { grid-template-columns: minmax(0, 1fr) clamp(180px, 20vw, 210px); gap: 6px; }
+  .pos-main { padding: 14px 12px !important; }
+  .pos-grid--facil .pos-col-busqueda { padding: 6px; }
+}
+@media (max-width: 980px) {
+  .pos-grid--facil {
+    grid-template-columns: 1fr;
+    grid-template-areas: "ticket" "panel" "inferior" "caja";
+  }
+  .pos-grid--facil .pos-col-busqueda { min-height: 46vh; }
+  .pos-col-inferior { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .pos-ticket-toolbar { flex-direction: column; }
+  .pos-grid--facil .pos-busqueda-wrap { height: 52px; }
+  .pos-btn-buscar-articulo { justify-content: center; padding: 12px; height: 46px; }
+  .pos-ticket-tabla-head { display: none; }
+  .pos-ticket-tabla-body .pos-item-fila {
+    grid-template-columns: 1fr 56px 48px;
+    row-gap: 4px;
+    min-width: 0;
+  }
+  .pos-item-codigo, .pos-item-num, .pos-item-unitario { display: none; }
+  .pos-ticket-tabla-body .pos-item-fila .pos-item-quitar {
+    position: static;
+    background: transparent;
+  }
+}

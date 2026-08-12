@@ -1,0 +1,828 @@
+/**
+ * pedidos-gentelella.css — Reskin "Gentelella v4" de la pantalla Pedidos / Presupuestos
+ * ────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/pedidos.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lean pedidos.js ni pedidos-presupuestos.js:
+ * solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-pedidos-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella { background: var(--ge-bg) !important; }
+body.dash-pedidos-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Preloader
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .preloader {
+  background: var(--ge-sidebar-2) !important;
+}
+body.dash-pedidos-gentelella .preloader-logo {
+  color: var(--ge-teal) !important;
+}
+body.dash-pedidos-gentelella .preloader-bar {
+  background: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-pedidos-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-pedidos-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* Botón "Punto de venta" en topbar */
+body.dash-pedidos-gentelella .topbar-right > a {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-panel) !important;
+  text-decoration: none !important;
+}
+body.dash-pedidos-gentelella .topbar-right > a:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* CTA principal — Nuevo pedido / Nuevo presupuesto */
+body.dash-pedidos-gentelella #btn-nuevo-pedido,
+body.dash-pedidos-gentelella #btn-nuevo-presupuesto,
+body.dash-pedidos-gentelella .btn-nuevo-pres {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-pedidos-gentelella #btn-nuevo-pedido:hover,
+body.dash-pedidos-gentelella #btn-nuevo-presupuesto:hover,
+body.dash-pedidos-gentelella .btn-nuevo-pres:hover {
+  background: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Pestañas (page-tabs)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .page-tabs {
+  border-bottom: 2px solid var(--ge-border) !important;
+  padding: 0 0 !important;
+}
+body.dash-pedidos-gentelella .page-tab {
+  color: var(--ge-ink-soft) !important;
+  border-bottom: 2px solid transparent !important;
+}
+body.dash-pedidos-gentelella .page-tab:hover {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .page-tab.activa {
+  color: var(--ge-teal) !important;
+  border-bottom-color: var(--ge-teal) !important;
+}
+body.dash-pedidos-gentelella .page-tab-count {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Cards de resumen (franja superior)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .side-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-pedidos-gentelella .side-title-row h3 {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+body.dash-pedidos-gentelella .stat-pair .lbl {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .stat-pair .val {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .resumen-estado-item .lbl {
+  color: var(--ge-muted) !important;
+}
+/* Valores por estado: el color de estado ya se expresa en el filete y el
+   label de kpi-line.css — el número queda en tinta uniforme (ver
+   /frontend/shared/kpi-line.css). */
+
+/* Upsell chico: mismo gradiente navy → teal, versión compacta al lado del intro */
+body.dash-pedidos-gentelella .upsell-mini {
+  background: linear-gradient(135deg, var(--ge-sidebar-2) 0%, var(--ge-teal) 160%) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-pedidos-gentelella .upsell-mini button {
+  background: var(--ge-panel) !important;
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .filtros-bar {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* Search wrap */
+body.dash-pedidos-gentelella .search-wrap {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  box-shadow: none !important;
+}
+body.dash-pedidos-gentelella .search-wrap input {
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+}
+body.dash-pedidos-gentelella .search-wrap input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .search-wrap:focus-within {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* Estado pills */
+body.dash-pedidos-gentelella .e-pill {
+  border-radius: var(--ge-radius-pill) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+  font-weight: 500 !important;
+}
+body.dash-pedidos-gentelella .e-pill:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .e-pill.activa {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  font-weight: 600 !important;
+}
+
+/* Filtros rápidos */
+body.dash-pedidos-gentelella .filtros-rapidos-label {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .btn-rapido {
+  border-radius: var(--ge-radius-pill) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .btn-rapido:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .btn-rapido.activo {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+
+/* Selects */
+body.dash-pedidos-gentelella .select-filtro {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .select-filtro:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* Botones ghost (Limpiar / Excel) */
+body.dash-pedidos-gentelella .btn--ghost {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .btn--ghost:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de pedidos / presupuestos
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+body.dash-pedidos-gentelella .tabla-pedidos thead {
+  background: var(--ge-bg) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+
+body.dash-pedidos-gentelella .tabla-pedidos th {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+
+body.dash-pedidos-gentelella .fila-pedido {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .fila-pedido:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-pedidos-gentelella .fila-pedido::before {
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .fila-pedido:hover::before {
+  background: var(--ge-teal) !important;
+}
+
+/* Celda N° pedido */
+body.dash-pedidos-gentelella .pedido-id {
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .pedido-hora {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .td-text {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .td-total {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips de estado (tabla)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .chip {
+  border-radius: var(--ge-radius-pill) !important;
+}
+body.dash-pedidos-gentelella .chip-borrador,
+body.dash-pedidos-gentelella .chip-pendiente {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .chip-confirmado {
+  background: var(--color-success-bg) !important;
+  color: var(--color-success-mid) !important;
+}
+body.dash-pedidos-gentelella .chip-preparando {
+  background: var(--color-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-pedidos-gentelella .chip-despachado {
+  background: var(--color-info-bg) !important;
+  color: var(--color-primary-dark) !important;
+}
+body.dash-pedidos-gentelella .chip-entregado {
+  background: var(--color-border-soft) !important;
+  color: var(--color-text-muted) !important;
+}
+body.dash-pedidos-gentelella .chip-cancelado {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones de cambio de estado (en acciones de fila)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .btn-estado {
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .btn-est-confirmado {
+  border-color: var(--ge-blue) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-pedidos-gentelella .btn-est-confirmado:hover {
+  background: rgba(52,152,219,.10) !important;
+}
+body.dash-pedidos-gentelella .btn-est-preparando {
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-pedidos-gentelella .btn-est-preparando:hover {
+  background: rgba(240,173,78,.12) !important;
+}
+body.dash-pedidos-gentelella .btn-est-despachado {
+  border-color: var(--ge-purple) !important;
+  color: var(--ge-purple) !important;
+}
+body.dash-pedidos-gentelella .btn-est-despachado:hover {
+  background: rgba(142,68,173,.10) !important;
+}
+body.dash-pedidos-gentelella .btn-est-entregado {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .btn-est-entregado:hover {
+  background: var(--ge-teal-light) !important;
+}
+
+body.dash-pedidos-gentelella .btn-cancelar-small,
+body.dash-pedidos-gentelella .btn-eliminar-small,
+body.dash-pedidos-gentelella .btn-ver-detalle {
+  border-radius: var(--ge-radius-btn) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .btn-cancelar-small:hover,
+body.dash-pedidos-gentelella .btn-eliminar-small:hover {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+}
+body.dash-pedidos-gentelella .btn-ver-detalle:hover {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Paginación
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .pg-nav,
+body.dash-pedidos-gentelella .pg-num {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .pg-nav:hover:not(:disabled),
+body.dash-pedidos-gentelella .pg-num:hover:not(.activa) {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .pg-num.activa {
+  background: var(--ge-teal) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  box-shadow: 0 2px 8px rgba(184,122,0,.35) !important;
+}
+body.dash-pedidos-gentelella .pg-rango {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .pg-rango strong {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal / panel de detalle de pedido (slide-in derecha)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pedidos-gentelella .modal-titulo {
+  color: var(--ge-ink) !important;
+  font-size: 18px !important;
+}
+body.dash-pedidos-gentelella .modal-subtitulo {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .modal-close {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .modal-close:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .modal-estado-row {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-pedidos-gentelella .modal-sec-label {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  font-size: 10px !important;
+  letter-spacing: .08em !important;
+}
+body.dash-pedidos-gentelella .modal-totales {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-pedidos-gentelella .total-row {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .total-final {
+  color: var(--ge-ink) !important;
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .modal-notas-texto {
+  border-left: 3px solid var(--ge-orange) !important;
+  background: rgba(240,173,78,.10) !important;
+  color: var(--ge-warning-text) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* Items dentro del modal */
+body.dash-pedidos-gentelella .item-row {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .item-nombre {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .item-det {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .item-subtotal {
+  color: var(--ge-ink) !important;
+}
+
+/* Botón cancelar en modal */
+body.dash-pedidos-gentelella .btn-cancelar-modal {
+  border: 1px solid var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .btn-cancelar-modal:hover {
+  background: rgba(231,76,60,.10) !important;
+}
+body.dash-pedidos-gentelella .btn-eliminar-modal {
+  border: 1px solid var(--ge-red) !important;
+  color: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .btn-eliminar-modal:hover {
+  background: rgba(231,76,60,.10) !important;
+}
+
+/* Botón remito */
+body.dash-pedidos-gentelella .btn-remito {
+  background: var(--ge-bg) !important;
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .btn-remito:hover {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+}
+
+/* Notif badges */
+body.dash-pedidos-gentelella .notif-badge--ok {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .notif-badge--fail {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-pedidos-gentelella .notif-badge--pendiente {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Confirmación cancelar (overlay flotante)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .confirmar-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pedidos-gentelella .confirmar-msg {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-pedidos-gentelella .btn-danger {
+  background: var(--ge-red) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal FEFO (vencimiento de lotes)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .fefo-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pedidos-gentelella .fefo-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .fefo-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .fefo-sub {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .fefo-lote {
+  background: var(--ge-bg) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .fefo-lote-nro {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .fefo-lote-dep {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .fefo-lote-usar {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-pedidos-gentelella .fefo-cant-badge {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .fefo-acciones {
+  border-top: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Panel detalle presupuesto (slide-in)
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .pres-detalle-panel {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pedidos-gentelella .pres-detalle-panel-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .pres-detalle-panel-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .btn-cerrar-pres-panel {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-pedidos-gentelella .btn-cerrar-pres-panel:hover {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal "Nuevo presupuesto"
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .pres-modal-box {
+  background: var(--ge-panel) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-pedidos-gentelella .pres-modal-header,
+body.dash-pedidos-gentelella .pres-modal-footer {
+  border-color: var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .pres-modal-header h3 {
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .pres-modal-close,
+body.dash-pedidos-gentelella .btn-cerrar-pres-panel {
+  color: var(--ge-muted) !important;
+}
+body.dash-pedidos-gentelella .pres-form-group label {
+  color: var(--ge-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  font-size: 11px !important;
+}
+body.dash-pedidos-gentelella .pres-form-group input,
+body.dash-pedidos-gentelella .pres-form-group select,
+body.dash-pedidos-gentelella .pres-form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .pres-form-group input:focus,
+body.dash-pedidos-gentelella .pres-form-group select:focus,
+body.dash-pedidos-gentelella .pres-form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+body.dash-pedidos-gentelella .pres-total-preview {
+  color: var(--ge-teal) !important;
+}
+body.dash-pedidos-gentelella .pres-btn-agregar {
+  border: 1px dashed var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pedidos-gentelella .pres-btn-agregar:hover {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-pedidos-gentelella .pres-search-wrap input {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .pres-search-wrap input:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+}
+
+/* Botones de acción en tabla/modal (.btn-acc) */
+body.dash-pedidos-gentelella .btn-acc {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-pedidos-gentelella .btn-acc:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-pedidos-gentelella .btn-acc.btn-danger {
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-pedidos-gentelella .btn-acc.btn-danger:hover {
+  background: rgba(231,76,60,.10) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Override: el CSS base de pedidos redefine --color-primary*
+   dentro de #vista-pedidos con un teal-900 propio. Lo alineamos
+   con el token oficial ge-teal.
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella #vista-pedidos {
+  --color-primary:      var(--ge-teal) !important;
+  --color-primary-bg:   var(--ge-teal-light) !important;
+  --color-primary-dark: var(--ge-teal-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive — mobile card view hereda los tokens ge-*
+   (la lógica display:block ya está en pedidos.css;
+    solo se ajustan colores del nuevo scope)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos tr {
+    border: 1px solid var(--ge-border) !important;
+    background: var(--ge-panel) !important;
+    box-shadow: var(--ge-shadow) !important;
+    border-radius: var(--ge-radius-card) !important;
+  }
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos td {
+    border-bottom: 1px solid var(--ge-bg) !important;
+  }
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos td::before {
+    color: var(--ge-muted) !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modales y paneles secundarios faltantes
+   ════════════════════════════════════════════════════════════ */
+body.dash-pedidos-gentelella .confirmar-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-pedidos-gentelella .modal-acciones {
+  border-top: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  padding: 14px 20px !important;
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+}
+body.dash-pedidos-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-pedidos-gentelella .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+}
+body.dash-pedidos-gentelella .modal-header h2,
+body.dash-pedidos-gentelella .modal-header h3 {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+body.dash-pedidos-gentelella .modal-notif-lista {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+body.dash-pedidos-gentelella .modal-seccion {
+  padding: 14px 20px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-pedidos-gentelella .pres-detalle-panel-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+}
+body.dash-pedidos-gentelella .pres-modal-body {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  font-size: 13px !important;
+  padding: 16px 20px !important;
+}
+body.dash-pedidos-gentelella .pres-modal-overlay {
+  background: rgba(42,63,84,.55) !important;
+}
+body.dash-pedidos-gentelella .tab-panel {
+  background: transparent !important;
+}
+
+/* ── Indicadores (KPIs) de Pedidos: 20% más chicos que el kpi-line ──
+   estándar. Se escopea a esta pantalla nada más (no toca kpi-line.css
+   compartido, que siguen usando otras pantallas al tamaño normal). */
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line {
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)) !important;
+  gap: 8px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-item {
+  padding: 16px 11px 13px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-item:first-child {
+  padding-left: 11px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-val {
+  font-size: 24px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-val::after {
+  width: 30px !important;
+  margin: 6px auto 5px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-lbl {
+  font-size: 10.5px !important;
+}
+body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-sub {
+  font-size: 9px !important;
+  max-width: 20ch !important;
+}
+@media (max-width: 640px) {
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line {
+    grid-template-columns: repeat(auto-fit, minmax(102px, 1fr)) !important;
+    gap: 6px !important;
+  }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-item {
+    padding: 11px 8px 10px !important;
+  }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-item:first-child { padding-left: 8px !important; }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-val { font-size: 18px !important; }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-val::after { width: 24px !important; }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-lbl { font-size: 9px !important; }
+  body.dash-pedidos-gentelella .pedidos-resumen-top .kpi-line-sub { font-size: 8.5px !important; max-width: 15ch !important; }
+}

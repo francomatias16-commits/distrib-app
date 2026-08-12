@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/cliente/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <title>Notificaciones — Fluxo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <script src="/frontend/env-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/cliente/pwa-init.js"></script>
+  <script type="module" src="/frontend/js/push-init.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-row { display: flex; align-items: center; gap: .75rem; }
+    .btn-back { background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center; }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+
+    /* NAV BOTTOM: ver /shared/tienda-nav.css — esta página se abre desde
+       Cuenta, no tiene ítem propio en la barra (mismo criterio que el
+       resto de subpáginas sin nav-item dedicado, ej. checkout). */
+
+    .contenido { padding: .75rem .75rem 5rem; max-width: 480px; margin: 0 auto; }
+
+    /* BUG REAL: `#btnCargarMas` se oculta con `classList.toggle('hidden', ...)`
+       (ver cargarNotif() más abajo), pero esta página nunca definía la clase
+       `.hidden` — a diferencia de casi todas las demás páginas del admin
+       (conciliacion-bancaria.html, whatsapp-conversaciones.html, etc.), que sí
+       la declaran localmente en su propio <style>. Sin esta regla, `classList`
+       sí agrega/saca la clase (se ve en el DOM) pero no tiene ningún efecto
+       visual — el botón queda siempre visible aunque no haya más páginas para
+       cargar. La hoja de estilos compartida tampoco la define. */
+    .hidden { display: none !important; }
+
+    .btn-activar-push-full {
+      width: 100%; padding: .8rem; border: 1px solid var(--color-info-bg); border-radius: var(--radius-xl);
+      background: var(--color-surface); color: var(--color-primary); font-size: .88rem; font-weight: 600;
+      margin-bottom: .85rem; cursor: pointer; font-family: inherit;
+    }
+
+    .card-notif {
+      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: .85rem 1rem; margin-bottom: .6rem; display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .notif-icono {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-info-bg); color: var(--color-primary);
+    }
+    .notif-icono.deuda   { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+    .notif-icono.puntos  { background: #ede9fe; color: #7c3aed; }
+    .notif-icono.pedido  { background: var(--color-success-bg); color: var(--color-success-mid); }
+    .notif-info { flex: 1; min-width: 0; }
+    .notif-tipo { font-size: .88rem; font-weight: 700; color: var(--color-text); }
+    .notif-canal { font-size: .74rem; color: var(--color-text-light); margin-top: .1rem; }
+    .notif-fecha { font-size: .72rem; color: var(--color-text-light); margin-top: .3rem; }
+    .notif-motivo { font-size: .74rem; color: var(--color-danger-mid); margin-top: .25rem; }
+
+    .filtros-scroll {
+      display: flex; gap: .45rem; overflow-x: auto; margin-bottom: .85rem;
+      -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 2px;
+    }
+    .filtros-scroll::-webkit-scrollbar { display: none; }
+    .chip-filtro {
+      flex-shrink: 0; padding: .35rem .85rem; border-radius: var(--radius-full);
+      font-size: .78rem; font-weight: 600; border: 1px solid var(--color-border);
+      background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+    .chip-filtro.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    .vacio { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-light); font-size: .85rem; }
+    .loading { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-light); font-size: .85rem; }
+
+    .btn-cargar-mas {
+      width: 100%; padding: .7rem; border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+      background: var(--color-surface); color: var(--color-text-muted); font-size: .82rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: .3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="btn-back" onclick="window.history.back()" aria-label="Volver" title="Volver">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <h1>Notificaciones</h1>
+    </div>
+    <p style="font-size:.8rem;opacity:.8;margin-top:.15rem">Avisos de deuda, pedidos y puntos que te enviamos</p>
+  </div>
+
+  <div class="contenido">
+    <button class="btn-activar-push-full" id="btnActivarPush" style="display:none">
+      Activar notificaciones de mis pedidos
+    </button>
+
+    <div class="filtros-scroll" id="filtrosScroll">
+      <button class="chip-filtro activo" data-tipo="">Todas</button>
+      <button class="chip-filtro" data-tipo="deuda_vencida">Deuda</button>
+      <button class="chip-filtro" data-tipo="pedido_entregado">Pedidos entregados</button>
+      <button class="chip-filtro" data-tipo="pedido_en_camino">Pedidos en camino</button>
+      <button class="chip-filtro" data-tipo="puntos_ganados">Puntos</button>
+    </div>
+
+    <div id="listaNotif"><div class="loading">Cargando notificaciones...</div></div>
+    <button class="btn-cargar-mas hidden" id="btnCargarMas">Ver más</button>
+  </div>
+
+  <script>
+    const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-cliente-auth' } });
+    // push-init.js necesita este global — mismo criterio que cuenta.html
+    // (auditoría 2026, etapa 15, Hallazgo 1).
+    window.authCtx = { sb };
+
+    const PAGE = 20;
+    let clienteId, filtroActivo = '', offset = 0, huboMas = false;
+
+    const TIPO_CONFIG = {
+      deuda_vencida:      { icono: 'deuda',  emoji: '⚠', label: 'Aviso de deuda vencida' },
+      pedido_entregado:   { icono: 'pedido', emoji: '📦', label: 'Pedido entregado' },
+      pedido_en_camino:   { icono: 'pedido', emoji: '🚚', label: 'Pedido en camino' },
+      puntos_ganados:     { icono: 'puntos', emoji: '⭐', label: 'Puntos ganados' },
+      oferta_relampago:   { icono: 'pedido', emoji: '⚡', label: 'Oferta relámpago' },
+    };
+    const CANAL_LABEL = { whatsapp: 'WhatsApp', push: 'Notificación push', email: 'Email' };
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    }
+    function fmtFecha(s) {
+      if (!s) return '—';
+      return new Date(s).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = '/cliente/login'; return; }
+
+      const { data: u } = await sb.from('usuarios')
+        .select('cliente_id').eq('id', session.user.id).single();
+      if (!u?.cliente_id) { window.location.href = '/cliente/login'; return; }
+      clienteId = u.cliente_id;
+
+      const btnPush = document.getElementById('btnActivarPush');
+      if (btnPush && 'Notification' in window) {
+        btnPush.style.display = (Notification.permission === 'default') ? '' : 'none';
+        btnPush.addEventListener('click', async () => {
+          btnPush.disabled = true;
+          const original = btnPush.textContent;
+          btnPush.textContent = 'Activando...';
+          try {
+            const ok = await window.solicitarPermisoNotificaciones?.();
+            btnPush.style.display = (Notification.permission === 'default') ? '' : 'none';
+            if (ok) window.mostrarToast ? window.mostrarToast('Notificaciones activadas.') : alert('Notificaciones activadas.');
+          } finally {
+            btnPush.disabled = false;
+            btnPush.textContent = original;
+          }
+        });
+      }
+
+      document.getElementById('filtrosScroll').querySelectorAll('.chip-filtro').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('activo'));
+          btn.classList.add('activo');
+          filtroActivo = btn.dataset.tipo;
+          cargarNotif(true);
+        });
+      });
+
+      document.getElementById('btnCargarMas').addEventListener('click', () => cargarNotif(false));
+
+      await cargarNotif(true);
+    });
+
+    // RLS (notif_log_select_unificada) ya filtra por cliente_id propio —
+    // no hace falta (ni conviene) mandar .eq('cliente_id', ...) desde
+    // acá: si mañana cambia cómo se resuelve el cliente_id del usuario,
+    // esta página sigue segura porque la política de la base es la que
+    // manda, no un filtro que este script podría omitir por error.
+    async function cargarNotif(resetear) {
+      if (resetear) { offset = 0; }
+      const lista = document.getElementById('listaNotif');
+      if (resetear) lista.innerHTML = '<div class="loading">Cargando notificaciones...</div>';
+
+      let q = sb.from('notif_log')
+        .select('id, tipo, canal, created_at, entregada, motivo')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE - 1);
+
+      if (filtroActivo) q = q.eq('tipo', filtroActivo);
+
+      const { data, error } = await q;
+      if (error) {
+        console.error('[NOTIFICACIONES] Error cargando notif_log:', error);
+        lista.innerHTML = '<div class="vacio">No se pudo cargar el historial. Probá de nuevo en un momento.</div>';
+        return;
+      }
+
+      const filas = data || [];
+      huboMas = filas.length === PAGE;
+      offset += PAGE;
+
+      if (resetear) {
+        lista.innerHTML = filas.length ? filas.map(renderNotif).join('') : '<div class="vacio">Todavía no tenés notificaciones.</div>';
+      } else {
+        lista.insertAdjacentHTML('beforeend', filas.map(renderNotif).join(''));
+      }
+
+      document.getElementById('btnCargarMas').classList.toggle('hidden', !huboMas);
+    }
+
+    function renderNotif(n) {
+      const cfg = TIPO_CONFIG[n.tipo] || { icono: 'pedido', emoji: '🔔', label: n.tipo };
+      const canalLabel = CANAL_LABEL[n.canal] || n.canal;
+      return `
+        <div class="card-notif">
+          <div class="notif-icono ${cfg.icono}">${cfg.emoji}</div>
+          <div class="notif-info">
+            <div class="notif-tipo">${esc(cfg.label)}</div>
+            <div class="notif-canal">${esc(canalLabel)}</div>
+            <div class="notif-fecha">${fmtFecha(n.created_at)}</div>
+            ${(n.entregada === false && n.motivo) ? `<div class="notif-motivo">No se pudo entregar — ${esc(n.motivo)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

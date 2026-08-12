@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/proveedor/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Portal de proveedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/frontend/proveedor/portal.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+</head>
+<body>
+
+  <header class="portal-header">
+    <div class="portal-header-inner">
+      <span class="portal-empresa" id="ph-empresa">—</span>
+      <span class="portal-badge">Portal de proveedor</span>
+    </div>
+  </header>
+
+  <main class="portal-main" id="portal-main">
+    <div class="portal-estado" id="portal-loading">
+      <div class="portal-spinner"></div>
+      <p>Cargando tus órdenes de compra...</p>
+    </div>
+  </main>
+
+  <footer class="portal-footer">
+    <p>Este link es personal e intransferible. Si no lo solicitaste, podés ignorarlo.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
+  <script src="/shared/offline-core.js?v1"></script>
+  <script src="/frontend/proveedor/proveedor-offline.js"></script>
+  <script src="/frontend/proveedor/portal.js"></script>
+  <script src="/proveedor/pwa-init.js"></script>
+</body>
+</html>

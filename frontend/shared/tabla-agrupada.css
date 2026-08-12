@@ -1,0 +1,49 @@
+/**
+ * tabla-agrupada.css — Encabezado agrupado para tablas del admin
+ * ─────────────────────────────────────────────────────────────────────────
+ * Componente aditivo: no redefine nada de las tablas existentes (fila,
+ * celdas, badges, avatares, colores). Solo agrega una fila opcional arriba
+ * del <thead> habitual que agrupa columnas por categoría (ej. "Contacto",
+ * "Financiero", "Estado"), pensada para tablas de 7+ columnas donde el
+ * encabezado plano ya es difícil de escanear.
+ *
+ * Uso: agregar <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css">
+ * después de gentelella-tokens.css, y en el <thead> de la tabla agregar una
+ * fila nueva ANTES de la fila de columnas existente:
+ *
+ *   <thead>
+ *     <tr class="thead-grupo">
+ *       <th colspan="2">Identificación</th>
+ *       <th colspan="2" class="thead-sep">Contacto</th>
+ *       <th colspan="3">Financiero</th>
+ *     </tr>
+ *     <tr>
+ *       ...columnas reales, sin cambios...
+ *     </tr>
+ *   </thead>
+ *
+ * Los colspan deben sumar exactamente el total de columnas de la fila real.
+ * Tokens: solo variables --ge-* / --color-* ya existentes en
+ * gentelella-tokens.css y tokens.css — no se agregan valores nuevos.
+ */
+
+.thead-grupo th {
+  background: var(--ge-bg, var(--color-bg)) !important;
+  font-family: var(--font-family-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ge-teal-dark, var(--color-primary-dark)) !important;
+  text-align: center;
+  padding: 6px 14px !important;
+  border-bottom: 1px solid var(--ge-border, var(--color-border-soft));
+  white-space: nowrap;
+}
+
+/* Separador vertical más marcado entre grupos, en cabecera y en las celdas
+   de datos correspondientes (agregar .thead-sep a la <th> real y a cada
+   <td> de esa columna si se quiere que el separador baje por toda la tabla). */
+.thead-sep {
+  border-right: 2px solid var(--ge-border, var(--color-border)) !important;
+}

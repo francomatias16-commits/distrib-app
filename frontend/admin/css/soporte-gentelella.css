@@ -1,0 +1,155 @@
+/**
+ * soporte-gentelella.css — Reskin "Gentelella v4" de la pantalla Soporte
+ * ────────────────────────────────────────────────────────────────────────
+ * Pantalla: frontend/admin/soporte.html
+ * Se carga DESPUÉS de /shared/tokens.css, /shared/adminlte-components.css y
+ * /frontend/admin/css/base-layout.css, y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
+ *
+ * El propio soporte.html trae un <style> inline con todos sus componentes
+ * (.cfg-card, .canal-row, .btn-canal, .tabla-urgencia, .chip-nivel,
+ * .horario-box) definidos con valores fijos, sin ninguna base compartida.
+ * Este archivo los sobreescribe con tokens --ge-* sin tocar el <style>
+ * inline ni el HTML.
+ *
+ * Nota: los colores de marca de los canales (.canal-wa usa el verde de
+ * WhatsApp, .canal-mail/.btn-canal.mail usan azul genérico) se mantienen
+ * distintos de la paleta --ge-teal para no perder la identificación visual
+ * del canal — WhatsApp ya está tokenizado como --ge-whatsapp (usado en
+ * clientes/pedidos), acá se reutiliza el mismo token en vez de dejar el
+ * hex #25D366 hardcodeado.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * No se agrega ningún token nuevo en este archivo.
+ *
+ * Scope: body.dash-soporte-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella { background: var(--ge-bg) !important; }
+body.dash-soporte-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar / breadcrumb / intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-soporte-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-soporte-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-soporte-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+body.dash-soporte-gentelella .page-intro {
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-soporte-gentelella .page-intro strong {
+  color: var(--ge-ink) !important;
+}
+body.dash-soporte-gentelella #loading {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tarjetas de configuración (.cfg-card)
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella .cfg-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-soporte-gentelella .cfg-card h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-soporte-gentelella .cfg-card .sub {
+  color: var(--ge-muted) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Canales de contacto (.canal-row / .canal-icono / .btn-canal)
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella .canal-row {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-soporte-gentelella .canal-wa {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-whatsapp) !important;
+}
+body.dash-soporte-gentelella .canal-mail {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-soporte-gentelella .canal-titulo {
+  color: var(--ge-ink) !important;
+}
+body.dash-soporte-gentelella .canal-dato {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-soporte-gentelella .canal-uso {
+  color: var(--ge-muted) !important;
+}
+body.dash-soporte-gentelella .btn-canal {
+  background: var(--ge-whatsapp) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-soporte-gentelella .btn-canal:hover {
+  background: #1ebe57 !important; /* verde WhatsApp más oscuro, hover intencional */
+}
+body.dash-soporte-gentelella .btn-canal.mail {
+  background: var(--ge-blue) !important;
+}
+body.dash-soporte-gentelella .btn-canal.mail:hover {
+  background: color-mix(in srgb, var(--ge-blue) 85%, white) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Horario de atención (.horario-box)
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella .horario-box {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border: 1px solid var(--ge-border) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla de clasificación de urgencia (.tabla-urgencia / .chip-nivel)
+   ════════════════════════════════════════════════════════════ */
+body.dash-soporte-gentelella .tabla-urgencia th {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-soporte-gentelella .tabla-urgencia td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-soporte-gentelella .chip-nivel {
+  border-radius: var(--ge-radius-pill) !important;
+  font-weight: 600 !important;
+}
+body.dash-soporte-gentelella .chip-critico {
+  background: rgba(231,76,60,.1) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-soporte-gentelella .chip-alto {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-soporte-gentelella .chip-normal {
+  background: rgba(52,152,219,.13) !important;
+  color: var(--ge-blue) !important;
+}

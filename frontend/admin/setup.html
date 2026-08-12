@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<!--
+  ⚠ HUÉRFANO — SIN ENLACES DESDE NINGÚN LADO (auditoría UX v2, sección 6).
+  El flujo real de onboarding es login.html → setup-wizard.html (gatillado
+  por empresas.setup_completado = false). Nada en el código — ni el nav, ni
+  login.html, ni registro.html — enlaza a este archivo. Parece la versión
+  anterior al wizard, nunca borrada.
+  Se decidió conservarlo por las dudas (no eliminar) — no está en la ruta
+  crítica de nadie, así que no hay urgencia, pero si en algún momento se
+  confirma que no hace falta, se puede borrar sin impacto.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración inicial — Fluxo</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/login.css?v=196" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <style>
+    .setup-card {
+      max-width: 520px;
+      width: 100%;
+      background: var(--color-surface);
+      border-radius: var(--radius-xxl);
+      box-shadow: 0 4px 32px rgba(0,0,0,.12);
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .setup-card::before {
+      content: '';
+      display: block;
+      height: 5px;
+      background: linear-gradient(90deg, #1D4ED8 0%, #2563EB 50%, #2563EB 100%);
+    }
+
+    .setup-header {
+      padding: 32px 32px 0;
+      text-align: center;
+    }
+    .setup-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #2563EB 0%, #2563EB 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .setup-icon svg { color: var(--color-surface); }
+    .setup-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1D4ED8;
+      margin: 0 0 6px;
+    }
+    .setup-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
+    .setup-steps {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      margin-bottom: 24px;
+    }
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 60%;
+      width: 80%;
+      height: 2px;
+      background: var(--color-surface-2);
+    }
+    .step.activo:not(:last-child)::after,
+    .step.completo:not(:last-child)::after {
+      background: #2563EB;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--color-surface-2);
+      color: var(--color-text-light);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      transition: all .25s;
+    }
+    .step.activo .step-num {
+      background: #2563EB;
+      color: var(--color-surface);
+    }
+    .step.completo .step-num {
+      background: #16a34a;
+      color: var(--color-surface);
+    }
+    .step-label {
+      font-size: 11px;
+      color: var(--color-text-light);
+      font-weight: 500;
+      text-align: center;
+    }
+    .step.activo .step-label { color: var(--color-info-mid); font-weight: 600; }
+    .step.completo .step-label { color: var(--color-success-mid); }
+
+    .setup-panel {
+      padding: 0 32px 32px;
+    }
+    .panel-section {
+      display: none;
+    }
+    .panel-section.visible {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 0 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--color-border-soft);
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+    .field label .req { color: var(--color-danger-mid); margin-left: 2px; }
+    .field input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .field input:focus { border-color: #2563EB; }
+    .field input.error { border-color: #dc2626; }
+    .field .hint {
+      font-size: 12px;
+      color: var(--color-text-light);
+      margin-top: 4px;
+    }
+    .fields-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 480px) {
+      .fields-row { grid-template-columns: 1fr; }
+    }
+
+    .alerta {
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .alerta.show { display: flex; }
+    .alerta-danger {
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger-bg);
+    }
+    .alerta-success {
+      background: var(--color-success-bg);
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-next, .btn-prev, .btn-submit {
+      flex: 1;
+      padding: 11px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, background .2s;
+    }
+    .btn-next, .btn-submit {
+      background: #2563EB;
+      color: var(--color-surface);
+    }
+    .btn-next:hover, .btn-submit:hover { background: #0f4a85; }
+    .btn-next:disabled, .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-prev {
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+    }
+    .btn-prev:hover { background: var(--color-surface-2); }
+
+    .pass-wrap { position: relative; }
+    .pass-wrap input { padding-right: 40px; }
+    .btn-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-light);
+      padding: 2px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Panel final de éxito */
+    .success-panel {
+      text-align: center;
+      padding: 32px;
+    }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #dcfce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .success-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #166534;
+      margin: 0 0 8px;
+    }
+    .success-msg {
+      font-size: 14px;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+      margin: 0 0 24px;
+    }
+    .btn-ir-login {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #2563EB;
+      color: var(--color-surface);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-ir-login:hover { background: #0f4a85; }
+
+    .login-brand {
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-light);
+      margin-top: 20px;
+      padding-bottom: 24px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--color-surface-2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+<div class="setup-card" id="setup-card">
+
+  <div class="setup-header">
+    <div class="setup-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="setup-title">Configuración inicial</div>
+    <div class="setup-subtitle">Bienvenido a Fluxo. Completá los datos para dejar el sistema listo en minutos.</div>
+  </div>
+
+  <!-- Pasos indicadores -->
+  <div class="setup-steps" id="steps-indicator">
+    <div class="step activo" id="step-ind-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Empresa</div>
+    </div>
+    <div class="step" id="step-ind-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Responsable</div>
+    </div>
+    <div class="step" id="step-ind-3">
+      <div class="step-num">3</div>
+      <div class="step-label">Confirmar</div>
+    </div>
+  </div>
+
+  <div class="setup-panel">
+
+    <!-- Error global -->
+    <div class="alerta alerta-danger" id="alerta-error">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="texto-error"></span>
+    </div>
+
+    <!-- PASO 1: Datos de la empresa -->
+    <div class="panel-section visible" id="panel-1">
+      <div class="section-title">Datos de la empresa</div>
+      <div class="field">
+        <label for="e-nombre">Nombre o razón social <span class="req">*</span></label>
+        <input type="text" id="e-nombre" placeholder="Ej: Distribuidora García S.R.L." autocomplete="organization" />
+      </div>
+      <div class="field">
+        <label for="e-cuit">CUIT <span class="req">*</span></label>
+        <input type="text" id="e-cuit" placeholder="20-12345678-9" inputmode="numeric" />
+        <div class="hint">Sin guiones también es válido: 20123456789</div>
+      </div>
+      <div class="fields-row">
+        <div class="field">
+          <label for="e-tel">Teléfono</label>
+          <input type="tel" id="e-tel" placeholder="+54 342 000-0000" />
+        </div>
+        <div class="field">
+          <label for="e-email">Email de la empresa</label>
+          <input type="email" id="e-email" placeholder="info@empresa.com" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="e-domicilio">Domicilio</label>
+        <input type="text" id="e-domicilio" placeholder="San Martín 1234, Reconquista" />
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-next" onclick="irA(2)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Datos del responsable (dueño) -->
+    <div class="panel-section" id="panel-2">
+      <div class="section-title">Datos del responsable</div>
+      <div class="hint" style="margin-bottom:14px;font-size:13px;color:var(--color-text-muted);">
+        Esta persona tendrá acceso completo al sistema como <strong>dueño</strong>.
+      </div>
+      <div class="field">
+        <label for="u-nombre">Nombre completo <span class="req">*</span></label>
+        <input type="text" id="u-nombre" placeholder="Ej: Diego Pérez" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="u-email">Email de acceso <span class="req">*</span></label>
+        <input type="email" id="u-email" placeholder="diego@empresa.com" autocomplete="email" />
+        <div class="hint">Con este email se iniciará sesión en el sistema.</div>
+      </div>
+      <div class="field">
+        <label for="u-pass">Contraseña <span class="req">*</span></label>
+        <div class="pass-wrap">
+          <input type="password" id="u-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+          <button type="button" class="btn-toggle" id="btn-toggle-pass" tabindex="-1" aria-label="Mostrar contraseña">
+            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="u-pass2">Confirmar contraseña <span class="req">*</span></label>
+        <input type="password" id="u-pass2" placeholder="Repetí la contraseña" autocomplete="new-password" />
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-prev" onclick="irA(1)">← Atrás</button>
+        <button type="button" class="btn-next" onclick="irA(3)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PASO 3: Confirmación -->
+    <div class="panel-section" id="panel-3">
+      <div class="section-title">Confirmar configuración</div>
+      <div style="background:var(--color-surface-2);border:1px solid var(--color-border-soft);border-radius: var(--radius-lg);padding:16px;margin-bottom:20px;font-size:14px;line-height:1.7;">
+        <div><strong>Empresa:</strong> <span id="confirm-empresa">—</span></div>
+        <div><strong>CUIT:</strong> <span id="confirm-cuit">—</span></div>
+        <div id="confirm-row-tel" style="display:none"><strong>Teléfono:</strong> <span id="confirm-tel">—</span></div>
+        <div id="confirm-row-email" style="display:none"><strong>Email empresa:</strong> <span id="confirm-email-emp">—</span></div>
+        <div id="confirm-row-dom" style="display:none"><strong>Domicilio:</strong> <span id="confirm-dom">—</span></div>
+        <hr style="margin:10px 0;border:none;border-top:1px solid var(--color-border-soft);">
+        <div><strong>Responsable:</strong> <span id="confirm-nombre">—</span></div>
+        <div><strong>Email de acceso:</strong> <span id="confirm-email-user">—</span></div>
+        <div><strong>Rol:</strong> Dueño (acceso completo)</div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-prev" onclick="irA(2)">← Atrás</button>
+        <button type="button" class="btn-submit" id="btn-submit" onclick="inicializar()">
+          <span id="btn-label">Inicializar sistema</span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /setup-panel -->
+
+</div><!-- /setup-card -->
+
+<!-- Panel de éxito (fuera de la card, se muestra en su lugar) -->
+<div class="setup-card" id="success-card" style="display:none">
+  <div class="success-panel">
+    <div class="success-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="success-title">¡Sistema listo!</div>
+    <div class="success-msg">
+      La empresa y el usuario fueron creados correctamente.<br>
+      Ya podés iniciar sesión con el email y contraseña que configuraste.
+    </div>
+    <a href="/admin/login" class="btn-ir-login">Ir al inicio de sesión</a>
+  </div>
+</div>
+
+<div class="login-brand">Sistema de distribución · Fluxo</div>
+
+<script>
+let pasoActual = 1;
+
+// Al cargar: verificar que el sistema no esté ya inicializado
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/api/setup/status');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.inicializado) {
+        // Ya configurado → redirigir al login
+        window.location.href = '/admin/login';
+      }
+    }
+  } catch (e) {
+    // Si falla el check, mostramos el setup igual
+  }
+
+  // Toggle ver contraseña
+  document.getElementById('btn-toggle-pass')?.addEventListener('click', () => {
+    const input = document.getElementById('u-pass');
+    const icon  = document.getElementById('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      input.type = 'password';
+      icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  });
+});
+
+function irA(paso) {
+  ocultarError();
+
+  // Validar paso actual antes de avanzar
+  if (paso > pasoActual) {
+    const error = validarPaso(pasoActual);
+    if (error) { mostrarError(error); return; }
+  }
+
+  // Si vamos al paso 3, llenar resumen
+  if (paso === 3) {
+    llenarResumen();
+  }
+
+  // Ocultar panel actual
+  document.getElementById(`panel-${pasoActual}`).classList.remove('visible');
+  document.getElementById(`step-ind-${pasoActual}`)?.classList.replace('activo', 'completo');
+
+  // Mostrar nuevo panel
+  pasoActual = paso;
+  document.getElementById(`panel-${pasoActual}`).classList.add('visible');
+  const stepEl = document.getElementById(`step-ind-${pasoActual}`);
+  if (stepEl) {
+    stepEl.classList.remove('completo');
+    stepEl.classList.add('activo');
+  }
+}
+
+function validarPaso(n) {
+  if (n === 1) {
+    const nombre = document.getElementById('e-nombre').value.trim();
+    const cuit   = document.getElementById('e-cuit').value.trim();
+    if (!nombre) return 'El nombre de la empresa es requerido.';
+    if (!cuit)   return 'El CUIT es requerido.';
+    // Validación básica CUIT (11 dígitos, con o sin guiones)
+    const cuitLimpio = cuit.replace(/-/g, '');
+    if (!/^\d{11}$/.test(cuitLimpio)) return 'El CUIT debe tener 11 dígitos numéricos.';
+  }
+  if (n === 2) {
+    const nombre = document.getElementById('u-nombre').value.trim();
+    const email  = document.getElementById('u-email').value.trim();
+    const pass   = document.getElementById('u-pass').value;
+    const pass2  = document.getElementById('u-pass2').value;
+    if (!nombre) return 'El nombre del responsable es requerido.';
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return 'Ingresá un email válido.';
+    if (!pass || pass.length < 8)
+      return 'La contraseña debe tener al menos 8 caracteres.';
+    if (pass !== pass2)
+      return 'Las contraseñas no coinciden.';
+  }
+  return null;
+}
+
+function llenarResumen() {
+  const set = (id, val) => { if (val) document.getElementById(id).textContent = val; };
+  const showRow = (rowId, val) => {
+    if (val) document.getElementById(rowId).style.display = 'block';
+  };
+
+  const nombre   = document.getElementById('e-nombre').value.trim();
+  const cuit     = document.getElementById('e-cuit').value.trim();
+  const tel      = document.getElementById('e-tel').value.trim();
+  const emailEmp = document.getElementById('e-email').value.trim();
+  const dom      = document.getElementById('e-domicilio').value.trim();
+  const uNombre  = document.getElementById('u-nombre').value.trim();
+  const uEmail   = document.getElementById('u-email').value.trim();
+
+  set('confirm-empresa', nombre);
+  set('confirm-cuit', cuit);
+  set('confirm-nombre', uNombre);
+  set('confirm-email-user', uEmail);
+
+  if (tel)      { set('confirm-tel', tel);          showRow('confirm-row-tel', tel); }
+  if (emailEmp) { set('confirm-email-emp', emailEmp); showRow('confirm-row-email', emailEmp); }
+  if (dom)      { set('confirm-dom', dom);           showRow('confirm-row-dom', dom); }
+}
+
+async function inicializar() {
+  ocultarError();
+  const btn   = document.getElementById('btn-submit');
+  const label = document.getElementById('btn-label');
+  btn.disabled = true;
+  label.textContent = 'Inicializando...';
+
+  const body = {
+    empresa_nombre:    document.getElementById('e-nombre').value.trim(),
+    empresa_cuit:      document.getElementById('e-cuit').value.trim().replace(/-/g, ''),
+    empresa_domicilio: document.getElementById('e-domicilio').value.trim() || undefined,
+    empresa_telefono:  document.getElementById('e-tel').value.trim() || undefined,
+    empresa_email:     document.getElementById('e-email').value.trim() || undefined,
+    dueno_nombre:      document.getElementById('u-nombre').value.trim(),
+    dueno_email:       document.getElementById('u-email').value.trim().toLowerCase(),
+    dueno_password:    document.getElementById('u-pass').value,
+  };
+
+  try {
+    const res  = await fetch('/api/setup/init', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      mostrarError(data.error || 'Error al inicializar el sistema. Intentá de nuevo.');
+      btn.disabled = false;
+      label.textContent = 'Inicializar sistema';
+      return;
+    }
+
+    // Éxito: mostrar panel final
+    document.getElementById('setup-card').style.display = 'none';
+    document.getElementById('success-card').style.display = 'block';
+
+  } catch (e) {
+    mostrarError('Error de conexión. Verificá tu internet e intentá de nuevo.');
+    btn.disabled = false;
+    label.textContent = 'Inicializar sistema';
+  }
+}
+
+function mostrarError(msg) {
+  document.getElementById('texto-error').textContent = msg;
+  document.getElementById('alerta-error').classList.add('show');
+  document.getElementById('alerta-error').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function ocultarError() {
+  document.getElementById('alerta-error').classList.remove('show');
+}
+</script>
+
+</body>
+</html>

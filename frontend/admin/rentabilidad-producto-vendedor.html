@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Qué producto y vendedor rinden más — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/rentabilidad-producto-vendedor-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .kpis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .chart-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      position: relative;
+    }
+    .chart-wrap canvas { max-height: 300px; }
+    .chart-wrap-el-holder { position: relative; min-height: 300px; }
+    .chart-wrap-el { position: absolute; inset: 0; }
+    .echarts-vacio {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: var(--color-text-light); font-size: 13px;
+    }
+
+    .fila-peor { background: rgba(239,68,68,.06) !important; }
+    .fila-mejor { background: rgba(34,197,94,.06) !important; }
+    .monto-rojo  { color: var(--color-danger);  font-weight: 700; }
+    .monto-verde { color: var(--color-success); font-weight: 700; }
+    .monto-gris  { color: var(--color-text-muted); }
+
+    .tabla-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .tabla-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
+    .filtros-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filtros-bar input, .filtros-bar select {
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background: var(--color-surface);
+    }
+    .tabla-overflow { overflow-x: auto; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    .tabla td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+      vertical-align: middle;
+    }
+    .tabla tbody tr:last-child td { border-bottom: none; }
+    .tabla tbody tr:hover td { background: rgba(0,174,112,.03); }
+
+    /* Tab de vista: por producto / por vendedor */
+    .view-toggle { display: flex; gap: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
+    .view-toggle button {
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .view-toggle button.active { background: var(--color-primary); color: #fff; }
+
+    .chip-origen-pedido { background: rgba(24,95,165,.12); color: #2563EB; }
+    .chip-origen-pos     { background: rgba(147,51,234,.12); color: #7e22ce; }
+    .chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: var(--radius-full); white-space: nowrap; }
+
+    /* Paginación de las tablas de detalle */
+    .paginacion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border);
+    }
+    .paginacion-info { font-size: 12px; color: var(--color-text-light); }
+    .paginacion-controles { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .paginacion-btn {
+      min-width: 30px;
+      height: 30px;
+      padding: 0 8px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .paginacion-btn:hover:not(:disabled):not(.activa) { background: var(--color-bg); }
+    .paginacion-btn.activa { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .paginacion-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .paginacion-ellipsis { padding: 0 4px; color: var(--color-text-light); font-size: 12px; }
+  </style>
+</head>
+<body class="dash-rentabilidad-producto-vendedor-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Qué producto y vendedor rinden más</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Margen combinando pedidos entregados y ventas de mostrador (POS), para saber qué productos conviene empujar y comparar el desempeño de cada vendedor. Complementa el reporte por zona/ruta.
+</div>
+  </div>
+
+  <main class="main">
+
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección. Disponible para dueño, admin o contador.</p>
+    </div>
+
+    <div id="contenido-rentabilidad">
+
+      <!-- KPI Cards -->
+      <div class="kpis-grid" id="kpis-grid"></div>
+
+      <!-- Gráfico -->
+      <div class="chart-wrap hidden" id="chart-wrap">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <h3 style="font-size:14px;font-weight:700;margin:0;" id="chart-titulo">Margen por producto</h3>
+            <p style="font-size:12px;color:var(--color-text-light);margin:3px 0 0;">Top 15 · acumulado del período seleccionado</p>
+          </div>
+        </div>
+        <div class="chart-wrap-el-holder">
+          <div id="chart-rentabilidad" class="chart-wrap-el"></div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="tabla-wrap">
+        <div class="tabla-header">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <h2>Detalle</h2>
+            <div class="view-toggle">
+              <button type="button" id="btn-vista-producto" class="active" onclick="cambiarVista('producto')">Por producto</button>
+              <button type="button" id="btn-vista-vendedor" onclick="cambiarVista('vendedor')">Por vendedor</button>
+            </div>
+          </div>
+          <div class="filtros-bar">
+            <input type="date" id="filtro-desde" aria-label="Fecha desde" onchange="cargarRentabilidad()">
+            <input type="date" id="filtro-hasta" aria-label="Fecha hasta" onchange="cargarRentabilidad()">
+            <select id="filtro-categoria" onchange="filtrarPorCategoria()">
+              <option value="">Todas las categorías</option>
+            </select>
+            <button type="button" class="btn btn--ghost" style="padding:6px 12px;font-size:13px;" onclick="cargarRentabilidad()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.65"/></svg>
+              Actualizar
+            </button>
+            <button type="button" class="btn btn--ghost" style="padding:6px 12px;font-size:13px;" onclick="exportarCSV()" title="Exportar a CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Vista por producto -->
+        <div id="vista-producto" class="tabla-overflow">
+          <table class="tabla">
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th class="thead-sep">Cantidad vendida</th>
+                <th>Facturado</th>
+                <th>Margen</th>
+                <th>Margen %</th>
+                <th>Origen</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-por-producto"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+          <div class="paginacion" id="paginacion-producto"></div>
+        </div>
+
+        <!-- Vista por vendedor -->
+        <div id="vista-vendedor" class="tabla-overflow hidden">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Vendedor</th>
+                <th>Documentos</th>
+                <th>Facturado</th>
+                <th>Margen</th>
+                <th>Margen %</th>
+                <th>Origen</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-por-vendedor"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+          <div class="paginacion" id="paginacion-vendedor"></div>
+        </div>
+
+      </div><!-- /tabla-wrap -->
+    </div><!-- /contenido-rentabilidad -->
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
+<script src="/frontend/shared/echarts-wrapper.js?v1"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/rentabilidad-producto-vendedor.js?v1782328742714"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

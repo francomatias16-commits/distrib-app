@@ -1,0 +1,234 @@
+/**
+ * gentelella-fkpi.css — Componente KPI unificado (v3).
+ * ──────────────────────────────────────────────────────────────────
+ * Reemplaza dos intentos previos que quedaron inconsistentes entre
+ * pantallas:
+ *   - v1/v2 de este mismo archivo: layout en columna (ícono arriba,
+ *     texto abajo). Se descartó por feedback de usuario ("todo muy
+ *     desproporcionado") — cada pantalla terminaba viéndose distinta.
+ *   - gentelella-kpi-flat.css: mismo problema, aplicado solo a
+ *     facturación. Queda retirado; no lo linkea ninguna pantalla.
+ *
+ * v3 clona la fórmula real del dashboard (ícono circular a la
+ * izquierda + columna de texto a la derecha, flex:1 + min-width:0
+ * para que el valor pueda achicarse/wrappear sin desbordar la
+ * tarjeta) y la aplica IGUAL en todas las pantallas con KPIs, sin
+ * importar si el HTML de cada una usa la familia de clases `.fkpi`
+ * o la familia genérica `.kpi-card`.
+ *
+ * Dos familias de markup conviven en el proyecto (deuda técnica de
+ * nomenclatura, no ideal pero no se renombra acá para no tocar JS):
+ *   A) .fkpi > .fkpi-icono + .kpi-info > .fkpi-label/.fkpi-val/.fkpi-sub
+ *      (cheques, cobranzas, devoluciones, riesgo-cheques, vencimientos)
+ *   B) .kpi-card > .kpi-icono + .kpi-info > .kpi-label/.kpi-value o
+ *      .kpi-valor/.kpi-sub (facturación, cc-proveedores, puntos,
+ *      reportes-financieros, reportes-stock, reportes-ventas)
+ *      En reportes-* el label es un <h3> y el sub es <p class="kpi-change">
+ *      en vez de .kpi-label/.kpi-sub — se contemplan también.
+ *
+ * IMPORTANTE — por qué NO se usa body.dash-gentelella genérico para
+ * el selector `.kpi-card` a secas: el dashboard (body.dash-fireart
+ * dash-gentelella) tiene su PROPIO componente BEM `.kpi-card` +
+ * `.kpi-card__icono/__info/__label/__valor` con estilo Fireart
+ * (ícono oculto, flecha circular, layout en columna). Un selector
+ * `.kpi-card` sin guardia pisaría ese componente. Por eso el bloque
+ * de layout de `.kpi-card` va con `:not(.dash-fireart)`. El resto de
+ * las clases (.kpi-icono, .kpi-info, .kpi-label, .kpi-value,
+ * .kpi-valor, .kpi-sub) no existen en el markup del dashboard
+ * (que usa __icono/__info/__label/__valor con guion bajo doble), así
+ * que sí pueden ir con el scope genérico sin riesgo de colisión.
+ *
+ * Se carga DESPUÉS de gentelella-tokens.css y gentelella-nav.css, y
+ * ANTES del CSS de reskin propio de cada pantalla (que puede seguir
+ * agregando sus overrides puntuales de color/borde, ej. fondo
+ * amarillo en la tarjeta de saldo pendiente).
+ */
+
+/* ══════════════════════════════════════════════════════════════
+   Contenedor de la tarjeta — layout fila (ícono | texto)
+   ══════════════════════════════════════════════════════════════ */
+body.dash-gentelella .fkpi {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 16px 18px !important;
+  transition: box-shadow .18s ease, transform .18s ease !important;
+}
+body.dash-gentelella .fkpi:hover {
+  box-shadow: var(--ge-shadow-lg) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Familia .kpi-card — con guardia para no pisar el dashboard (Fireart) */
+body.dash-gentelella:not(.dash-fireart) .kpi-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  transition: box-shadow .18s ease, transform .18s ease !important;
+}
+body.dash-gentelella:not(.dash-fireart) .kpi-card:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Ícono circular — mismo lenguaje visual en toda la app: círculo
+   de 40px con SVG de 18px adentro (medidas reales que usa el
+   dashboard: ver funciones _svgVentas/_svgPedidos/etc en
+   dashboard-optimizado.js, todas generan <svg width="18" height="18">).
+   ══════════════════════════════════════════════════════════════ */
+body.dash-gentelella .fkpi-icono,
+body.dash-gentelella .kpi-icono {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+body.dash-gentelella .fkpi-icono svg,
+body.dash-gentelella .kpi-icono svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Color del ícono — misma convención rojo/amarillo/azul/verde que ya
+   usaba .fkpi-val, reusada también por .kpi-icono */
+body.dash-gentelella .fkpi-icono.rojo,
+body.dash-gentelella .kpi-icono.rojo     { background: rgba(231,76,60,.12)   !important; color: var(--ge-red)       !important; }
+body.dash-gentelella .fkpi-icono.amarillo,
+body.dash-gentelella .kpi-icono.amarillo { background: rgba(240,173,78,.15)  !important; color: var(--ge-orange)    !important; }
+body.dash-gentelella .fkpi-icono.azul,
+body.dash-gentelella .kpi-icono.azul     { background: rgba(52,152,219,.12)  !important; color: var(--ge-blue)      !important; }
+body.dash-gentelella .fkpi-icono.verde,
+body.dash-gentelella .kpi-icono.verde    { background: var(--ge-teal-light)  !important; color: var(--ge-teal-dark) !important; }
+body.dash-gentelella .fkpi-icono.morado,
+body.dash-gentelella .kpi-icono.morado   { background: rgba(142,68,173,.12)  !important; color: var(--ge-purple)    !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   Columna de texto — flex:1 + min-width:0 es lo que permite que el
+   valor se achique/wrappee en vez de desbordar la tarjeta cuando el
+   monto es largo ($9.018.139,36).
+   ══════════════════════════════════════════════════════════════ */
+body.dash-gentelella .kpi-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+body.dash-gentelella .fkpi-label,
+body.dash-gentelella .kpi-label,
+body.dash-gentelella:not(.dash-fireart) .kpi-card > h3 {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  color: var(--color-text-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 !important;
+}
+
+body.dash-gentelella .fkpi-val,
+body.dash-gentelella .kpi-value,
+body.dash-gentelella .kpi-valor {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  margin: 0 !important;
+}
+
+body.dash-gentelella .fkpi-sub,
+body.dash-gentelella .kpi-sub,
+body.dash-gentelella:not(.dash-fireart) .kpi-card > .kpi-change {
+  font-size: 12px !important;
+  color: var(--color-text-light) !important;
+  margin: 0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Variante compacta: grid de "medios de pago" generado por JS en
+   cobranzas.js (#medios-pago-grid) — ícono centrado arriba, un solo
+   valor debajo, sin fkpi-sub, sin wrapper .kpi-info.
+   ══════════════════════════════════════════════════════════════ */
+body.dash-gentelella .fkpi.fkpi--compacto {
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+body.dash-gentelella .fkpi.fkpi--compacto .fkpi-icono {
+  margin: 0 auto !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Fondo pastel de tarjeta según color semántico del ícono
+   Se aplica a TODAS las pantallas que usan .fkpi, .kpi-card,
+   .side-card, .resumen-card, .stat-chip o .reporte-kpi-card con
+   un ícono de color adentro (.fkpi-icono/.kpi-icono/.reporte-kpi-icon)
+   — sin tocar HTML. Mismo criterio en las 6 familias: se detecta
+   el color por el ícono que YA está en el markup, no se inventa
+   un color nuevo por pantalla.
+   ══════════════════════════════════════════════════════════════ */
+body.dash-gentelella .fkpi:has(.fkpi-icono.rojo),
+body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.rojo),
+body.dash-gentelella .side-card:has(.kpi-icono.rojo),
+body.dash-gentelella .resumen-card:has(.kpi-icono.rojo),
+body.dash-gentelella .stat-chip:has(.kpi-icono.rojo),
+body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.rojo) {
+  background: rgba(231,76,60,.08)   !important;
+  border-color: rgba(231,76,60,.25) !important;
+}
+body.dash-gentelella .fkpi:has(.fkpi-icono.amarillo),
+body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.amarillo),
+body.dash-gentelella .side-card:has(.kpi-icono.amarillo),
+body.dash-gentelella .resumen-card:has(.kpi-icono.amarillo),
+body.dash-gentelella .stat-chip:has(.kpi-icono.amarillo),
+body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.amarillo) {
+  background: rgba(240,173,78,.12)  !important;
+  border-color: rgba(240,173,78,.3) !important;
+}
+body.dash-gentelella .fkpi:has(.fkpi-icono.azul),
+body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.azul),
+body.dash-gentelella .side-card:has(.kpi-icono.azul),
+body.dash-gentelella .resumen-card:has(.kpi-icono.azul),
+body.dash-gentelella .stat-chip:has(.kpi-icono.azul),
+body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.azul) {
+  background: rgba(52,152,219,.08)  !important;
+  border-color: rgba(52,152,219,.25) !important;
+}
+body.dash-gentelella .fkpi:has(.fkpi-icono.verde),
+body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.verde),
+body.dash-gentelella .side-card:has(.kpi-icono.verde),
+body.dash-gentelella .resumen-card:has(.kpi-icono.verde),
+body.dash-gentelella .stat-chip:has(.kpi-icono.verde),
+body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.verde) {
+  background: var(--ge-teal-light)   !important;
+  border-color: rgba(184,122,0,.3)  !important;
+}
+body.dash-gentelella .fkpi:has(.fkpi-icono.morado),
+body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.morado),
+body.dash-gentelella .side-card:has(.kpi-icono.morado),
+body.dash-gentelella .resumen-card:has(.kpi-icono.morado),
+body.dash-gentelella .stat-chip:has(.kpi-icono.morado),
+body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.morado) {
+  background: rgba(142,68,173,.08)   !important;
+  border-color: rgba(142,68,173,.25) !important;
+}
+
+/* Tarjeta sin ningún ícono de color individual (ej. "Por estado" en
+   pedidos, que resume 4 estados con puntos de color distintos en vez
+   de un solo ícono): en vez de dejarla blanca, recibe un tinte neutro
+   fijo (gris-azulado) para que tampoco desentone, sin forzar un color
+   semántico que no le corresponde. */
+body.dash-gentelella .side-card.resumen-card-estado {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-border) !important;
+}

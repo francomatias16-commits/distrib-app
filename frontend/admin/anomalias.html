@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Movimientos raros — Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/admin/css/anomalias-gentelella.css?v=1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    /* ── Toolbar ── */
+    .anomalias-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .anomalias-toolbar h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      flex: 1;
+    }
+    .dias-select {
+      font-size: 13px;
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-bg);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+    .btn-analizar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--color-primary);
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-analizar:disabled { opacity: .6; cursor: default; }
+
+    /* ── Resumen pills ── */
+    .anomalias-resumen {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      flex-wrap: wrap;
+    }
+    .resumen-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .pill-alta   { background: #fee2e2; color: #b91c1c; }
+    .pill-media  { background: #fef3c7; color: #92400e; }
+    .pill-ok     { background: #dcfce7; color: #166534; }
+    .pill-total  { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+
+    /* ── Cards de anomalía ── */
+    .anomalias-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px 20px 32px;
+    }
+    .anomalia-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      margin-top: 12px;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+    .anomalia-card.revisada {
+      opacity: .5;
+    }
+    .anomalia-card__header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px 10px;
+    }
+    .anomalia-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-top: 2px;
+    }
+    .badge-alta  { background: #fee2e2; color: #b91c1c; }
+    .badge-media { background: #fef3c7; color: #92400e; }
+
+    .anomalia-titulo {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin: 0 0 2px;
+    }
+    .anomalia-sub {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+    .anomalia-card__body {
+      padding: 0 16px 14px;
+      font-size: 13px;
+      color: var(--color-text);
+    }
+    .anomalia-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .anomalia-meta-item {
+      background: var(--color-bg);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+    }
+    .anomalia-meta-item__lbl {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 2px;
+    }
+    .anomalia-meta-item__val {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .anomalia-detalle-toggle {
+      font-size: 12px;
+      color: var(--color-primary);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .anomalia-detalle-json {
+      margin-top: 8px;
+      background: var(--color-bg);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 12.5px;
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid var(--color-border);
+    }
+    .anomalia-detalle-fila {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .anomalia-detalle-fila:last-child { border-bottom: none; }
+    .anomalia-detalle-lbl { color: var(--color-text-light); }
+    .anomalia-detalle-evento {
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--color-border);
+    }
+    .anomalia-detalle-evento:last-child { border-bottom: none; }
+    .anomalia-detalle-evento strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--color-text-light); margin-bottom: 2px; }
+
+    .anomalia-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+    .btn-revisar {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+    .btn-revisar:hover { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn-revisar.ya-revisada { background: #dcfce7; color: #166534; border-color: #bbf7d0; cursor: default; }
+    .btn-revisar.ya-revisada:hover { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+
+    /* ── Vacío / carga ── */
+    .anomalias-vacio {
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+    .anomalias-vacio .icono { display: flex; justify-content: center; margin-bottom: 12px; }
+    .anomalias-vacio .icono svg { width: 40px; height: 40px; }
+    .anomalias-vacio h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--color-text); }
+    .anomalias-vacio p  { margin: 0; font-size: 13px; }
+
+    .skeleton-list { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .sk-anomalia { height: 100px; border-radius: var(--radius); background: var(--color-bg); animation: sk-pulse 1.4s ease-in-out infinite; }
+    @keyframes sk-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    @media (max-width: 600px) {
+      .anomalias-toolbar { padding: 12px 14px; }
+      .anomalias-resumen { padding: 10px 14px; }
+      .anomalias-lista   { padding: 0 14px 24px; }
+    }
+  </style>
+</head>
+<body class="dash-anomalias-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Movimientos raros</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Detección automática de movimientos atípicos en ventas (descuentos fuera de rango, precios manuales por debajo de lista, anulaciones seguidas), stock (ajustes sin respaldo, movimientos alterados, actividad fuera de horario), facturación y cobranzas (notas de crédito veloces, cheques rechazados con cobro vinculado, cobros sin respaldo contable), clientes bloqueados, fidelización y rutas de entrega — para revisar antes de que se conviertan en un problema.
+</div>
+
+  <main class="main">
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección. Disponible para dueño y admin.</p>
+    </div>
+
+    <div id="contenido-anomalias">
+
+      <!-- Toolbar -->
+      <div class="anomalias-toolbar">
+        <h2>Actividad sospechosa detectada por IA</h2>
+        <select class="dias-select" id="dias-select" onchange="cargarAnomalias()">
+          <option value="7" selected>Últimos 7 días</option>
+          <option value="14">Últimos 14 días</option>
+          <option value="30">Últimos 30 días</option>
+        </select>
+        <button type="button" class="btn-analizar" id="btn-analizar" onclick="btnAsyncClick(this, ejecutarAnalisis)" aria-live="polite">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Analizar ahora
+        </button>
+      </div>
+
+      <!-- Resumen pills -->
+      <div class="anomalias-resumen" id="resumen-pills" style="display:none"></div>
+
+      <!-- Lista -->
+      <div id="skeleton-list" class="skeleton-list">
+        <div class="sk-anomalia"></div>
+        <div class="sk-anomalia"></div>
+        <div class="sk-anomalia"></div>
+      </div>
+      <div class="anomalias-lista" id="anomalias-lista" style="display:none"></div>
+      <div class="anomalias-vacio hidden" id="anomalias-vacio">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div>
+        <h3>Sin anomalías detectadas</h3>
+        <p>No se encontraron patrones sospechosos en el período seleccionado.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Detalle JSON -->
+<div class="modal-overlay hidden" id="modal-detalle" role="dialog" aria-modal="true" aria-labelledby="modal-detalle-titulo">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="modal-detalle-titulo">Detalle del patrón</h3>
+      <button type="button" class="modal-close" onclick="cerrarModal()" aria-label="Cerrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-detalle-content" style="font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:480px;overflow-y:auto;background:var(--color-bg);padding:12px;border-radius:var(--radius-sm)"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+
+<script src="/frontend/admin/js/anomalias.js?v125"></script>
+</body>
+</html>

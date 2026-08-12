@@ -1,0 +1,46 @@
+/**
+ * base-layout.css — Layout base
+ * Fondo inspirado en replay.software: radial gradients sutiles desde esquinas
+ */
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--color-text);
+  min-height: 100vh; font-size: 16px; line-height: 1.5;
+  display: flex;
+  /* evita que los paneles off-canvas (position:fixed + right negativo/translateX)
+     generen scroll horizontal en toda la página; no afecta el scroll interno
+     de contenedores como .kanban-board que ya manejan su propio overflow-x */
+  overflow-x: hidden;
+  background-color: var(--color-bg);
+  /* replay: radial gradients en esquinas con el color de acento */
+  background-image:
+    radial-gradient(ellipse at 0% 0%,   rgba(184,122,0,.09) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(184,122,0,.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 0%,  rgba(184,122,0,.04) 0%, transparent 40%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+.main {
+  padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+  flex: 1;
+  min-width: 0; /* evita que hijos con contenido ancho (tablas, grids) empujen el layout */
+}
+
+/* ── Responsive: padding progresivo del contenedor principal ── */
+@media (max-width: 1024px) {
+  .main { padding: 20px; gap: 16px; }
+}
+@media (max-width: 768px) {
+  .main { padding: 16px 12px; gap: 14px; }
+}
+@media (max-width: 480px) {
+  .main { padding: 10px 10px; gap: 12px; }
+  body { font-size: 15px; }
+}

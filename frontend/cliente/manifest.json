@@ -1,0 +1,21 @@
+{
+  "name": "Fluxo — Portal Cliente",
+  "short_name": "Cliente",
+  "start_url": "/cliente/inicio",
+  "scope": "/cliente",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/api/empresa/icon?size=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/api/empresa/icon?size=512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

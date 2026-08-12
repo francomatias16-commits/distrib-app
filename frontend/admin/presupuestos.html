@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Presupuestos — redirigiendo…</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <script>
+    // REQ-05: presupuestos.html → redirect de compatibilidad
+    // Los bookmarks y links viejos a /admin/presupuestos siguen funcionando
+    window.location.replace('/admin/pedidos?tab=presupuestos');
+  </script>
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+</head>
+<body>
+  <p>Redirigiendo a <a href="/admin/pedidos?tab=presupuestos">Pedidos y Presupuestos</a>…</p>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso — Panel Admin</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+
+  <link rel="stylesheet" href="/frontend/admin/css/login.css?v=199" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<div class="login-card">
+
+  <div class="login-avatar" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+    </svg>
+  </div>
+
+  <div class="login-tenant-badge" id="tenant-badge">
+    <span class="login-tenant-logo" id="logo-empresa"></span>
+    <span id="nombre-empresa"></span>
+  </div>
+
+  <h1 class="login-heading">Iniciar sesión</h1>
+  <p class="login-subheading">Panel administrativo</p>
+
+  <div class="alerta alerta-danger" id="alerta-error">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="texto-error">Email o contraseña incorrectos.</span>
+  </div>
+
+  <div class="alerta alerta-success" id="alerta-ok">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span id="texto-ok"></span>
+  </div>
+
+  <div class="form-group" id="form-login">
+
+    <div class="login-field" id="wrap-email">
+      <span class="login-field-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </span>
+      <input type="email" id="input-email" placeholder="tucorreo@empresa.com"
+        aria-label="Email" autocomplete="email" inputmode="email" />
+    </div>
+
+    <div class="login-field" id="wrap-pass">
+      <span class="login-field-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      <input type="password" id="input-pass" placeholder="••••••••"
+        aria-label="Contraseña" autocomplete="current-password" />
+      <button type="button" class="btn-toggle-pass" id="btn-toggle-pass" title="Mostrar contraseña" tabindex="-1">
+        <svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="login-row-aux">
+      <label class="login-recordar">
+        <input type="checkbox" id="input-recordar">
+        Recordarme
+      </label>
+      <a href="#" class="login-forgot" id="link-olvide">¿Olvidaste tu contraseña?</a>
+    </div>
+
+  </div>
+
+  <button type="button" class="login-btn-cta" id="btn-ingresar" onclick="ingresar()">
+    <span class="btn-spinner" id="btn-spinner"></span>
+    <span class="btn-label">Ingresar</span>
+  </button>
+
+  <!-- Mini-formulario de "olvidé mi contraseña": self-service, no requiere
+       intervención del dueño. Oculto por defecto, reemplaza al form de login
+       cuando se hace clic en el link de abajo. -->
+  <div class="form-group" id="form-reset" style="display:none">
+    <p class="login-subheading" style="margin-bottom:16px;text-align:left">
+      Ingresá tu email y te mandamos un link para elegir una contraseña nueva.
+    </p>
+    <div class="login-field">
+      <span class="login-field-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </span>
+      <input type="email" id="input-email-reset" placeholder="tucorreo@empresa.com"
+        aria-label="Email" autocomplete="email" inputmode="email" />
+    </div>
+  </div>
+
+  <button type="button" class="login-btn-cta" id="btn-enviar-reset" onclick="solicitarReset()" style="display:none">
+    <span class="btn-spinner" id="btn-spinner-reset"></span>
+    <span class="btn-label">Enviar link</span>
+  </button>
+
+  <a href="#" id="link-volver-login" style="display:none;text-align:center;margin-top:16px;font-size:14.5px;color:var(--login-text-light);text-decoration:none">
+    ← Volver a iniciar sesión
+  </a>
+
+  <div class="login-nota" id="nota-login">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    Acceso restringido al personal autorizado
+  </div>
+
+</div>
+
+<div class="login-brand">
+  Sistema de distribución con tecnología de
+  <img src="/frontend/admin/img/logo-fluxo.png" alt="Fluxo">
+</div>
+<div class="toast" id="toast"></div>
+
+
+<script>
+const sb = window.supabaseClient || (window.supabaseClient = supabase.createClient(
+  window.ENV?.SUPABASE_URL || '',
+  window.ENV?.SUPABASE_ANON_KEY || '',
+  { auth: { storageKey: 'sb-admin-auth' } }
+));
+
+// Roles con acceso al panel administrativo. 'chofer' queda afuera a propósito:
+// tiene su propio portal dedicado (/chofer/login), no usa /admin.
+// 'cliente' tampoco: es el portal de pedidos (/cliente/login).
+//
+// FIX (encontrado durante auditoría, etapa 12 → riesgo de cheques):
+// este gate decía literalmente "único acceso: dueño/admin" y dejaba afuera a
+// vendedor/depositero/contador. Esos 3 roles SÍ tienen pantallas asignadas
+// dentro del panel (pos.html para vendedor desde siempre; stock.html/
+// compras.html/vencimientos.html/reportes-stock.html para depositero y
+// facturacion.html/cobranzas.html/cheques.html/etc. para contador, agregado
+// en la etapa 14 de esta misma auditoría) — pero nunca podían llegar a
+// verlas porque el login los rechazaba acá antes, con "Sin acceso al panel
+// administrativo." Confirmado contra la base real: hay usuarios activos
+// con estos 3 roles en producción que no podían iniciar sesión.
+const ROLES_ADMIN = ['dueno', 'admin', 'vendedor', 'depositero', 'contador'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Verificar si el sistema ya fue inicializado; si no, redirigir al setup
+  try {
+    const res = await fetch('/api/setup/status');
+    if (res.ok) {
+      const data = await res.json();
+      if (!data.inicializado) {
+        window.location.href = '/setup';
+        return;
+      }
+    }
+  } catch (e) {
+    // Si falla el chequeo, seguimos al login normal
+  }
+
+  // El login SIEMPRE pide credenciales — no hay bypass automático.
+  // Antes: si ya había una sesión guardada (localStorage, persiste entre
+  // reinicios del navegador), se saltaba directo a /admin/dashboard sin
+  // pedir nada. Ahora, si aparece una sesión viva acá, se cierra en el
+  // acto para forzar a re-ingresar email y contraseña.
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await sb.auth.signOut();
+  }
+
+  cargarNombreEmpresa();
+  activarModoDemoSiCorresponde();
+  mostrarErrorDesdeRedirect();
+
+  document.getElementById('input-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('input-pass').focus();
+  });
+  document.getElementById('input-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') ingresar();
+  });
+  document.getElementById('link-olvide').addEventListener('click', e => {
+    e.preventDefault();
+    mostrarFormReset();
+  });
+  document.getElementById('link-volver-login').addEventListener('click', e => {
+    e.preventDefault();
+    mostrarFormLogin();
+  });
+  mostrarMensajeReset();
+});
+
+// ── "Olvidé mi contraseña": self-service vía Supabase Auth, sin
+// intervención del dueño/admin. Reemplaza el mensaje anterior que le
+// pedía al usuario que te contactara a vos.
+function mostrarFormReset() {
+  document.getElementById('alerta-error').classList.remove('show');
+  document.getElementById('alerta-ok').classList.remove('show');
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('btn-ingresar').style.display = 'none';
+  document.getElementById('form-reset').style.display = '';
+  document.getElementById('btn-enviar-reset').style.display = '';
+  document.getElementById('link-volver-login').style.display = '';
+  document.getElementById('nota-login').style.display = 'none';
+  document.getElementById('input-email-reset').value = document.getElementById('input-email').value;
+  document.getElementById('input-email-reset').focus();
+}
+
+function mostrarFormLogin() {
+  document.getElementById('alerta-error').classList.remove('show');
+  document.getElementById('alerta-ok').classList.remove('show');
+  document.getElementById('form-reset').style.display = 'none';
+  document.getElementById('btn-enviar-reset').style.display = 'none';
+  document.getElementById('link-volver-login').style.display = 'none';
+  document.getElementById('form-login').style.display = '';
+  document.getElementById('btn-ingresar').style.display = '';
+  document.getElementById('nota-login').style.display = '';
+}
+
+async function solicitarReset() {
+  const email = document.getElementById('input-email-reset').value.trim();
+  document.getElementById('alerta-error').classList.remove('show');
+  document.getElementById('alerta-ok').classList.remove('show');
+
+  if (!email) {
+    mostrarError('Ingresá tu email.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-enviar-reset');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin/restablecer-password`,
+    });
+    // Mensaje genérico a propósito, exista o no ese email como cuenta:
+    // no queremos que este formulario sirva para confirmar qué emails
+    // están registrados en el sistema.
+    mostrarOk('Si ese email está registrado, te enviamos un link para restablecer tu contraseña. Revisá tu casilla (y spam).');
+  } catch {
+    mostrarError('Error de conexión. Intentá de nuevo.');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// Si venimos redirigidos desde /admin/restablecer-password tras un cambio
+// de contraseña exitoso, mostramos la confirmación acá en el login.
+function mostrarMensajeReset() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('reset') === 'ok') {
+    mostrarOk('Contraseña actualizada. Iniciá sesión con tu nueva contraseña.');
+  }
+}
+
+function mostrarOk(msg) {
+  document.getElementById('texto-ok').textContent = msg;
+  document.getElementById('alerta-ok').classList.add('show');
+}
+
+// Acceso público a la demo: /admin/login?demo=1 entra directo, sin que el
+// usuario tenga que tocar nada (v197: antes precargaba las credenciales y
+// esperaba un click en "Ingresar al panel"; ahora hace el login solo).
+// Si el auto-login falla por algún motivo, se vuelve a mostrar el
+// formulario ya precargado para que el usuario pueda reintentar a mano.
+async function activarModoDemoSiCorresponde() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('demo') !== '1') return;
+
+  document.getElementById('input-email').value = 'demo@distrib-test.local';
+  document.getElementById('input-pass').value  = 'DistribDemo2026!';
+
+  document.getElementById('nombre-empresa').textContent = 'Entrando a la demo…';
+  document.getElementById('tenant-badge').classList.add('show');
+
+  const formGroup = document.querySelector('.form-group');
+  const btn = document.getElementById('btn-ingresar');
+  if (formGroup) formGroup.style.display = 'none';
+  if (btn) btn.style.display = 'none';
+
+  await ingresar();
+
+  // Si llegamos hasta acá es porque el login automático falló (si hubiera
+  // funcionado ya nos habríamos ido a /admin/dashboard). Reabrimos el
+  // formulario, ya precargado, para reintentar manualmente.
+  if (formGroup) formGroup.style.display = '';
+  if (btn) btn.style.display = '';
+}
+
+async function cargarNombreEmpresa() {
+  // Auditoría Etapa 2 (v232, corregido v278): esta pantalla se ve SIN
+  // sesión, así que no puede depender de la policy empresas_select (que
+  // ahora exige id = get_empresa_id()). Usa la función pública
+  // whitelisteada, que solo expone id/nombre/logo_url de empresas
+  // activas — nunca datos sensibles (cuit, saas_cbu, saas_alias, etc.).
+  // Antes era una vista SECURITY DEFINER implícita (v_empresas_publico);
+  // v278 la reemplazó por esta función explícita.
+  const { data } = await sb
+    .rpc('empresa_publica_actual')
+    .maybeSingle();
+  // Sin empresa resuelta (dominio genérico, ej. *.vercel.app sin mapear a un
+  // tenant): no mostramos nada — antes esto dejaba "Cargando..." colgado
+  // para siempre porque el badge ya estaba visible desde el HTML.
+  if (!data) return;
+
+  document.getElementById('nombre-empresa').textContent = data.nombre;
+  document.title = `Acceso — ${data.nombre}`;
+  const logo = document.getElementById('logo-empresa');
+  if (data.logo_url) {
+    logo.innerHTML = `<img src="${data.logo_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="">`;
+  } else {
+    logo.textContent = data.nombre.split(' ').slice(0, 2).map(w => w[0]).join('');
+  }
+  document.getElementById('tenant-badge').classList.add('show');
+}
+
+async function ingresar() {
+  const email = document.getElementById('input-email').value.trim();
+  const pass  = document.getElementById('input-pass').value;
+  document.getElementById('alerta-error').classList.remove('show');
+
+  if (!email || !pass) {
+    mostrarError('Completá el email y la contraseña.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-ingresar');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (error || !data.session) {
+      mostrarError('Email o contraseña incorrectos.');
+      return;
+    }
+
+    const { data: usuario, error: errUsuario } = await sb
+      .from('usuarios')
+      .select('rol, empresa_id')
+      .eq('id', data.session.user.id)
+      .single();
+
+    if (errUsuario || !usuario) {
+      await sb.auth.signOut();
+      mostrarError('Error al cargar el perfil. Intentá de nuevo.');
+      return;
+    }
+
+    if (!ROLES_ADMIN.includes(usuario.rol)) {
+      await sb.auth.signOut();
+      mostrarError('Sin acceso al panel administrativo.');
+      return;
+    }
+
+    // Si la empresa no completó el setup → wizard de onboarding
+    const { data: empresa } = await sb
+      .from('empresas')
+      .select('setup_completado')
+      .eq('id', usuario.empresa_id)
+      .single();
+
+    window.location.href = (empresa && empresa.setup_completado === false)
+      ? '/admin/setup-wizard'
+      : '/admin/dashboard';
+
+  } catch {
+    mostrarError('Error de conexión. Verificá tu internet.');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// Etapa 3 (hallazgo Alta): auth.js redirige acá con ?error=<motivo> cuando
+// la sesión/perfil no se pudo validar, pero antes ese parámetro se ignoraba
+// por completo — el usuario caía en el login sin ninguna explicación.
+function mostrarErrorDesdeRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const motivo = params.get('error');
+  if (!motivo) return;
+
+  const MENSAJES = {
+    usuario_inactivo: 'Tu usuario está desactivado o no existe. Contactá a un administrador.',
+    empresa_inactiva: 'La empresa asociada a tu cuenta está dada de baja.',
+    red: 'No pudimos verificar tu sesión por un problema de conexión. Volvé a intentar.',
+  };
+
+  mostrarError(MENSAJES[motivo] || 'No se pudo verificar tu sesión. Volvé a intentar.');
+}
+
+function mostrarError(msg) {
+  document.getElementById('texto-error').textContent = msg;
+  document.getElementById('alerta-error').classList.add('show');
+}
+</script>
+
+
+
+<script>
+document.getElementById('btn-toggle-pass')?.addEventListener('click', function() {
+  const input = document.getElementById('input-pass');
+  const icon  = document.getElementById('eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+});
+</script>
+</body>
+</html>
