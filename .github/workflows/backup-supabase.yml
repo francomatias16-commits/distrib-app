@@ -23,6 +23,12 @@ jobs:
             sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client-17
+          # El runner de GitHub ya trae pg_dump 16 preinstalado en el PATH
+          # por defecto; el paquete de PGDG no lo pisa automáticamente, así
+          # que se antepone la carpeta del binario versión 17 al PATH.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
 
       # --- Fix del bug de autenticación ---
       # Antes se armaba la URL de conexión a mano en un solo secret
