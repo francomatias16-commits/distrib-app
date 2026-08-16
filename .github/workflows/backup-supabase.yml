@@ -9,10 +9,20 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Instalar cliente de PostgreSQL y GPG
+      # El pg_dump que trae Ubuntu por default (16.x) es más viejo que la
+      # versión de Postgres 17 que usa Supabase, y pg_dump no puede volcar
+      # un servidor más nuevo que él mismo. Se suma el repo oficial de
+      # PostgreSQL (PGDG) para instalar el cliente versión 17 exacto.
+      - name: Instalar cliente de PostgreSQL 17 y GPG
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client gnupg
+          sudo apt-get install -y --no-install-recommends curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+            sudo gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | \
+            sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
 
       # --- Fix del bug de autenticación ---
       # Antes se armaba la URL de conexión a mano en un solo secret
