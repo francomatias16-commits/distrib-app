@@ -1,0 +1,73 @@
+name: Backup Supabase (semanal)
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'   # domingos 06:00 UTC = 03:00 hora Argentina
+  workflow_dispatch: {}    # permite correrlo a mano desde la pestaña Actions
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente de PostgreSQL y GPG
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg
+
+      # --- Fix del bug de autenticación ---
+      # Antes se armaba la URL de conexión a mano en un solo secret
+      # (SUPABASE_DB_URL). Si el password tenía caracteres especiales
+      # (@ / : % ? #, etc. — común en passwords generados por Supabase)
+      # la URL quedaba mal formada y pg_dump fallaba con auth error.
+      # Ahora el workflow arma la URL él mismo aplicando URL-encoding
+      # SOLO sobre el segmento del password, a partir de secrets separados.
+      - name: Construir URL de conexión (con URL-encoding seguro)
+        id: buildurl
+        env:
+          DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+          DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+          DB_NAME: ${{ secrets.SUPABASE_DB_NAME }}
+          DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          DB_URL=$(python3 - <<'EOF'
+          import os, urllib.parse
+          user = urllib.parse.quote(os.environ["DB_USER"], safe="")
+          pwd  = urllib.parse.quote(os.environ["DB_PASSWORD"], safe="")
+          host = os.environ["DB_HOST"]
+          port = os.environ.get("DB_PORT") or "5432"
+          name = os.environ.get("DB_NAME") or "postgres"
+          print(f"postgresql://{user}:{pwd}@{host}:{port}/{name}")
+          EOF
+          )
+          # Enmascara el valor en los logs de Actions antes de exponerlo
+          echo "::add-mask::$DB_URL"
+          echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Dump de la base (formato custom, comprimido)
+        env:
+          DB_URL: ${{ steps.buildurl.outputs.db_url }}
+        run: |
+          FECHA=$(date +%F)
+          echo "FECHA=$FECHA" >> "$GITHUB_ENV"
+          pg_dump "$DB_URL" \
+            --format=custom \
+            --no-owner \
+            --no-privileges \
+            --file="backup_${FECHA}.dump"
+
+      - name: Cifrar el dump (GPG simétrico AES256)
+        env:
+          BACKUP_GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --passphrase "$BACKUP_GPG_PASSPHRASE" \
+              --symmetric --cipher-algo AES256 \
+              -o "backup_${FECHA}.dump.gpg" "backup_${FECHA}.dump"
+          rm -f "backup_${FECHA}.dump"
+
+      - name: Subir como artifact (retención 90 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-supabase-${{ env.FECHA }}
+          path: backup_${{ env.FECHA }}.dump.gpg
+          retention-days: 90
