@@ -788,6 +788,167 @@ body.zoom-open{overflow:hidden}
   body { padding: 6px 8px 48px !important; }
   .topbar-left { gap: 8px !important; }
 }
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECCIÓN VISUAL — "CONTROL ROOM"
+   Capa exclusivamente visual. No agrega selectores funcionales, eventos,
+   endpoints ni IDs: se apoya en la estructura existente del dashboard.
+   La intención es que el panel se sienta como una sala de operaciones
+   editorial, no como una colección de cards de métricas.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --dash-ink:#20242b;
+  --dash-paper:#f4f1e9;
+  --dash-line:rgba(32,36,43,.11);
+  --dash-glow:rgba(72,112,80,.14);
+  --dash-radius:16px;
+}
+body{
+  background:
+    radial-gradient(circle at 7% 8%,rgba(224,165,62,.13),transparent 25%),
+    radial-gradient(circle at 96% 88%,rgba(72,112,80,.10),transparent 29%),
+    linear-gradient(135deg,#f8f6f0 0%,var(--dash-paper) 100%);
+  color:var(--dash-ink);
+  padding:12px 16px;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.32;
+  background-image:linear-gradient(var(--dash-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--dash-line) 1px,transparent 1px);
+  background-size:32px 32px;
+  mask-image:linear-gradient(90deg,black,transparent 72%);
+}
+.topbar{
+  min-height:38px;
+  margin-bottom:10px;
+  padding:0 2px 9px;
+  border-bottom:1px solid var(--dash-line);
+}
+.topbar-left{gap:12px}
+.topbar-divider{display:none}
+.topbar-left::before{
+  content:"FLUXO / OPERACIONES";
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:.12em;
+  color:var(--muted);white-space:nowrap;
+}
+.nav-menu-btn{
+  height:32px;border-radius:8px;border-color:rgba(32,36,43,.16);
+  background:rgba(255,255,255,.52);box-shadow:0 1px 0 rgba(255,255,255,.8) inset;
+}
+.nav-menu-btn:hover{background:var(--surface);border-color:var(--green)}
+.topbar-usuario{
+  font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:.02em;
+}
+.grid{
+  gap:8px;
+}
+.card{
+  border-radius:var(--dash-radius);
+  border-color:rgba(32,36,43,.12);
+  box-shadow:0 10px 24px rgba(32,36,43,.07),0 1px 2px rgba(32,36,43,.05);
+  padding:10px 12px;
+}
+.card::after{
+  content:"";
+  position:absolute;right:0;top:0;width:40%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--dash-glow));
+  pointer-events:none;
+}
+.card-nav{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.card-nav:hover{
+  transform:translateY(-2px);
+  border-color:rgba(72,112,80,.34);
+  box-shadow:0 16px 32px rgba(32,36,43,.12),0 2px 4px rgba(32,36,43,.06);
+}
+.card-dark,.card-wa,.card-ia,.card-critical,
+.card-arca,.card-caja,.card-score{
+  box-shadow:0 14px 30px rgba(20,25,30,.18),0 1px 0 rgba(255,255,255,.09) inset;
+}
+.card-dark::after,.card-wa::after,.card-ia::after,.card-critical::after,
+.card-arca::after,.card-caja::after,.card-score::after{
+  width:55%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22));
+}
+.card-head{gap:9px}
+.card-icon{
+  width:26px;height:26px;border-radius:9px;
+  box-shadow:0 1px 0 rgba(255,255,255,.18) inset;
+}
+.card-label{letter-spacing:.015em}
+.card-tag{letter-spacing:.07em}
+.data-row{
+  min-height:23px;
+  border-bottom-color:rgba(32,36,43,.09);
+}
+.item-nav:hover{background:rgba(72,112,80,.08)!important}
+.card-dark .item-nav:hover,.card-wa .item-nav:hover,.card-ia .item-nav:hover,
+.card-critical .item-nav:hover,.card-arca .item-nav:hover,
+.card-caja .item-nav:hover,.card-score .item-nav:hover{
+  background:rgba(255,255,255,.09)!important;
+}
+.kpi-val,.hero-num,.hero-num-sm{
+  letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.card-dark .kpi-val{ text-shadow:0 2px 18px rgba(255,255,255,.12) }
+.periodo-tabs{
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.16);
+}
+.periodo-tab{padding:4px 11px}
+.periodo-tab.active{
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  box-shadow:0 1px 0 rgba(255,255,255,.16) inset;
+}
+.ventas-chart-wrap{
+  border-top:1px solid rgba(255,255,255,.09);
+  padding-top:5px;
+}
+.wa-stats-line{
+  padding:5px 0;
+  border-top:1px solid rgba(255,255,255,.10);
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+.chat-box{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  background:rgba(0,0,0,.12);
+  padding:7px;
+}
+.ia-body{padding:0 2px}
+.ia-prompts{gap:6px}
+.ia-prompt,.ia-open{
+  border-radius:8px!important;
+  transition:transform .15s ease,filter .15s ease!important;
+}
+.ia-prompt:hover,.ia-open:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.flow-dot{
+  box-shadow:0 0 0 4px rgba(72,112,80,.08);
+}
+.flow-dot.active{box-shadow:0 0 0 4px rgba(72,112,80,.12),0 0 16px rgba(72,112,80,.22)}
+.inner-tabs{margin:0 -2px}
+.inner-tab{
+  letter-spacing:.03em;
+  transition:color .15s ease,background .15s ease!important;
+}
+.inner-tab.active{
+  background:rgba(255,255,255,.08);
+  border-radius:6px 6px 0 0;
+}
+.btn-refresh{border-radius:8px}
+:focus-visible{
+  outline:2px solid var(--amber)!important;
+  outline-offset:2px;
+}
+@media (max-width: 640px){
+  body{padding:8px 10px 40px}
+  .topbar-left::before{font-size:9px}
+  .card{border-radius:14px;padding:12px}
+  .card-nav:hover{transform:none}
+}
+
 </style>
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
