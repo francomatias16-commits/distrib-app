@@ -11,84 +11,107 @@
 <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
 <title>Panel de Control · Fluxo Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/shared/tokens.css?v=196" />
+<link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F5F2EA;--surface:#FCFAF5;--s2:#EAE4D6;
-  --border:#DAD3C0;--bs:#E8E2D4;--surfacealt:#ECE7DA;
-  --ink:#16181D;--soft:#4B4A45;--muted:#6B695F;
-  --amber:#B87A00;--amberdk:#8F5F00;--amberbg:rgba(184,122,0,.11);
-  --green:#1F5B4A;--greendk:#17402F;--greenbg:#DCEDE3;--criticaldk:#3B1411;
-  --blue:#2E6088;--bluebg:#DCE6EC;
-  --danger:#B3261E;--dangerbg:#F3DAD8;
-  --purple:#5B4A8F;--purplebg:#EDE4F5;
-  --dark:#16181D;--dark2:#1E2128;
-  /* Acentos por workspace del mega-menú (mismos valores que shared/tokens.css
-     y admin/css/nav.css — v3 es autocontenido y no importa esas hojas, así
-     que se replican acá los hex ya auditados WCAG AA para texto plano sobre
-     panel blanco). Fuente: nav-data.js → campo `textColor` de cada workspace. */
-  --nav-hoy:#B87A00;          --nav-hoy-text:#8F5F00;
-  --nav-ventas:#1F5B4A;       --nav-ventas-text:#1F5B4A;
-  --nav-deposito:#8F5F00;     --nav-deposito-text:#8F5F00;
-  --nav-cobros:#8F5F00;       --nav-cobros-text:#8F5F00;
-  --nav-facturacion:#5B4A8F;  --nav-facturacion-text:#5B4A8F;
-  --nav-fidelizacion:#8F3A5C; --nav-fidelizacion-text:#8F3A5C;
-  --nav-reportes:#2E6088;     --nav-reportes-text:#2E6088;
-  --nav-config:#6B695F;       --nav-config-text:#6B695F;
-  --r:9px;
-  --shadow:2px 3px 0 rgba(22,24,29,.05);
+  /* ─── Estos nombres locales se mantienen (los usa todo el resto del
+     archivo) pero ahora apuntan a shared/tokens.css como fuente de verdad
+     en vez de duplicar hex propios. Antes este bloque tenía valores hex
+     independientes que habían divergido silenciosamente de tokens.css
+     (ver auditoría v714b) — el mapeo de abajo corrige eso sin tocar los
+     ~200 usos de var(--bg), var(--green), etc. dispersos en el archivo. */
+  --bg:var(--color-bg);--surface:var(--color-surface);--s2:var(--color-surface-2);
+  --border:var(--color-border);--bs:var(--color-border-soft);--surfacealt:var(--color-surface-2);
+  --ink:var(--color-text);--soft:var(--color-text);--muted:var(--color-text-muted);
+  --amber:var(--color-warning-mid);--amberdk:var(--color-warning);--amberbg:var(--color-warning-bg);
+  --green:var(--color-primary-dark);--greendk:var(--color-primary-dark);--greenbg:var(--color-success-bg);--criticaldk:#3B1411;
+  --blue:var(--color-info-mid);--bluebg:var(--color-info-bg);
+  --danger:var(--color-danger-mid);--dangerbg:var(--color-danger-bg);
+  --purple:var(--violeta-mid);--purplebg:var(--pill-purple-bg);
+  --dark:var(--color-text);--dark2:#1E2128;
+  /* Acentos por workspace del mega-menú — ahora sí iguales a shared/tokens.css
+     y admin/css/nav.css (antes el comentario lo afirmaba pero --nav-hoy,
+     --nav-ventas, --nav-deposito, --nav-cobros y --nav-reportes tenían
+     valores propios que no coincidían; --nav-facturacion y --nav-fidelizacion
+     eran los únicos dos que ya coincidían por casualidad). */
+  --nav-hoy:var(--color-primary);              --nav-hoy-text:var(--color-primary-dark);
+  --nav-ventas:var(--color-success);            --nav-ventas-text:var(--color-success);
+  --nav-deposito:var(--color-info);             --nav-deposito-text:var(--color-info);
+  /* tokens.css no expone variante "-text"; estos dos valores replican
+     literalmente --nav-cobros/--nav-fidelizacion de tokens.css (ya
+     coincidían de casualidad, se dejan como hex fijo para no crear una
+     referencia circular con la variable del mismo nombre en este :root) */
+  --nav-cobros:#3A9C96;                         --nav-cobros-text:#3A9C96;
+  --nav-facturacion:var(--violeta-mid);         --nav-facturacion-text:var(--violeta-mid);
+  --nav-fidelizacion:#8F3A5C;                   --nav-fidelizacion-text:#8F3A5C;
+  --nav-reportes:var(--color-info-mid);         --nav-reportes-text:var(--color-info-mid);
+  --nav-config:var(--color-text-muted);         --nav-config-text:var(--color-text-muted);
+  --r:14px;
+  --shadow:0 6px 20px rgba(22,24,29,.09),0 1px 2px rgba(22,24,29,.05);
+  /* ─── Escala de espaciado (Etapa 2, plan de refinamiento dashboard) ───
+     Antes convivían gap:6/7/8/9/10/12/14px sin criterio — indistinguibles
+     entre sí, generaban monotonía en vez de ritmo. Se consolidan en 5
+     pasos con significado propio: sp-1 = agrupación muy ajustada (ícono +
+     valor pegados), sp-2 = gap estándar entre ítems de una tarjeta,
+     sp-3 = separación entre sub-bloques dentro de una tarjeta,
+     sp-4 = separación entre secciones grandes, sp-5 = separación a nivel
+     tarjeta/grilla externa. No reemplaza los gaps de 1-3px (alineación
+     fina de glifos/íconos, no aportan "ritmo" y no son el problema que
+     describe el plan). */
+   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
+   /* Espaciado propio del tablero: mantiene el ritmo visual de los
+      componentes, pero evita que las tarjetas ocupen altura innecesaria
+      en la vista principal. */
+   --dash-gap:4px;
+   --dash-card-gap:6px;
+   --dash-card-pad-y:8px;
+   --dash-card-pad-x:10px;
+  /* RGB-triplet mirrors del --danger/--green/--amber actuales, para que los
+     usos con alpha variable (glow, box-shadow, border) dejen de apuntar a
+     rgba(var(--danger-rgb),..) / rgba(var(--green-rgb),..) / rgba(var(--amber-rgb),..) — literales
+     hex de la paleta "Hoja de Ruta" (amarillo señalética) superada por la
+     paleta actual "landing" verde/navy en tokens.css. Quedaban sueltos y el
+     detector de diseño los marca como fuera de sistema. */
+  --danger-rgb: 209,89,74;   /* = --color-danger-mid #D1594A (= var(--danger) en este archivo) */
+  --green-rgb:  72,112,80;   /* = --color-primary-dark #487050 */
+  --amber-rgb:  224,165,62;  /* = --color-warning-mid #E0A53E */
+  /* Tintes claros para texto sobre fondo oscuro (filas .dr-dark, panel de
+     WhatsApp). var(--danger)/var(--green) son demasiado oscuros para usarse
+     como texto ahí; se derivan por color-mix desde los tokens del sistema
+     en vez de hardcodear un hex nuevo sin relación con la paleta. */
+  --danger-light: color-mix(in srgb, var(--danger) 55%, white);
+  --green-light:  color-mix(in srgb, var(--color-success-mid) 50%, white);
+  --amber-light:  color-mix(in srgb, var(--amber) 55%, white);
 }
 body{
   font-family:'IBM Plex Sans',system-ui,sans-serif;
   background:var(--bg);color:var(--ink);
   width:100vw;height:100vh;overflow:hidden;
   display:flex;flex-direction:column;
-  padding:12px 16px;gap:0;
+  padding:8px 12px;gap:0;
 }
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  flex-shrink:0;margin-bottom:10px;
+  flex-shrink:0;margin-bottom:6px;
 }
 .logo{display:flex;align-items:center;text-decoration:none}
 .logo img{display:block;height:30px;width:auto}
 .topbar-divider{width:1px;height:22px;background:var(--border);flex-shrink:0}
-.topbar-left{display:flex;align-items:center;gap:14px}
-.topbar-label{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.topbar-right{display:flex;align-items:center;gap:7px}
-.status-pill{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-  padding:3px 8px;border-radius:4px;cursor:default;border:1px solid transparent;
-}
-.status-pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-.sp-green{background:var(--greenbg);color:var(--green);border-color:rgba(31,91,74,.18)}
-.sp-green .dot{background:var(--green)}
-.sp-amber{background:var(--amberbg);color:var(--amberdk);border-color:rgba(184,122,0,.18)}
-.sp-amber .dot{background:var(--amber)}
-.sp-muted{background:var(--s2);color:var(--muted);border-color:var(--border)}
-.sp-muted .dot{background:var(--muted)}
-.sp-wa{background:#E8F5E9;color:#2E7D32;border-color:rgba(46,125,50,.18)}
-.sp-wa .dot{background:#43A047}
-.sp-danger{background:var(--dangerbg);color:var(--danger);border-color:rgba(179,38,30,.25)}
-.sp-danger .dot{background:var(--danger)}
-.sp-ia{background:var(--purplebg);color:var(--purple);border-color:rgba(91,74,143,.18);cursor:pointer}
-.sp-ia .dot{background:var(--purple)}
-.avatar{
-  width:28px;height:28px;border-radius:50%;
-  background:var(--amber);display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;color:#fff;flex-shrink:0;
-}
+.topbar-left{display:flex;align-items:center;gap:var(--sp-4)}
+.topbar-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:var(--sp-2)}
 
 /* ══════ Menú de espacios de trabajo (reemplaza al sidebar del panel legacy) ══════
    Se abre como overlay superpuesto -- el layout de v3 es a viewport fijo
    (body{height:100vh;overflow:hidden}) y no admite un riel que empuje contenido. */
 .nav-menu-btn{
-  height:30px;padding:0 14px;border-radius:6px;border:1px solid var(--border);
-  background:var(--surface);color:var(--ink);display:flex;align-items:center;gap:7px;
+  height:30px;padding:0 14px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);color:var(--ink);display:flex;align-items:center;gap:var(--sp-2);
   cursor:pointer;flex-shrink:0;transition:background .12s,border-color .12s,color .12s;
 }
-.nav-menu-btn-label{font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.nav-menu-btn-label{font-size:12px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
 .nav-menu-btn:hover{background:var(--s2);border-color:var(--amber)}
 .nav-menu-btn.is-active{background:var(--amber);border-color:var(--amber);color:#fff}
 .nav-menu-backdrop{
@@ -100,7 +123,7 @@ body{
 .nav-menu-panel{
   position:fixed;top:50%;left:50%;z-index:201;transform:translate(-50%,-52%) scale(.98);
   width:min(1360px,calc(100vw - 40px));max-height:calc(100vh - 40px);overflow-y:auto;
-  background:var(--surface);border-top:3px solid var(--green);border-radius:12px;
+  background:var(--surface);border-top:3px solid var(--green);border-radius:10px;
   box-shadow:0 30px 70px rgba(22,24,29,.32);
   padding:0;
   opacity:0;pointer-events:none;
@@ -112,20 +135,20 @@ body{
   padding:16px 30px;
   border-bottom:1px solid var(--border);
 }
-.nav-menu-header-left{display:flex;align-items:center;gap:12px}
+.nav-menu-header-left{display:flex;align-items:center;gap:var(--sp-3)}
 .nav-menu-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0}
 .nav-menu-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;letter-spacing:.02em;color:var(--ink);line-height:1.2}
-.nav-menu-subtitle{font-size:10.5px;color:var(--muted);margin-top:1px}
+.nav-menu-subtitle{font-size:12px;color:var(--muted);margin-top:1px}
 .nav-menu-close{
-  width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--muted);
+  width:26px;height:26px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);
   cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,border-color .12s;
   flex-shrink:0;
 }
-.nav-menu-close:hover{background:var(--dangerbg);color:var(--danger);border-color:rgba(179,38,30,.25)}
+.nav-menu-close:hover{background:var(--dangerbg);color:var(--danger);border-color:rgba(var(--danger-rgb),.25)}
 .nav-menu-home{
-  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  display:flex;align-items:center;gap:var(--sp-2);font-size:13px;font-weight:700;
   color:var(--nav-hoy-text,var(--amber));background:var(--s2);border:1px solid var(--border);
-  border-radius:7px;padding:6px 12px;text-decoration:none;margin-left:auto;margin-right:14px;
+  border-radius:9px;padding:6px 12px;text-decoration:none;margin-left:auto;margin-right:14px;
   transition:background .12s,border-color .12s;
 }
 .nav-menu-home svg{flex-shrink:0;width:14px;height:14px}
@@ -147,8 +170,8 @@ body{
 }
 .nav-ws:last-child{margin-bottom:0}
 .nav-ws-label{
-  display:flex;align-items:center;gap:7px;
-  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  display:flex;align-items:center;gap:var(--sp-2);
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
   color:var(--nav-ws-color,var(--amber));
   margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);
   text-decoration:none;
@@ -156,7 +179,7 @@ body{
 .nav-ws-label svg{flex-shrink:0;width:13px;height:13px}
 .nav-ws-links{display:flex;flex-direction:column}
 .nav-ws-link{
-  display:flex;align-items:baseline;gap:5px;font-size:12.5px;color:var(--soft);text-decoration:none;
+  display:flex;align-items:baseline;gap:var(--sp-1);font-size:13px;color:var(--soft);text-decoration:none;
   padding:3.5px 0;line-height:1.35;
   transition:color .12s;
 }
@@ -170,11 +193,11 @@ body{
   display:flex;justify-content:flex-end;
 }
 .nav-menu-salir{
-  display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--danger);
-  background:var(--dangerbg);border:1px solid rgba(179,38,30,.2);border-radius:6px;padding:6px 10px;
+  display:inline-flex;align-items:center;gap:var(--sp-2);font-size:13px;font-weight:700;color:var(--danger);
+  background:var(--dangerbg);border:1px solid rgba(var(--danger-rgb),.2);border-radius:9px;padding:6px 10px;
   cursor:pointer;
 }
-.nav-menu-salir:hover{background:rgba(179,38,30,.18)}
+.nav-menu-salir:hover{background:rgba(var(--danger-rgb),.18)}
 @media (max-width:900px){
   .nav-menu-home .nav-menu-home-label{display:none}
 }
@@ -186,9 +209,9 @@ body{
 }
 
 /* ─── PERIODO SELECTOR ─── */
-.periodo-tabs{display:flex;gap:2px;background:var(--s2);border-radius:5px;padding:2px}
+.periodo-tabs{display:flex;gap:2px;background:var(--s2);border-radius:9px;padding:2px}
 .periodo-tab{
-  font-size:10px;font-weight:600;padding:3px 10px;border-radius:3px;
+  font-size:12px;font-weight:600;padding:3px 10px;border-radius:9px;
   border:none;background:transparent;color:var(--muted);cursor:pointer;
   transition:all .15s;font-family:inherit;
 }
@@ -202,42 +225,196 @@ body{
   flex:1;min-height:0;
   display:grid;
   grid-template-columns:1.12fr 1fr 1fr .88fr;
-  grid-template-rows:1fr 1.05fr 1fr;
-  gap:9px;
+  /* v864/v869 — cuatro franjas compactas para que el tablero completo
+     entre en una ventana de notebook sin scroll vertical en el dashboard. */
+  grid-template-rows:minmax(136px,.72fr) minmax(104px,.58fr) minmax(196px,1.15fr) minmax(174px,1fr);
+  gap:var(--dash-gap);
+  overflow-y:hidden;
+  overflow-x:hidden;
 }
 
 /* ─── CARD BASE ─── */
 .card{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);padding:12px 14px;
-  overflow:hidden;display:flex;flex-direction:column;gap:7px;
+  border-radius:var(--r);padding:var(--dash-card-pad-y) var(--dash-card-pad-x);
+  overflow:hidden;display:flex;flex-direction:column;gap:var(--dash-card-gap);
   box-shadow:var(--shadow);position:relative;
 }
-.card-dark{background:var(--dark);border-color:transparent}
-.card-green{background:var(--greendk);border-color:transparent}
-.card-blue{background:var(--blue);border-color:transparent}
-.card-amber{background:var(--amber);border-color:transparent}
-.card-wa{background:#075E54;border-color:transparent}
-.card-critical{background:var(--criticaldk);border-color:transparent}
+.grid > .card{min-height:0}
+/* Reducir también los recuadros internos del tablero, sin alterar el
+   espaciado de las demás pantallas del sistema. */
+.grid .card > [style*="display:grid"],
+.grid .card .reportes-tab{gap:var(--dash-gap)!important}
+.grid .card [style*="gap:var(--sp-2)"]{gap:var(--dash-gap)!important}
+.card-dark{background:linear-gradient(160deg,var(--dark) 0%,#1E2128 100%);border-color:transparent}
+.card-green{background:linear-gradient(160deg,var(--greendk) 0%,color-mix(in srgb,var(--greendk) 78%,black) 100%);border-color:transparent}
+.card-blue{background:linear-gradient(160deg,var(--blue) 0%,color-mix(in srgb,var(--blue) 78%,black) 100%);border-color:transparent}
+.card-amber{background:linear-gradient(160deg,var(--amber) 0%,color-mix(in srgb,var(--amber) 82%,black) 100%);border-color:transparent}
+.card-wa{background:linear-gradient(160deg,#0B6B60 0%,#075E54 100%);border-color:transparent}
+.card-ia{background:linear-gradient(135deg,#43316F 0%,#2B2450 55%,#211B3C 100%);border-color:transparent}
+.card-critical{background:linear-gradient(160deg,var(--criticaldk) 0%,color-mix(in srgb,var(--criticaldk) 80%,black) 100%);border-color:transparent}
 .card-alt{background:var(--surfacealt)}
-.card-alert{border-top:3px solid var(--danger);box-shadow:0 0 0 1px rgba(179,38,30,.25),var(--shadow)}
-.card-critical.card-alert{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(179,38,30,.35),var(--shadow)}
+.card-alert{border-top:3px solid var(--danger);box-shadow:0 0 0 1px rgba(var(--danger-rgb),.25),var(--shadow)}
+.card-critical.card-alert{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(var(--danger-rgb),.35),var(--shadow)}
+/* ─── SUPERFICIES OPERATIVAS ───
+   ARCA, Caja y Score son módulos de decisión, no tres grupos de KPIs.
+   Cada uno usa una superficie continua con una identidad propia. Los
+   valores se separan con ritmo, tipografía y líneas de lectura, nunca con
+   mini tarjetas blancas o cajas anidadas. */
+.card-arca{
+  background:
+    radial-gradient(circle at 88% 8%,rgba(191,126,190,.18),transparent 34%),
+    linear-gradient(145deg,#3B1F3E 0%,#281B30 58%,#211A2A 100%);
+  border-color:rgba(222,177,221,.18);
+  color:#F8F1F7;
+}
+.card-caja{
+  background:
+    radial-gradient(circle at 96% 0%,rgba(77,190,168,.2),transparent 36%),
+    linear-gradient(145deg,#14534E 0%,#0D3C3C 58%,#0B3034 100%);
+  border-color:rgba(141,224,204,.18);
+  color:#F1FBF8;
+}
+.card-score{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(102,166,192,.2),transparent 38%),
+    linear-gradient(145deg,#21485A 0%,#1A3548 58%,#172B3C 100%);
+  border-color:rgba(160,211,229,.18);
+  color:#F0F7FA;
+}
+.card-arca .card-label,.card-caja .card-label,.card-score .card-label{color:rgba(255,255,255,.86)!important}
+.card-arca .card-tag,.card-caja .card-tag,.card-score .card-tag{
+  background:rgba(255,255,255,.1)!important;
+  color:rgba(255,255,255,.78)!important;
+  border:1px solid rgba(255,255,255,.13);
+}
+.card-arca .card-icon,.card-arca .card-icon-mini,
+.card-caja .card-icon,.card-caja .card-icon-mini,
+.card-score .card-icon,.card-score .card-icon-mini{
+  background:rgba(255,255,255,.1)!important;
+  color:rgba(255,255,255,.9)!important;
+}
+.card-arca .data-row,.card-caja .data-row,.card-score .data-row{
+  border-bottom-color:rgba(255,255,255,.13);
+  color:rgba(255,255,255,.72);
+}
+.card-arca .data-row > span:last-child,.card-caja .data-row > span:last-child,
+.card-score .data-row > span:last-child{color:rgba(255,255,255,.94)!important}
+.card-arca .hero-num,.card-caja .hero-num,.card-score .hero-num,
+.card-arca .hero-num-sm,.card-caja .hero-num-sm,.card-score .hero-num-sm{
+  color:#fff!important;
+}
+.card-arca .btn-refresh,.card-caja .btn-refresh,.card-score .btn-refresh{
+  border-color:rgba(255,255,255,.2);
+  color:rgba(255,255,255,.75);
+}
+.card-arca .btn-refresh:hover,.card-caja .btn-refresh:hover,.card-score .btn-refresh:hover{
+  background:rgba(255,255,255,.1);
+  color:#fff;
+}
+/* Métricas de Caja: la línea inferior mantiene la agrupación sin encerrar
+   cada número en una superficie propia. */
+.card-caja #pos-caja-kpis{gap:18px!important}
+.card-caja #pos-caja-kpis > div{
+  background:transparent!important;
+  border-radius:0!important;
+  border-bottom:1px solid rgba(255,255,255,.16);
+  padding:7px 0 8px!important;
+}
+.card-caja #pos-caja-kpis > div > div:first-child,
+.card-caja #pos-caja-kpis > div > div:last-child{color:rgba(255,255,255,.62)!important}
+.card-caja #pos-caja-kpis > div > div:last-child{
+  color:#fff!important;
+  margin-top:3px;
+}
+.card-caja #pos-rows .data-row-empty,.card-score #score-list .data-row-empty{
+  color:rgba(255,255,255,.65);
+}
+/* ARCA mantiene las barras y estados, pero sin cápsulas alrededor. */
+.card-arca #arca-bars > div > span:first-child{
+  color:rgba(255,255,255,.78)!important;
+}
+.card-arca #arca-bars > div > span:nth-child(2){
+  background:rgba(255,255,255,.12)!important;
+}
+.card-arca #arca-filtro-info{color:rgba(255,255,255,.72)!important}
+.card-arca #arca-tags > *{
+  background:rgba(255,255,255,.1)!important;
+  color:rgba(255,255,255,.78)!important;
+  border:1px solid rgba(255,255,255,.12);
+}
+.card-arca > div:last-child,.card-caja > div:last-child,.card-score > div:last-child{
+  color:rgba(255,255,255,.56)!important;
+}
+/* Score: los tres datos de cartera son una única banda tipográfica.
+   Rechazados conserva su color de alerta en el texto y en una regla fina,
+   pero nunca vuelve a ser un recuadro rojo. */
+.card-score #cheq-cartera,.card-score #cheq-riesgo-box,.card-score #cheq-monto{
+  background:transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  border:0!important;
+  border-bottom:1px solid rgba(255,255,255,.16)!important;
+  padding:5px 0 8px!important;
+}
+.card-score #cheq-cartera > div:first-child span,
+.card-score #cheq-riesgo-box > div:first-child,
+.card-score #cheq-monto > div:first-child{
+  color:rgba(255,255,255,.62)!important;
+}
+.card-score #cheq-riesgo-box{position:relative}
+.card-score #cheq-riesgo-box::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:-1px;height:2px;
+  background:var(--danger);
+  opacity:.8;
+}
+.card-score.has-rejected #cheq-riesgo{color:#FFB3AA!important}
+.card-score .score-sort-head{
+  border-bottom:1px solid rgba(255,255,255,.13);
+  padding-bottom:5px;
+}
+.card-score .score-sort-head > span{color:rgba(255,255,255,.58)!important}
+.card-score .score-sort-btn{color:rgba(255,255,255,.62)}
+.card-score .score-sort-btn:hover,.card-score .score-sort-btn.is-active{color:#fff}
+.card-score .score-item{border-bottom-color:rgba(255,255,255,.13)}
+.card-score .score-name{color:rgba(255,255,255,.9)}
+.card-score .score-cuit{color:rgba(255,255,255,.54)}
+.card-score .score-item > span:last-child{
+  color:rgba(255,255,255,.82)!important;
+  border:0!important;
+  background:transparent!important;
+  border-radius:0!important;
+  padding:0!important;
+}
+.card-arca .item-nav:hover,.card-caja .item-nav:hover,.card-score .item-nav:hover{
+  background:rgba(255,255,255,.07)!important;
+}
 
-.card-head{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.card-head{display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0}
 .card-icon{
-  width:24px;height:24px;border-radius:5px;
+  width:24px;height:24px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;flex-shrink:0;
+  font-size:13px;flex-shrink:0;
+}
+/* Variante del punto 3 del plan: en tarjetas con hero-number dominante (E, F)
+   el ícono se integra junto al número en vez de repetir el tile arriba del
+   título; ocupa menos espacio porque ahí ya no compite con el card-label. */
+.card-icon-mini{
+  width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
 .card-label{
-  font-size:11px;font-weight:800;text-transform:none;
+  font-size:12px;font-weight:800;text-transform:none;
   letter-spacing:normal;color:var(--muted);
 }
 .card-dark .card-label,.card-green .card-label,.card-blue .card-label,
-.card-amber .card-label,.card-wa .card-label,.card-critical .card-label{color:rgba(255,255,255,.5)}
+.card-amber .card-label,.card-wa .card-label,.card-ia .card-label,.card-critical .card-label{color:rgba(255,255,255,.5)}
 .card-tag{
-  font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-  padding:2px 6px;border-radius:3px;margin-left:2px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 7px;border-radius:999px;margin-left:2px;
 }
 
 /* ─── KPI BLOCK ─── */
@@ -248,7 +425,7 @@ body{
   transition:opacity .3s;
 }
 .kpi-val.updating{opacity:.3}
-.kpi-sub{font-size:9.5px;font-weight:600;margin-top:1px}
+.kpi-sub{font-size:11px;font-weight:600;margin-top:1px}
 
 /* ─── MINI BAR ─── */
 .minibar{display:flex;align-items:flex-end;gap:2px;flex-shrink:0}
@@ -258,38 +435,41 @@ body{
 .data-row{
   display:flex;justify-content:space-between;align-items:center;
   padding:4px 0;border-bottom:1px solid var(--bs);
-  font-size:10.5px;
+  font-size:12px;
 }
 .data-row:last-child{border-bottom:none}
-.data-row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px}
+.data-row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px}
 .dr-dark{border-bottom-color:rgba(255,255,255,.07)}
 .dr-dark span:first-child{color:rgba(201,198,186,.65)}
 .dr-dark span:last-child{color:#fff}
-.data-row-empty{font-size:10px;color:var(--muted);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:5px}
+.data-row-empty{font-size:12px;color:var(--muted);padding:8px 0;display:flex;align-items:center;justify-content:center;gap:var(--sp-1)}
 .dr-dark.data-row-empty{color:rgba(255,255,255,.4)}
 .data-row-empty svg{flex-shrink:0;opacity:.55}
 .draft-chip{
-  display:inline-block;max-width:130px;padding:2px 6px;border-radius:9px;
-  background:rgba(129,199,132,.16);color:#C8E6C9;font-size:8.5px;font-weight:600;
+  /* #C8E6C9 = whatsapp-icon-green-3 (ver DESIGN.md) — paleta de marca de
+     WhatsApp deliberada dentro del panel de WA, no drift del sistema
+     propio. No migrar a --green-light. */
+  display:inline-block;max-width:130px;padding:2px 6px;border-radius:8px;
+  background:rgba(var(--green-rgb),.16);color:#C8E6C9;font-size:11px;font-weight:600;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;
 }
-.cat-prod-row{align-items:flex-start;gap:8px}
+.cat-prod-row{align-items:flex-start;gap:var(--sp-2)}
 .cat-prod-left{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 .cat-prod-nombre{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cat-prod-meta{font-size:8px;color:rgba(255,255,255,.35);display:flex;gap:5px;text-transform:uppercase;letter-spacing:.03em}
+.cat-prod-meta{font-size:11px;color:rgba(255,255,255,.35);display:flex;gap:var(--sp-1);text-transform:uppercase;letter-spacing:.03em}
 .cat-prod-row span:last-child{flex-shrink:0;padding-top:1px}
 
 /* ─── SCORE RING ─── */
-.score-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bs)}
+.score-item{display:flex;align-items:center;gap:var(--sp-2);padding:4px 0;border-bottom:1px solid var(--bs)}
 .score-item:last-child{border-bottom:none}
-.score-name{font-size:10px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-.score-cuit{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.score-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.score-cuit{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
 
 /* ─── SCORE SORT HEADER ─── */
-.score-sort-head{display:flex;align-items:center;gap:10px;padding:0 0 4px;flex-shrink:0}
+.score-sort-head{display:flex;align-items:center;gap:var(--sp-2);padding:0 0 4px;flex-shrink:0}
 .score-sort-btn{
   display:flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;
-  font-family:inherit;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
   color:var(--muted);padding:2px 0;
 }
 .score-sort-btn:hover{color:var(--soft)}
@@ -300,43 +480,88 @@ body{
 
 /* ─── BUBBLE ─── */
 .chat-box{
-  background:#ECE5DD;border-radius:7px;padding:8px;
-  flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;overflow:hidden;
+  background:#ECE5DD;border-radius:9px;padding:8px;
+  flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:var(--sp-1);overflow:hidden;
 }
 .chat-box-empty{
-  background:#ECE5DD;border-radius:7px;padding:8px;
+  background:#ECE5DD;border-radius:9px;padding:8px;
   flex:1;display:flex;align-items:center;justify-content:center;
-  font-size:10px;color:#6B695F;text-align:center;
+  font-size:12px;color:#6B695F;text-align:center;
 }
 .bubble{display:flex;margin-bottom:2px}
 .bubble.out{justify-content:flex-end}
 .bubble-inner{
-  font-size:9.5px;color:var(--ink);padding:5px 9px;border-radius:10px;
+  font-size:11px;color:var(--ink);padding:5px 9px;border-radius:10px;
   max-width:85%;line-height:1.4;
 }
 .bubble.in  .bubble-inner{background:#fff;border-radius:10px 10px 10px 2px}
 .bubble.out .bubble-inner{background:#DCF8C6;border-radius:10px 10px 2px 10px}
-.bubble-time{font-size:7.5px;color:var(--muted);text-align:right;margin-top:1px}
+.bubble-time{font-size:11px;color:var(--muted);text-align:right;margin-top:1px}
 
 /* ─── VENTAS: gráfico de área suavizado (reemplaza barras horarias) ─── */
 .ventas-chart-wrap{flex:1;min-height:0;display:flex;flex-direction:column;gap:2px}
 .ventas-chart-svg{flex:1;min-height:0;width:100%;display:block}
-.ventas-chart-labels{display:flex;justify-content:space-between;font-size:8px;color:rgba(201,198,186,.4);flex-shrink:0;padding:0 1px}
+.ventas-chart-labels{display:flex;justify-content:space-between;font-size:11px;color:rgba(201,198,186,.4);flex-shrink:0;padding:0 1px}
 .ventas-chart-empty{flex:1;display:flex;align-items:center;justify-content:center}
 
 /* ─── WHATSAPP: layout con el chat como protagonista ─── */
-.wa-stats-strip{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
-.wa-pill{
-  display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.09);
-  border-radius:20px;padding:4px 9px;font-size:9px;color:rgba(255,255,255,.65);
-  white-space:nowrap;
+/* Etapa 5 (B.1): las 4 pills con fondo propio agregaban un 3er nivel de
+   fondo distinto (card > pill > draft-box) sin agrupar nada que no
+   agrupe ya una línea de texto — mismo patrón que kv-ventas-canal en la
+   tarjeta A. Se reemplaza .wa-stats-strip/.wa-pill por una sola línea. */
+.wa-stats-line{display:flex;flex-wrap:wrap;row-gap:2px;font-size:11px;color:rgba(255,255,255,.5);flex-shrink:0}
+.wa-stats-line span:not(:last-child)::after{content:' · ';color:rgba(255,255,255,.25)}
+.wa-stats-line b{color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px}
+.wa-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--sp-2)}
+/* Etapa 5 (B.2): el draft-box ya no es un bloque de altura fija — colapsa
+   a una sola línea cuando no hay borrador activo (deja más alto real al
+   chat, que es el contenido que cambia) y solo gana el borde verde + el
+   título "PEDIDO BORRADOR" cuando sí hay algo que mostrar. */
+#wa-draft-box{
+  flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid transparent;
+  border-radius:9px;padding:6px 8px;transition:padding .15s ease,border-color .15s ease;
 }
-.wa-pill b{color:#fff;font-family:'IBM Plex Mono',monospace;font-size:10px}
-.wa-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
-.wa-draft-inline{
-  flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid rgba(129,199,132,.3);
-  border-radius:7px;padding:7px 9px;
+#wa-draft-box.wa-draft-inline{border-color:rgba(var(--green-rgb),.3)}
+#wa-draft-box.wa-draft-collapsed{padding:4px 8px;display:flex;align-items:center}
+#wa-draft-box.wa-draft-collapsed #wa-draft-label{display:none}
+#wa-draft-box.wa-draft-collapsed #wa-draft-cliente{display:none}
+
+/* ─── CATÁLOGO (Etapa 5, C.2): 3 cajas idénticas rgba(255,255,255,.1) —
+   mismo patrón que la crítica del ícono-tile, repetido sin variación.
+   Se reemplaza por una sola línea tipográfica, igual criterio que
+   wa-stats-line y kv-ventas-canal. ─── */
+.cat-metrics-line{display:flex;flex-wrap:wrap;row-gap:2px;font-size:11px;color:rgba(255,255,255,.5);flex-shrink:0}
+.cat-metrics-line span:not(:last-child)::after{content:' · ';color:rgba(255,255,255,.25)}
+.cat-metrics-line span.item-nav{padding:1px 3px;margin:-1px -3px}
+.cat-metrics-line b{color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+
+/* ─── ASISTENTE IA — v864: entrada compacta al asistente real ─── */
+.ia-body{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);min-height:0;flex:1}
+.ia-copy{min-width:180px;max-width:360px}
+.ia-kicker{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#C8B8F5;margin-bottom:4px}
+.ia-description{font-size:12px;line-height:1.35;color:rgba(255,255,255,.72)}
+.ia-status{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:11px;color:rgba(255,255,255,.52)}
+.ia-status-dot{width:6px;height:6px;border-radius:50%;background:#A98BEA;box-shadow:0 0 0 3px rgba(169,139,234,.15)}
+.ia-prompts{display:flex;align-items:center;justify-content:flex-end;gap:var(--sp-2);flex-wrap:wrap;min-width:0}
+.ia-prompt,.ia-open{
+  border:1px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.88);font-family:inherit;font-size:11px;font-weight:600;line-height:1.2;
+  padding:7px 10px;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .15s;
 }
+.ia-prompt:hover,.ia-open:hover{background:rgba(255,255,255,.16);border-color:rgba(200,184,245,.65);transform:translateY(-1px)}
+.ia-open{background:#A98BEA;border-color:#A98BEA;color:#211B3C;font-weight:800;white-space:nowrap}
+.card-ia .item-nav:hover{background:rgba(255,255,255,.12)}
+
+/* ─── CATÁLOGO COMPACTO — v864: QR + descripción, sin métricas ─── */
+.catalogo-compacto{
+  background:#fff;border-radius:9px;padding:var(--sp-2);
+  display:flex;align-items:center;gap:var(--sp-3);flex:1;min-height:0;
+}
+.catalogo-compacto-copy{min-width:0}
+.catalogo-compacto-desc{font-size:11px;color:var(--muted);line-height:1.4;margin-top:4px}
+.catalogo-compacto-hint{font-size:11px;color:var(--blue);font-weight:700;margin-top:7px}
+.card-blue .catalogo-compacto{flex-shrink:0}
 
 /* ─── FLOW ─── */
 .flow{display:flex;align-items:center;gap:0}
@@ -344,7 +569,7 @@ body{
 .flow-dot{
   width:28px;height:28px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;border:2px solid var(--border);background:var(--surface);
+  font-size:13px;border:2px solid var(--border);background:var(--surface);
   transition:all .3s;
 }
 .flow-dot.active{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 3px var(--amberbg)}
@@ -352,8 +577,8 @@ body{
 .flow-dot{cursor:pointer}
 .flow-popover{
   position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
-  background:var(--ink);color:#fff;font-size:9px;font-weight:600;white-space:nowrap;
-  padding:4px 8px;border-radius:5px;box-shadow:0 3px 10px rgba(0,0,0,.25);
+  background:var(--ink);color:#fff;font-size:11px;font-weight:600;white-space:nowrap;
+  padding:4px 8px;border-radius:9px;box-shadow:0 3px 10px rgba(0,0,0,.25);
   z-index:20;pointer-events:none;
 }
 .flow-popover::after{
@@ -364,7 +589,7 @@ body{
   0%{box-shadow:0 0 0 0 var(--amberbg)}
   100%{box-shadow:0 0 0 11px rgba(0,0,0,0)}
 }
-.flow-lbl{font-size:8px;font-weight:600;color:var(--muted);text-align:center}
+.flow-lbl{font-size:11px;font-weight:600;color:var(--muted);text-align:center}
 .flow-lbl.active{color:var(--amber)}
 .flow-line{position:relative;overflow:visible;flex:1;height:3px;border-radius:2px;background:var(--bs);margin-bottom:16px;transition:background .4s}
 .flow-line.active{
@@ -391,14 +616,6 @@ body{
   10%{opacity:1}
   88%{opacity:1}
   100%{left:100%;opacity:0}
-}
-/* ─── ROADMAP "vida" — item 9: pills de alerta con punto pulsante
-   condicional (solo estados activo/error; los neutros quedan quietos) ─── */
-@keyframes pillDotPulse{0%,100%{box-shadow:0 0 0 0 currentColor}50%{box-shadow:0 0 0 3px transparent}}
-.sp-danger .dot,.sp-wa .dot,.sp-amber .dot{position:relative}
-.sp-danger .dot::after,.sp-wa .dot::after,.sp-amber .dot::after{
-  content:'';position:absolute;inset:0;border-radius:50%;background:inherit;
-  animation:dotPulseRing 1.7s ease-out infinite;
 }
 @keyframes dotPulseRing{0%{transform:scale(1);opacity:.65}100%{transform:scale(2.4);opacity:0}}
 
@@ -436,7 +653,7 @@ body{
 .qr{position:relative}
 .qr-scan{
   position:absolute;left:2px;right:2px;top:2px;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(31,91,74,.75),transparent);
+  background:linear-gradient(90deg,transparent,rgba(var(--green-rgb),.75),transparent);
   opacity:0;pointer-events:none;
 }
 .qr:not(.qr-off) .qr-scan{opacity:1;animation:qrScanMove 2.6s ease-in-out infinite}
@@ -459,7 +676,7 @@ body{
 
 /* ─── item 5: ARCA — glow rojo intermitente en errores + barra que se
    "dibuja" al cargar ─── */
-@keyframes arcaErrGlow{0%,100%{text-shadow:0 0 0 rgba(179,38,30,0)}50%{text-shadow:0 0 9px rgba(179,38,30,.65)}}
+@keyframes arcaErrGlow{0%,100%{text-shadow:0 0 0 rgba(var(--danger-rgb),0)}50%{text-shadow:0 0 9px rgba(var(--danger-rgb),.65)}}
 #arca-err-hero.err-glow{animation:arcaErrGlow 1.8s ease-in-out infinite}
 #arca-err-box.err-glow{animation:arcaErrGlow 1.8s ease-in-out infinite}
 .arca-bar-fill{transition:width .7s cubic-bezier(.2,.8,.3,1)}
@@ -470,14 +687,13 @@ body{
 
 /* ─── item 8: Reportes críticos — borde con pulso rojo lento (constante
    mientras la tarjeta esté en estado de alarma real) ─── */
-@keyframes criticalBorderPulse{0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(179,38,30,.35),var(--shadow)}50%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(179,38,30,.7),var(--shadow)}}
+@keyframes criticalBorderPulse{0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(var(--danger-rgb),.35),var(--shadow)}50%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 0 3px rgba(var(--danger-rgb),.7),var(--shadow)}}
 .card-critical.card-alert{animation:criticalBorderPulse 2.6s ease-in-out infinite}
 
 @media (prefers-reduced-motion: reduce){
   .flow-dot.pulse{animation:none}
   .flow-line.active{animation:none;background:linear-gradient(90deg,var(--amber),var(--green))}
   .flow-line.traveling .flow-light{animation:none;opacity:0}
-  .sp-danger .dot::after,.sp-wa .dot::after,.sp-amber .dot::after{animation:none;display:none}
   .kv-pulse-line path{animation:none}
   .mb-flash.run{animation:none;opacity:0}
   #wa-draft-box.wa-draft-enter{animation:none}
@@ -494,21 +710,21 @@ body{
 /* ─── CHART BARS ─── */
 .chart-bars{display:flex;gap:3px;align-items:flex-end;height:100%;width:100%}
 .chart-bar{
-  flex:1;border-radius:3px 3px 0 0;min-height:3px;
+  flex:1;border-radius:2px 3px 0 0;min-height:3px;
   transition:height .5s ease;cursor:pointer;
   position:relative;
 }
 .chart-bar:hover::after{
   content:attr(data-tip);
   position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
-  background:var(--ink);color:#fff;font-size:8px;white-space:nowrap;
-  padding:2px 6px;border-radius:3px;pointer-events:none;z-index:10;
+  background:var(--ink);color:#fff;font-size:11px;white-space:nowrap;
+  padding:2px 6px;border-radius:2px;pointer-events:none;z-index:10;
 }
 
 /* ─── TABS INSIDE CARD ─── */
 .inner-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.12);flex-shrink:0}
 .inner-tab{
-  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
   padding:4px 10px;border:none;background:transparent;
   color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;
   transition:all .15s;font-family:inherit;
@@ -517,10 +733,10 @@ body{
 
 /* ─── REFRESH BTN ─── */
 .btn-refresh{
-  display:inline-flex;align-items:center;gap:4px;
+  display:inline-flex;align-items:center;gap:var(--sp-1);
   background:transparent;border:1px solid rgba(255,255,255,.15);
-  color:rgba(255,255,255,.6);font-size:9px;font-weight:600;
-  padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;
+  color:rgba(255,255,255,.6);font-size:11px;font-weight:600;
+  padding:3px 8px;border-radius:7px;cursor:pointer;font-family:inherit;
   transition:all .2s;
 }
 .btn-refresh:hover{background:rgba(255,255,255,.08);color:#fff}
@@ -531,21 +747,21 @@ body{
 .card-nav{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
 .card-nav:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,24,29,.14)}
 .card-nav:active{transform:translateY(0)}
-.cob-vencida-btn{cursor:pointer;border-radius:3px;padding:1px 4px;margin:-1px -4px;transition:background .12s ease}
-.cob-vencida-btn:hover{background:rgba(239,154,154,.16)}
-.cob-vencida-btn.activo{background:rgba(239,154,154,.22);outline:1px solid rgba(239,154,154,.5)}
-.cob-filtro-tag{font-size:8px;font-weight:700;text-transform:uppercase;color:#EF9A9A;background:rgba(239,154,154,.14);border-radius:3px;padding:2px 5px;cursor:pointer;margin-left:5px}
+.cob-vencida-btn{cursor:pointer;border-radius:2px;padding:1px 4px;margin:-1px -4px;transition:background .12s ease}
+.cob-vencida-btn:hover{background:rgba(var(--danger-rgb),.16)}
+.cob-vencida-btn.activo{background:rgba(var(--danger-rgb),.22);outline:1px solid rgba(var(--danger-rgb),.5)}
+.cob-filtro-tag{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--danger-light);background:rgba(var(--danger-rgb),.14);border-radius:2px;padding:2px 5px;cursor:pointer;margin-left:5px}
 .pos-sparkline{flex-shrink:0;opacity:.9}
-.pos-sparkline polyline{fill:none;stroke:var(--amberdk,#B87A00);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
-.pos-sparkline circle{fill:var(--amberdk,#B87A00)}
-.item-nav{cursor:pointer;border-radius:5px;transition:background .12s ease}
+.pos-sparkline polyline{fill:none;stroke:var(--amberdk,#E0A53E);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.pos-sparkline circle{fill:var(--amberdk,#E0A53E)}
+.item-nav{cursor:pointer;border-radius:9px;transition:background .12s ease}
 .item-nav:hover{background:rgba(0,0,0,.045)}
 .card-dark .item-nav:hover,.card-green .item-nav:hover,.card-blue .item-nav:hover,
-.card-amber .item-nav:hover,.card-wa .item-nav:hover,.card-critical .item-nav:hover{background:rgba(255,255,255,.09)}
+.card-amber .item-nav:hover,.card-wa .item-nav:hover,.card-ia .item-nav:hover,.card-critical .item-nav:hover{background:rgba(255,255,255,.09)}
 .data-row.item-nav{padding-left:4px;padding-right:4px;margin:0 -4px}
 .data-row.item-nav span:first-child{transition:color .12s}
 .data-row.item-nav:hover span:first-child{color:var(--amber)}
-.dr-dark.item-nav:hover span:first-child{color:#FFD54F}
+.dr-dark.item-nav:hover span:first-child{color:var(--amber-light)}
 .score-item.item-nav{padding-left:4px;padding-right:4px;margin:0 -4px}
 
 /* ─── ZOOM: click en el fondo del card lo desprende y agranda a pantalla ─── */
@@ -554,6 +770,24 @@ body{
   z-index:499;opacity:0;pointer-events:none;transition:opacity .25s ease;
 }
 .zoom-backdrop.open{opacity:1;pointer-events:auto}
+/* FIX v926 — causa raíz real del "no responde ningún card": el backdrop
+   (z-index 499, pointer-events:auto mientras hay zoom) tapa a TODAS las
+   demás .card-nav, que no tenían z-index propio (quedaban en auto ~ 0).
+   Un click en otro card nunca llegaba a su onclick=abrirZoom(...): lo
+   absorbía el backdrop (que solo tiene onclick=cerrarZoom), dejando
+   inalcanzable la rama de "card distinto" que abrirZoom() ya maneja bien.
+   Con esto, mientras hay zoom, todos los card-nav quedan por ENCIMA del
+   backdrop (500 < 501 del card zoomeado, así que éste sigue arriba de
+   todos) y sus propios clicks vuelven a llegarles directo. El backdrop
+   sigue sirviendo para cerrar al clickear área vacía (fuera de cualquier
+   card).
+   FOLLOW-UP — la regla original (sin :not(.zoom-active)) tenía más
+   especificidad que .card.zoom-active{position:fixed}, así que le pisaba
+   el position:relative al card recién zoomeado y rompía la animación
+   (quedaba superpuesto/mal ubicado dentro del grid en vez de expandirse
+   a pantalla completa). Se excluye .zoom-active para que conserve su
+   position:fixed. */
+body.zoom-open .card-nav:not(.zoom-active){position:relative;z-index:500}
 .card.zoom-active{
   position:fixed;z-index:501;cursor:default;
   padding:20px 22px 18px;
@@ -565,13 +799,24 @@ body{
 }
 .card.zoom-active:hover{transform:none;box-shadow:0 30px 70px rgba(22,24,29,.45)}
 .zoom-active .chat-box{overflow-y:auto}
+/* Etapa 7 (H): auditoría confirmó con medición real (no estimada) que el
+   contenido de las tabs de Reportes críticos —sobre todo Cobranza, la que
+   se ve por defecto— necesita más alto del que el mosaico le da: hasta
+   ~200px se recortaban en silencio por el overflow:hidden del .card, sin
+   scrollbar ni ningún indicio de que faltaba contenido. La tab ahora
+   scrollea internamente en la vista chica (mismo criterio que ya usan
+   cat-productos-lista/score-list/chat-box en otras tarjetas). En la vista
+   ampliada se anula: ahí el .card entero ya scrollea (regla de arriba) y
+   un segundo scroll anidado sería el "doble scroll" que señalaba el plan. */
+.reportes-tab{min-height:0;overflow-y:auto}
+.zoom-active .reportes-tab{overflow-y:visible;max-height:none}
 /* El card zoomeado ya no reparte el espacio libre con space-between
    (eso dejaba huecos vacíos enormes en cards con poco contenido — ej.
    POS recién abierto con una sola venta). Ahora el contenido fluye
    normal de arriba hacia abajo, con más aire entre bloques (gap 12px)
    y un header propio separado por línea; si sobra alto, el botón
    "Ver sección completa" (margin-top:auto) se lo queda él solo. */
-.card.zoom-active{justify-content:flex-start;gap:12px}
+.card.zoom-active{justify-content:flex-start;gap:var(--sp-3)}
 /* :first-child y no ".card-head" a propósito: en varios cards (POS,
    ARCA, WhatsApp, Automatización, Reportes...) card-head viene envuelto
    en un div propio (para poner al lado un botón de refresh o tabs) —
@@ -587,19 +832,20 @@ body{
 .card-dark.zoom-active > *:first-child,.card-green.zoom-active > *:first-child,
 .card-blue.zoom-active > *:first-child,.card-amber.zoom-active > *:first-child,
 .card-wa.zoom-active > *:first-child,.card-critical.zoom-active > *:first-child{border-bottom-color:rgba(255,255,255,.14)}
-.zoom-active .card-icon{width:26px;height:26px;font-size:13px;border-radius:6px}
+.zoom-active .card-icon{width:26px;height:26px;font-size:14px;border-radius:9px}
+.zoom-active .card-icon-mini{width:22px;height:22px;border-radius:9px}
 .zoom-active .card-label{font-size:14px}
-.zoom-active .card-tag{font-size:10px;padding:3px 8px}
-.zoom-active .data-row{font-size:12px;padding:8px 2px}
-.zoom-active .data-row span:last-child{font-size:12.5px}
-.zoom-active .score-name{font-size:12px}
-.zoom-active .score-cuit{font-size:10px}
-.zoom-active .kpi-sub{font-size:11px}
-.zoom-active .inner-tab{font-size:10px;padding:6px 12px}
+.zoom-active .card-tag{font-size:12px;padding:3px 8px}
+.zoom-active .data-row{font-size:13px;padding:8px 2px}
+.zoom-active .data-row span:last-child{font-size:13px}
+.zoom-active .score-name{font-size:13px}
+.zoom-active .score-cuit{font-size:12px}
+.zoom-active .kpi-sub{font-size:12px}
+.zoom-active .inner-tab{font-size:12px;padding:6px 12px}
 /* Números "hero" (el dato principal de cada card): comparten esta clase
    en el HTML para no repetir una regla por cada id. */
 .zoom-active .hero-num{font-size:30px!important}
-.zoom-active .hero-num-sm{font-size:21px!important}
+.zoom-active .hero-num-sm{font-size:20px!important}
 
 /* Botón cerrar: ahora es un hijo real del card zoomeado (esquina
    superior derecha), ya no un botón fixed cuya posición había que
@@ -608,7 +854,7 @@ body{
 .zoom-close-inline{
   position:absolute;top:14px;right:14px;z-index:5;
   width:26px;height:26px;border-radius:50%;border:none;
-  background:rgba(22,24,29,.06);color:var(--muted);font-size:13px;line-height:1;
+  background:rgba(22,24,29,.06);color:var(--muted);font-size:14px;line-height:1;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:background .15s ease,color .15s ease,transform .15s ease;
 }
@@ -622,13 +868,13 @@ body{
    empuja al fondo solo a ella, sin estirar el resto del contenido. */
 .zoom-goto-inline{
   margin-top:auto;align-self:flex-end;flex-shrink:0;
-  font-size:11px;font-weight:700;font-family:inherit;
-  background:var(--amber);color:#fff;border:none;border-radius:6px;
-  padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
-  box-shadow:0 4px 12px rgba(184,122,0,.35);
+  font-size:12px;font-weight:700;font-family:inherit;
+  background:var(--amber);color:#fff;border:none;border-radius:9px;
+  padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:var(--sp-1);
+  box-shadow:0 4px 12px rgba(var(--amber-rgb),.35);
   transition:transform .15s ease,box-shadow .15s ease;
 }
-.zoom-goto-inline:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(184,122,0,.45)}
+.zoom-goto-inline:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(var(--amber-rgb),.45)}
 body.zoom-open{overflow:hidden}
 
 /* ─── COUNTER ANIM ─── */
@@ -637,7 +883,7 @@ body.zoom-open{overflow:hidden}
 
 /* ─── QR FAKE (visual únicamente, no codifica una URL real) ─── */
 .qr{
-  width:52px;height:52px;border-radius:3px;flex-shrink:0;
+  width:52px;height:52px;border-radius:2px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;
 }
 .qr.qr-off{background:var(--s2);border:1.5px dashed var(--border)}
@@ -650,23 +896,20 @@ body.zoom-open{overflow:hidden}
 /* scrollbar thin */
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-/* ── Responsive mobile: status pills y topbar ── */
+/* ── Responsive mobile: topbar ── */
 @media (max-width: 768px) {
-  #pill-ia { display: none !important; }
-  .topbar-right { flex-wrap: wrap; row-gap: 4px; justify-content: flex-end; }
-}
-@media (max-width: 480px) {
-  #pill-wa, #pill-pos { display: none !important; }
+  .topbar-right { flex-wrap: wrap; row-gap:var(--sp-1); justify-content: flex-end; }
 }
 /* Grid del dashboard: columna en mobile */
 @media (max-width: 640px) {
   .grid {
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap:var(--sp-2) !important;
     flex: none !important;
+    overflow:visible !important;
   }
 }
 
@@ -685,7 +928,7 @@ body.zoom-open{overflow:hidden}
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 8px;
+  gap:var(--sp-2);
   padding-bottom: 2px;
   margin-bottom: 4px;
 }
@@ -694,7 +937,7 @@ body.zoom-open{overflow:hidden}
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap:var(--sp-1);
   padding: 9px 13px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -704,7 +947,7 @@ body.zoom-open{overflow:hidden}
   white-space: nowrap;
   min-width: 58px;
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   transition: background .12s, border-color .12s;
   box-shadow: var(--shadow);
@@ -728,10 +971,10 @@ body.zoom-open{overflow:hidden}
   .dash-quick-nav { display: flex !important; }
 
   /* ─ 3. Topbar compacto ─ */
-  .topbar { margin-bottom: 8px !important; flex-wrap: wrap !important; gap: 6px !important; }
+  .topbar { margin-bottom: 8px !important; flex-wrap: wrap !important; gap:var(--sp-2) !important; }
   .logo img { height: 24px !important; }
   .nav-menu-btn { height: 28px !important; padding: 0 10px !important; }
-  .nav-menu-btn-label { font-size: 10px !important; }
+  .nav-menu-btn-label { font-size: 12px !important; }
 
   /* ─ 4. Cards: altura auto, sin overflow interno ─ */
   .card {
@@ -758,22 +1001,22 @@ body.zoom-open{overflow:hidden}
 
   /* ─ 7. Periodo tabs: compacto ─ */
   .periodo-tabs { gap: 1px !important; }
-  .periodo-tab { font-size: 9px !important; padding: 3px 8px !important; }
+  .periodo-tab { font-size: 11px !important; padding: 3px 8px !important; }
 
   /* ─ 8. kpi-val: tamaño legible sin overflow ─ */
   .kpi-val { font-size: clamp(18px, 6vw, 26px) !important; }
   .hero-num { font-size: clamp(20px, 6vw, 28px) !important; }
-  .hero-num-sm { font-size: clamp(16px, 5vw, 22px) !important; }
+  .hero-num-sm { font-size: clamp(18px, 5vw, 24px) !important; }
 
   /* ─ 9. Inner tabs de Reportes (Cobranza / Stock / Ranking) ─ */
   .inner-tabs { gap: 0 !important; }
-  .inner-tab { font-size: 9px !important; padding: 4px 8px !important; }
+  .inner-tab { font-size: 11px !important; padding: 4px 8px !important; }
 
   /* ─ 10. Chat box de WhatsApp: altura compacta ─ */
   .chat-box, .chat-box-empty { min-height: 80px !important; max-height: 140px !important; overflow-y: auto !important; }
 
   /* ─ 11. Flow de automatización: no overflow horizontal ─ */
-  .flow { flex-wrap: wrap !important; gap: 6px !important; }
+  .flow { flex-wrap: wrap !important; gap:var(--sp-2) !important; }
   .flow-step { flex: 0 0 auto !important; }
   .flow-line { display: none !important; }
 
@@ -786,8 +1029,9 @@ body.zoom-open{overflow:hidden}
 
 @media (max-width: 480px) {
   body { padding: 6px 8px 48px !important; }
-  .topbar-left { gap: 8px !important; }
+  .topbar-left { gap:var(--sp-2) !important; }
 }
+
 /* ═══════════════════════════════════════════════════════════════════════
    DIRECCIÓN VISUAL — "CONTROL ROOM"
    Capa exclusivamente visual. No agrega selectores funcionales, eventos,
@@ -948,9 +1192,9 @@ body::before{
   .card{border-radius:14px;padding:12px}
   .card-nav:hover{transform:none}
 }
-
 </style>
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css?v=864" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
 </head>
 <body>
@@ -958,19 +1202,13 @@ body::before{
 <!-- ═══════════════════ TOPBAR ═══════════════════ -->
 <div class="topbar">
   <div class="topbar-left">
-    <a class="logo" href="/admin/dashboard" id="nav-logo-home" title="Panel principal"><img src="/frontend/admin/img/logo-fluxo.png" alt="Fluxo" width="92" height="30"></a>
     <span class="topbar-divider"></span>
     <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Menú principal" aria-expanded="false" title="Menú principal">
       <span class="nav-menu-btn-label">Menú principal</span>
     </button>
   </div>
   <div class="topbar-right">
-    <span class="status-pill sp-muted item-nav" id="pill-afip" onclick="irA('/admin/facturacion',event)"><span class="dot"></span>AFIP …</span>
-    <span class="status-pill sp-muted item-nav" id="pill-wa" onclick="irA('/admin/whatsapp-conversaciones',event)"><span class="dot"></span>WhatsApp …</span>
-    <span class="status-pill sp-muted item-nav" id="pill-pos" onclick="irA('/admin/pos',event)"><span class="dot"></span>POS …</span>
-    <span class="status-pill sp-danger item-nav" id="pill-deuda" style="display:none" onclick="irA('/admin/cobranzas',event)"><span class="dot"></span>Deuda vencida: <span style="font-weight:800" id="pill-deuda-monto">—</span></span>
-    <span class="status-pill sp-ia" id="pill-ia" onclick="window.abrirAsistenteIA && window.abrirAsistenteIA()"><span class="dot"></span>Preguntale al asistente IA</span>
-    <div class="avatar" id="topbar-avatar">··</div>
+    <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
   </div>
 </div>
 
@@ -993,50 +1231,73 @@ body::before{
   <div class="card card-dark card-nav" style="grid-column:1/3;grid-row:1" onclick="abrirZoom(this,'/admin/reportes-ventas')" title="Ver en grande">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div class="card-head">
-        <div class="card-icon" style="background:rgba(184,122,0,.15)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="card-icon" style="background:rgba(var(--amber-rgb),.15)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <span class="card-label">Hoy en tu negocio</span>
         <span class="card-tag" style="background:var(--amberbg);color:var(--amberdk)" id="tag-fuente-kpis">Cargando…</span>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:var(--sp-2)">
         <div class="periodo-tabs" onclick="event.stopPropagation()">
           <button class="periodo-tab active" data-periodo="1d" onclick="setPeriodo('1d',this,event)">Hoy</button>
           <button class="periodo-tab" data-periodo="7d" onclick="setPeriodo('7d',this,event)">Semana</button>
           <button class="periodo-tab" data-periodo="30d" onclick="setPeriodo('30d',this,event)">Mes</button>
         </div>
-        <div style="font-size:9px;color:rgba(201,198,186,.4);font-family:'IBM Plex Mono',monospace" id="ultimo-update">—</div>
+        <div style="font-size:11px;color:rgba(201,198,186,.4);font-family:'IBM Plex Mono',monospace" id="ultimo-update">—</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1">
-      <div style="display:flex;flex-direction:column;gap:5px" class="item-nav" onclick="irA('/admin/reportes-ventas',event)" title="Ver ventas">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Ventas</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="display:flex;flex-direction:column;gap:var(--sp-1)" class="item-nav" onclick="irA('/admin/reportes-ventas',event)" title="Ver ventas">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Ventas</div>
         <div class="kpi-val hero-num" id="kv-ventas" style="color:#fff">—</div>
         <div class="kpi-sub" id="kd-ventas">—</div>
         <div class="minibar" id="mb-ventas" style="height:26px"><span class="mb-flash" id="mb-ventas-flash"></span></div>
         <div class="kv-pulse-line" id="kv-pulse-line" title="Datos en vivo">
           <svg viewBox="0 0 120 9" preserveAspectRatio="none"><path d="M0,4.5 L40,4.5 L45,1 L50,8 L55,4.5 L120,4.5"/></svg>
         </div>
+        <!-- Desglose por canal (migración 478) — pedidos.canal + POS -->
+        <div class="kpi-sub" id="kv-ventas-canal" style="color:rgba(201,198,186,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="Desglose de ventas por canal en el período"></div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px" class="item-nav" onclick="irA('/admin/pedidos',event)" title="Ver pedidos">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Pedidos</div>
-        <div class="kpi-val hero-num" id="kv-pedidos" style="color:#fff">—</div>
-        <div class="kpi-sub" id="kd-pedidos">—</div>
-        <div class="minibar" id="mb-pedidos" style="height:26px"></div>
+      <!-- Pedidos/Facturas/Cobros: formato compacto (Etapa 3, plan de refinamiento
+           tarjeta A) — antes eran 3 columnas del mismo ancho y misma altura que
+           Ventas fingiendo tener el mismo peso de contenido; ahora número+delta
+           van en una sola fila y el minibar de comparación queda como franja fina
+           (en vez de la barra completa de 26px), liberando el espacio que antes
+           quedaba vacío cuando el valor era bajo. -->
+      <div style="display:flex;flex-direction:column;gap:var(--sp-1);padding-left:var(--sp-3);border-left:1px solid rgba(255,255,255,.09)" class="item-nav" onclick="irA('/admin/pedidos',event)" title="Ver pedidos">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5);min-height:14px">Pedidos</div>
+        <div style="display:flex;align-items:baseline;gap:var(--sp-1);flex-wrap:wrap;min-height:26px">
+          <div class="kpi-val hero-num" id="kv-pedidos" style="color:#fff">—</div>
+          <div class="kpi-sub" id="kd-pedidos" style="margin-top:0">—</div>
+        </div>
+        <!-- Dato secundario siempre presente (punto 4 del plan): antes esta
+             caja quedaba casi vacía cuando el valor principal era bajo. El
+             ticket promedio siempre tiene algo que decir, alto o bajo. -->
+        <div class="kpi-sub" id="kd-pedidos-ticket" style="color:rgba(201,198,186,.4);min-height:15px">—</div>
+        <div class="minibar" id="mb-pedidos" style="height:6px"></div>
+        <div style="flex:1"></div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px" class="item-nav" onclick="irA('/admin/facturacion',event)" title="Ver facturas ARCA">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Facturas ARCA</div>
-        <div class="kpi-val hero-num" id="kv-facturas" style="color:#fff">—</div>
-        <div class="kpi-sub" id="kd-facturas" style="color:var(--purple)">—</div>
-        <div class="minibar" id="mb-facturas" style="height:26px"></div>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-1);padding-left:var(--sp-3);border-left:1px solid rgba(255,255,255,.09)" class="item-nav" onclick="irA('/admin/facturacion',event)" title="Ver facturas ARCA">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5);min-height:14px">Facturas ARCA</div>
+        <div style="display:flex;align-items:baseline;gap:var(--sp-1);flex-wrap:wrap;min-height:26px">
+          <div class="kpi-val hero-num" id="kv-facturas" style="color:#fff">—</div>
+          <div class="kpi-sub" id="kd-facturas" style="color:var(--purple);margin-top:0">—</div>
+        </div>
+        <div class="kpi-sub" style="min-height:15px">&nbsp;</div>
+        <div class="minibar" id="mb-facturas" style="height:6px"></div>
+        <div style="flex:1"></div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px" class="item-nav" onclick="irA('/admin/cobranzas',event)" title="Ver cobranzas">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Cobranzas</div>
-        <div class="kpi-val hero-num" id="kv-cobros" style="color:#fff">—</div>
-        <div class="kpi-sub" id="kd-cobros" style="color:var(--blue)">—</div>
-        <div class="minibar" id="mb-cobros" style="height:26px;display:flex;align-items:center"></div>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-1);padding-left:var(--sp-3);border-left:1px solid rgba(255,255,255,.09)" class="item-nav" onclick="irA('/admin/cobranzas',event)" title="Ver cobranzas">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5);min-height:14px">Cobranzas</div>
+        <div style="display:flex;align-items:baseline;gap:var(--sp-1);flex-wrap:wrap;min-height:26px">
+          <div class="kpi-val hero-num" id="kv-cobros" style="color:#fff">—</div>
+          <div class="kpi-sub" id="kd-cobros" style="color:var(--blue);margin-top:0">—</div>
+        </div>
+        <div class="kpi-sub" style="min-height:15px">&nbsp;</div>
+        <div class="minibar" id="mb-cobros" style="height:6px;display:flex;align-items:center"></div>
+        <div style="flex:1"></div>
       </div>
     </div>
     <div class="ventas-chart-wrap" style="margin-top:2px">
-      <div style="font-size:8.5px;color:rgba(201,198,186,.3);letter-spacing:.05em;flex-shrink:0" id="lbl-serie">VENTAS DEL PERÍODO</div>
+      <div style="font-size:11px;color:rgba(201,198,186,.3);letter-spacing:.05em;flex-shrink:0" id="lbl-serie">VENTAS DEL PERÍODO</div>
       <div id="hourly-chart" class="ventas-chart-wrap" style="gap:2px"></div>
     </div>
   </div>
@@ -1049,78 +1310,73 @@ body::before{
         <span class="card-label">WhatsApp Business</span>
         <span class="card-tag" style="background:rgba(37,211,102,.18);color:#81C784">Integrado</span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <div style="font-size:9px;color:rgba(255,255,255,.4)">
+      <div style="display:flex;gap:var(--sp-2);align-items:center">
+        <div style="font-size:11px;color:rgba(255,255,255,.4)">
           <span style="color:#81C784;font-weight:700" id="wa-activas">—</span> conv. activas
         </div>
       </div>
     </div>
-    <div class="wa-stats-strip">
-      <div class="wa-pill"><b id="wa-mensajes">—</b> mensajes hoy</div>
-      <div class="wa-pill"><b id="wa-pedidos-count">—</b> pedidos vía WA</div>
-      <div class="wa-pill"><b style="color:#FFD54F" id="wa-derivadas">—</b> derivadas a humano</div>
-      <div class="wa-pill">última: <b id="wa-ultima">—</b></div>
+    <div class="wa-stats-line">
+      <span><b id="wa-mensajes">—</b> mensajes hoy</span>
+      <span><b id="wa-pedidos-count">—</b> pedidos vía WA</span>
+      <span><b style="color:var(--amber-light)" id="wa-derivadas">—</b> derivadas a humano</span>
+      <span>última: <b id="wa-ultima">—</b></span>
     </div>
     <div class="wa-body">
       <div class="chat-box" id="chat-box"></div>
-      <div style="background:rgba(255,255,255,.07);border-radius:5px;padding:6px 8px" id="wa-draft-box">
-        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px">PEDIDO BORRADOR</div>
+      <div id="wa-draft-box" class="wa-draft-collapsed">
+        <div id="wa-draft-label" style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px">PEDIDO BORRADOR</div>
         <div style="display:flex;flex-wrap:wrap;gap:3px" id="wa-draft">
-          <span style="font-size:9.5px;color:rgba(255,255,255,.5)">Sin borrador activo</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">Sin borrador activo</span>
         </div>
-        <div style="font-size:8.5px;color:#81C784;margin-top:3px" id="wa-draft-cliente"></div>
+        <div style="font-size:11px;color:#81C784;margin-top:3px" id="wa-draft-cliente"></div>
       </div>
     </div>
   </div>
 
-  <!-- ════ C: Catálogo Clientes (col 1 / rows 2-3) — real: kpis (productos_catalogo_count) + empresa.catalogo_publico ════ -->
-  <div class="card card-blue card-nav" style="grid-column:1;grid-row:2/4" data-zoom="catalogo" onclick="abrirZoom(this,'/admin/productos')" title="Ver en grande">
+  <!-- ════ IA: Asistente operativo (franja central) — abre el widget real de /api/asistente ════ -->
+  <div class="card card-ia card-nav" style="grid-column:1/5;grid-row:2" id="card-asistente-ia" onclick="abrirAsistenteCard(event)" title="Abrir asistente de IA">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(200,184,245,.18);color:#C8B8F5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="m5.64 5.64 2.12 2.12"/><path d="m16.24 16.24 2.12 2.12"/><path d="m5.64 18.36 2.12-2.12"/><path d="m16.24 7.76 2.12-2.12"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <span class="card-label">Asistente IA</span>
+        <span class="card-tag" style="background:rgba(200,184,245,.16);color:#C8B8F5">Listo para ayudarte</span>
+      </div>
+      <span class="ia-status"><span class="ia-status-dot"></span>Conectado a tus datos</span>
+    </div>
+    <div class="ia-body">
+      <div class="ia-copy">
+        <div class="ia-kicker">Tu copiloto operativo</div>
+        <div class="ia-description">Consultá ventas, stock, cobranzas y pedidos con lenguaje natural. También puede guiarte paso a paso.</div>
+      </div>
+      <div class="ia-prompts" onclick="event.stopPropagation()">
+        <button type="button" class="ia-prompt" onclick="abrirAsistenteIA('¿Qué debería cobrar hoy?')">¿Qué debería cobrar hoy?</button>
+        <button type="button" class="ia-prompt" onclick="abrirAsistenteIA('¿Qué productos tienen stock bajo?')">Revisar stock</button>
+        <button type="button" class="ia-prompt" onclick="abrirAsistenteIA('Mostrame los pedidos pendientes')">Pedidos pendientes</button>
+        <button type="button" class="ia-open" onclick="abrirAsistenteIA('')">Abrir asistente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ C: Catálogo Clientes (col 1 / row 3) — QR + descripción breve, sin métricas ════ -->
+  <div class="card card-blue card-nav" style="grid-column:1;grid-row:3" data-zoom="catalogo" onclick="abrirZoom(this,'/admin/productos')" title="Ver en grande">
     <div class="card-head">
       <div class="card-icon" style="background:rgba(255,255,255,.15)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 2 3 6v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
       <span class="card-label">Catálogo para clientes</span>
       <span class="card-tag" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)">QR + Link</span>
     </div>
-    <div style="background:#fff;border-radius:6px;padding:8px 10px;display:flex;gap:9px;align-items:flex-start;flex-shrink:0" class="item-nav" onclick="irA('/admin/empresa-config',event)" title="Configurar catálogo público">
+    <div class="catalogo-compacto item-nav" onclick="irA('/admin/empresa-config',event)" title="Configurar catálogo público">
       <div class="qr" id="cat-qr"><span class="qr-scan" id="cat-qr-scan"></span></div>
-      <div>
-        <div style="font-size:10px;font-weight:700;color:var(--ink);margin-bottom:3px;display:flex;align-items:center" id="cat-estado-txt">Verificando estado…</div>
-        <div style="font-size:8.5px;color:var(--muted);line-height:1.4">
-          Precios, stock y novedades en tiempo real.<br>Sin login para tus clientes.
-        </div>
-        <div style="font-size:9px;font-weight:600;color:var(--blue);font-family:'IBM Plex Mono',monospace;margin-top:5px;word-break:break-all" id="cat-url">
-          —
-        </div>
+      <div class="catalogo-compacto-copy">
+        <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:3px;display:flex;align-items:center" id="cat-estado-txt">Verificando estado…</div>
+        <div class="catalogo-compacto-desc">Precios, stock y novedades en tiempo real. Tus clientes entran sin login.</div>
+        <div class="catalogo-compacto-hint">Escaneá el QR para abrirlo</div>
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex-shrink:0">
-      <div style="background:rgba(255,255,255,.1);border-radius:5px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px" class="item-nav" onclick="irA('/admin/productos',event)" title="Ver productos">
-        <div style="font-size:8px;color:rgba(255,255,255,.45);line-height:1.2">Productos<br>activos</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="cat-productos">—</div>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:5px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px" class="item-nav" onclick="irA('/admin/productos',event)" title="Ver categorías">
-        <div style="font-size:8px;color:rgba(255,255,255,.45);line-height:1.2">Categorías</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="cat-categorias">—</div>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:5px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px" class="item-nav" onclick="irA('/admin/clientes',event)" title="Ver clientes">
-        <div style="font-size:8px;color:rgba(255,255,255,.45);line-height:1.2">Clientes<br>activos</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="cat-clientes-activos">—</div>
-      </div>
-    </div>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column">
-      <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-bottom:5px;flex-shrink:0">
-        Últimos productos actualizados
-      </div>
-      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0" id="cat-productos-lista">
-        <div class="data-row-empty dr-dark">Cargando…</div>
-      </div>
-    </div>
-    <div style="font-size:8.5px;color:rgba(255,255,255,.35);line-height:1.4;flex-shrink:0">
-      Precios especiales por cliente · Listas por zona · Descuentos automáticos por volumen
     </div>
   </div>
 
   <!-- ════ D: POS · Sistema de caja (col 2 / row 2) — real: /api/pos/cajas-admin + /api/pos/resumen-turno ════ -->
-  <div class="card card-nav" style="grid-column:2;grid-row:2" data-zoom="pos" onclick="abrirZoom(this,'/admin/pos')" title="Ver en grande">
+  <div class="card card-caja card-nav" style="grid-column:2;grid-row:3" data-zoom="pos" onclick="abrirZoom(this,'/admin/pos')" title="Ver en grande">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div class="card-head">
         <div class="card-icon" style="background:var(--amberbg)"><svg id="pos-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="transform-origin:center"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
@@ -1128,10 +1384,10 @@ body::before{
         <span class="card-tag" style="background:var(--amberbg);color:var(--amberdk)" id="pos-turno-tag">…</span>
       </div>
     </div>
-    <div style="display:flex;align-items:flex-end;gap:10px;flex-shrink:0">
+    <div style="display:flex;align-items:flex-end;gap:var(--sp-2);flex-shrink:0">
       <div>
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(18px,2vw,26px);color:var(--ink);font-variant-numeric:tabular-nums" class="hero-num" id="pos-total">—</div>
-        <div style="font-size:9px;color:var(--muted)" id="pos-sub">sin turno abierto</div>
+        <div style="font-size:11px;color:var(--muted)" id="pos-sub">sin turno abierto</div>
       </div>
       <svg id="pos-sparkline" class="pos-sparkline" width="72" height="24" viewBox="0 0 72 24" style="display:none" title="Ventas del turno desde que abriste el panel"></svg>
     </div>
@@ -1140,35 +1396,34 @@ body::before{
     </div>
     <div style="flex-shrink:0;display:none" id="pos-barra-wrap">
       <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;gap:2px" id="pos-barra"></div>
-      <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap" id="pos-leyenda"></div>
+      <div style="display:flex;gap:var(--sp-2);margin-top:4px;flex-wrap:wrap" id="pos-leyenda"></div>
     </div>
-    <div style="display:none;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0" id="pos-caja-kpis">
-      <div style="background:var(--s2);border-radius:6px;padding:8px 10px">
-        <div style="font-size:8px;font-weight:700;text-transform:uppercase;color:var(--muted)">Efectivo esperado en caja</div>
+    <div style="display:none;grid-template-columns:1fr 1fr;gap:var(--sp-2);flex-shrink:0" id="pos-caja-kpis">
+      <div style="background:var(--s2);border-radius:9px;padding:8px 10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Efectivo esperado en caja</div>
         <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;color:var(--ink)" id="pos-efectivo-esperado">—</div>
       </div>
-      <div style="background:var(--s2);border-radius:6px;padding:8px 10px">
-        <div style="font-size:8px;font-weight:700;text-transform:uppercase;color:var(--muted)">Monto inicial del turno</div>
+      <div style="background:var(--s2);border-radius:9px;padding:8px 10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Monto inicial del turno</div>
         <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;color:var(--ink)" id="pos-monto-inicial">—</div>
       </div>
     </div>
     <div style="display:none;flex-direction:column;flex-shrink:0" id="pos-movs-wrap">
-      <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px">
         Sangrías y refuerzos del turno
       </div>
       <div id="pos-movs"></div>
     </div>
-    <div style="display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap" id="pos-tags"></div>
-    <div style="font-size:8.5px;color:var(--muted);line-height:1.4;flex-shrink:0">
+    <div style="display:flex;gap:var(--sp-1);flex-shrink:0;flex-wrap:wrap" id="pos-tags"></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.4;flex-shrink:0">
       Lector de código · Multi-pago · Arqueo · Turno Z · Favoritos · Descuentos globales
     </div>
   </div>
 
-  <!-- ════ E: Comprobantes ARCA (col 3 / row 2) — real: /api/admin/kpis (facturas_*) + tabla facturas por tipo ════ -->
-  <div class="card card-alt card-nav" style="grid-column:3;grid-row:2" onclick="abrirZoom(this,'/admin/facturacion')" title="Ver en grande">
+  <!-- ════ E: Comprobantes ARCA (col 1 / row 4) — ocupa el espacio liberado por el catálogo compacto ════ -->
+  <div class="card card-arca card-nav" style="grid-column:1;grid-row:4" onclick="abrirZoom(this,'/admin/facturacion')" title="Ver en grande">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div class="card-head">
-        <div class="card-icon" style="background:var(--purplebg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
         <span class="card-label" style="color:var(--purple)">Comprobantes ARCA</span>
         <span class="card-tag" style="background:var(--purplebg);color:var(--purple)">AFIP</span>
       </div>
@@ -1176,18 +1431,21 @@ body::before{
         <span class="ico">↻</span> Actualizar
       </button>
     </div>
-    <div style="display:flex;gap:8px;align-items:flex-start;flex-shrink:0">
-      <div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(18px,2vw,26px);font-weight:700;color:var(--purple);font-variant-numeric:tabular-nums" class="hero-num" id="arca-count">—</div>
-        <div style="font-size:9px;color:var(--muted)">emitidas en período</div>
+    <div style="display:flex;gap:var(--sp-2);align-items:flex-start;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="card-icon-mini" style="background:var(--purplebg);color:var(--purple)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(18px,2vw,26px);font-weight:700;color:var(--purple);font-variant-numeric:tabular-nums" class="hero-num" id="arca-count">—</div>
+          <div style="font-size:11px;color:var(--muted)">emitidas en período</div>
+        </div>
       </div>
-      <div id="arca-err-box" style="display:none;background:var(--dangerbg);border-radius:5px;padding:5px 9px;text-align:center;flex-shrink:0;align-self:flex-start" class="item-nav" onclick="irA('/admin/facturacion?filtro=error_afip',event)" title="Ver facturas con error AFIP">
-        <div style="font-size:7.5px;color:var(--danger);font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Con error</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(16px,2vw,22px);font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums" class="hero-num-sm" id="arca-err-hero">—</div>
+      <div id="arca-err-box" style="display:none;background:var(--dangerbg);border:1px solid var(--danger);border-radius:9px;padding:5px 10px;text-align:center;flex-shrink:0;align-self:flex-start" class="item-nav" onclick="irA('/admin/facturacion?filtro=error_afip',event)" title="Ver facturas con error AFIP">
+        <div style="font-size:11px;color:var(--danger);font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Con error</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(18px,2.2vw,26px);font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums" class="hero-num-sm" id="arca-err-hero">—</div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:4px;margin-top:2px;min-width:0">
+      <div style="flex:1;display:flex;flex-direction:column;gap:var(--sp-1);margin-top:2px;min-width:0">
         <div id="arca-bars"></div>
-        <div id="arca-filtro-info" style="font-size:8px;color:var(--muted);display:none;align-items:center;gap:5px"></div>
+        <div id="arca-filtro-info" style="font-size:11px;color:var(--muted);display:none;align-items:center;gap:var(--sp-1)"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0;flex-shrink:0">
@@ -1195,35 +1453,37 @@ body::before{
       <div class="data-row"><span>Pendientes de emitir</span><span id="arca-pend">—</span></div>
       <div class="data-row"><span id="arca-total-lbl">Total facturado</span><span id="arca-total">—</span></div>
     </div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0" id="arca-tags"></div>
-    <div style="font-size:8.5px;color:var(--muted);line-height:1.4;flex-shrink:0">
+    <div style="display:flex;gap:var(--sp-1);flex-wrap:wrap;flex-shrink:0" id="arca-tags"></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.4;flex-shrink:0">
       Emisión automática al confirmar pedido · Reenvío por mail y WhatsApp · Remitos · OC
     </div>
   </div>
 
   <!-- ════ F: Score Cheques y CUIT (col 4 / row 2) — real: clientes.score_actual + tabla cheques ════ -->
-  <div class="card card-nav" style="grid-column:4;grid-row:2" data-zoom="score" onclick="abrirZoom(this,'/admin/riesgo-cheques')" title="Ver en grande">
+  <div class="card card-score card-nav" style="grid-column:3/5;grid-row:3" data-zoom="score" onclick="abrirZoom(this,'/admin/riesgo-cheques')" title="Ver en grande">
     <div class="card-head" style="flex-shrink:0">
-      <div class="card-icon" style="background:var(--greenbg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
       <span class="card-label" style="color:var(--green)">Score · Cheques</span>
       <span class="card-tag" style="background:var(--s2);color:var(--muted)">Escala 0–100</span>
     </div>
-    <div style="display:flex;justify-content:space-between;gap:6px;flex-shrink:0">
-      <div style="background:var(--greenbg);border-radius:5px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
-        <div style="font-size:8px;color:var(--greendk);font-weight:700">EN CARTERA</div>
+    <div style="display:flex;justify-content:space-between;gap:var(--sp-2);flex-shrink:0">
+      <div style="background:var(--greenbg);border-radius:9px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+          <div class="card-icon-mini" style="background:rgba(255,255,255,.5);color:var(--greendk);width:14px;height:14px;border-radius:4px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <span style="font-size:11px;color:var(--greendk);font-weight:700">EN CARTERA</span>
+        </div>
         <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums" class="hero-num" id="cheq-cartera">—</div>
       </div>
-      <div style="background:var(--dangerbg);border-radius:5px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
-        <div style="font-size:8px;color:var(--danger);font-weight:700">RECHAZADOS</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums" class="hero-num" id="cheq-riesgo">—</div>
+      <div id="cheq-riesgo-box" style="background:var(--dangerbg);border-radius:9px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
+        <div style="font-size:11px;color:var(--danger);font-weight:700">RECHAZADOS</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--danger);font-variant-numeric:tabular-nums;transition:font-size .2s ease" class="hero-num" id="cheq-riesgo">—</div>
       </div>
-      <div style="background:var(--s2);border-radius:5px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
-        <div style="font-size:8px;color:var(--muted);font-weight:700">MONTO CARTERA</div>
+      <div style="background:var(--s2);border-radius:9px;padding:6px 8px;flex:1;text-align:center" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
+        <div style="font-size:11px;color:var(--muted);font-weight:700">MONTO CARTERA</div>
         <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums" class="hero-num-sm" id="cheq-monto">—</div>
       </div>
     </div>
     <div class="score-sort-head">
-      <span style="font-size:8.5px;color:var(--muted)">Ordenar:</span>
+      <span style="font-size:11px;color:var(--muted)">Ordenar:</span>
       <button type="button" class="score-sort-btn is-active" id="score-sort-score" onclick="ordenarScore('score_actual',event)">
         Score
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1236,18 +1496,17 @@ body::before{
     <div style="flex:1;display:flex;flex-direction:column;gap:0;overflow-y:auto">
       <div id="score-list"><div class="data-row-empty">Cargando…</div></div>
     </div>
-    <div style="font-size:8.5px;color:var(--muted);line-height:1.4;flex-shrink:0">
+    <div style="font-size:11px;color:var(--muted);line-height:1.4;flex-shrink:0">
       Score interno por comportamiento de pago · Cheques en cartera / rechazados · Alerta vencimientos
     </div>
   </div>
 
   <!-- ════ G: Automatización (col 2 / row 3) — módulo conceptual: no hay motor de reglas on/off en este proyecto todavía, se muestran los automatismos reales que SÍ corren en el backend ════ -->
-  <div class="card card-nav" style="grid-column:2;grid-row:3" onclick="abrirZoom(this,'/admin/automatizacion')" title="Ver en grande">
+  <div class="card card-nav" style="grid-column:2;grid-row:4" onclick="abrirZoom(this,'/admin/automatizacion')" title="Ver en grande">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div class="card-head">
-        <div class="card-icon" style="background:var(--amberbg)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
         <span class="card-label" style="color:var(--amberdk)">Automatización</span>
-        <span class="card-tag" style="background:var(--s2);color:var(--muted)">Automatismos activos</span>
+        <span class="card-tag" style="background:var(--s2);color:var(--muted)">Automatismos activos hoy</span>
       </div>
     </div>
     <div class="flow" style="flex-shrink:0">
@@ -1288,15 +1547,14 @@ body::before{
         <span>Cliente cae en riesgo → oferta de plan de pago por WA</span><span style="color:var(--green)">●</span>
       </div>
     </div>
-    <div style="font-size:8.5px;color:var(--muted);line-height:1.4;flex-shrink:0">
-      Estos automatismos corren en el backend hoy. Todavía no hay un motor de reglas configurable on/off —
-      si lo necesitás, es la próxima mejora a construir.
+    <div style="font-size:11px;color:var(--muted);line-height:1.4;flex-shrink:0" title="Hoy corren automáticamente en el backend. Un motor de reglas configurable —activar o desactivar cada automatismo por separado— es la próxima mejora prevista.">
+      Estos automatismos ya trabajan solos: menos carga manual, menos vencimientos que se pasan de largo.
       <!-- detalle técnico interno: próxima pieza a construir sobre automatizacion.js -->
     </div>
   </div>
 
   <!-- ════ H: Reportes críticos (col 3-4 / row 3) — real: v_cobranza_priorizada, stock bajo, ranking score, v_rentabilidad_zona_ruta ════ -->
-  <div class="card card-critical card-nav" style="grid-column:3/5;grid-row:3" id="card-reportes-criticos" data-zoom="reportes" onclick="abrirZoom(this,null)" title="Ver en grande">
+  <div class="card card-critical card-nav" style="grid-column:3/5;grid-row:4" id="card-reportes-criticos" data-zoom="reportes" onclick="abrirZoom(this,null)" title="Ver en grande">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div class="card-head">
         <div class="card-icon" style="background:rgba(255,255,255,.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
@@ -1307,53 +1565,98 @@ body::before{
         <button class="inner-tab active" onclick="event.stopPropagation();setReporteTab('cobranza',this)">Cobranza</button>
         <button class="inner-tab" onclick="event.stopPropagation();setReporteTab('stock',this)">Stock</button>
         <button class="inner-tab" onclick="event.stopPropagation();setReporteTab('ranking',this)">Ranking</button>
+        <button class="inner-tab" onclick="event.stopPropagation();setReporteTab('compras',this)">Compras</button>
+        <button class="inner-tab" onclick="event.stopPropagation();setReporteTab('gastos',this)">Gastos</button>
       </div>
     </div>
-    <div id="tab-cobranza" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1">
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px" class="item-nav" onclick="irA('/admin/cobranzas',event)" title="Ver cobranzas">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Deuda total</div>
+    <div id="tab-cobranza" class="reportes-tab" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/cobranzas',event)" title="Ver cobranzas">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Deuda total</div>
         <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="cob-total">—</div>
         <div class="data-row dr-dark"><span>Al día</span><span id="cob-aldia">—</span></div>
-        <div class="data-row dr-dark"><span>Por vencer</span><span style="color:#FFD54F" id="cob-porvencer">—</span></div>
-        <div class="data-row dr-dark cob-vencida-row" onclick="toggleVencidasOnly(event)" title="Ver todas las cuentas vencidas" style="cursor:pointer"><span>Vencida</span><span class="cob-vencida-btn" style="color:#EF9A9A" id="cob-vencida">—</span></div>
+        <div class="data-row dr-dark"><span>Por vencer</span><span style="color:var(--amber-light)" id="cob-porvencer">—</span></div>
+        <div class="data-row dr-dark cob-vencida-row" onclick="toggleVencidasOnly(event)" title="Ver todas las cuentas vencidas" style="cursor:pointer"><span>Vencida</span><span class="cob-vencida-btn" style="color:var(--danger-light)" id="cob-vencida">—</span></div>
       </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between">
           <span id="cob-urgentes-titulo">Top urgentes</span>
         </div>
         <div id="cob-urgentes"><div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Sin deuda vencida</div></div>
       </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Cheques en cartera</div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/cheques',event)" title="Ver cheques">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Cheques en cartera</div>
         <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="cob-cheq-cant">—</div>
         <div class="data-row dr-dark"><span>Vence esta semana</span><span id="cob-cheq-semana">—</span></div>
         <div class="data-row dr-dark"><span>Monto total</span><span id="cob-cheq-monto">—</span></div>
       </div>
     </div>
-    <div id="tab-stock" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1">
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px" class="item-nav" onclick="irA('/admin/stock?filtro=bajo_minimo',event)" title="Ver stock bajo mínimo">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Stock crítico</div>
+    <div id="tab-stock" class="reportes-tab" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/stock?filtro=bajo_minimo',event)" title="Ver stock bajo mínimo">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Stock crítico</div>
         <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="stock-count">—</div>
-        <div style="font-size:8.5px;color:rgba(255,255,255,.5)">productos bajo mínimo</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">productos bajo mínimo</div>
       </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px;grid-column:2/4">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Alertas activas</div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px;grid-column:2/4">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Alertas activas</div>
         <div id="stock-alerts"><div class="data-row-empty dr-dark">Cargando…</div></div>
       </div>
     </div>
-    <div id="tab-ranking" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1">
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px;grid-column:1/3">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Top clientes por facturación (período)</div>
+    <div id="tab-ranking" class="reportes-tab" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px;grid-column:1/3">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:5px">Top clientes por facturación (período)</div>
         <div id="rank-clientes"><div class="data-row-empty dr-dark">Cargando…</div></div>
       </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:9px 10px" class="item-nav" onclick="irA('/admin/rentabilidad-zona',event)" title="Ver rentabilidad por zona">
-        <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Rentabilidad por zona</div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/rentabilidad-zona',event)" title="Ver rentabilidad por zona">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Rentabilidad por zona</div>
         <div id="rank-zonas"><div class="data-row-empty dr-dark">Cargando…</div></div>
-        <div style="font-size:8.5px;color:rgba(255,255,255,.4);margin-top:4px">Exportar a Excel · PDF (ya disponible en Reportes)</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Exportar a Excel · PDF (ya disponible en Reportes)</div>
       </div>
     </div>
-    <div style="font-size:8.5px;color:rgba(255,255,255,.35);line-height:1.4;flex-shrink:0">
-      Cobranza priorizada · Stock crítico · Score de clientes · Rentabilidad por zona — todo leído en vivo de tu base
+    <!-- Compras a proveedores (migración 478) — mismo criterio de "deuda
+         vieja sigue siendo deuda hoy" que la tab Cobranza: el saldo
+         pendiente y las vencidas no se acotan por período, solo lo
+         facturado/pagado del período. -->
+    <div id="tab-compras" class="reportes-tab" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/cc-proveedores',event)" title="Ver cuentas corrientes con proveedores">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Deuda a proveedores</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="compras-saldo">—</div>
+        <div class="data-row dr-dark"><span>Facturado (período)</span><span id="compras-facturado">—</span></div>
+        <div class="data-row dr-dark"><span>Pagado (período)</span><span id="compras-pagado">—</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Top proveedores con deuda</div>
+        <div id="compras-top-proveedores"><div class="data-row-empty dr-dark">Cargando…</div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/cc-proveedores',event)" title="Ver facturas vencidas de proveedores">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Facturas vencidas</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--danger-light);font-variant-numeric:tabular-nums" class="hero-num" id="compras-vencidas">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">sin pagar, vencimiento cumplido</div>
+      </div>
+    </div>
+    <!-- Gastos generales (migración 479) — alquiler/sueldos/servicios/impuestos,
+         la pieza que faltaba para "ganancia limpia": acá se muestra una
+         Ganancia Estimada del período = ventas - compras a proveedores -
+         gastos generales. No es el mismo cálculo que Ganancia Neta en
+         Reportes → Finanzas (que usa margen bruto por costo de producto);
+         es una foto rápida de caja para el vistazo diario. -->
+    <div id="tab-gastos" class="reportes-tab" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/gastos-generales',event)" title="Ver / cargar gastos generales">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Gastos generales (período)</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums" class="hero-num" id="gastos-total">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)" id="gastos-cantidad">—</div>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Por categoría</div>
+        <div id="gastos-por-categoria"><div class="data-row-empty dr-dark">Cargando…</div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:9px;padding:8px 12px" class="item-nav" onclick="irA('/admin/reportes-financieros',event)" title="Ver Ganancia Neta en Reportes → Finanzas">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px">Ganancia estimada (período)</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#81C784;font-variant-numeric:tabular-nums" class="hero-num" id="gastos-ganancia-estimada">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">ventas − compras a proveedores − gastos generales</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.4;flex-shrink:0">
+      Cobranza priorizada · Stock crítico · Score de clientes · Rentabilidad por zona · Compras a proveedores · Gastos generales — todo leído en vivo de tu base
     </div>
   </div>
 
@@ -1364,7 +1667,6 @@ body::before{
 <nav class="nav-menu-panel" id="nav-menu-panel" role="dialog" aria-modal="true" aria-labelledby="nav-menu-title" tabindex="-1">
   <div class="nav-menu-header">
     <div class="nav-menu-header-left">
-      <img src="/frontend/admin/img/logo-fluxo-icon.png" alt="" class="nav-menu-logo">
       <div>
         <div class="nav-menu-title" id="nav-menu-title">Menú principal</div>
         <div class="nav-menu-subtitle">Todas las secciones de tu panel, por área</div>
@@ -1391,10 +1693,12 @@ body::before{
 <script src="/frontend/env-config.js?v1785129290014" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="/frontend/admin/js/auth-ready.js?v1785129290014" defer></script>
-<script src="/frontend/admin/js/auth.js?v1785129290014" defer></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467" defer></script>
+<script src="/frontend/shared/topbar-widgets.js?v2" defer></script>  <!-- avatar + campanita de notificaciones, igual que el resto de las pantallas -->
 <script src="/frontend/admin/js/api-client.js?v1785129290014" defer></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617" defer></script>
 <script src="/frontend/shared/realtime.js?v1" defer></script>
+<script src="/frontend/shared/chat-widget.js?v=864" defer data-chat-asistente="1"></script>
 <script type="module" src="/frontend/js/push-init.js?v1785129290014"></script>
 
 <script>
@@ -1437,11 +1741,6 @@ function actualizarAlertaCritica(){
   const hayAlerta = estadoAlerta.deudaVencida > 0 || estadoAlerta.chequesRechazados > 0;
   const card = document.getElementById('card-reportes-criticos');
   if (card) card.classList.toggle('card-alert', hayAlerta);
-  const pill = document.getElementById('pill-deuda');
-  if (pill) {
-    pill.style.display = estadoAlerta.deudaVencida > 0 ? 'inline-flex' : 'none';
-    if (estadoAlerta.deudaVencida > 0) setText('pill-deuda-monto', fmtMoney(estadoAlerta.deudaVencida));
-  }
 }
 
 function fmtMoney(n){
@@ -1479,7 +1778,7 @@ function animarOdometroMoney(id, valorNuevo){
 function fmtDelta(d){
   if (d === null || d === undefined) return { texto: 'sin período anterior', color: 'rgba(201,198,186,.5)', icono: '' };
   const up = d >= 0;
-  const color = up ? '#4ade80' : '#EF9A9A';
+  const color = up ? '#4ade80' : 'var(--danger-light)';
   const icono = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:-1px;flex-shrink:0">${up ? '<polyline points="18 15 12 9 6 15"/>' : '<polyline points="6 9 12 15 18 9"/>'}</svg>`;
   return { texto: `${up ? '+' : ''}${d}% vs anterior`, color, icono };
 }
@@ -1506,10 +1805,45 @@ function setText(id, val){ const el = document.getElementById(id); if (el) el.te
    Navegación: cada card y cada item redirige a su sección real.
    irA() corta la propagación para que un item anidado no dispare
    también el onclick del card contenedor.
+
+   v927 — fix2: en cards con zoom (Catálogo, POS, Score, Reportes
+   críticos, etc.) los item-nav internos cubren la mayor parte del
+   cuerpo del card, así que un click ahí nunca llegaba al onclick
+   del fondo — navegaba directo a la sub-sección en el 1er click,
+   salteando el zoom (a diferencia de WhatsApp/ARCA, que casi no
+   tienen item-nav propio y por eso "andaban bien").
+   Fix: si el card contenedor todavía NO está en zoom, un click en
+   un item-nav se comporta igual que tocar el fondo del card (abre
+   el zoom en vez de navegar). Recién con el card ya ampliado, el
+   item-nav navega a su propia sub-sección. En mobile (≤640px) el
+   zoom está deshabilitado por completo (ver abrirZoom), así que ahí
+   se preserva el comportamiento de navegación directa de siempre.
    ══════════════════════════════════════════════════════════════ */
 function irA(url, e){
-  if (e) e.stopPropagation();
+  if (e) {
+    e.stopPropagation();
+    const card = e.currentTarget && e.currentTarget.closest ? e.currentTarget.closest('.card-nav') : null;
+    const esMobileSinZoom = window.innerWidth <= 640;
+    const cardYaEnZoom = card && zoomState && zoomState.card === card;
+    if (card && !esMobileSinZoom && !cardYaEnZoom && typeof card.onclick === 'function') {
+      card.onclick();
+      return;
+    }
+  }
   window.location.href = url;
+}
+
+/* v864 — la tarjeta central abre el asistente IA existente. No duplica
+   conversaciones ni agrega datos simulados: reutiliza el widget real. */
+function abrirAsistenteCard(e){
+  if (e) e.stopPropagation();
+  if (typeof window.abrirAsistenteIA === 'function') {
+    window.abrirAsistenteIA('');
+    return;
+  }
+  // El script del widget es defer; su API pública deja la apertura pendiente
+  // si todavía no terminó de montar.
+  setTimeout(() => window.abrirAsistenteIA && window.abrirAsistenteIA(''), 0);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1524,6 +1858,8 @@ function irA(url, e){
    ══════════════════════════════════════════════════════════════ */
 let vistaAmpliada = false;
 let zoomState = null; // { card, url, rectOriginal }
+const ZOOM_CLOSE_MS = 330; // debe coincidir con el setTimeout de cerrarZoom()
+                            // (y con la transición CSS de .zoom-active)
 
 const ZOOM_RELOAD = {
   whatsapp: () => cargarWhatsApp(),
@@ -1542,8 +1878,60 @@ function calcularRectZoom(){
   return { width: w, height: h, left: (window.innerWidth - w) / 2, top: (window.innerHeight - h) / 2 };
 }
 
+/* ── Reflow de grids internos al hacer zoom (Etapa 2, plan de
+   refinamiento) ──────────────────────────────────────────────────
+   abrirZoom() solo escala el tamaño del card (getBoundingClientRect())
+   pero los grid-template-columns inline quedaban fijos al recuento de
+   columnas pensado para la celda chica del mosaico — por eso el espacio
+   extra del modal quedaba vacío a los costados en vez de repartirse
+   (causa raíz identificada en el punto 0.1 del plan). Cachea el valor
+   original en dataset.gridColsBase para restaurarlo exacto al cerrar —
+   nunca se limpia con '', que perdería el valor real declarado en el
+   HTML y dejaría el grid sin columnas (bug distinto al que se busca
+   arreglar acá).
+   Deliberadamente NO toca #card-reportes-criticos: sus tabs internas
+   (Cobranza/Stock/Ranking/Compras) tienen celdas con grid-column:2/4 y
+   1/3 que asumen 3 columnas fijas — auto-fit las rompería. Esa tarjeta
+   (H) queda para la auditoría dedicada que pide el plan. */
+const ZOOM_GRID_MINWIDTH = { catalogo: '120px', pos: '140px' }; // resto (sin data-zoom propio, ej. tarjeta A) usa 160px
+function fixZoomGrids(cardEl, zoomedIn){
+  if (!cardEl || cardEl.id === 'card-reportes-criticos') return;
+  const minw = ZOOM_GRID_MINWIDTH[cardEl.dataset.zoom] || '160px';
+  cardEl.querySelectorAll('[style*="grid-template-columns"]').forEach(el => {
+    if (el.dataset.gridColsBase === undefined) el.dataset.gridColsBase = el.style.gridTemplateColumns;
+    el.style.gridTemplateColumns = zoomedIn
+      ? `repeat(auto-fit,minmax(${minw},1fr))`
+      : el.dataset.gridColsBase;
+  });
+}
+
 function abrirZoom(cardEl, url){
-  if (zoomState) return; // ya hay uno abierto
+  if (zoomState) {
+    // Ya hay un card en zoom: si es este mismo (2do click en el fondo),
+    // el comportamiento pedido es que redirija/filtre a la sección real
+    // en vez de no hacer nada. Si el card no tiene una sección única
+    // propia (ej. "Reportes críticos", con varias tabs), el 2do click
+    // simplemente cierra el zoom en su lugar.
+    if (zoomState.card === cardEl) {
+      if (url) irA(url); else cerrarZoom();
+      return;
+    }
+    // Es un card DISTINTO al que está en zoom: no hay que ignorar el
+    // click (antes se perdía y el usuario sentía que "el card B no
+    // responde"). Cerramos el zoom actual y abrimos el nuevo card como
+    // si fuera su propio 1er click — cada recuadro debe comportarse de
+    // forma independiente sin importar qué otro card haya estado
+    // zoomeado antes.
+    // Importante: hay que ESPERAR a que termine la animación de cierre
+    // (ZOOM_CLOSE_MS) antes de abrir el nuevo. Si se abre en el frame
+    // siguiente (antes probado con requestAnimationFrame), el card viejo
+    // sigue con position:fixed en el centro de la pantalla durante esos
+    // 330ms y tapa visualmente al nuevo que está zoomeando debajo — se
+    // veía como si el 2do card "no respondiera" aunque sí se activaba.
+    cerrarZoom();
+    setTimeout(() => abrirZoom(cardEl, url), ZOOM_CLOSE_MS);
+    return;
+  }
   // En mobile (≤640px) el zoom no aporta: el card ya ocupa casi todo el
   // viewport y la animación queda rara. Redirigimos directo a la sección.
   if (window.innerWidth <= 640) {
@@ -1553,9 +1941,10 @@ function abrirZoom(cardEl, url){
   const rect = cardEl.getBoundingClientRect();
 
   // el tooltip nativo "Ver en grande" no tiene sentido con el card ya
-  // ampliado — se guarda y se restaura al cerrar
+  // ampliado — pasa a avisar que el próximo click en el fondo redirige.
+  // Se guarda el original para restaurarlo al cerrar.
   cardEl.dataset.tituloOriginal = cardEl.title;
-  cardEl.title = '';
+  cardEl.title = url ? 'Click para ir a la sección completa' : '';
 
   let backdrop = document.getElementById('zoom-backdrop');
   if (!backdrop) {
@@ -1602,6 +1991,7 @@ function abrirZoom(cardEl, url){
       cardEl.style.left   = r.left + 'px';
       cardEl.style.width  = r.width + 'px';
       cardEl.style.height = r.height + 'px';
+      fixZoomGrids(cardEl, true);
     });
   });
 
@@ -1622,6 +2012,7 @@ function cerrarZoom(){
   card.style.left   = rectOriginal.left + 'px';
   card.style.width  = rectOriginal.width + 'px';
   card.style.height = rectOriginal.height + 'px';
+  fixZoomGrids(card, false);
   card.title = card.dataset.tituloOriginal || '';
   card.querySelectorAll('.zoom-close-inline,.zoom-goto-inline').forEach(b => b.remove());
 
@@ -1630,7 +2021,7 @@ function cerrarZoom(){
     finCard.classList.remove('zoom-active');
     finCard.style.top = finCard.style.left = finCard.style.width = finCard.style.height = '';
     document.body.classList.remove('zoom-open');
-  }, 330);
+  }, ZOOM_CLOSE_MS);
 
   vistaAmpliada = false;
   const reloadKey = card.dataset.zoom;
@@ -1690,11 +2081,6 @@ function inicializarMenuNavegacion(rol){
   closeBtn.addEventListener('click', cerrar);
   backdrop.addEventListener('click', cerrar);
 
-  // Logo: ya estamos en el panel principal, así que refresca en vez de no hacer nada.
-  const logoHome = document.getElementById('nav-logo-home');
-  if (logoHome) {
-    logoHome.addEventListener('click', e => { e.preventDefault(); window.location.reload(); });
-  }
   document.addEventListener('keydown', e => {
     if (!panel.classList.contains('open')) return;
     if (e.key === 'Escape') { cerrar(); return; }
@@ -1795,7 +2181,7 @@ function miniBarProporcion(id, ok, total, colorOk, colorMal, h = 6){
   el.style.display = 'flex';
   el.style.alignItems = 'center';
   el.innerHTML = `
-    <div style="display:flex;width:100%;height:${h}px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.08)" title="${ok} de ${total} sin error AFIP">
+    <div style="display:flex;width:100%;height:${h}px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,.08)" title="${ok} de ${total} sin error AFIP">
       <div style="width:${pctOk}%;background:${colorOk}"></div>
       <div style="width:${100-pctOk}%;background:${colorMal}"></div>
     </div>`;
@@ -1862,7 +2248,7 @@ function fixMobileGrids(){
   /* Topbar: pill de deuda → mostrar debajo en mobile si activa */
   const pillDeuda = document.getElementById('pill-deuda');
   if (pillDeuda && isMobile && pillDeuda.style.display !== 'none') {
-    pillDeuda.style.fontSize = '8px';
+    pillDeuda.style.fontSize = '11px';
   }
 }
 
@@ -1937,7 +2323,7 @@ let _debounceRealtimeKPIs = null;
 // Frente 2 del plan de interactividad: objeto compartido para no duplicar
 // fetches entre tarjetas — cada cargarX() que ya pide un dato lo deja acá
 // para que otras tarjetas (Automatización, sparkline POS) lo reusen.
-window._dashData = window._dashData || { pedidosHoy: null, facturasHoy: null, waAvisosHoy: null, cobrosHoy: null, posSparkline: [] };
+window._dashData = window._dashData || { pedidosHoy: null, facturasHoy: null, waAvisosHoy: null, cobrosHoy: null, posSparkline: [], comprasProveedor: undefined };
 
 function mostrarPopoverFlow(dotEl, texto, event){
   event.stopPropagation();
@@ -1981,16 +2367,63 @@ function iniciarRealtimeDashboard(){
       leídos directo de Supabase (mismo criterio RLS que el resto
       del panel).
    ══════════════════════════════════════════════════════════════ */
+// Desglose de ventas por canal (migración 478) — pedidos.canal + POS como
+// canal fijo 'pos'. Se muestra como una línea compacta de porcentajes bajo
+// el número de Ventas, mismos labels que usa el filtro de Pedidos.
+const CANAL_LABEL = {
+  web: 'Web', whatsapp: 'WhatsApp', portal_cliente: 'Portal', vendedor: 'Vendedor',
+  telefono: 'Teléfono', app: 'App', chofer: 'Chofer', admin: 'Admin', pos: 'POS',
+  mostrador: 'Mostrador',
+};
+// Blindado contra variaciones del backend: si el RPC cambia el nombre del
+// campo (porcentaje/pct) o llega un canal sin total_general (total=0), nunca
+// debe imprimirse "undefined%" — se recalcula acá mismo como red de seguridad.
+function pctCanal(c, totalGeneral){
+  const raw = c.porcentaje ?? c.pct ?? null;
+  if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
+  if (totalGeneral > 0 && typeof c.total === 'number') {
+    return Math.round((c.total / totalGeneral) * 1000) / 10;
+  }
+  return 0;
+}
+function renderVentasPorCanal(porCanal){
+  const el = document.getElementById('kv-ventas-canal');
+  if (!el) return;
+  if (!porCanal || !porCanal.length) { el.textContent = ''; el.title = ''; return; }
+  const totalGeneral = porCanal.reduce((acc, c) => acc + (Number(c.total) || 0), 0);
+  const top = porCanal.slice(0, 4);
+  el.textContent = top.map(c => `${CANAL_LABEL[c.canal] || c.canal} ${pctCanal(c, totalGeneral)}%`).join(' · ');
+  el.title = 'Por canal: ' + porCanal.map(c => `${CANAL_LABEL[c.canal] || c.canal} ${pctCanal(c, totalGeneral)}% (${fmtMoney(c.total)})`).join(' · ');
+}
+
 async function cargarKPIs(){
   try {
     const kpis = await window.api.get(`/api/admin/kpis?periodo=${periodo}`);
 
     animarOdometroMoney('kv-ventas', kpis.ventas_total);
     setDelta('kd-ventas', kpis.ventas_delta);
+    renderVentasPorCanal(kpis.ventas_por_canal);
+    window._dashData.ventasTotalPeriodo = kpis.ventas_total ?? 0;
 
     setText('kv-pedidos', kpis.pedidos_total ?? 0);
     setDelta('kd-pedidos', kpis.pedidos_delta);
     window._dashData.pedidosHoy = kpis.pedidos_total ?? 0;
+
+    // Dato secundario siempre presente en el bloque Pedidos (punto 4, tarjeta
+    // A del plan): con 0 pedidos, la caja no debe depender del número
+    // principal para tener algo que mostrar.
+    const ticketProm = kpis.pedidos_total > 0 ? (kpis.ventas_total ?? 0) / kpis.pedidos_total : null;
+    setText('kd-pedidos-ticket', ticketProm != null ? `Ticket prom. ${fmtMoney(ticketProm)}` : 'Sin pedidos en el período');
+
+    // Compras a proveedores (migración 478) — se cachea acá para que la tab
+    // "Compras" de Reportes críticos no tenga que pegarle de nuevo a kpis.
+    window._dashData.comprasProveedor = kpis.compras_proveedor || null;
+    if (reportesCargados?.compras) cargarComprasTab(); // tab ya abierta: refrescar con el período nuevo
+
+    // Gastos generales (migración 479) — mismo criterio: se cachea acá para
+    // que la tab "Gastos" no tenga que pegarle de nuevo a kpis.
+    window._dashData.gastosGenerales = kpis.gastos_generales || null;
+    if (reportesCargados?.gastos) cargarGastosTab();
 
     const emitidas = kpis.facturas_emitidas_periodo ?? null;
     const errores  = kpis.facturas_error_afip ?? 0;
@@ -1998,7 +2431,7 @@ async function cargarKPIs(){
     setText('kd-facturas', emitidas != null ? `${emitidas - errores} CAE ok` : 'migración 230 pendiente');
     window._dashData.facturasHoy = emitidas ?? 0;
     if (emitidas != null && emitidas > 0) {
-      miniBarProporcion('mb-facturas', emitidas - errores, emitidas, '#5B4A8F', '#EF9A9A');
+      miniBarProporcion('mb-facturas', emitidas - errores, emitidas, '#5B4A8F', 'var(--danger-light)');
     }
 
     // Frente 5 del plan de interactividad: labels reales con las fechas del
@@ -2012,7 +2445,7 @@ async function cargarKPIs(){
 
     if (kpis.pedidos_delta !== null && kpis.pedidos_delta !== undefined && kpis.pedidos_total) {
       const anteriorPedidos = kpis.pedidos_total / (1 + kpis.pedidos_delta / 100);
-      miniBarDosValores('mb-pedidos', kpis.pedidos_total, anteriorPedidos, '#4ade80', 26, {
+      miniBarDosValores('mb-pedidos', kpis.pedidos_total, anteriorPedidos, '#4ade80', 6, {
         actual: `${etiquetaActual}: ${kpis.pedidos_total} pedidos`,
         anterior: `${etiquetaAnterior}: ${Math.round(anteriorPedidos)} pedidos`
       });
@@ -2022,10 +2455,15 @@ async function cargarKPIs(){
     tagFuente.textContent = 'En vivo';
     tagFuente.title = 'Fuente: obtener_kpis_dashboard_v3'; // detalle técnico va al tooltip, no al texto visible
 
-    // item 1: la línea de pulso solo se muestra mientras el dato está
-    // fresco (recién confirmado "En vivo" arriba).
+    // item 1 + Etapa 3 tarjeta A: la línea de pulso solo tiene sentido
+    // narrativo en "Hoy" (dato recién confirmado "En vivo"). En Semana/Mes
+    // se apaga — no aporta nada y compite con el desglose por canal de
+    // abajo sin necesidad.
     const pulseLine = document.getElementById('kv-pulse-line');
-    if (pulseLine) pulseLine.classList.add('live');
+    if (pulseLine) {
+      if (periodo === '1d') pulseLine.classList.add('live');
+      else pulseLine.classList.remove('live');
+    }
 
     // item 1: si Realtime marcó que entró un pedido nuevo, disparamos el
     // flash de luz una sola vez sobre la mini-barra de Ventas, ahora que
@@ -2056,7 +2494,7 @@ async function cargarKPIs(){
     setText('kd-cobros', `${kpis.cheques_riesgo_clientes ?? 0} clientes con cheque en riesgo`);
     if (kpis.ventas_delta !== null && kpis.ventas_delta !== undefined && kpis.ventas_total) {
       const anteriorVentas = kpis.ventas_total / (1 + kpis.ventas_delta / 100);
-      miniBarDosValores('mb-ventas', kpis.ventas_total, anteriorVentas, '#B87A00', 26, {
+      miniBarDosValores('mb-ventas', kpis.ventas_total, anteriorVentas, '#E0A53E', 26, {
         actual: `${etiquetaActual}: ${fmtMoney(kpis.ventas_total)}`,
         anterior: `${etiquetaAnterior}: ${fmtMoney(anteriorVentas)}`
       });
@@ -2140,16 +2578,16 @@ function renderSerieVentas(series){
     <svg class="ventas-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
       <defs>
         <linearGradient id="ventasAreaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#B87A00" stop-opacity="0.32"/>
-          <stop offset="100%" stop-color="#B87A00" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#E0A53E" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#E0A53E" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <line x1="0" y1="${yAvg}" x2="${W}" y2="${yAvg}" stroke="rgba(201,198,186,.2)" stroke-width="1" stroke-dasharray="4 4"/>
       <text x="${W}" y="${yAvg - 4}" text-anchor="end" font-size="9" fill="rgba(201,198,186,.4)" font-family="IBM Plex Mono">prom. ${fmtMoney(avg)}</text>
       <path d="${areaPath}" fill="url(#ventasAreaFill)"/>
-      <path d="${linePath}" fill="none" stroke="#B87A00" stroke-width="2" stroke-linecap="round"/>
+      <path d="${linePath}" fill="none" stroke="#E0A53E" stroke-width="2" stroke-linecap="round"/>
       ${esHoy ? `
-      <circle cx="${last[0]}" cy="${last[1]}" r="9" fill="#B87A00" opacity=".18">
+      <circle cx="${last[0]}" cy="${last[1]}" r="9" fill="#E0A53E" opacity=".18">
         <animate attributeName="r" values="5;11;5" dur="2s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values=".3;0;.3" dur="2s" repeatCount="indefinite"/>
       </circle>` : ''}
@@ -2164,7 +2602,6 @@ function renderSerieVentas(series){
       que frontend/admin/js/whatsapp-conversaciones.js.
    ══════════════════════════════════════════════════════════════ */
 async function cargarWhatsApp(){
-  const pillWa = document.getElementById('pill-wa');
   const { data: convs, error } = await sb
     .from('v_whatsapp_conversaciones_activas')
     .select('*')
@@ -2173,11 +2610,9 @@ async function cargarWhatsApp(){
 
   if (error) {
     console.error('[dashboard-v3] whatsapp:', error);
-    pillWa.className = 'status-pill sp-muted'; pillWa.innerHTML = '<span class="dot"></span>WhatsApp: error';
     return;
   }
 
-  pillWa.className = 'status-pill sp-wa'; pillWa.innerHTML = '<span class="dot"></span>WhatsApp activo';
   setText('wa-activas', convs.length);
   setText('wa-derivadas', convs.filter(c => c.motivo_derivacion).length);
   setText('wa-ultima', convs[0] ? tiempoRelativo(convs[0].ultima_interaccion) : '—');
@@ -2227,6 +2662,10 @@ async function cargarWhatsApp(){
         }).join('')
       : '<span class="draft-chip">Hay un borrador en curso</span>';
     document.getElementById('wa-draft-cliente').textContent = `→ cliente: ${conBorrador.cliente_nombre || 'sin identificar'}`;
+    // Etapa 5 (B.2): con borrador activo, el box se expande (título visible)
+    // y gana el borde verde que lo distingue del resto de la tarjeta.
+    draftBox.classList.remove('wa-draft-collapsed');
+    draftBox.classList.add('wa-draft-inline');
     // Frente 6 del plan de interactividad: el chip del borrador ya es
     // clickeable — si el pedido ya se creó, va directo al pedido; si sigue
     // en curso, abre la conversación de WhatsApp que lo originó (el id de
@@ -2254,18 +2693,21 @@ async function cargarWhatsApp(){
       draftBox.classList.add('wa-draft-enter');
     }
   } else {
-    waDraftEl.innerHTML = '<span style="font-size:9.5px;color:rgba(255,255,255,.5)">Sin borrador activo</span>';
+    waDraftEl.innerHTML = '<span style="font-size:11px;color:rgba(255,255,255,.5)">Sin borrador activo</span>';
     document.getElementById('wa-draft-cliente').textContent = '';
     draftBox.classList.remove('item-nav');
     draftBox.title = '';
     draftBox.onclick = null;
     _waDraftIdVisto = null;
+    // Etapa 5 (B.2): sin borrador, el box vuelve a una sola línea compacta.
+    draftBox.classList.remove('wa-draft-inline');
+    draftBox.classList.add('wa-draft-collapsed');
   }
 
   // Chat real de la conversación más reciente
   const chatBox = document.getElementById('chat-box');
   if (!convs.length) {
-    chatBox.outerHTML = `<div class="chat-box-empty" id="chat-box" style="flex-direction:column;gap:6px">
+    chatBox.outerHTML = `<div class="chat-box-empty" id="chat-box" style="flex-direction:column;gap:var(--sp-2)">
       Todavía no hay conversaciones de WhatsApp registradas.
       <button class="btn-refresh" style="border-color:var(--muted);color:var(--ink)" onclick="irA('/admin/whatsapp-onboarding',event)">Conectar WhatsApp</button>
     </div>`;
@@ -2294,7 +2736,7 @@ async function cargarWhatsApp(){
   }
 
   if (!ordenados.length) {
-    chatBox.innerHTML = '<div style="font-size:10px;color:#6B695F;text-align:center;margin:auto">Conversación sin mensajes aún</div>';
+    chatBox.innerHTML = '<div style="font-size:12px;color:#6B695F;text-align:center;margin:auto">Conversación sin mensajes aún</div>';
     return;
   }
   chatBox.innerHTML = ordenados.map(m => {
@@ -2312,8 +2754,9 @@ function escapeHtml(s){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   C) Catálogo — kpis.productos_catalogo_count (real) + tabla
-      productos / categorias / empresa.catalogo_publico_activo.
+   C) Catálogo — QR real + estado de publicación.
+   v864: el tablero solo muestra el acceso visual al catálogo y una
+   descripción breve; los números y la lista viven en Productos.
    ══════════════════════════════════════════════════════════════ */
 async function cargarCatalogo(){
   try {
@@ -2323,21 +2766,18 @@ async function cargarCatalogo(){
     // el acceso público es por query param (?empresa_id=), no por slug
     // (no existe esa columna en este proyecto). RLS ya permite leer la
     // propia fila de empresa al usuario autenticado.
-    const [{ data: empresa }, { data: productos }, { count: catCount }] = await Promise.all([
-      sb.from('empresas').select('config').eq('id', empresaId).maybeSingle(),
-      sb.from('productos').select('id, nombre, precio_base, updated_at, categorias(nombre)')
-        .eq('empresa_id', empresaId).eq('activo', true)
-        .order('updated_at', { ascending: false }).limit(vistaAmpliada ? 25 : 5),
-      sb.from('categorias').select('id', { count: 'exact', head: true }).eq('empresa_id', empresaId),
-    ]);
+    const { data: empresa } = await sb
+      .from('empresas')
+      .select('config')
+      .eq('id', empresaId)
+      .maybeSingle();
 
     const activo = empresa?.config?.catalogo_publico_habilitado === true;
     const catalogoUrl = `${location.origin}/cliente/catalogo?empresa_id=${empresaId}`;
-    document.getElementById('cat-estado-txt').innerHTML =
+    const estado = document.getElementById('cat-estado-txt');
+    if (estado) estado.innerHTML =
       (activo ? '<span class="cat-live-dot"></span>' : '') +
       (activo ? 'Catálogo público activo' : 'Catálogo público desactivado');
-    document.getElementById('cat-url').textContent =
-      activo ? catalogoUrl : 'Activar en Empresa → Catálogo público';
 
     // FIX UI: el QR era un placeholder de tablero de ajedrez decorativo
     // (background CSS repeating-conic-gradient), no un QR real. Se
@@ -2347,6 +2787,7 @@ async function cargarCatalogo(){
     // <span> hermano que se re-inyecta después de limpiar el contenedor
     // (qrEl.innerHTML se pisa para dibujar el QR/placeholder).
     const qrEl = document.getElementById('cat-qr');
+    if (!qrEl) return;
     qrEl.innerHTML = '';
     if (activo && window.QRCode) {
       qrEl.classList.remove('qr-off');
@@ -2361,37 +2802,6 @@ async function cargarCatalogo(){
     scanSpan.id = 'cat-qr-scan';
     qrEl.appendChild(scanSpan);
 
-    const { count: totalProd } = await sb.from('productos')
-      .select('id', { count: 'exact', head: true }).eq('empresa_id', empresaId).eq('activo', true);
-    setText('cat-productos', totalProd ?? 0);
-    setText('cat-categorias', catCount ?? 0);
-
-    const { count: clientesActivos } = await sb.from('clientes')
-      .select('id', { count: 'exact', head: true }).eq('empresa_id', empresaId).eq('activo', true);
-    setText('cat-clientes-activos', clientesActivos ?? 0);
-
-    // FIX UI: lista de texto plano sin jerarquía. Ahora cada fila muestra
-    // nombre + categoría + "hace cuánto" se actualizó (mismo formato que
-    // tiempoRelativo() ya usado en WhatsApp), con el precio en mono a la
-    // derecha (ya alineado por .data-row flex + fuente monoespaciada).
-    const lista = document.getElementById('cat-productos-lista');
-    if (!productos || !productos.length) {
-      lista.innerHTML = '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Sin productos cargados todavía</div>';
-    } else {
-      lista.innerHTML = productos.map(p => {
-        const catNombre = p.categorias?.nombre;
-        const meta = [catNombre, tiempoRelativo(p.updated_at)].filter(Boolean).join(' · ');
-        return `
-        <div class="data-row dr-dark item-nav cat-prod-row" onclick="irA('/admin/productos',event)" title="Ver en productos">
-          <div class="cat-prod-left">
-            <span class="cat-prod-nombre">${escapeHtml(p.nombre)}</span>
-            ${meta ? `<span class="cat-prod-meta">${escapeHtml(meta)}</span>` : ''}
-          </div>
-          <span>${fmtMoney(p.precio_base)}</span>
-        </div>
-      `;
-      }).join('');
-    }
   } catch (err) {
     console.error('[dashboard-v3] catálogo:', err);
   }
@@ -2402,13 +2812,11 @@ async function cargarCatalogo(){
       GET /api/pos/resumen-turno?turno_id= (RPC resumen_turno_caja).
    ══════════════════════════════════════════════════════════════ */
 async function cargarPOS(){
-  const pillPos = document.getElementById('pill-pos');
   try {
     const cajas = await window.api.get('/api/pos/cajas-admin');
     const cajaConTurno = (cajas || []).find(c => c.turno_abierto);
 
     if (!cajaConTurno) {
-      pillPos.className = 'status-pill sp-muted'; pillPos.innerHTML = '<span class="dot"></span>POS cerrada';
       document.getElementById('pos-turno-tag').textContent = 'Sin turno abierto';
       document.getElementById('pos-total').textContent = fmtMoney(0);
       document.getElementById('pos-sub').textContent = 'abrí un turno en el POS para ver el resumen en vivo';
@@ -2428,7 +2836,6 @@ async function cargarPOS(){
       return;
     }
 
-    pillPos.className = 'status-pill sp-amber'; pillPos.innerHTML = '<span class="dot"></span>POS abierta';
     document.getElementById('pos-turno-tag').textContent = `Turno de ${cajaConTurno.turno_abierto.usuario_nombre || 'operador'}`;
     // Frente 7: si cambió el turno activo (o es la primera carga), reinicia
     // el acumulador del sparkline — arranca en 0 desde este momento, no es
@@ -2456,7 +2863,7 @@ async function cargarPOS(){
       ? entradas.map(([medio, monto]) => `<div class="data-row"><span>${etiquetaMedio(medio)}</span><span>${fmtMoney(monto)}</span></div>`).join('')
       : '<div class="data-row-empty"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Sin ventas todavía en este turno</div>';
 
-    const coloresMedio = { efectivo: '#B87A00', tarjeta_debito: '#2E6088', tarjeta_credito: '#5B4A8F', cuenta_corriente: '#1F5B4A' };
+    const coloresMedio = { efectivo: '#E0A53E', tarjeta_debito: '#2E6088', tarjeta_credito: '#5B4A8F', cuenta_corriente: '#487050' };
     const barraEl = document.getElementById('pos-barra');
     const leyendaEl = document.getElementById('pos-leyenda');
     const barraWrap = document.getElementById('pos-barra-wrap');
@@ -2464,7 +2871,7 @@ async function cargarPOS(){
       barraEl.innerHTML = entradas.map(([medio, monto]) =>
         `<div style="flex:${Math.max(Number(monto),1)};background:${coloresMedio[medio] || '#6B695F'}"></div>`).join('');
       leyendaEl.innerHTML = entradas.map(([medio]) =>
-        `<span style="font-size:8px;color:${coloresMedio[medio] || '#6B695F'}">■ ${etiquetaMedio(medio)}</span>`).join('');
+        `<span style="font-size:11px;color:${coloresMedio[medio] || '#6B695F'}">■ ${etiquetaMedio(medio)}</span>`).join('');
       barraWrap.style.display = '';
     } else {
       barraWrap.style.display = 'none';
@@ -2517,7 +2924,6 @@ async function cargarPOS(){
     _posCantVentasPrev = cantVentas;
   } catch (err) {
     console.error('[dashboard-v3] POS:', err);
-    pillPos.className = 'status-pill sp-muted'; pillPos.innerHTML = '<span class="dot"></span>POS: error';
   }
 }
 // Frente 7: sparkline SVG mini de ventas del turno, alimentado por eventos
@@ -2526,8 +2932,16 @@ async function cargarPOS(){
 function renderPosSparkline(){
   const svg = document.getElementById('pos-sparkline');
   if (!svg) return;
-  if (_posSparkline.length < 2) { svg.style.display = 'none'; return; }
   const w = 72, h = 24, pad = 2;
+  if (_posSparkline.length < 2) {
+    // Etapa 5 (D.2): "turno recién abierto, sin ventas todavía" es un
+    // estado propio — antes esto ocultaba el sparkline entero y lo hacía
+    // aparecer de golpe (salto de layout) apenas entraba la 2da venta.
+    // Ahora reserva el mismo espacio con una línea de base punteada.
+    svg.innerHTML = `<line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--amberdk,#E0A53E)" stroke-width="1.5" stroke-dasharray="2,3" opacity=".4"/>`;
+    svg.style.display = '';
+    return;
+  }
   const max = Math.max(...(_posSparkline), 1);
   const min = 0;
   const step = (w - pad * 2) / (_posSparkline.length - 1);
@@ -2578,7 +2992,6 @@ function etiquetaMedio(m){
 let _arcaFacturas = [];
 let _arcaFiltroTipo = null;
 async function cargarARCA(){
-  const pillAfip = document.getElementById('pill-afip');
   try {
     const kpis = await window.api.get(`/api/admin/kpis?periodo=${periodo}`);
     const emitidas = kpis.facturas_emitidas_periodo ?? 0;
@@ -2597,9 +3010,6 @@ async function cargarARCA(){
     const errHeroEl = document.getElementById('arca-err-hero');
     if (errHeroEl) errHeroEl.classList.toggle('err-glow', errores > 0);
     if (errBox) errBox.classList.toggle('err-glow', errores > 0);
-
-    pillAfip.className = errores > 0 ? 'status-pill sp-danger' : 'status-pill sp-green';
-    pillAfip.innerHTML = `<span class="dot"></span>AFIP ${errores > 0 ? errores + ' con error' : 'online'}`;
 
     const { desde, hasta } = rangoPeriodo();
     // FIX bug real: con head:true Supabase no devuelve `data` (queda null),
@@ -2624,12 +3034,11 @@ async function cargarARCA(){
     renderArcaFiltroActivo();
 
     document.getElementById('arca-tags').innerHTML =
-      `<span class="card-tag" style="display:inline-flex;align-items:center;gap:4px;background:${errores === 0 ? 'var(--greenbg)' : 'var(--dangerbg)'};color:${errores === 0 ? 'var(--green)' : 'var(--danger)'}">${errores === 0
+      `<span class="card-tag" style="display:inline-flex;align-items:center;gap:var(--sp-1);background:${errores === 0 ? 'var(--greenbg)' : 'var(--dangerbg)'};color:${errores === 0 ? 'var(--green)' : 'var(--danger)'}">${errores === 0
         ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Sin errores'
         : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Revisar errores'}</span>`;
   } catch (err) {
     console.error('[dashboard-v3] ARCA:', err);
-    pillAfip.className = 'status-pill sp-muted'; pillAfip.innerHTML = '<span class="dot"></span>AFIP: error';
   }
 }
 function refrescarArca(){
@@ -2641,34 +3050,37 @@ function refrescarArca(){
 // Frente 3 del plan de interactividad: barras por tipo de comprobante,
 // clickeables para filtrar en memoria (mismo patrón que renderCobUrgentes /
 // toggleVencidasOnly del Frente 4) sin repetir query a Supabase.
-const ARCA_COLORES = ['#5B4A8F', '#8874C2', '#B87A00', '#1F5B4A', '#B3261E', '#6B695F'];
+const ARCA_COLORES = ['#5B4A8F', '#8874C2', '#E0A53E', '#487050', '#D1594A', '#6B695F'];
 function renderArcaBars(porTipo){
   const cont = document.getElementById('arca-bars');
   if (!cont) return;
   const entradas = Object.entries(porTipo).sort((a, b) => b[1] - a[1]);
   if (!entradas.length) {
-    cont.innerHTML = '<div style="font-size:8.5px;color:var(--muted)">Sin comprobantes en el período</div>';
+    cont.innerHTML = '<div style="font-size:11px;color:var(--muted)">Sin comprobantes en el período</div>';
     return;
   }
   const max = Math.max(...entradas.map(([, n]) => n));
-  const ANCHO_MAX = 90; // px — largo fijo, no proporcional al contenedor
   // item 5: la barra se "dibuja" al cargar en vez de aparecer ya completa —
-  // arranca en width:0 (clase arca-bar-fill, que trae la transición en CSS)
+  // arranca en width:0% (clase arca-bar-fill, que trae la transición en CSS)
   // y en el siguiente frame se le asigna el ancho real, para que el propio
-  // navegador anime el cambio.
+  // navegador anime el cambio. El ancho ahora es % del espacio disponible en
+  // la barra (no px fijos) para que nunca se salga de la tarjeta en columnas
+  // angostas — la barra vive en su propia celda flex:1/min-width:0.
   cont.innerHTML = entradas.map(([tipo, n], i) => {
     const color = ARCA_COLORES[i % ARCA_COLORES.length];
-    const w = Math.max(6, Math.round((n / max) * ANCHO_MAX));
+    const w = Math.max(8, Math.round((n / max) * 100));
     const activo = _arcaFiltroTipo === tipo;
     return `
-    <div class="item-nav" style="display:flex;align-items:center;gap:5px;cursor:pointer;${activo ? 'opacity:1' : ''}" onclick="event.stopPropagation();filtrarArcaPorTipo('${escapeHtml(tipo)}')" title="Filtrar por ${escapeHtml(tipo)}">
-      <span style="font-size:8px;color:${activo ? color : 'var(--muted)'};font-weight:${activo ? 700 : 500};width:34px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(tipo)}</span>
-      <span class="arca-bar-fill" data-w="${w}" style="display:block;height:6px;border-radius:3px;background:${color};width:0;flex-shrink:0;${activo ? '' : 'opacity:.55'}"></span>
-      <span style="font-size:8px;color:var(--muted);font-variant-numeric:tabular-nums">${n}</span>
+    <div class="item-nav" style="display:flex;align-items:center;gap:var(--sp-1);cursor:pointer;min-width:0;${activo ? 'opacity:1' : ''}" onclick="event.stopPropagation();filtrarArcaPorTipo('${escapeHtml(tipo)}')" title="Filtrar por ${escapeHtml(tipo)}">
+      <span style="font-size:11px;color:${activo ? color : 'var(--muted)'};font-weight:${activo ? 700 : 500};width:34px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(tipo)}</span>
+      <span style="flex:1;min-width:0;background:rgba(255,255,255,.06);border-radius:2px;height:6px">
+        <span class="arca-bar-fill" data-w="${w}" style="display:block;height:6px;border-radius:2px;background:${color};width:0%;max-width:100%;${activo ? '' : 'opacity:.55'}"></span>
+      </span>
+      <span style="font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;width:20px;text-align:right">${n}</span>
     </div>`;
   }).join('');
   requestAnimationFrame(() => {
-    cont.querySelectorAll('.arca-bar-fill').forEach(el => { el.style.width = el.dataset.w + 'px'; });
+    cont.querySelectorAll('.arca-bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
   });
 }
 function filtrarArcaPorTipo(tipo){
@@ -2706,7 +3118,7 @@ async function cargarScoreCheques(){
     // (mismo criterio que cheques.js/riesgo-cheques.js) — la tabla no tiene
     // un estado 'vencido'; los estados reales son pendiente/en_cartera/
     // cobrado/depositado/rechazado/entregado_proveedor/anulado.
-    const { data: cheques } = await sb.from('cheques').select('id, monto, estado').eq('empresa_id', empresaId);
+    const { data: cheques } = await sb.from('cheques').select('id, monto, estado, cliente_id, fecha_vto').eq('empresa_id', empresaId);
     const enCartera  = (cheques || []).filter(c => c.estado === 'en_cartera');
     const rechazados = (cheques || []).filter(c => c.estado === 'rechazado');
     setText('cheq-cartera', enCartera.length);
@@ -2714,6 +3126,26 @@ async function cargarScoreCheques(){
     setText('cheq-monto', fmtMoney(enCartera.reduce((a,c)=>a+(Number(c.monto)||0),0)));
     estadoAlerta.chequesRechazados = rechazados.length;
     actualizarAlertaCritica();
+
+    // Etapa 4 (punto 1, tarjeta F): "Rechazados" gana peso visual real
+    // (no solo el color rojo que ya tenía) cuando el valor es > 0 — mismo
+    // criterio que .card-alert a nivel tarjeta, acá a nivel bloque.
+  const riesgoBox = document.getElementById('cheq-riesgo-box');
+  const scoreCard = document.querySelector('.card-score');
+    const riesgoNum = document.getElementById('cheq-riesgo');
+  scoreCard?.classList.toggle('has-rejected', rechazados.length > 0);
+    if (riesgoNum) riesgoNum.style.fontSize = rechazados.length > 0 ? '24px' : '18px';
+
+    // Próximo vencimiento en cartera por cliente (punto 2, tarjeta F): la
+    // fila de #score-list solo mostraba nombre + score; este dato extra
+    // ayuda a decidir sin tener que entrar a la ficha del cliente.
+    const proximoVtoPorCliente = {};
+    enCartera.forEach(c => {
+      if (!c.cliente_id || !c.fecha_vto) return;
+      if (!proximoVtoPorCliente[c.cliente_id] || c.fecha_vto < proximoVtoPorCliente[c.cliente_id]) {
+        proximoVtoPorCliente[c.cliente_id] = c.fecha_vto;
+      }
+    });
 
     const { data: clientes } = await sb.from('clientes')
       .select('id, razon_social, nombre_fantasia, cuit, score_actual, score_categoria')
@@ -2726,6 +3158,7 @@ async function cargarScoreCheques(){
     // Reset del criterio de orden a "score asc" (el de la query) cada vez que
     // se recarga la tarjeta, mismo comportamiento que tenía antes de este cambio.
     _scoreClientes = clientes || [];
+    _scoreProximoVto = proximoVtoPorCliente;
     _scoreSort = { campo: 'score_actual', dir: 'asc' };
     document.querySelectorAll('.score-sort-btn').forEach(b => b.classList.remove('is-active', 'sort-desc'));
     document.getElementById('score-sort-score')?.classList.add('is-active');
@@ -2738,8 +3171,9 @@ async function cargarScoreCheques(){
 
 // Valores reales que escribe el sistema (constraint chk_score_categoria en Supabase):
 // premium | bueno | normal | riesgo | bloqueado — 'moderado' nunca se escribe, no correspondía acá.
-const SCORE_COLORES_CAT = { premium: '#1F5B4A', bueno: '#1F5B4A', normal: '#B87A00', riesgo: '#B3261E', bloqueado: '#B3261E' };
+const SCORE_COLORES_CAT = { premium: '#487050', bueno: '#487050', normal: '#E0A53E', riesgo: '#D1594A', bloqueado: '#D1594A' };
 let _scoreClientes = [];
+let _scoreProximoVto = {};
 let _scoreSort = { campo: 'score_actual', dir: 'asc' };
 
 function renderScoreLista(clientes){
@@ -2757,6 +3191,12 @@ function renderScoreLista(clientes){
     // riesgo/bloqueado ahora tienen más peso (fondo más opaco + borde)
     // que premium/bueno/normal, en vez de todos con el mismo tratamiento.
     const esUrgente = c.score_categoria === 'riesgo' || c.score_categoria === 'bloqueado';
+    // Punto 2, tarjeta F: dato extra por fila (antes solo nombre + score;
+    // el resto del contexto vivía como texto de ayuda fijo al pie).
+    const vto = _scoreProximoVto[c.id];
+    const vtoTxt = vto
+      ? `Próx. vto. ${new Date(vto).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}`
+      : '';
     return `
     <div class="score-item item-nav" onclick="irA('/admin/clientes?id=${c.id}',event)" title="Ver ficha del cliente">
       <svg width="40" height="40" viewBox="0 0 40 40">
@@ -2768,9 +3208,9 @@ function renderScoreLista(clientes){
       </svg>
       <div style="flex:1;min-width:0">
         <div class="score-name">${escapeHtml(nombre)}</div>
-        <div class="score-cuit">${escapeHtml(c.cuit || '—')}</div>
+        <div class="score-cuit">${escapeHtml(c.cuit || '—')}${vtoTxt ? ' · ' + vtoTxt : ''}</div>
       </div>
-      <span style="font-size:8.5px;font-weight:700;padding:2px 5px;border-radius:3px;background:${color}${esUrgente ? '2e' : '18'};color:${color};${esUrgente ? `border:1px solid ${color}66;` : ''}white-space:nowrap">${c.score_categoria || '—'}</span>
+      <span style="font-size:11px;font-weight:700;padding:2px 5px;border-radius:2px;background:${color}${esUrgente ? '2e' : '18'};color:${color};${esUrgente ? `border:1px solid ${color}66;` : ''}white-space:nowrap">${c.score_categoria || '—'}</span>
     </div>`;
   }).join('');
   // item 6: el arco del gauge se "dibuja" al cargar en vez de aparecer ya
@@ -2811,32 +3251,34 @@ function ordenarScore(campo, e){
       /api/admin/stock/bajo, /api/score?accion=ranking,
       v_rentabilidad_zona_ruta.
    ══════════════════════════════════════════════════════════════ */
-let reportesCargados = { cobranza: false, stock: false, ranking: false };
+let reportesCargados = { cobranza: false, stock: false, ranking: false, compras: false, gastos: false };
 // Frente 4 del plan de interactividad: filas vencidas guardadas en memoria
 // (mismo patrón que _scoreClientes/_arcaFacturas) para no repetir query al
 // activar el deep-link "Vencida"; y swipe entre tabs de Reportes críticos.
 let _cobranzaVencidaRows = [];
 let _cobranzaVencidasOnly = false;
-const REPORTE_TABS = ['cobranza', 'stock', 'ranking'];
+const REPORTE_TABS = ['cobranza', 'stock', 'ranking', 'compras', 'gastos'];
 // Frente 7: acumulador client-side de ventas del turno (desde que se abrió
 // el panel, no histórico completo — no hay desglose horario en backend).
 let _posSparkline = [];
 let _posTurnoIdActivo = null;
 
 async function cargarReportesCriticos(){
-  reportesCargados = { cobranza: false, stock: false, ranking: false };
+  reportesCargados = { cobranza: false, stock: false, ranking: false, compras: false, gastos: false };
   await cargarCobranzaTab();
 }
 
 async function setReporteTab(tab, btn){
   document.querySelectorAll('.inner-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['cobranza','stock','ranking'].forEach(t => {
+  ['cobranza','stock','ranking','compras','gastos'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = (t === tab) ? 'grid' : 'none';
   });
-  if (tab === 'stock'  && !reportesCargados.stock)   await cargarStockTab();
+  if (tab === 'stock'   && !reportesCargados.stock)   await cargarStockTab();
   if (tab === 'ranking' && !reportesCargados.ranking) await cargarRankingTab();
+  if (tab === 'compras' && !reportesCargados.compras) await cargarComprasTab();
+  if (tab === 'gastos'  && !reportesCargados.gastos)  await cargarGastosTab();
 }
 
 async function cargarCobranzaTab(){
@@ -2896,7 +3338,7 @@ function renderCobUrgentes(){
   }
   if (btn) btn.classList.toggle('activo', _cobranzaVencidasOnly);
   el.innerHTML = rows.length
-    ? rows.map(r => `<div class="data-row dr-dark${r.cliente_id ? ' item-nav' : ''}"${r.cliente_id ? ` onclick="irA('/admin/clientes?id=${r.cliente_id}',event)" title="Ver ficha del cliente"` : ''}><span>${escapeHtml(r.cliente_nombre || '—')}</span><span style="color:#EF9A9A">${fmtMoney(r.saldo_pendiente)} +${r.dias_vencida}d</span></div>`).join('')
+    ? rows.map(r => `<div class="data-row dr-dark${r.cliente_id ? ' item-nav' : ''}"${r.cliente_id ? ` onclick="irA('/admin/clientes?id=${r.cliente_id}',event)" title="Ver ficha del cliente"` : ''}><span>${escapeHtml(r.cliente_nombre || '—')}</span><span style="color:var(--danger-light)">${fmtMoney(r.saldo_pendiente)} +${r.dias_vencida}d</span></div>`).join('')
     : '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Sin deuda vencida</div>';
 }
 function toggleVencidasOnly(event){
@@ -2958,7 +3400,7 @@ async function cargarStockTab(){
     const { items } = await window.api.get(`/api/admin/stock/bajo?limit=${vistaAmpliada ? 25 : 6}`);
     setText('stock-count', (items || []).length);
     document.getElementById('stock-alerts').innerHTML = (items && items.length)
-      ? items.map(it => `<div class="data-row dr-dark item-nav" onclick="irA('/admin/stock?filtro=bajo_minimo',event)" title="Ver en stock"><span style="display:inline-flex;align-items:center;gap:4px;min-width:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:${it.cantidad_disponible <= (it.stock_minimo||0)/2 ? '#EF9A9A' : '#FFD54F'}"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(it.nombre)}</span></span><span style="display:inline-flex;align-items:baseline;justify-content:flex-end;gap:3px;flex-shrink:0;color:${it.cantidad_disponible <= (it.stock_minimo||0)/2 ? '#EF9A9A' : '#FFD54F'}"><span style="display:inline-block;min-width:22px;text-align:right">${it.cantidad_disponible}</span><span style="opacity:.55;font-weight:500">u.</span><span style="display:inline-block;min-width:38px;text-align:right;opacity:.7;font-weight:500">mín ${it.stock_minimo}</span></span></div>`).join('')
+      ? items.map(it => `<div class="data-row dr-dark item-nav" onclick="irA('/admin/stock?filtro=bajo_minimo',event)" title="Ver en stock"><span style="display:inline-flex;align-items:center;gap:var(--sp-1);min-width:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:${it.cantidad_disponible <= (it.stock_minimo||0)/2 ? 'var(--danger-light)' : 'var(--amber-light)'}"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(it.nombre)}</span></span><span style="display:inline-flex;align-items:baseline;justify-content:flex-end;gap:3px;flex-shrink:0;color:${it.cantidad_disponible <= (it.stock_minimo||0)/2 ? 'var(--danger-light)' : 'var(--amber-light)'}"><span style="display:inline-block;min-width:22px;text-align:right">${it.cantidad_disponible}</span><span style="opacity:.55;font-weight:500">u.</span><span style="display:inline-block;min-width:38px;text-align:right;opacity:.7;font-weight:500">mín ${it.stock_minimo}</span></span></div>`).join('')
       : '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Sin productos bajo mínimo</div>';
     reportesCargados.stock = true;
   } catch (err) {
@@ -2983,7 +3425,7 @@ async function cargarRankingTab(){
     const top = [...porCliente.entries()].sort((a,b) => b[1].total-a[1].total).slice(0, vistaAmpliada ? 15 : 4);
     const coloresRanking = ['#FFD54F','#CFD8DC','#D7A86E'];
     document.getElementById('rank-clientes').innerHTML = top.length
-      ? top.map(([nombre, v], i) => `<div class="data-row dr-dark${v.id ? ' item-nav' : ''}"${v.id ? ` onclick="irA('/admin/clientes?id=${v.id}',event)" title="Ver ficha del cliente"` : ''}><span style="display:inline-flex;align-items:center;gap:6px">${i < 3 ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:${coloresRanking[i]};color:#16181D;font-size:8.5px;font-weight:700;flex-shrink:0">${i+1}</span>` : `<span style="color:var(--muted);font-size:9px;width:15px;flex-shrink:0">${i+1}.</span>`}${escapeHtml(nombre)}</span><span>${fmtMoney(v.total)}</span></div>`).join('')
+      ? top.map(([nombre, v], i) => `<div class="data-row dr-dark${v.id ? ' item-nav' : ''}"${v.id ? ` onclick="irA('/admin/clientes?id=${v.id}',event)" title="Ver ficha del cliente"` : ''}><span style="display:inline-flex;align-items:center;gap:var(--sp-2)">${i < 3 ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:${coloresRanking[i]};color:#16181D;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>` : `<span style="color:var(--muted);font-size:11px;width:15px;flex-shrink:0">${i+1}.</span>`}${escapeHtml(nombre)}</span><span>${fmtMoney(v.total)}</span></div>`).join('')
       : '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Sin facturación en el período</div>';
 
     // v_rentabilidad_zona_ruta NO tiene security_invoker ni RLS propia —
@@ -3012,6 +3454,94 @@ async function cargarRankingTab(){
   } catch (err) {
     console.error('[dashboard-v3] ranking:', err);
     document.getElementById('rank-clientes').innerHTML = '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>No se pudo cargar</div>';
+  }
+}
+
+// Compras a proveedores (migración 478) — reusa el `compras_proveedor` que
+// ya viaja en /api/admin/kpis (cargarKPIs() lo guarda en
+// window._dashData.comprasProveedor), no pega una segunda vez al backend.
+// Si la migración no corrió todavía en esta empresa, admin.js degrada el
+// campo a null y acá se muestra "Sin datos" sin romper el resto del panel.
+async function cargarComprasTab(){
+  try {
+    if (window._dashData.comprasProveedor === undefined) await cargarKPIs();
+    const c = window._dashData.comprasProveedor;
+
+    if (!c) {
+      setText('compras-saldo', '—');
+      setText('compras-facturado', '—');
+      setText('compras-pagado', '—');
+      setText('compras-vencidas', '—');
+      document.getElementById('compras-top-proveedores').innerHTML =
+        '<div class="data-row-empty dr-dark">Sin datos todavía</div>';
+      reportesCargados.compras = true;
+      return;
+    }
+
+    animarOdometroMoney('compras-saldo', c.saldo_pendiente_total || 0);
+    setText('compras-facturado', fmtMoney(c.total_facturado_periodo || 0));
+    setText('compras-pagado', fmtMoney(c.total_pagado_periodo || 0));
+    setText('compras-vencidas', c.facturas_vencidas_count || 0);
+
+    // Etapa 7 (H.1): esta lista no tenía el límite 4/15 que sí tienen
+    // todas las demás listas de la tarjeta (top urgentes, ranking
+    // clientes/zonas) — con muchos proveedores con saldo, crecía sin
+    // límite y era la principal responsable del contenido recortado en
+    // silencio que detectó la auditoría de esta etapa.
+    const top = (c.top_proveedores_deuda || []).slice(0, vistaAmpliada ? 15 : 4);
+    document.getElementById('compras-top-proveedores').innerHTML = top.length
+      ? top.map(p => `<div class="data-row dr-dark"><span>${escapeHtml(p.nombre || '—')}</span><span style="color:${p.facturas_vencidas > 0 ? 'var(--danger-light)' : 'inherit'}">${fmtMoney(p.saldo_pendiente)}</span></div>`).join('')
+      : '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Sin deuda con proveedores</div>';
+
+    reportesCargados.compras = true;
+  } catch (err) {
+    console.error('[dashboard-v3] compras-proveedor:', err);
+    document.getElementById('compras-top-proveedores').innerHTML = '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>No se pudo cargar</div>';
+  }
+}
+
+/* Gastos generales (migración 479) — tab "Gastos" de Reportes críticos.
+   Ganancia estimada del período = ventas - compras a proveedores - gastos
+   generales; es una foto rápida de caja, distinta de la Ganancia Neta de
+   Reportes → Finanzas (que usa margen bruto por costo real de producto). */
+const CATEGORIA_GASTO_LABEL = {
+  alquiler: 'Alquiler', sueldos: 'Sueldos', servicios: 'Servicios',
+  impuestos: 'Impuestos', otros: 'Otros',
+};
+async function cargarGastosTab(){
+  try {
+    if (window._dashData.gastosGenerales === undefined) await cargarKPIs();
+    const g = window._dashData.gastosGenerales;
+
+    if (!g) {
+      setText('gastos-total', '—');
+      setText('gastos-cantidad', '—');
+      setText('gastos-ganancia-estimada', '—');
+      document.getElementById('gastos-por-categoria').innerHTML =
+        '<div class="data-row-empty dr-dark">Sin datos todavía</div>';
+      reportesCargados.gastos = true;
+      return;
+    }
+
+    animarOdometroMoney('gastos-total', g.total_periodo || 0);
+    setText('gastos-cantidad', `${g.cantidad_periodo || 0} gasto${(g.cantidad_periodo || 0) === 1 ? '' : 's'} cargado${(g.cantidad_periodo || 0) === 1 ? '' : 's'}`);
+
+    const porCategoria = g.por_categoria || [];
+    document.getElementById('gastos-por-categoria').innerHTML = porCategoria.length
+      ? porCategoria.map(c => `<div class="data-row dr-dark"><span>${escapeHtml(CATEGORIA_GASTO_LABEL[c.categoria] || c.categoria)}</span><span>${fmtMoney(c.total)}</span></div>`).join('')
+      : '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Sin gastos cargados en el período</div>';
+
+    const ventas = window._dashData.ventasTotalPeriodo || 0;
+    const compras = window._dashData.comprasProveedor?.total_facturado_periodo || 0;
+    const gananciaEstimada = ventas - compras - (g.total_periodo || 0);
+    setText('gastos-ganancia-estimada', fmtMoney(gananciaEstimada));
+    const elGanancia = document.getElementById('gastos-ganancia-estimada');
+    if (elGanancia) elGanancia.style.color = gananciaEstimada >= 0 ? '#81C784' : 'var(--danger-light)';
+
+    reportesCargados.gastos = true;
+  } catch (err) {
+    console.error('[dashboard-v3] gastos-generales:', err);
+    document.getElementById('gastos-por-categoria').innerHTML = '<div class="data-row-empty dr-dark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>No se pudo cargar</div>';
   }
 }
 
