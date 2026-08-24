@@ -138,13 +138,13 @@ body.dash-empresa-config-gentelella .logo-preview--filled {
 body.dash-empresa-config-gentelella .logo-preview #logo-inicial {
   color: var(--ge-teal-dark) !important;
 }
-body.dash-empresa-config-gentelella .btn-secondary {
+body.dash-empresa-config-gentelella .btn--secondary {
   background: var(--ge-panel) !important;
   color: var(--ge-ink) !important;
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-empresa-config-gentelella .btn-secondary:hover {
+body.dash-empresa-config-gentelella .btn--secondary:hover {
   background: var(--ge-bg) !important;
   border-color: var(--ge-muted) !important;
 }

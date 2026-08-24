@@ -64,7 +64,7 @@ button.btn-primario:not(:disabled):active,
 a.btn-primario:active,
 button.btn-primary:not(:disabled):active,
 a.btn-primary:active {
-  box-shadow: 0 1px 2px rgba(184, 122, 0, .18) !important;
+  box-shadow: 0 1px 2px rgba(106,152,115, .18) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════

@@ -36,7 +36,7 @@
 
 /* ═══════════════════════════════════════════════════════════════════════
  * PRELOADER — overlay de carga a pantalla completa
- * 🔧 FIX: antes no tenía estilos base en ningún CSS del proyecto, por lo
+ * FIX: antes no tenía estilos base en ningún CSS del proyecto, por lo
  * que se renderizaba como un bloque normal dentro del flujo del documento
  * (no como overlay). Eso hacía que ocupara espacio real arriba del layout
  * y que, al removerlo, todo el contenido "saltara" hacia arriba (scroll
@@ -47,7 +47,7 @@
 #app-preloader.preloader {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-overlay-critical);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,11 +62,20 @@
   pointer-events: none;
 }
 .preloader-logo {
-  width: 48px; height: 48px;
+  width: 56px; height: 56px;
   border-radius: var(--radius-full, 50%);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 20px; color: var(--color-surface);
-  background: var(--color-primary);
+  background: var(--color-surface, #fff);
+  box-shadow: 0 2px 10px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
+  padding: 9px;
+  overflow: hidden;
+}
+.preloader-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 .preloader-text {
   font-size: 13px;

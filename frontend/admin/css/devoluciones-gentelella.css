@@ -144,7 +144,7 @@ body.dash-devoluciones-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-devoluciones-gentelella .tabla th {
+body.dash-devoluciones-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -154,51 +154,30 @@ body.dash-devoluciones-gentelella .tabla th {
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 14px 16px !important;
 }
-body.dash-devoluciones-gentelella .tabla td {
+body.dash-devoluciones-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 14px 16px !important;
   font-size: 13px !important;
 }
-body.dash-devoluciones-gentelella .tabla tbody tr:last-child td {
+body.dash-devoluciones-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-devoluciones-gentelella .tabla tbody tr:hover td {
+body.dash-devoluciones-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
   cursor: pointer !important;
 }
 body.dash-devoluciones-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-devoluciones-gentelella .tabla tbody tr:hover .col-sticky-end {
+body.dash-devoluciones-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips de estado (generados por chipEstado() en devoluciones.js)
+   Chips de estado — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
    ════════════════════════════════════════════════════════════ */
-body.dash-devoluciones-gentelella .chip {
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 10px !important;
-}
-body.dash-devoluciones-gentelella .chip-amarillo {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-devoluciones-gentelella .chip-verde {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-devoluciones-gentelella .chip-rojo {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-devoluciones-gentelella .chip-gris {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Botón icono en tabla (Ver detalle)
@@ -337,6 +316,13 @@ body.dash-devoluciones-gentelella .toast {
   border-radius: var(--ge-radius-card) !important;
   box-shadow: var(--ge-shadow-lg) !important;
   font-size: 13px !important;
+  /* FIX v806: el modal de alta manual (#modal-nueva-devolucion) quedó con
+     z-index:1001 / backdrop 1000 (ver FIX v799 más abajo), muy por encima
+     del --z-toast:600 global. Con el modal abierto (p.ej. si el POST
+     devuelve 400 por una validación de v805), el toast de error se
+     renderizaba pero tapado detrás del modal — el usuario no veía ningún
+     feedback y parecía que el botón "Registrar devolución" no hacía nada. */
+  z-index: var(--z-modal-stack-3) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -392,7 +378,7 @@ body.dash-devoluciones-gentelella #modal-backdrop-devolucion {
   position: fixed !important;
   inset: 0 !important;
   background: rgba(42,63,84,.55) !important;
-  z-index: 1000 !important;
+  z-index: var(--z-modal-stack-1) !important;
 }
 body.dash-devoluciones-gentelella #modal-nueva-devolucion {
   position: fixed !important;
@@ -401,8 +387,28 @@ body.dash-devoluciones-gentelella #modal-nueva-devolucion {
   transform: translate(-50%, -50%) !important;
   width: min(640px, 92vw) !important;
   max-height: 88vh !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  z-index: var(--z-modal-stack-2) !important;
+}
+/* FIX v799: el "display: flex !important" vivía en la regla de arriba
+   (aplicada siempre por ID), así que pisaba tanto el display:none
+   inicial del HTML como el display:none que pone
+   cerrarModalNuevaDevolucion() al cerrar — el modal quedaba SIEMPRE
+   visible y era imposible de cerrar. El layout flex-column (para el
+   FIX v797 de header/footer fijos) ahora solo se activa cuando el
+   modal está efectivamente abierto (clase .nd-abierto, controlada
+   por abrirModalNuevaDevolucion()/cerrarModalNuevaDevolucion()). */
+body.dash-devoluciones-gentelella #modal-nueva-devolucion.nd-abierto {
+  display: flex !important;
+}
+body.dash-devoluciones-gentelella #modal-nueva-devolucion .modal-header {
+  flex: none !important;
+}
+body.dash-devoluciones-gentelella .nd-modal-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
   overflow-y: auto !important;
-  z-index: 1001 !important;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -456,6 +462,88 @@ body.dash-devoluciones-gentelella .modal-sec-label {
 body.dash-devoluciones-gentelella .modal-footer {
   border-top: 1px solid var(--ge-border) !important;
   margin: 16px -28px -28px !important;
+  flex: none !important;
+}
+body.dash-devoluciones-gentelella .nd-modal-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+body.dash-devoluciones-gentelella .nd-footer-resumen {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--ge-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+body.dash-devoluciones-gentelella .nd-footer-resumen--ok {
+  color: var(--ge-ink) !important;
+}
+body.dash-devoluciones-gentelella .nd-footer-botones {
+  display: flex !important;
+  gap: 8px !important;
+  flex: none !important;
+}
+
+/* Panel "Seleccionados" — siempre visible con su propio tope de alto,
+   para que agregar muchos ítems no vuelva a estirar el modal entero. */
+body.dash-devoluciones-gentelella .nd-seleccionados-seccion {
+  padding-bottom: 4px !important;
+}
+body.dash-devoluciones-gentelella .nd-seleccionados-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+body.dash-devoluciones-gentelella .nd-seleccionados-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  padding: 0 5px !important;
+  border-radius: 999px !important;
+  background: var(--ge-teal-light, rgba(0,150,136,.12)) !important;
+  color: var(--ge-teal-dark, var(--ge-ink)) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+body.dash-devoluciones-gentelella .nd-items-lista {
+  max-height: 190px !important;
+  overflow-y: auto !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn, 8px) !important;
+  padding: 8px 10px !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-devoluciones-gentelella .nd-items-lista::-webkit-scrollbar { width: 4px; }
+body.dash-devoluciones-gentelella .nd-items-lista::-webkit-scrollbar-thumb {
+  background: var(--ge-border) !important;
+  border-radius: 4px !important;
+}
+/* El picker ya scrollea internamente (pp-grid/pp-list); acá lo achicamos un
+   poco para que no compita con el scroll general del modal (evita doble
+   scrollbar anidado, uno "adentro" del otro). */
+body.dash-devoluciones-gentelella #nd-picker-container .pp-grid,
+body.dash-devoluciones-gentelella #nd-picker-container .pp-list {
+  max-height: 230px !important;
+}
+body.dash-devoluciones-gentelella .nd-picker-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 90px;
+  padding: 12px;
+  border: 1px dashed var(--ge-border);
+  border-radius: var(--ge-radius-btn);
+  background: var(--ge-bg);
+  color: var(--color-text-muted);
+  font-size: 13px;
 }
 
 /* Ítems del alta manual (grid armado en renderNdItems()) */
@@ -469,4 +557,88 @@ body.dash-devoluciones-gentelella #nd-items-container input {
 /* Checkbox de reposición parcial por ítem, en el panel de detalle */
 body.dash-devoluciones-gentelella .chk-item-reponer {
   accent-color: var(--ge-teal) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   COMPACTACIÓN (2026-08-13) — menos aire muerto en la página
+   principal, el panel lateral de detalle y el modal de alta
+   manual; a cambio, tipografía un poco más grande para que la
+   mayor densidad no se sienta apretada.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Página principal: tabla más compacta con texto más legible ── */
+body.dash-devoluciones-gentelella .tabla-header {
+  padding: 12px 16px !important;
+}
+body.dash-devoluciones-gentelella .tabla-header h2 {
+  font-size: 15px !important;
+}
+body.dash-devoluciones-gentelella .tabla-admin th {
+  padding: 10px 14px !important;
+  font-size: 11px !important;
+}
+body.dash-devoluciones-gentelella .tabla-admin td {
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+}
+
+/* ── Panel lateral de detalle: menos padding/gap, texto más grande ── */
+body.dash-devoluciones-gentelella .detalle-panel-header {
+  padding: 12px 16px !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-header h3 {
+  font-size: 16px !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-body {
+  padding: 14px 16px !important;
+  gap: 14px !important;
+}
+body.dash-devoluciones-gentelella .detalle-seccion {
+  gap: 6px !important;
+}
+body.dash-devoluciones-gentelella .detalle-seccion h4 {
+  font-size: 12px !important;
+}
+body.dash-devoluciones-gentelella .detalle-fila {
+  padding: 5px 0 !important;
+  font-size: 14px !important;
+}
+body.dash-devoluciones-gentelella .detalle-fila-label {
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella .detalle-fila-val {
+  font-size: 14px !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-footer {
+  padding: 12px 16px !important;
+  gap: 8px !important;
+}
+body.dash-devoluciones-gentelella .detalle-panel-opciones {
+  gap: 8px !important;
+  font-size: 13px !important;
+  margin-bottom: 8px !important;
+}
+body.dash-devoluciones-gentelella #panel-notas-edit {
+  font-size: 13px !important;
+}
+
+/* ── Modal "Registrar devolución": secciones más ajustadas ── */
+body.dash-devoluciones-gentelella .modal-header {
+  padding-bottom: 10px !important;
+  margin-bottom: 12px !important;
+}
+body.dash-devoluciones-gentelella .modal-seccion {
+  padding: 12px 0 !important;
+}
+body.dash-devoluciones-gentelella .modal-sec-label {
+  margin-bottom: 8px !important;
+  font-size: 12px !important;
+}
+body.dash-devoluciones-gentelella #modal-nueva-devolucion label {
+  font-size: 13px !important;
+}
+body.dash-devoluciones-gentelella #modal-nueva-devolucion select,
+body.dash-devoluciones-gentelella #modal-nueva-devolucion textarea,
+body.dash-devoluciones-gentelella #modal-nueva-devolucion input[type="file"] {
+  font-size: 14px !important;
 }

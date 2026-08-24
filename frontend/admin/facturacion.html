@@ -14,12 +14,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/facturacion.css?v=222" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/facturacion.css?v=223" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -30,7 +30,8 @@
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/facturacion-gentelella.css?v=1" />
   <link rel="stylesheet" href="/shared/pagination.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
@@ -100,11 +101,6 @@
     <!-- ══ Panel: facturas ══ -->
     <div id="panel-facturas">
 
-    <!-- ── Monto del mes (no es una categoría filtrable, los pills de abajo ya cubren pendientes/emitidas/error/anuladas) ── -->
-    <div class="franja-resumen-sololectura">
-      <span>Facturado (mes): <strong id="kpi-total">—</strong></span>
-    </div>
-
     <!-- ── Banner de errores ── -->
     <div class="banner-error" id="banner-error" style="display:none">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -128,6 +124,8 @@
         </div>
       </div>
       <div class="filtros-der">
+        <!-- Monto del mes: no es una categoría filtrable (los pills de la izquierda ya cubren pendientes/emitidas/error/anuladas), va integrado acá para no dejar una franja propia con espacio en blanco -->
+        <div class="dato-sello dato-sello--integrado"><div class="dato-sello-valor" id="kpi-total">—</div><div class="dato-sello-etiqueta">Facturado (mes)</div></div>
         <select id="filtro-periodo" class="select-filtro" onchange="onFiltroPeriodo()">
           <option value="mes">Este mes</option>
           <option value="anterior">Mes anterior</option>
@@ -146,18 +144,18 @@
     </div>
 
     <!-- ── Tabla ── -->
-    <div class="tabla-wrap">
-      <table class="tabla-facturas">
+    <div class="tabla-wrap table-responsive-cards">
+      <table class="tabla-admin">
         <thead>
             <tr>
-            <th>Comprobante</th>
+            <th class="col-fit">Comprobante</th>
             <th class="thead-sep">Cliente</th>
-            <th>Fecha emisión</th>
-            <th class="thead-sep">CAE</th>
-            <th>Vencimiento</th>
-            <th class="th-num thead-sep">Total</th>
-            <th>Estado</th>
-            <th class="col-sticky-end">Acciones</th>
+            <th class="col-fit">Fecha emisión</th>
+            <th class="thead-sep col-fit">CAE</th>
+            <th class="col-fit">Vencimiento</th>
+            <th class="th-num thead-sep col-fit">Total</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-sticky-end col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-body"><tr><td colspan="8" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -183,17 +181,17 @@
       </div>
 
       <!-- Tabla NC -->
-      <div class="tabla-wrap">
-        <table class="tabla-facturas">
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>N° NC</th>
+              <th class="col-fit">N° NC</th>
               <th class="thead-sep">Cliente</th>
-              <th>Fecha</th>
-              <th class="thead-sep">Factura asociada</th>
-              <th class="th-num">Total</th>
-              <th class="thead-sep">Estado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="col-fit">Fecha</th>
+              <th class="thead-sep col-fit">Factura asociada</th>
+              <th class="th-num col-fit">Total</th>
+              <th class="thead-sep col-fit">Estado</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody-nc"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -223,15 +221,15 @@
         </div>
       </div>
 
-      <div class="tabla-wrap">
-        <table class="tabla-facturas">
+      <div class="tabla-wrap table-responsive-cards">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Tipo</th>
-              <th>Número original</th>
-              <th>Cliente</th>
-              <th>Fecha</th>
-              <th class="th-num">Monto</th>
+              <th class="col-fit">Tipo</th>
+              <th class="col-fit">Número original</th>
+              <th class="col-fit">Cliente</th>
+              <th class="col-fit">Fecha</th>
+              <th class="th-num col-fit">Monto</th>
               <th>Observaciones</th>
             </tr>
           </thead>
@@ -244,6 +242,12 @@
 
   </main>
 </div>
+
+<!-- Menús flotantes únicos para las acciones secundarias de cada fila
+     (facturas / notas de crédito). Se reposicionan por JS al hacer click
+     en el botón "⋮" de cualquier fila — mismo patrón que cc-proveedores. -->
+<div class="dropdown-menu" id="menu-acciones-factura" role="menu" hidden style="position:fixed"></div>
+<div class="dropdown-menu" id="menu-acciones-nc" role="menu" hidden style="position:fixed"></div>
 
 <!-- ════════════════════════════════════════════════════════════
      Modal: detalle de factura
@@ -447,16 +451,17 @@
   <script src="/frontend/env-config.js?v1782328742714"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
   <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+  <script src="/frontend/shared/componentes-admin.js?v=1"></script>
   <script src="/frontend/admin/js/facturacion.js?v1782328742714"></script>
   <script src="/frontend/admin/js/notas-credito.js?v1782328742714"></script>
 
@@ -514,12 +519,12 @@
       }
       tbody.innerHTML = rows.map(r => `
         <tr>
-          <td>${TIPO_LABEL_CH[r.tipo] || r.tipo}</td>
-          <td>${r.numero_original || '—'}</td>
-          <td>${r.clientes?.nombre_fantasia || r.clientes?.razon_social || '—'}</td>
-          <td>${r.fecha ? new Date(r.fecha + 'T00:00:00').toLocaleDateString('es-AR') : '—'}</td>
-          <td class="th-num">$${Number(r.monto || 0).toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
-          <td>${r.observaciones || '—'}</td>
+          <td data-label="Tipo">${TIPO_LABEL_CH[r.tipo] || r.tipo}</td>
+          <td data-label="Número original">${r.numero_original || '—'}</td>
+          <td data-label="Cliente">${r.clientes?.nombre_fantasia || r.clientes?.razon_social || '—'}</td>
+          <td data-label="Fecha">${r.fecha ? new Date(r.fecha + 'T00:00:00').toLocaleDateString('es-AR') : '—'}</td>
+          <td class="th-num" data-label="Monto">$${Number(r.monto || 0).toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
+          <td data-label="Observaciones">${r.observaciones || '—'}</td>
         </tr>
       `).join('');
     }

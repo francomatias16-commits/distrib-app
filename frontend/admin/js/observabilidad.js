@@ -33,8 +33,30 @@ window.authReady.then(async (ctx) => {
   }
   const usr = document.getElementById('topbar-usuario');
   if (usr) usr.textContent = perfil.nombre || perfil.email || '';
+  initFiltroTabsResumen();
   cargarTodo();
 }).catch(err => console.error('[observabilidad] authReady falló:', err?.message));
+
+// ── Barra de pills "Eventos totales / Procesados / Pendientes / En error" ──
+// Mismo componente (FiltroTabs) que riesgo-cheques/cheques/cta-cte: se crea
+// una sola vez acá y después solo se le actualizan los contadores en cada
+// cargarTodo(). Cada pill filtra, en el cliente, la tabla "Por tipo de
+// evento" de abajo por esa columna — igual que "En riesgo" filtra la tabla
+// de riesgo-cheques.js — así el click no queda "de adorno".
+let filtroResumenActivo = '';
+let _porTipoDataActual = [];
+
+function initFiltroTabsResumen() {
+  FiltroTabs.crear(document.getElementById('cards-resumen'), [
+    { key: '',          label: 'Eventos totales' },
+    { key: 'procesado', label: 'Procesados' },
+    { key: 'pendiente', label: 'Pendientes' },
+    { key: 'error',     label: 'En error' },
+  ], '', (key) => {
+    filtroResumenActivo = key;
+    renderPorTipo(_porTipoDataActual);
+  });
+}
 
 async function cargarTodo() {
   const horas = document.getElementById('horas-select')?.value || 24;
@@ -68,37 +90,62 @@ async function cargarTodo() {
   }
 }
 
+// Íconos línea Lucide — quedaron sin uso desde que las cards de resumen
+// pasaron a pills FiltroTabs (sin ícono, ver initFiltroTabsResumen); se
+// eliminaron junto con _svg()/_kpiCard() para no dejar código muerto.
+
 function renderResumen(resumen) {
-  const cont = document.getElementById('cards-resumen');
   const r = resumen || { total: 0, pendiente: 0, procesado: 0, error: 0, pendiente_sin_listener: 0 };
   const sinListener = r.pendiente_sin_listener || 0;
+
+  FiltroTabs.actualizarContadores(document.getElementById('cards-resumen'), {
+    '':          r.total,
+    procesado:   r.procesado,
+    pendiente:   r.pendiente,
+    error:       r.error,
+  });
+
   // Los pendientes "sin listener" (tipos de evento sin reacción migrada
   // todavía, ver TIPOS_EVENTO_SIN_LISTENER) van a quedar así para siempre
-  // por diseño — se aclara en la propia card para no leerse como una cola
-  // atascada del despachador.
-  const notaSinListener = sinListener > 0
-    ? `<div class="obs-card-nota">de los cuales ${sinListener} son de tipos sin listener asignado (trazabilidad, no requiere acción)</div>`
-    : '';
-  cont.innerHTML = `
-    <div class="obs-card"><div class="valor">${r.total}</div><div class="label">Eventos totales</div></div>
-    <div class="obs-card card-procesado"><div class="valor">${r.procesado}</div><div class="label">Procesados</div></div>
-    <div class="obs-card card-pendiente"><div class="valor">${r.pendiente}</div><div class="label">Pendientes</div>${notaSinListener}</div>
-    <div class="obs-card card-error"><div class="valor">${r.error}</div><div class="label">En error</div></div>
-  `;
+  // por diseño — se aclara acá para no leerse como una cola atascada del
+  // despachador. Antes vivía dentro de la card "Pendientes"; el pill no
+  // tiene lugar para texto largo, así que queda como nota debajo de la barra.
+  const notaEl = document.getElementById('obs-nota-sin-listener');
+  if (sinListener > 0) {
+    notaEl.textContent = `De los pendientes, ${sinListener} son de tipos sin listener asignado (trazabilidad, no requiere acción).`;
+    notaEl.classList.remove('hidden');
+  } else {
+    notaEl.classList.add('hidden');
+  }
 }
 
 function renderPorTipo(porTipo) {
+  _porTipoDataActual = porTipo;
   const body  = document.getElementById('tabla-por-tipo-body');
   const vacio = document.getElementById('tabla-por-tipo-vacio');
+
+  // El pill activo filtra por esa columna > 0 (key '' = sin filtro, todos).
+  const filtrado = filtroResumenActivo
+    ? porTipo.filter(t => Number(t[filtroResumenActivo] || 0) > 0)
+    : porTipo;
+
   if (!porTipo.length) {
     document.getElementById('tabla-por-tipo').style.display = 'none';
     vacio.classList.remove('hidden');
+    vacio.textContent = 'Sin eventos en esta ventana.';
     return;
   }
   document.getElementById('tabla-por-tipo').style.display = '';
+
+  if (!filtrado.length) {
+    document.getElementById('tabla-por-tipo').style.display = 'none';
+    vacio.classList.remove('hidden');
+    vacio.textContent = 'Ningún tipo de evento tiene movimientos en ese estado.';
+    return;
+  }
   vacio.classList.add('hidden');
 
-  body.innerHTML = porTipo.map(t => `
+  body.innerHTML = filtrado.map(t => `
     <tr>
       <td>${window.sanitize(t.tipo_evento)}${t.sin_listener ? ' <span class="badge-sin-listener" title="Sin listener asignado — queda en pendiente por diseño, es trazabilidad">sin listener</span>' : ''}</td>
       <td class="num">${t.total}</td>
@@ -158,7 +205,7 @@ function renderTiempoFacturacion(datos) {
   const muestras = datos?.muestras || 0;
   const prom = datos?.promedio_minutos;
   cont.innerHTML = `
-    <div class="obs-card"><div class="valor">${muestras}</div><div class="label">Pedidos facturados (con dato)</div></div>
-    <div class="obs-card"><div class="valor">${prom != null ? `${prom} min` : '—'}</div><div class="label">Promedio pedido → factura</div></div>
+    <div class="dato-sello"><div class="dato-sello-valor">${muestras}</div><div class="dato-sello-etiqueta">Pedidos facturados (con dato)</div></div>
+    <div class="dato-sello"><div class="dato-sello-valor">${prom != null ? `${prom} min` : '—'}</div><div class="dato-sello-etiqueta">Promedio pedido → factura</div></div>
   `;
 }

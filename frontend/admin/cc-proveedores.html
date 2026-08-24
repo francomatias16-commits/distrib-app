@@ -14,12 +14,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=198" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -31,7 +31,8 @@
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/cc-proveedores-gentelella.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -66,13 +67,10 @@
          -> franja de solo lectura. -->
     <div class="barra-filtros" id="filtro-tabs-cc-proveedores"></div>
     <div class="franja-resumen-sololectura">
-      <span>Proveedores con saldo: <strong id="kv-proveedores">—</strong></span>
-      <span class="sep">·</span>
-      <span>Total facturado: <strong id="kv-facturado">—</strong></span>
-      <span class="sep">·</span>
-      <span>Total pagado: <strong id="kv-pagado">—</strong></span>
-      <span class="sep">·</span>
-      <span>Saldo pendiente: <strong id="kv-saldo">—</strong></span>
+      <div class="dato-sello"><div class="dato-sello-valor" id="kv-proveedores">—</div><div class="dato-sello-etiqueta">Proveedores con saldo</div></div>
+      <div class="dato-sello"><div class="dato-sello-valor" id="kv-facturado">—</div><div class="dato-sello-etiqueta">Total facturado</div></div>
+      <div class="dato-sello" data-tono="verde"><div class="dato-sello-valor" id="kv-pagado">—</div><div class="dato-sello-etiqueta">Total pagado</div></div>
+      <div class="dato-sello" data-tono="ambar"><div class="dato-sello-valor" id="kv-saldo">—</div><div class="dato-sello-etiqueta">Saldo pendiente</div></div>
     </div>
 
     <!-- Filtros ───────────────────────────────────────────────────── -->
@@ -103,19 +101,19 @@
 
     <!-- Tabla de facturas ─────────────────────────────────────────── -->
     <div class="tabla-wrap">
-      <table class="tabla-main">
+      <table class="tabla-admin">
         <thead>
             <tr>
-            <th>N° Factura</th>
+            <th class="col-fit">N° Factura</th>
             <th>Proveedor</th>
-            <th class="thead-sep">OC vinculada</th>
-            <th>Fecha</th>
-            <th class="thead-sep">Vence</th>
-            <th style="text-align:left">Total</th>
-            <th style="text-align:left">Pagado</th>
-            <th style="text-align:left" class="thead-sep">Saldo</th>
-            <th>Estado</th>
-            <th class="col-sticky-end">Acciones</th>
+            <th class="thead-sep col-fit">OC vinculada</th>
+            <th class="col-fit">Fecha</th>
+            <th class="thead-sep col-fit">Vence</th>
+            <th style="text-align:left" class="col-fit">Total</th>
+            <th style="text-align:left" class="col-fit">Pagado</th>
+            <th style="text-align:left" class="thead-sep col-fit">Saldo</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-sticky-end col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tbody-facturas">
@@ -213,7 +211,7 @@
         </div>
 
         <!-- Resumen de totales — visible en tab Datos -->
-        <div id="resumen-datos" style="margin-top:16px;padding:14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
+        <div id="resumen-datos" class="cc-totales-grid" style="margin-top:16px;padding:14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
           <div>
             <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Subtotal</div>
             <div style="font-size:18px;font-weight:600" id="resumen-subtotal">$0,00</div>
@@ -252,7 +250,7 @@
           </table>
         </div>
         <!-- Totales dentro del panel Ítems -->
-        <div style="margin-top:12px;padding:12px 14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
+        <div class="cc-totales-grid" style="margin-top:12px;padding:12px 14px;background:var(--color-surface-2);border-radius: var(--radius-md);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:right">
           <div>
             <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em">Subtotal</div>
             <div style="font-size:16px;font-weight:600" id="resumen-subtotal-items">$0,00</div>
@@ -384,12 +382,10 @@
 }
 .kpi-valor { font-size: 22px; font-weight: 700; }
 
-/* ── Badge de estado factura ──────────────────────────── */
-.badge-pendiente { background:var(--color-warning-bg);color:var(--color-warning); }
-.badge-parcial   { background:#dbeafe;color:#1e40af; }
-.badge-pagada    { background:#dcfce7;color:#166534; }
-.badge-anulada   { background:var(--color-surface-2);color:var(--color-text-muted); }
-.badge-vencida   { background:#fee2e2;color:var(--color-danger); }
+/* Badge de estado factura: migrado al componente canónico
+   (.badge-estado + .badge-{ok|info|critico|pendiente|inactivo} en
+   frontend/shared/componentes-admin.css) — este bloque local quedó
+   sin uso, eliminado en la migración piloto (Fase 0). */
 
 /* ── Cruce de ítems ───────────────────────────────────── */
 .cruce-table { width:100%;border-collapse:collapse;font-size:12px }
@@ -403,6 +399,20 @@
 .item-row td { padding: 5px 8px; border-bottom: 1px solid var(--color-border) }
 .item-row input { border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;font-family:inherit }
 .item-row input:focus { outline:none;border-color:var(--color-primary) }
+
+/* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.5/1.7): sin @media propio.
+   .form-grid y .cc-totales-grid (agregada acá para poder targetearla)
+   fijan grid-template-columns por atributo style="" inline (2 y 3
+   columnas), lo que en 320-360px aprieta demasiado los campos de
+   factura y los totales. Se fuerza 1 columna con !important, único
+   caso justificado porque es la única forma de ganarle a un estilo
+   inline sin tocar el JS que genera ese markup. */
+@media (max-width: 480px) {
+  .form-grid,
+  .cc-totales-grid { grid-template-columns: 1fr !important; text-align: left !important; }
+  .cruce-table { font-size: 11px; }
+  .cruce-table th, .cruce-table td { padding: 6px 6px; }
+}
 </style>
 
 <script src="/frontend/env-config.js?v=125"></script>
@@ -413,14 +423,15 @@
 <script>
   window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
 </script>
-<script src="/frontend/admin/js/auth.js?v1782670000000"></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+<script src="/frontend/shared/componentes-admin.js?v=1"></script>
 <script type="module" src="/frontend/admin/js/cc-proveedores.js?v282"></script>
 <script src="/frontend/shared/tabla-agrupada.js"></script>
 </body>

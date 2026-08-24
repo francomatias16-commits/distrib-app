@@ -11,8 +11,9 @@
  * patrones de `.tabla-wrap`, `.col-sticky-end`, `.btn--secondary` y modal ya
  * establecidos en `cobranzas-gentelella.css`. Particularidades propias de esta
  * pantalla: `.tabla-footer` (botón "Cargar más" centrado), y el modal de detalle
- * de cambio con `.diff-grid`/`.diff-col`/`.diff-field-changed` (comparación
- * antes/después en dos columnas con `<pre>`).
+ * de cambio con `.diff-grid`/`.diff-col`/`.diff-campos`/`.diff-campo.cambiado`
+ * (comparación antes/después en dos columnas, un campo por fila con label
+ * humanizado — ya no `<pre>` de JSON crudo).
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
@@ -102,7 +103,7 @@ body.dash-auditoria-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-auditoria-gentelella .tabla th {
+body.dash-auditoria-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -113,22 +114,22 @@ body.dash-auditoria-gentelella .tabla th {
   padding: 11px 14px !important;
   white-space: nowrap !important;
 }
-body.dash-auditoria-gentelella .tabla td {
+body.dash-auditoria-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-auditoria-gentelella .tabla tbody tr:last-child td {
+body.dash-auditoria-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-auditoria-gentelella .tabla tbody tr:hover td {
+body.dash-auditoria-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
 }
 body.dash-auditoria-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-auditoria-gentelella .tabla tbody tr:hover .col-sticky-end {
+body.dash-auditoria-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
@@ -206,13 +207,19 @@ body.dash-auditoria-gentelella .diff-col h4 {
   text-transform: uppercase !important;
   letter-spacing: .04em !important;
 }
-body.dash-auditoria-gentelella .diff-col pre {
+body.dash-auditoria-gentelella .diff-campos {
   background: var(--ge-bg) !important;
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-ink) !important;
 }
-body.dash-auditoria-gentelella .diff-field-changed {
+body.dash-auditoria-gentelella .diff-campo {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-auditoria-gentelella .diff-campo-lbl {
+  color: var(--ge-muted) !important;
+}
+body.dash-auditoria-gentelella .diff-campo.cambiado {
   background: rgba(240,173,78,.15) !important;
 }
 

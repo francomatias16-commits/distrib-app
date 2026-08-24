@@ -120,7 +120,7 @@ body.dash-notas-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-notas-gentelella .tabla th {
+body.dash-notas-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -130,23 +130,23 @@ body.dash-notas-gentelella .tabla th {
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 14px 16px !important;
 }
-body.dash-notas-gentelella .tabla td {
+body.dash-notas-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 14px 16px !important;
   font-size: 13px !important;
 }
-body.dash-notas-gentelella .tabla tbody tr:last-child td {
+body.dash-notas-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-notas-gentelella .tabla tbody tr:hover td {
+body.dash-notas-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
   cursor: pointer !important;
 }
 body.dash-notas-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-notas-gentelella .tabla tbody tr:hover .col-sticky-end {
+body.dash-notas-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
@@ -164,27 +164,13 @@ body.dash-notas-gentelella .monto-rojo {
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips (generados por JS)
+   Chips — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
+   Nota: chip-azul acá usaba rgba(52,152,219,.12) en vez de .13 como
+   el resto de chip-azul en el resto de la app — otra normalización
+   de píxel imperceptible (1% de opacidad), igual que el font-weight
+   y el alpha de chip-rojo documentados en el componente canónico.
    ════════════════════════════════════════════════════════════ */
-body.dash-notas-gentelella .chip {
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 10px !important;
-}
-body.dash-notas-gentelella .chip-verde {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-notas-gentelella .chip-rojo {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
-/* chip-azul: estado "Emitida" — usa --ge-blue de los tokens */
-body.dash-notas-gentelella .chip-azul {
-  background: rgba(52,152,219,.12) !important;
-  color: var(--ge-blue) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Botón icono en tabla
@@ -386,16 +372,15 @@ body.dash-notas-gentelella .toast {
   }
 }
 
-/* ── Z-INDEX ESCALADO: confirm por encima de #modal-nota ──
-   BUG REAL (no solo de los tests): #modal-nota usa la clase .modal-overlay
-   (finanzas.css, z-index:500). window.confirmar() usa --z-modal (default
-   400, shared/tokens.css). Con #modal-nota abierto, el diálogo de
-   confirmación de emisión ("Emitir"/"Revisar") queda VISUALMENTE DETRÁS
-   del modal — su botón "ok" es inclickeable con mouse para cualquier
-   usuario real, no solo para Playwright. Mismo hallazgo y mismo fix ya
-   aplicado en cheques-gentelella.css y cobranzas-gentelella.css — nunca
-   se replicó acá cuando notas.html adoptó el mismo patrón de modal.
-   --z-toast ya estaba bien (600 > 500). */
-:root {
-  --z-modal: 10100;
-}
+/* ── Z-INDEX: confirm por encima de #modal-nota ──
+   #modal-nota usa la clase .modal-overlay (finanzas.css, --z-flyout:500).
+   window.confirmar() usaba --z-modal (400, shared/tokens.css), así que el
+   diálogo de confirmación de emisión ("Emitir"/"Revisar") quedaba
+   VISUALMENTE DETRÁS del modal — su botón "ok" era inclickeable con mouse
+   para cualquier usuario real, no solo para Playwright.
+   FIX (2026-08-22): en vez de subir --z-modal acá (lo que arreglaba este
+   diálogo pero rompía el backdrop del "Menú principal" global, que también
+   usa --z-modal — el fondo oscuro del menú quedaba por encima de su propio
+   panel en TODA la página de notas), window.confirmar() ahora usa un token
+   propio, --z-confirm-dialog (750, shared/tokens.css), ya por encima de
+   --z-flyout sin tocar --z-modal. Esta sobreescritura ya no hace falta. */

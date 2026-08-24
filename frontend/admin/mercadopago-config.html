@@ -10,58 +10,118 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
   <script src="/frontend/env-config.js?v1782328742714"></script>
   <style>
+    /* Layout en 3 columnas (en vez de 2, con la izquierda apilando 3
+       tarjetas): reparte las 4 tarjetas — estado, credenciales, QR, guía —
+       de forma que ninguna columna quede mucho más alta que las otras, para
+       que las cuatro entren en el viewport sin scroll vertical en pantallas
+       de escritorio típicas. */
     .cfg-wrap {
-      max-width: 1080px; margin: 0 auto; padding: 18px 24px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start;
+      max-width: 1280px; margin: 0 auto; padding: 14px 24px;
+      display: grid;
+      grid-template-columns: minmax(240px,300px) minmax(280px,360px) minmax(260px,1fr);
+      grid-template-areas:
+        "alerta alerta alerta"
+        "estado qr     guia"
+        "cred   qr     guia";
+      gap: 14px 18px; align-items: start;
     }
-    .cfg-wrap > #alerta { grid-column: 1 / -1; margin-bottom: 0; }
-    .cfg-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-    @media (max-width: 900px) {
-      .cfg-wrap { grid-template-columns: 1fr; max-width: 660px; }
+    /* Mientras Mercado Pago no está conectado, la tarjeta de QR (columna
+       del medio) no existe todavía — antes esa columna quedaba reservada
+       igual y se veía como un hueco vacío entre "Credenciales" y "Cómo
+       obtener tu Access Token". Con la cuenta sin conectar, el layout pasa
+       a 2 columnas (sin el hueco) hasta que aparece la tarjeta de QR. */
+    .cfg-wrap.sin-qr {
+      grid-template-columns: minmax(280px,380px) minmax(320px,1fr);
+      grid-template-areas:
+        "alerta alerta"
+        "estado guia"
+        "cred   guia";
     }
-    .cfg-card { background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl); padding:22px 24px; margin-bottom:0; }
+    .cfg-wrap > #alerta { grid-area: alerta; margin-bottom: 0; }
+    .cfg-card-estado { grid-area: estado; }
+    .cfg-card-cred   { grid-area: cred; }
+    .cfg-card-qr     { grid-area: qr; }
+    .cfg-card-guia   { grid-area: guia; }
+    @media (max-width: 1100px) {
+      /* Sin espacio para 3 columnas: vuelve al apilado de 2 columnas
+         (estado+cred+qr a la izquierda, guía a la derecha) — en este ancho
+         ya no se pretende evitar el scroll, prioriza que no quede apretado. */
+      .cfg-wrap {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "alerta alerta"
+          "estado guia"
+          "cred   guia"
+          "qr     guia";
+        max-width: 760px;
+      }
+      .cfg-wrap.sin-qr {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "alerta alerta"
+          "estado guia"
+          "cred   guia";
+      }
+    }
+    @media (max-width: 700px) {
+      .cfg-wrap, .cfg-wrap.sin-qr {
+        grid-template-columns: 1fr;
+        grid-template-areas: "alerta" "estado" "cred" "qr" "guia";
+        max-width: 480px;
+      }
+    }
+    .cfg-card { background:var(--color-surface); border:1px solid var(--color-border-soft); border-radius: var(--radius-xl); padding:18px 20px; margin-bottom:0; }
     @media (max-width: 600px) {
       .cfg-wrap { padding: 14px; }
       .cfg-card { padding: 18px; }
+
+      /* AUDITORIA-RESPONSIVE-ETAPA4: quedaban en ~35px de alto en mobile.
+         Migrados al componente canónico .btn.btn--primary/.btn--danger
+         (Hallazgo #7 del plan de unificación) — se mantiene el ajuste de altura. */
+      .btn--primary, .btn--danger { min-height: 40px; }
     }
-    .cfg-card h2 { font-size:16px; font-weight:600; margin:0 0 3px; }
-    .cfg-card .sub { font-size:12.5px; color:var(--color-text-muted); margin:0 0 14px; }
-    .form-group { margin-bottom:13px; }
-    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:5px; }
+    .cfg-card h2 { font-size:15.5px; font-weight:600; margin:0 0 3px; }
+    .cfg-card .sub { font-size:12px; color:var(--color-text-muted); margin:0 0 12px; }
+    .form-group { margin-bottom:11px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:4px; }
     .form-group input, .form-group select, .form-group textarea {
-      width:100%; padding:8px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md);
+      width:100%; padding:7px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md);
       font-size:14px; box-sizing:border-box; outline:none; transition:border .15s;
       font-family:inherit;
     }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--color-primary); }
     .form-group .hint { font-size:11.5px; color:var(--color-text-light); margin-top:4px; }
-    .btn-primary { background:var(--color-primary); color:var(--color-surface); border:none; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; font-weight:500; cursor:pointer; }
-    .btn-primary:hover { background:var(--color-primary); }
-    .btn-danger { background:var(--color-surface); color:var(--color-danger-mid); border:1px solid #fca5a5; padding:9px 18px; border-radius: var(--radius-md); font-size:14px; cursor:pointer; }
-    .btn-danger:hover { background:var(--color-danger-bg); }
+    /* Fila de dos campos lado a lado (calle+altura, ciudad+provincia en el
+       formulario de QR) — reduce bastante la altura de esa tarjeta vs. tener
+       los 5 campos apilados uno debajo del otro. */
+    .form-row { display:flex; gap:10px; }
+    .form-row .form-group { flex:1; min-width:0; }
+    .form-row .form-group.form-group--narrow { flex:0 0 92px; }
+    /* El look de estos botones ya lo da el componente canónico .btn.btn--primary/.btn--danger
+       (tokens.css) + el ajuste de border-radius/font-weight en mercadopago-config-gentelella.css. */
     .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
     .alerta { padding:11px 15px; border-radius: var(--radius-md); font-size:13px; margin-bottom:16px; display:none; }
     .alerta-ok  { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
     .alerta-err { background:var(--color-danger-bg); color:var(--color-danger); border:1px solid #fca5a5; }
     .alerta-inf { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
-    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius: var(--radius-full); font-size:12px; font-weight:500; margin-bottom:10px; }
-    .chip-ok  { background:#ecfdf5; color:#065f46; }
-    .chip-no  { background:var(--color-warning-bg); color:var(--color-warning); }
-    .paso { display:flex; gap:11px; align-items:flex-start; padding:8px 0; border-bottom:1px solid #f3f4f6; }
+    /* .chip/.chip-ok/.chip-no movidos al componente canónico
+       (frontend/shared/componentes-admin.css, Hallazgo #2 del plan). */
+    .chip { margin-bottom:10px; }
+    .paso { display:flex; gap:11px; align-items:flex-start; padding:6px 0; border-bottom:1px solid #f3f4f6; }
     .paso:last-child { border-bottom:none; }
     .paso-n { width:22px; height:22px; border-radius:50%; background:var(--color-primary); color:var(--color-surface); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-    .paso-t { font-size:12.5px; color:var(--color-text); line-height:1.5; }
+    .paso-t { font-size:12.5px; color:var(--color-text); line-height:1.45; }
     .paso-t code { background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-sm); font-size:11.5px; }
     .paso-t a { color:var(--color-primary); }
-    hr.div { border:none; border-top:1px solid var(--color-border-soft); margin:14px 0; }
+    hr.div { border:none; border-top:1px solid var(--color-border-soft); margin:12px 0; }
   </style>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -70,6 +130,7 @@
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/mercadopago-config-gentelella.css" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -95,25 +156,31 @@
   <main class="main">
     <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
     <div id="contenido" style="display:none">
-      <div class="cfg-wrap">
+      <div class="cfg-wrap sin-qr" id="cfg-wrap">
 
         <div id="alerta" class="alerta"></div>
 
-        <div class="cfg-col cfg-col-left">
-          <!-- Estado actual -->
-          <div class="cfg-card" style="padding:14px 24px">
-            <div>
-              <span id="chip-estado" class="chip chip-no"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin conectar</span>
-            </div>
-            <p id="txt-estado" style="font-size:13px;color:var(--color-text-muted);margin:0">
-              Conectá tu cuenta de Mercado Pago para empezar a cobrar pedidos online.
-            </p>
+        <!-- Estado actual -->
+        <div class="cfg-card cfg-card-estado" style="padding:12px 20px">
+          <div>
+            <span id="chip-estado" class="chip chip-no"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Sin conectar</span>
+          </div>
+          <p id="txt-estado" style="font-size:13px;color:var(--color-text-muted);margin:0">
+            Conectá tu cuenta de Mercado Pago para empezar a cobrar pedidos online.
+          </p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="cfg-card cfg-card-cred">
+          <h2>Credenciales</h2>
+          <p class="sub" id="txt-metodo-conexion">Conectá con un click, o pegá tu Access Token a mano si preferís.</p>
+
+          <div class="acciones" style="margin-bottom:14px">
+            <button type="button" class="btn btn--primary" id="btn-conectar-oauth" onclick="btnAsyncClick(this, conectarOAuth)">Conectar con Mercado Pago</button>
           </div>
 
-          <!-- Formulario -->
-          <div class="cfg-card">
-            <h2>Credenciales</h2>
-            <p class="sub">El Access Token se guarda cifrado. Nunca se vuelve a mostrar en este panel.</p>
+          <details id="detalle-manual">
+            <summary style="cursor:pointer;font-size:12.5px;color:var(--color-text-muted);margin-bottom:10px">o pegar el Access Token a mano</summary>
 
             <div class="form-group">
               <label>Access Token <span style="color:var(--color-danger-mid)">*</span></label>
@@ -126,25 +193,95 @@
               <input type="text" id="public_key" placeholder="APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" aria-label="Public Key">
             </div>
 
-            <hr class="div">
-
             <div class="acciones">
-              <button type="button" class="btn-primary" onclick="btnAsyncClick(this, guardarConfig)">Guardar y validar</button>
-              <button type="button" class="btn-danger" id="btn-desconectar" onclick="desconectar()" style="display:none">Desconectar cuenta</button>
+              <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, guardarConfig)">Guardar y validar</button>
             </div>
+          </details>
+
+          <hr class="div">
+
+          <div class="acciones">
+            <button type="button" class="btn btn--danger" id="btn-desconectar" onclick="desconectar()" style="display:none">Desconectar cuenta</button>
           </div>
         </div>
 
-        <div class="cfg-col cfg-col-right">
-          <!-- Guía -->
-          <div class="cfg-card">
-            <h2>Cómo obtener tu Access Token</h2>
-            <p class="sub">Esto se hace una vez por empresa, con tu propia cuenta de Mercado Pago — Fluxo nunca ve tu contraseña de MP.</p>
-            <div class="paso"><span class="paso-n">1</span><p class="paso-t">Entrá a tu <a href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank">panel de desarrolladores de Mercado Pago</a> con la cuenta de tu negocio.</p></div>
-            <div class="paso"><span class="paso-n">2</span><p class="paso-t">Si no tenés una aplicación creada, hacé clic en <strong>"Crear aplicación"</strong> (cualquier nombre, por ejemplo "Fluxo").</p></div>
-            <div class="paso"><span class="paso-n">3</span><p class="paso-t">Entrá a la app → <strong>Credenciales de producción</strong> → copiá el <code>Access Token</code> (empieza con <code>APP_USR-</code>). Para probar primero, podés usar las <strong>Credenciales de prueba</strong> (empiezan con <code>TEST-</code>).</p></div>
-            <div class="paso"><span class="paso-n">4</span><p class="paso-t">Pegalo abajo y guardá. Vamos a validarlo contra Mercado Pago antes de guardarlo.</p></div>
+        <!-- Cobro con QR en el POS -->
+        <div class="cfg-card cfg-card-qr" id="card-qr" style="display:none">
+          <h2>Cobro con QR en caja</h2>
+          <p class="sub">Usa la misma cuenta de arriba. Se configura una sola vez: después, cada venta del POS carga el monto sobre este mismo QR — no hace falta imprimir uno nuevo por venta.</p>
+
+          <div id="qr-sin-configurar">
+            <div class="form-group">
+              <label>Nombre de la sucursal</label>
+              <input type="text" id="qr_nombre" placeholder="Depósito central">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Calle</label>
+                <input type="text" id="qr_calle" placeholder="Av. Siempre Viva">
+              </div>
+              <div class="form-group form-group--narrow">
+                <label>Altura</label>
+                <input type="text" id="qr_numero" placeholder="1234">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ciudad</label>
+                <input type="text" id="qr_ciudad" placeholder="Reconquista">
+              </div>
+              <div class="form-group">
+                <label>Provincia</label>
+                <select id="qr_provincia">
+                  <option value="">Elegí una provincia…</option>
+                  <option>Buenos Aires</option>
+                  <option>CABA</option>
+                  <option>Catamarca</option>
+                  <option>Chaco</option>
+                  <option>Chubut</option>
+                  <option>Córdoba</option>
+                  <option>Corrientes</option>
+                  <option>Entre Ríos</option>
+                  <option>Formosa</option>
+                  <option>Jujuy</option>
+                  <option>La Pampa</option>
+                  <option>La Rioja</option>
+                  <option>Mendoza</option>
+                  <option>Misiones</option>
+                  <option>Neuquén</option>
+                  <option>Río Negro</option>
+                  <option>Salta</option>
+                  <option>San Juan</option>
+                  <option>San Luis</option>
+                  <option>Santa Cruz</option>
+                  <option>Santa Fe</option>
+                  <option>Santiago del Estero</option>
+                  <option>Tierra del Fuego</option>
+                  <option>Tucumán</option>
+                </select>
+              </div>
+            </div>
+            <div class="acciones">
+              <button type="button" class="btn btn--primary" onclick="btnAsyncClick(this, configurarQr)">Activar QR en el POS</button>
+            </div>
           </div>
+
+          <div id="qr-configurado" style="display:none;text-align:center">
+            <p style="font-size:13px;color:var(--color-text-muted);margin:0 0 12px">
+              QR activo. Mostralo en la pantalla de cobro del POS o imprimilo y pegalo en el mostrador — cada venta carga el monto encima automáticamente.
+            </p>
+            <img id="qr-preview" alt="QR de cobro" style="max-width:220px;border:1px solid var(--color-border-soft);border-radius:var(--radius-md);padding:8px">
+          </div>
+        </div>
+
+        <!-- Guía -->
+        <div class="cfg-card cfg-card-guia">
+          <h2>Cómo obtener tu Access Token</h2>
+          <p class="sub">Esto se hace una vez por empresa, con tu propia cuenta de Mercado Pago — Fluxo nunca ve tu contraseña de MP.</p>
+          <div class="paso"><span class="paso-n">1</span><p class="paso-t">Entrá a tu <a href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank">panel de desarrolladores de Mercado Pago</a> con la cuenta de tu negocio.</p></div>
+          <div class="paso"><span class="paso-n">2</span><p class="paso-t">Si no tenés una aplicación creada, hacé clic en <strong>"Crear aplicación"</strong> (cualquier nombre, por ejemplo "Fluxo").</p></div>
+          <div class="paso"><span class="paso-n">3</span><p class="paso-t">Entrá a la app → <strong>Credenciales de producción</strong> → copiá el <code>Access Token</code> (empieza con <code>APP_USR-</code>). Para probar primero, podés usar las <strong>Credenciales de prueba</strong> (empiezan con <code>TEST-</code>).</p></div>
+          <div class="paso"><span class="paso-n">4</span><p class="paso-t">Pegalo abajo y guardá. Vamos a validarlo contra Mercado Pago antes de guardarlo.</p></div>
         </div>
 
       </div>
@@ -154,11 +291,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script>
@@ -182,7 +319,47 @@ async function init() {
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('contenido').style.display = 'block';
+  mostrarResultadoOAuthSiVuelve();
   await cargarConfig();
+}
+
+// Si venimos de vuelta de MP (mpOauthCallbackHandler redirige acá con
+// ?oauth=ok|error), mostrar el resultado y limpiar la URL para que un
+// refresh no vuelva a disparar el mismo mensaje.
+function mostrarResultadoOAuthSiVuelve() {
+  const params = new URLSearchParams(window.location.search);
+  const oauth = params.get('oauth');
+  if (!oauth) return;
+
+  if (oauth === 'ok') {
+    mostrarAlerta('ok', 'Cuenta de Mercado Pago conectada correctamente.');
+  } else {
+    mostrarAlerta('err', params.get('msg') || 'No se pudo completar la conexión con Mercado Pago.');
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.delete('oauth');
+  url.searchParams.delete('msg');
+  window.history.replaceState({}, '', url.pathname + url.search);
+}
+
+// Botón "Conectar con Mercado Pago": pide la URL de autorización firmada
+// al backend y redirige el browser a MP. La conexión se completa cuando
+// MP redirige de vuelta a /api/pagos/oauth-callback y de ahí acá.
+async function conectarOAuth() {
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/oauth-iniciar`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    const d = await r.json();
+    if (r.ok && d.ok && d.url) {
+      window.location.href = d.url;
+    } else {
+      mostrarAlerta('err', d.error || 'No se pudo iniciar la conexión con Mercado Pago.');
+    }
+  } catch (e) {
+    mostrarAlerta('err', 'Error de red al iniciar la conexión.');
+  }
 }
 
 async function cargarConfig() {
@@ -200,7 +377,8 @@ async function cargarConfig() {
     if (d.conectado) {
       chip.className   = 'chip chip-ok';
       chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Conectado';
-      txt.textContent  = `Cuenta de Mercado Pago conectada desde ${d.created_at ? new Date(d.created_at).toLocaleDateString('es-AR') : '—'}.`;
+      const viaTexto = d.conectado_via === 'oauth' ? ' (vía Conectar con Mercado Pago)' : ' (Access Token pegado a mano)';
+      txt.textContent  = `Cuenta de Mercado Pago conectada desde ${d.created_at ? new Date(d.created_at).toLocaleDateString('es-AR') : '—'}${viaTexto}.`;
       btnDesconectar.style.display = 'inline-block';
     } else {
       chip.className   = 'chip chip-no';
@@ -211,7 +389,67 @@ async function cargarConfig() {
 
     if (d.public_key) document.getElementById('public_key').value = d.public_key;
     // access_token NUNCA se rellena: nunca viaja al frontend.
+
+    // El cobro con QR necesita la cuenta ya conectada. Sin conexión, la
+    // columna de QR ni siquiera se reserva (evita el hueco vacío en el
+    // medio de la pantalla) — ver clase .sin-qr en el <style> de arriba.
+    const cardQr = document.getElementById('card-qr');
+    const cfgWrap = document.getElementById('cfg-wrap');
+    if (d.conectado) {
+      cardQr.style.display = 'block';
+      cfgWrap.classList.remove('sin-qr');
+      await cargarEstadoQr();
+    } else {
+      cardQr.style.display = 'none';
+      cfgWrap.classList.add('sin-qr');
+    }
   } catch(e) { console.error('[mp-config] cargarConfig:', e); }
+}
+
+async function cargarEstadoQr() {
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/pos-qr-setup`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.pos_configurado && d.qr_image) {
+      document.getElementById('qr-sin-configurar').style.display = 'none';
+      document.getElementById('qr-configurado').style.display = 'block';
+      document.getElementById('qr-preview').src = d.qr_image;
+    }
+  } catch(e) { console.error('[mp-config] cargarEstadoQr:', e); }
+}
+
+async function configurarQr() {
+  const nombre_sucursal = document.getElementById('qr_nombre').value.trim();
+  const calle           = document.getElementById('qr_calle').value.trim();
+  const numero          = document.getElementById('qr_numero').value.trim();
+  const ciudad          = document.getElementById('qr_ciudad').value.trim();
+  const provincia       = document.getElementById('qr_provincia').value.trim();
+
+  if (!nombre_sucursal || !calle || !ciudad || !provincia) {
+    mostrarAlerta('err', 'Completá nombre de sucursal, calle, ciudad y provincia.');
+    return;
+  }
+
+  mostrarAlerta('inf', 'Configurando el QR en Mercado Pago…');
+  try {
+    const r = await fetch(`${API_BASE}/api/pagos/pos-qr-setup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await getToken()}` },
+      body: JSON.stringify({ nombre_sucursal, calle, numero, ciudad, provincia })
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      mostrarAlerta('ok', 'QR activado. Ya podés cobrar con QR desde el POS.');
+      await cargarEstadoQr();
+    } else {
+      mostrarAlerta('err', d.error || 'No se pudo activar el QR.');
+    }
+  } catch(e) {
+    mostrarAlerta('err', 'Error de red al activar el QR.');
+  }
 }
 
 async function guardarConfig() {

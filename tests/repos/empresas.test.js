@@ -86,7 +86,7 @@ describe('obtenerDatosEditables', () => {
   it('trae exactamente los campos editables + config, filtrado por empresa_id', async () => {
     const fila = {
       nombre: 'Acme', cuit: '20304050607', domicilio: 'Calle 1', telefono: '123',
-      email: 'a@a.com', logo_url: null, config: { catalogo_publico_habilitado: true },
+      email: 'a@a.com', logo_url: null, config: { catalogo_publico_habilitado: true }, slug: 'acme',
     };
     const query = fakeQuery({ data: fila, error: null });
     dbMock.from.mockReturnValue(query);
@@ -94,7 +94,7 @@ describe('obtenerDatosEditables', () => {
     const data = await obtenerDatosEditables('empresa-1');
 
     expect(query.select).toHaveBeenCalledWith(
-      'nombre, cuit, domicilio, telefono, email, logo_url, config',
+      'nombre, cuit, domicilio, telefono, email, logo_url, config, slug',
     );
     expect(query.eq).toHaveBeenCalledWith('id', 'empresa-1');
     expect(data).toEqual(fila);

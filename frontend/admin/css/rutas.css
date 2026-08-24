@@ -24,7 +24,7 @@ body { background: var(--color-bg); font-family: var(--font-family); }
 /* Tablas con fondo alternado */
 table th { background: var(--color-bg) !important; }
 tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
-tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
+tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 
 /* [Etapa 4 · Media] .topbar-contador se removió de este archivo: estaba duplicado en 9 hojas de página con formas inconsistentes (radius-md vs radius-lg). Definición canónica única en shared/adminlte-components.css. */
 
@@ -74,12 +74,12 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 /* ── Grilla principal ────────────────────────────────────────────── */
 .rutas-grid {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   gap: 20px;
   /* FIX (rediseño visualización de repartos): "start" hacía que cada
      columna se achicara a su propio contenido — el panel de pedidos
      pendientes (la lista más importante de la pantalla) terminaba con
-     apenas 1-2 tarjetas visibles al lado de un cuadro de "arrastrar acá"
+     apenas 1-2 tarjetas visibles al lado de un resumen vacío
      vacío y mucho más alto. "stretch" iguala ambas columnas a la altura
      de la más alta, y esa altura ahora la fija panel-pendientes (ver
      abajo), así ambas quedan generosas y parejas en cualquier resolución
@@ -99,6 +99,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
      colapsaba a la altura de 2-3 tarjetas). min()/clamp() para que se
      vea bien tanto en notebooks chicas como en monitores grandes. */
   height: clamp(480px, calc(100vh - 260px), 760px);
+  min-width: 0;
 }
 
 .panel-header {
@@ -165,7 +166,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 .panel-search input {
   width: 100%;
   padding: 7px 10px 7px 30px;
-  border: 1px solid rgba(0,0,0,.07);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-size: 13px;
   background: var(--color-bg);
@@ -186,6 +187,13 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   padding: 0;
 }
 
+.lista-pendientes--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-content: start;
+  gap: 0 8px;
+}
+
 .lista-pendientes > .grupo-zona:first-child,
 .lista-pendientes > .pedido-card:first-child {
   margin-top: 8px;
@@ -198,29 +206,37 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 
 /* ── Tarjeta de pedido pendiente ─────────────────────────────────── */
 .pedido-card {
-  padding: 12px 16px;
-  cursor: grab;
+  min-width: 0;
+  min-height: 58px;
+  padding: 9px 12px;
+  cursor: pointer;
   border-left: 3px solid transparent;
   transition: background .12s;
   display: flex;
   flex-direction: column;
   gap: 3px;
+  border-bottom: 1px solid var(--color-bg);
 }
 
 .pedido-card:hover { background: var(--color-bg); border-left-color: var(--color-primary); }
-.pedido-card.dragging { opacity: .4; background: var(--color-primary-bg); }
+.pedido-card:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; background: var(--color-primary-bg); }
 .pedido-card.ya-asignado { opacity: .45; cursor: not-allowed; }
 
 .pedido-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .pedido-card-cliente {
+  min-width: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pedido-card-monto {
@@ -246,9 +262,31 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 }
 
 /* ── Agrupado por zona (toggle #btn-toggle-agrupar) ──────────────── */
+.grupo-zona {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: stretch;
+  gap: 0 8px;
+}
+
 .grupo-zona + .grupo-zona { margin-top: 4px; }
 
+/* La lista agrupada vive dentro de un panel flex con scroll. Mantener esta
+   regla explícita sobre el descendiente evita que estilos de tarjetas/tablas
+   de otras pestañas vuelvan a apilar cada pedido en una sola fila. */
+.lista-pendientes .grupo-zona {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: stretch;
+  gap: 0 8px;
+}
+
+.lista-pendientes .grupo-zona > .pedido-card {
+  min-width: 0;
+}
+
 .grupo-zona-header {
+  grid-column: 1 / -1;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -304,6 +342,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   gap: 16px;
   height: 100%;
   min-height: 0;
+  min-width: 0;
 }
 
 /* ── Cabecera de la ruta ─────────────────────────────────────────── */
@@ -389,17 +428,16 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   .btn-chofer-accion { justify-content: center; }
 }
 
-/* ── Drop zone ───────────────────────────────────────────────────── */
-.drop-zone {
+/* ── Panel de pedidos seleccionados ───────────────────────────────── */
+.ruta-seleccion {
   background: var(--color-surface);
-  border: 2px dashed var(--color-border);
+  border: 1px solid rgba(0,0,0,.07);
   border-radius: var(--radius-lg);
   transition: border-color .15s, background .15s;
-  /* Ocupa el espacio libre de .panel-ruta (ahora tan alto como
-     .panel-pendientes) y scrollea internamente en vez de quedar
-     achicado a min-height con espacio muerto debajo. */
+  /* Ocupa el espacio libre de .panel-ruta y permite revisar la selección
+     sin quitarle protagonismo a la lista principal de pedidos. */
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -408,25 +446,59 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   flex-shrink: 0;
 }
 
-.drop-zone.over {
-  border-color: var(--color-primary);
-  background: var(--color-primary-bg);
+.ruta-footer .btn--primary:disabled {
+  background: var(--color-border);
+  color: var(--color-text-light);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.ruta-seleccion.tiene-seleccion {
+  border-color: color-mix(in srgb, var(--color-primary) 38%, var(--color-border));
 }
 
-.drop-zone-empty {
+.ruta-seleccion-vacio {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 48px 20px;
+  padding: 34px 20px;
   color: var(--color-text-light);
   font-size: 14px;
   text-align: center;
   pointer-events: none;
 }
 
-.drop-zone-empty svg { opacity: .35; }
+.ruta-seleccion-vacio svg { opacity: .35; }
+
+.ruta-panel-heading {
+  padding: 15px 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ruta-panel-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.ruta-seleccion-count {
+  min-width: 27px;
+  height: 27px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
 
 .lista-ruta {
   padding: 8px 0;
@@ -520,7 +592,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 .btn-primary:hover { opacity: .88; }
 .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
 
-.btn-secondary {
+.btn--secondary {
   background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid rgba(0,0,0,.07);
@@ -533,7 +605,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   gap: 7px;
   transition: background .12s;
 }
-.btn-secondary:hover { background: var(--color-bg); }
+.btn--secondary:hover { background: var(--color-bg); }
 
 .btn-danger {
   background: var(--color-danger-bg);
@@ -550,6 +622,22 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 .btn-danger:hover { background: color-mix(in srgb, var(--color-danger-bg) 130%, white); }
 
 /* ── Sección: rutas del día ──────────────────────────────────────── */
+.rutas-del-dia-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.rutas-del-dia-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
 .rutas-del-dia {
   background: var(--color-surface);
   border: 1px solid rgba(0,0,0,.07);
@@ -695,6 +783,38 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   border-radius: 50%;
 }
 
+/* Entregas sin lat/lng (ni ubicación GPS del chofer ni domicilio geocodificado
+   del cliente): no tienen marcador en el mapa, así que se listan acá para que
+   no desaparezcan en silencio. */
+.mapa-sin-ubicar {
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 12px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.mapa-sin-ubicar-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mapa-sin-ubicar-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: var(--color-text-muted);
+}
+
+.mapa-sin-ubicar-item {
+  white-space: nowrap;
+}
+
 /* ── Toast ───────────────────────────────────────────────────────── */
 /* FIX (auditoría UX): bloque local con opacity:0 que pisaba al toast
    unificado de /shared/tokens.css (clases .toast--visible/--success/
@@ -707,7 +827,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.35);
-  z-index: 500;
+  z-index: var(--z-flyout);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -946,6 +1066,16 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   .mapa-wrap {
     height: 320px;
   }
+  .panel-pendientes {
+    height: 56vh;
+    min-height: 420px;
+  }
+  .panel-ruta {
+    min-height: 360px;
+  }
+  .ruta-seleccion {
+    min-height: 320px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -964,10 +1094,36 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   .ruta-form-grid {
     grid-template-columns: 1fr;
   }
+  .lista-pendientes--grid,
+  .grupo-zona,
+  .lista-pendientes .grupo-zona {
+    grid-template-columns: 1fr;
+  }
   .ruta-item {
     grid-template-columns: 20px 1fr auto;
     gap: 8px;
     padding: 10px 12px;
+  }
+  .panel-pendientes {
+    height: 58vh;
+    min-height: 380px;
+  }
+  .ruta-footer {
+    align-items: stretch;
+    padding: 13px 14px;
+  }
+  .ruta-stats {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .ruta-footer > div:last-child {
+    width: 100%;
+    flex-direction: column;
+  }
+  .ruta-footer > div:last-child .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 

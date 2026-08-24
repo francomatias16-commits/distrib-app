@@ -4,132 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="/cliente/manifest.json" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#19372D" />
   <title>Mis pedidos — Fluxo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
 
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=2" />
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/cliente/pwa-init.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
-
-    .topbar {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
-    }
-    .topbar-row { display: flex; align-items: center; gap: .75rem; }
-    .btn-back { background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center; }
-    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
-
-    /* NAV BOTTOM: ver /shared/tienda-nav.css */
-
-    .contenido { padding: .75rem .75rem 5rem; max-width: 480px; margin: 0 auto; }
-
-    /* Chips de filtro */
-    .filtros-scroll {
-      display: flex; gap: .45rem; overflow-x: auto; margin-bottom: .85rem;
-      -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 2px;
-    }
-    .filtros-scroll::-webkit-scrollbar { display: none; }
-    .chip-filtro {
-      flex-shrink: 0; padding: .35rem .85rem; border-radius: var(--radius-full);
-      font-size: .78rem; font-weight: 600; border: 1px solid var(--color-border);
-      background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; white-space: nowrap;
-      font-family: inherit;
-    }
-    .chip-filtro.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-
-    /* Card pedido */
-    .card-pedido {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
-      margin-bottom: .65rem; overflow: hidden;
-    }
-    .pedido-header {
-      display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem;
-      cursor: pointer;
-    }
-    .estado-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .dot-confirmado { background: var(--color-success-mid); }
-    .dot-preparando { background: var(--color-warning-mid); }
-    .dot-despachado { background: var(--color-info-mid); }
-    .dot-entregado  { background: var(--color-text-muted); }
-    .dot-borrador   { background: var(--color-border); }
-    .dot-cancelado  { background: var(--color-danger-mid); }
-    .pedido-meta { flex: 1; min-width: 0; }
-    .pedido-nro { font-size: .88rem; font-weight: 700; color: var(--color-text); }
-    .pedido-fecha { font-size: .72rem; color: var(--color-text-light); margin-top: .1rem; }
-    .pedido-right { text-align: right; }
-    .pedido-total { font-size: .95rem; font-weight: 700; color: var(--color-primary); }
-    .pedido-estado-label {
-      font-size: .7rem; font-weight: 600; padding: .2rem .6rem;
-      border-radius: var(--radius-lg); display: inline-block; margin-top: .2rem;
-    }
-    .lbl-confirmado { background: var(--color-success-bg); color: var(--color-success-mid); }
-    .lbl-preparando { background: var(--color-warning-bg); color: var(--color-box-warning); }
-    .lbl-despachado { background: var(--color-info-bg); color: var(--color-primary-dark); }
-    .lbl-entregado  { background: var(--color-border-soft); color: var(--color-text-muted); }
-    .lbl-borrador   { background: var(--color-border-soft); color: var(--color-text-light); }
-    .lbl-cancelado  { background: var(--color-danger-bg); color: var(--color-danger-mid); }
-
-    /* Detalle del pedido */
-    .pedido-detalle {
-      display: none; border-top: 1px solid var(--color-border-soft); padding: .75rem 1rem;
-    }
-    .pedido-detalle.visible { display: block; }
-    .item-detalle-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: .3rem 0; font-size: .82rem; color: var(--color-text-muted);
-    }
-    .item-nombre-det { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .item-cant-det { color: var(--color-text-light); font-size: .75rem; margin: 0 .5rem; white-space: nowrap; }
-    .item-precio-det { font-weight: 600; white-space: nowrap; }
-    .pedido-notas {
-      font-size: .78rem; color: var(--color-text-muted); font-style: italic;
-      margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--color-border-soft);
-    }
-
-    .empty-state { text-align: center; color: var(--color-text-light); padding: 4rem 1rem; font-size: .88rem; }
-    .empty-state svg { margin-bottom: .75rem; opacity: .35; }
-    .loading { text-align: center; color: var(--color-text-light); padding: 3rem 1rem; font-size: .88rem; }
-
-    /* ── Seguimiento en vivo ── */
-    .btn-seguimiento {
-      width: 100%; margin-top: .6rem; padding: .6rem; border: none; border-radius: var(--radius-md);
-      background: var(--color-primary); color: #fff; font-size: .82rem; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: .4rem;
-    }
-    .overlay-seg {
-      position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 60;
-      display: none; align-items: flex-end; justify-content: center;
-    }
-    .overlay-seg.show { display: flex; }
-    .modal-seg {
-      background: var(--color-surface); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
-      border-radius: var(--radius-xxl) 16px 0 0; padding: 1.1rem 1.1rem 1.4rem;
-    }
-    .modal-seg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
-    .modal-seg-header h2 { font-size: 1rem; font-weight: 700; }
-    .btn-cerrar-seg { background: none; border: none; font-size: 1.3rem; color: var(--color-text-muted); cursor: pointer; line-height: 1; }
-    #mapaSeguimientoCliente { height: 260px; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-border-soft); }
-    .eta-box {
-      margin-top: .8rem; padding: .75rem .9rem; border-radius: var(--radius-lg); background: var(--color-primary-bg);
-      color: var(--color-info); font-size: .88rem; font-weight: 600; text-align: center;
-    }
-    .eta-box.eta-esperando { background: var(--color-surface-2); color: var(--color-text-muted); font-weight: 500; }
-  </style>
+  <link rel="stylesheet" href="/cliente/css/pedidos.css?v=3" />
   <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>

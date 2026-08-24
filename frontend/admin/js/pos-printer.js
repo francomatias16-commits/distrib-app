@@ -170,7 +170,7 @@
     // Pagos
     partes.push(separador('-') + '\n');
     const labelMedio = m => ({ efectivo:'Efectivo', tarjeta:'Tarjeta', transferencia:'Transferencia',
-      qr:'QR', mp_point:'MP Point', getnet:'Getnet', lapos:'Lapos', naranja:'Naranja X' }[m] || m);
+      qr:'QR', mp_point:'MP Point', getnet:'Getnet', prisma:'Prisma', naranja:'Naranja X' }[m] || m);
     for (const p of (venta.pagos || [])) {
       partes.push(columnas(labelMedio(p.medio), fmt$(p.monto)) + '\n');
     }
@@ -286,7 +286,30 @@
     }
   }
 
+  // ── Ajuste de página para impresión por navegador (modo 'browser') ───────
+  // El diálogo nativo de impresión arranca por defecto en A4/carta vertical
+  // (de ahí el "2 hojas de papel" que se ve al imprimir un ticket sin esto).
+  // Acá se inyecta un <style> con @page para que el navegador ofrezca el
+  // ancho real del rollo térmico configurado (58/80mm) y se marca el <body>
+  // con data-pos-papel para que el CSS de @media print (pos.css) ajuste la
+  // tipografía al ancho elegido. Se llama antes de cada window.print() en
+  // modo navegador: ticket, reporte Z y prueba de impresión.
+  function prepararPaginaNavegador() {
+    const mm = _config.papel_mm <= 58 ? 58 : 80;
+    document.body.dataset.posPapel = String(mm);
+    let style = document.getElementById('pos-print-page-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'pos-print-page-style';
+      document.head.appendChild(style);
+    }
+    // "auto" en el alto: el rollo térmico no tiene largo fijo, se corta al
+    // terminar el contenido (a diferencia del ancho, que sí es físico).
+    style.textContent = `@page { size: ${mm}mm auto; margin: 0; }`;
+  }
+
   async function enviarBrowser() {
+    prepararPaginaNavegador();
     window.print();
   }
 
@@ -365,6 +388,7 @@
 
   async function imprimirReporteZ(rep, empresa) {
     if (_config.modo === 'browser') {
+      prepararPaginaNavegador();
       document.body.classList.add('imprimiendo-z');
       window.print();
       setTimeout(() => document.body.classList.remove('imprimiendo-z'), 1000);
@@ -375,7 +399,7 @@
   }
 
   async function testImpresion(empresa) {
-    if (_config.modo === 'browser') { window.print(); return; }
+    if (_config.modo === 'browser') { prepararPaginaNavegador(); window.print(); return; }
     const partes = [
       CMD.INIT, CMD.ALIGN_CENTER, CMD.BOLD_ON, CMD.FONT_DOUBLE_H,
       'PRUEBA DE IMPRESION\n',
@@ -428,6 +452,7 @@
     testImpresion,
     getConfig,
     conectarDispositivo,
+    prepararPaginaNavegador,
     setConfig: (c) => Object.assign(_config, c),
   };
 

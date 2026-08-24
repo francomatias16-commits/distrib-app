@@ -79,24 +79,8 @@ body.dash-facturacion-config-gentelella #txt-estado {
   color: var(--ge-ink-soft) !important;
 }
 
-/* ════════════════════════════════════════════════════════════
-   Chips genéricos (ok/no/homologación)
-   ════════════════════════════════════════════════════════════ */
-body.dash-facturacion-config-gentelella .chip-ok {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-facturacion-config-gentelella .chip-no {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-orange) !important;
-}
-body.dash-facturacion-config-gentelella .chip-homo {
-  background: rgba(52,152,219,.12) !important;
-  color: var(--ge-info-text) !important;
-}
-body.dash-facturacion-config-gentelella .chip-homo svg circle {
-  fill: var(--ge-blue) !important;
-}
+/* Chips genéricos (ok/no/homologación) — movidos al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan). */
 
 /* ════════════════════════════════════════════════════════════
    Guía de alta (pasos)
@@ -182,7 +166,7 @@ body.dash-facturacion-config-gentelella .btn-test {
 body.dash-facturacion-config-gentelella .btn-test:hover {
   background: var(--ge-teal-dark) !important;
 }
-body.dash-facturacion-config-gentelella .btn-primary {
+body.dash-facturacion-config-gentelella .btn--primary {
   border-radius: var(--ge-radius-btn) !important;
   font-weight: 600 !important;
 }

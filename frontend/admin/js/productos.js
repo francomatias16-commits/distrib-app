@@ -29,11 +29,11 @@ let depositosAll   = [];   // [{id, nombre, es_principal}] — para el checklist
    catálogo completo). Ahora arranca en null = "Todos" (sin filtro). */
 let mesActivo      = null; // null = "Todos" (sin filtro) | 0–11 = mes elegido
 let yearActivo     = new Date().getFullYear();
-let seleccionados  = new Set();
 let busquedaTag    = '';
 let filtroEstado   = '';
 let filtroCatId    = '';   // ahora es el id de categoría, no el nombre
 let filtroFoto     = '';   // 'real' | 'generica' | 'sin_foto' | '' (sin filtro) — v392
+let filtroEtiquetaId = ''; // id de etiqueta (Etiquetas, v473/474) | '' (sin filtro)
 let ordenCol       = 'nombre';
 let ordenAsc       = true;
 let _page          = 1;
@@ -121,7 +121,7 @@ function donutSVG(pct) {
   const r   = 12;
   const c   = 2 * Math.PI * r;
   const off = c - (pct / 100) * c;
-  const color = pct >= 40 ? 'var(--color-info-mid,#2E6088)' : pct >= 20 ? 'var(--color-warning-mid,#B87A00)' : 'var(--color-danger-mid,#B3261E)';
+  const color = pct >= 40 ? 'var(--color-info-mid,#33507A)' : pct >= 20 ? 'var(--color-warning-mid,#E0A53E)' : 'var(--color-danger-mid,#D1594A)';
   return `
     <svg width="32" height="32" viewBox="0 0 32 32" style="transform:rotate(-90deg);flex-shrink:0">
       <circle cx="16" cy="16" r="${r}" fill="none" stroke="var(--color-border-soft,#DAD3C0)" stroke-width="3.5"/>
@@ -136,7 +136,7 @@ function donutSVG(pct) {
 function estadoBadge(estado) {
   const mapa = {
     'activo':    { cls: 'activo',    label: 'Activo'    },
-    'borrador':  { cls: 'borrador',  label: 'Borrador'  },
+    'borrador':  { cls: 'borrador',  label: 'Inactivo' },
     'sin_stock': { cls: 'sin-stock', label: 'Sin Stock' },
   };
   const key = (estado || '').toLowerCase().replace(/\s+/g, '_');
@@ -184,6 +184,7 @@ async function cargarProductos() {
         p_mes:          mesActivo === null ? null : mesActivo + 1,
         p_anio:         mesActivo === null ? null : yearActivo,
         p_foto_fuente:  filtroFoto || null,
+        p_etiqueta_id:  filtroEtiquetaId || null,
       });
       if (error) throw error;
       if (_cargaEnCurso !== miCarga) return; // llegó una carga más nueva primero
@@ -200,7 +201,6 @@ async function cargarProductos() {
 
   if (_cargaEnCurso !== miCarga) return;
   renderTabla();
-  actualizarContadorSeleccion();
   actualizarPaginacion();
   actualizarTotalLabel();
   if (window.ocultarPreloader) window.ocultarPreloader();
@@ -316,6 +316,7 @@ function normalizarRpc(p) {
     cat:          p.categoria_nombre || '—',
     categoriaId:  p.categoria_id || '',
     activo:       p.activo !== false,
+    destacado:    p.destacado === true,
     estado:       p.estado || 'borrador',
     fechaAct:     p.updated_at || p.created_at || null,
     precio,
@@ -367,6 +368,7 @@ function limpiarFiltros() {
   filtroEstado = '';
   filtroCatId  = '';
   filtroFoto   = '';
+  filtroEtiquetaId = '';
   const ti = document.getElementById('prod-tag-input');
   if (ti) ti.value = '';
   const se = document.getElementById('prod-filtro-estado');
@@ -375,6 +377,8 @@ function limpiarFiltros() {
   if (sc) sc.value = '';
   const sf = document.getElementById('prod-filtro-foto');
   if (sf) sf.value = '';
+  const set = document.getElementById('prod-filtro-etiqueta');
+  if (set) set.value = '';
   recargarConFiltro();
 }
 
@@ -408,13 +412,55 @@ document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape') cerrarMenuMasFunciones();
 });
 
+// Popover "Gestionar etiquetas" (crear/renombrar/recolorear/eliminar
+// etiquetas del catálogo), colgado del filtro de etiquetas — mismo patrón
+// de apertura/cierre que "Más funciones" arriba.
+function toggleGestionEtiquetas(ev) {
+  if (ev) ev.stopPropagation();
+  const pop = document.getElementById('popover-gestion-etiquetas');
+  if (!pop) return;
+  const abrir = pop.hidden;
+  pop.hidden = !abrir;
+  if (abrir && window.Etiquetas) {
+    Etiquetas.renderGestion('gestion-etiquetas-body', {
+      onCambio: async () => {
+        // Después de crear/renombrar/recolorear/eliminar: refrescar el
+        // <select> de filtro (puede haber cambiado nombre/color/desaparecido
+        // la opción elegida) y, si justo se borró la etiqueta activa como
+        // filtro, volver a "Todas las etiquetas".
+        await Etiquetas.renderFiltroSelect('prod-filtro-etiqueta', { onCambio: onFiltroEtiqueta });
+        const sel = document.getElementById('prod-filtro-etiqueta');
+        if (sel && filtroEtiquetaId && !Array.from(sel.options).some(o => o.value === filtroEtiquetaId)) {
+          filtroEtiquetaId = '';
+          sel.value = '';
+        }
+        cargarContadores().catch(() => {});
+        recargarConFiltro();
+      },
+    }).catch(err => console.warn('[productos] No se pudo abrir la gestión de etiquetas:', err?.message || err));
+  }
+}
+
+function cerrarGestionEtiquetas() {
+  const pop = document.getElementById('popover-gestion-etiquetas');
+  if (pop) pop.hidden = true;
+}
+
+document.addEventListener('click', (ev) => {
+  const wrap = document.querySelector('.prod-etiqueta-filtro-wrap');
+  if (wrap && !wrap.contains(ev.target)) cerrarGestionEtiquetas();
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') cerrarGestionEtiquetas();
+});
+
 /* ── Render tabla ── */
 function mostrarCargando() {
   const tbody = document.getElementById('prod-tbody');
   if (!tbody) return;
   tbody.innerHTML = `
     <tr>
-      <td colspan="11" class="prod-empty">
+      <td colspan="10" class="prod-empty">
         <div class="prod-empty-spinner"></div>
         Cargando productos…
       </td>
@@ -423,30 +469,57 @@ function mostrarCargando() {
 }
 
 /* Avatar de la fila (v392): si el producto tiene foto real la muestra en vez
-   de las iniciales, con un punto de color en la esquina que indica el origen
-   — verde "real" (barcode, búsqueda web o subida manual) o ámbar "genérica".
-   (v394: la fuente 'pexels' ya no la genera auto-imagenes — se sacó el
-   banco de fotos genérico del pipeline — el chequeo queda solo por si
-   quedara algún registro viejo sin limpiar.) Si falla la carga de la
-   imagen (URL rota, bucket borrado), cae de nuevo a las iniciales via
-   onerror. */
+   de las iniciales. Si falla la carga de la imagen (URL rota, bucket
+   borrado), cae de nuevo a las iniciales via onerror.
+   (v730: se sacó el punto de color que indicaba el origen de la foto —
+   quedaba como ruido visual sin uso real; el origen se sigue pudiendo
+   filtrar desde el combo "Foto real" del header. Se agrega click para
+   hacer zoom a la imagen en grande, vía abrirZoomFoto().) */
 function renderAvatarFoto(p, pal, ini) {
   if (!p.fotoUrl) {
     return `<span class="prod-avatar" style="${pal}">${escHtml(ini)}</span>`;
   }
-  const esGenerica  = p.fotoFuente === 'pexels';
-  const badgeClase  = esGenerica ? 'prod-foto-badge--generica' : 'prod-foto-badge--real';
-  const badgeTitulo = esGenerica
-    ? 'Foto genérica (banco de fotos, no es la marca exacta)'
-    : 'Foto real del producto';
   const iniEsc = escHtml(ini);
+  const urlEsc = escHtml(p.fotoUrl);
   return `
     <span class="prod-avatar-wrap">
-      <img class="prod-avatar prod-avatar--foto" src="${escHtml(p.fotoUrl)}" alt=""
-           loading="lazy"
+      <img class="prod-avatar prod-avatar--foto" src="${urlEsc}" alt="Foto de ${escHtml(p.nombre)}"
+           loading="lazy" tabindex="0" role="button"
+           title="Ver imagen en grande"
+           aria-label="Ver imagen en grande de ${escHtml(p.nombre)}"
+           onclick="event.stopPropagation(); abrirZoomFoto('${urlEsc}')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();abrirZoomFoto('${urlEsc}');}"
            onerror="this.outerHTML='<span class=&quot;prod-avatar&quot; style=&quot;${pal}&quot;>${iniEsc}</span>'">
-      <span class="prod-foto-badge ${badgeClase}" title="${escHtml(badgeTitulo)}" aria-label="${escHtml(badgeTitulo)}"></span>
     </span>`;
+}
+
+/* v730: lightbox simple para ver en grande la foto de un producto — se
+   engancha tanto desde la miniatura de la fila (renderAvatarFoto) como
+   desde la preview del formulario de editar/crear (ver productos.html). */
+function abrirZoomFoto(url) {
+  if (!url) return;
+  const backdrop = document.getElementById('foto-zoom-backdrop');
+  const modal    = document.getElementById('foto-zoom-modal');
+  const img      = document.getElementById('foto-zoom-img');
+  if (!backdrop || !modal || !img) return;
+  img.src = url;
+  backdrop.classList.add('activo');
+  modal.classList.add('activo');
+  document.addEventListener('keydown', _escCerrarZoomFoto);
+}
+
+function cerrarZoomFoto() {
+  const backdrop = document.getElementById('foto-zoom-backdrop');
+  const modal    = document.getElementById('foto-zoom-modal');
+  const img      = document.getElementById('foto-zoom-img');
+  if (backdrop) backdrop.classList.remove('activo');
+  if (modal) modal.classList.remove('activo');
+  if (img) img.src = '';
+  document.removeEventListener('keydown', _escCerrarZoomFoto);
+}
+
+function _escCerrarZoomFoto(ev) {
+  if (ev.key === 'Escape') cerrarZoomFoto();
 }
 
 function renderTabla() {
@@ -456,7 +529,7 @@ function renderTabla() {
   if (!productosPage.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="11" class="prod-empty">
+        <td colspan="10" class="prod-empty">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-light,#6B695F)" stroke-width="1.5" style="margin-bottom:8px">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
           </svg>
@@ -474,19 +547,14 @@ function renderTabla() {
   tbody.innerHTML = productosPage.map(p => {
     const pal = getPaleta(p.cat);
     const ini = iniciales(p.nombre);
-    const chk = seleccionados.has(p.id) ? 'checked' : '';
 
     return `
-      <tr data-id="${p.id}">
-        <td>
-          <input type="checkbox" class="prod-check prod-row-chk" ${chk}
-                 aria-label="Seleccionar ${escHtml(p.nombre)}"
-                 data-id="${p.id}" onchange="toggleFila('${p.id}', this.checked)">
-        </td>
+      <tr data-id="${p.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalProducto('${p.id}')">
         <td>
           <div class="prod-nombre-cell">
             ${renderAvatarFoto(p, pal, ini)}
             <span class="prod-nombre-text" title="${escHtml(p.nombre)}">${escHtml(p.nombre)}</span>
+            ${p.destacado ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:var(--color-warning, #b8860b);flex-shrink:0" aria-label="Destacado"><title>Destacado</title><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>` : ''}
           </div>
         </td>
         <td class="prod-cat-cell">${escHtml(p.cat)}</td>
@@ -498,11 +566,6 @@ function renderTabla() {
         <td>
           <div class="prod-donut-wrap" title="Margen: ${p.margen}%">
             ${donutSVG(p.margen)}
-          </div>
-        </td>
-        <td>
-          <div class="prod-progress-wrap" title="Goal de ventas: ${p.goal}%">
-            <div class="prod-progress-fill" style="width:${p.goal}%"></div>
           </div>
         </td>
         <td class="col-sticky-end">
@@ -604,36 +667,7 @@ function actualizarAlertasStock() {
   }
 }
 
-/* ── Selección (sobre la página actual) ── */
-function toggleTodos(checked) {
-  seleccionados.clear();
-  if (checked) productosPage.forEach(p => seleccionados.add(p.id));
-  document.querySelectorAll('.prod-row-chk').forEach(el => { el.checked = checked; });
-  actualizarContadorSeleccion();
-}
 
-function toggleFila(id, checked) {
-  if (checked) seleccionados.add(id);
-  else seleccionados.delete(id);
-  const allChk = document.getElementById('prod-chk-all');
-  if (allChk) {
-    const visible = document.querySelectorAll('.prod-row-chk').length;
-    allChk.checked    = seleccionados.size === visible && visible > 0;
-    allChk.indeterminate = seleccionados.size > 0 && seleccionados.size < visible;
-  }
-  actualizarContadorSeleccion();
-}
-
-function actualizarContadorSeleccion() {
-  const el = document.getElementById('prod-sel-count');
-  if (!el) return;
-  if (seleccionados.size > 0) {
-    el.textContent = `${seleccionados.size} seleccionado${seleccionados.size > 1 ? 's' : ''}`;
-    el.style.display = 'inline';
-  } else {
-    el.style.display = 'none';
-  }
-}
 
 /* ── Navegación de meses ──────────────────────────────────────────────
    fix v544: recibe 'todos' o un número de mes (string desde dataset, o
@@ -672,6 +706,11 @@ function onFiltroCat(val) {
 
 function onFiltroFoto(val) {
   filtroFoto = val;
+  recargarConFiltro();
+}
+
+function onFiltroEtiqueta(val) {
+  filtroEtiquetaId = val;
   recargarConFiltro();
 }
 
@@ -748,6 +787,7 @@ async function abrirModalProducto(id) {
     document.getElementById('fp-costo').value        = p.costo ?? 0;
     document.getElementById('fp-stock_minimo').value = p.stockMinimo ?? 0;
     document.getElementById('fp-activo').value       = String(p.activo !== false);
+    document.getElementById('fp-destacado').checked  = p.destacado === true;
     if (linkReceta) linkReceta.style.display = 'inline';
     // v351: el selector de depósitos solo tiene sentido en el alta —
     // en edición el producto ya existe y el stock se gestiona desde Stock.
@@ -773,6 +813,7 @@ async function abrirModalProducto(id) {
     document.getElementById('fp-costo').value        = 0;
     document.getElementById('fp-stock_minimo').value = 0;
     document.getElementById('fp-activo').value       = 'true';
+    document.getElementById('fp-destacado').checked  = false;
     nombreProductoAutoCompletado = false;
     if (linkReceta) linkReceta.style.display = 'none';
 
@@ -787,6 +828,48 @@ async function abrirModalProducto(id) {
   document.getElementById('modal-backdrop-producto').style.display = 'block';
   document.getElementById('modal-producto').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Etiquetas (v473): chips de agregar/quitar. En alta (id=null) igual se
+  // muestra el campo, pero Etiquetas.renderChips() avisa que hay que
+  // guardar primero si se intenta agregar una sin id todavía.
+  if (window.Etiquetas) {
+    Etiquetas.renderChips('fp-etiquetas-chips', 'productos', id, {
+      onCambio: () => cargarContadores().catch(() => {}),
+    }).catch(err => console.warn('[productos] No se pudieron cargar las etiquetas:', err?.message || err));
+  }
+
+  // Notas internas (widget compartido con Clientes/Pedidos): solo tiene
+  // sentido en edición, porque necesita un id de producto ya guardado.
+  const secNotas = document.getElementById('fp-sec-notas');
+  if (secNotas) {
+    if (id && window.NotasInternas) {
+      secNotas.style.display = '';
+      cargarNotasProducto(id);
+    } else {
+      secNotas.style.display = 'none';
+    }
+  }
+}
+
+/* ── Notas internas del producto (widget compartido notas-internas.js) ── */
+async function cargarNotasProducto(productoId) {
+  const lista = document.getElementById('fp-notas-lista');
+  if (!lista || !window.NotasInternas) return;
+
+  lista.innerHTML = '<div class="loading-row">Cargando notas...</div>';
+  try {
+    const notas = await NotasInternas.cargar('productos', productoId);
+    NotasInternas.renderLista(notas, 'fp-notas-lista', {
+      onArchivar: () => cargarNotasProducto(productoId),
+    });
+  } catch (e) {
+    console.error('[productos] Error cargando notas:', e);
+    lista.innerHTML = '<div class="loading-row">No se pudo cargar el historial.</div>';
+  }
+
+  NotasInternas.renderForm('fp-notas-form', 'productos', productoId, {
+    onGuardada: () => cargarNotasProducto(productoId),
+  });
 }
 
 function cerrarModalProducto() {
@@ -818,6 +901,7 @@ async function limpiarFormularioProducto() {
   document.getElementById('fp-costo').value        = 0;
   document.getElementById('fp-stock_minimo').value = 0;
   document.getElementById('fp-activo').value       = 'true';
+  document.getElementById('fp-destacado').checked  = false;
   nombreProductoAutoCompletado = false;
 
   resetFotoProductoModal();
@@ -1103,6 +1187,179 @@ async function guardarCategoriaRapida() {
   if (sel) sel.value = nueva.id;
 }
 
+/* ── Administrar categorías (ABM completo) ─────────────────────────────
+   Usa el mismo endpoint genérico /api/maestros?recurso=categorias que ya
+   soporta crear/editar/dar de baja/reactivar (mismo patrón que zonas). ── */
+let catAbmData = [];
+let catAbmEditId = null;
+
+function abrirModalCategoriasAbm(event) {
+  if (event) event.preventDefault();
+  cancelarEdicionCatAbm();
+  document.getElementById('modal-backdrop-cat-abm').style.display = 'block';
+  document.getElementById('modal-categorias-abm').style.display = 'flex';
+  cargarCategoriasAbm();
+}
+
+function cerrarModalCategoriasAbm() {
+  document.getElementById('modal-backdrop-cat-abm').style.display = 'none';
+  document.getElementById('modal-categorias-abm').style.display = 'none';
+}
+
+function cerrarModalCategoriasAbmSiFondo(event) {
+  if (event.target.id === 'modal-backdrop-cat-abm') cerrarModalCategoriasAbm();
+}
+
+async function cargarCategoriasAbm() {
+  const tbody = document.getElementById('tbody-cat-abm');
+  tbody.innerHTML = '<tr><td colspan="4" class="vacio">Cargando...</td></tr>';
+  try {
+    const token = await getToken();
+    const activa = document.getElementById('catabm-filtro').value;
+    const params = new URLSearchParams({ recurso: 'categorias' });
+    if (activa !== '') params.set('activa', activa);
+
+    const res = await fetch(`/api/maestros?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('No se pudo cargar la lista de categorías.');
+    const data = await res.json();
+    catAbmData = data.data || [];
+    renderTablaCatAbm();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" class="vacio">${err.message}</td></tr>`;
+  }
+}
+
+function renderTablaCatAbm() {
+  const tbody = document.getElementById('tbody-cat-abm');
+  if (!catAbmData.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="vacio">No hay categorías para mostrar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = catAbmData.map(c => `
+    <tr>
+      <td data-label="Nombre">${sanitize(c.nombre)}</td>
+      <td data-label="Orden">${c.orden ?? 0}</td>
+      <td data-label="Estado"><span class="badge ${c.activa ? 'badge-activo' : 'badge-inactivo'}">${c.activa ? 'Activa' : 'Inactiva'}</span></td>
+      <td class="col-sticky-end" data-label="Acciones">
+        <div class="acciones-td">
+          <button type="button" class="btn-tabla" onclick="editarCatAbm('${c.id}')">Editar</button>
+          ${c.activa
+            ? `<button type="button" class="btn-tabla peligro" onclick="btnAsyncClick(this, () => desactivarCatAbm('${c.id}'))">Dar de baja</button>`
+            : `<button type="button" class="btn-tabla primario" onclick="btnAsyncClick(this, () => activarCatAbm('${c.id}'))">Activar</button>`
+          }
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function editarCatAbm(id) {
+  const c = catAbmData.find(x => x.id === id);
+  if (!c) return;
+  catAbmEditId = id;
+  document.getElementById('catabm-nombre').value = c.nombre || '';
+  document.getElementById('catabm-orden').value = c.orden ?? '';
+  document.getElementById('catabm-descripcion').value = c.descripcion || '';
+  document.getElementById('btn-guardar-cat-abm').textContent = 'Guardar cambios';
+  document.getElementById('btn-cancelar-cat-abm-edit').style.display = '';
+  document.getElementById('catabm-nombre').focus();
+}
+
+function cancelarEdicionCatAbm() {
+  catAbmEditId = null;
+  document.getElementById('catabm-nombre').value = '';
+  document.getElementById('catabm-orden').value = '';
+  document.getElementById('catabm-descripcion').value = '';
+  document.getElementById('btn-guardar-cat-abm').textContent = 'Crear categoría';
+  document.getElementById('btn-cancelar-cat-abm-edit').style.display = 'none';
+}
+
+async function guardarCatAbm() {
+  const nombre = document.getElementById('catabm-nombre').value.trim();
+  if (!nombre) { toast('El nombre es obligatorio', 'warning'); return; }
+
+  const body = {
+    nombre,
+    orden: document.getElementById('catabm-orden').value.trim() || 0,
+    descripcion: document.getElementById('catabm-descripcion').value.trim() || null,
+  };
+
+  const token = await getToken();
+  const method = catAbmEditId ? 'PATCH' : 'POST';
+  if (catAbmEditId) body.id = catAbmEditId;
+
+  const res = await fetch('/api/maestros?recurso=categorias', {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    toast(err.error || 'No se pudo guardar la categoría', 'error');
+    return;
+  }
+
+  toast(catAbmEditId ? 'Categoría actualizada' : 'Categoría creada', 'success');
+  cancelarEdicionCatAbm();
+  await cargarCategoriasAbm();
+  await cargarCategorias();
+  poblarSelectCategoriasModal();
+}
+
+async function desactivarCatAbm(id) {
+  const c = catAbmData.find(x => x.id === id);
+  const ok = await (window.confirmar
+    ? window.confirmar(`¿Dar de baja la categoría "${c?.nombre || ''}"? Los productos que la usan la mantienen, pero dejará de aparecer para asignar a productos nuevos.`, { labelOk: 'Dar de baja', tipo: 'danger' })
+    : Promise.resolve(confirm('¿Dar de baja esta categoría?')));
+  if (!ok) return;
+
+  const token = await getToken();
+  const res = await fetch(`/api/maestros?recurso=categorias&id=${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    toast(err.error || 'No se pudo dar de baja la categoría', 'error');
+    return;
+  }
+  toast('Categoría dada de baja', 'success');
+  await cargarCategoriasAbm();
+  await cargarCategorias();
+  poblarSelectCategoriasModal();
+}
+
+async function activarCatAbm(id) {
+  const token = await getToken();
+  const res = await fetch('/api/maestros?recurso=categorias', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id, activa: true }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    toast(err.error || 'No se pudo activar la categoría', 'error');
+    return;
+  }
+  toast('Categoría activada', 'success');
+  await cargarCategoriasAbm();
+  await cargarCategorias();
+  poblarSelectCategoriasModal();
+}
+
+window.abrirModalCategoriasAbm = abrirModalCategoriasAbm;
+window.cerrarModalCategoriasAbm = cerrarModalCategoriasAbm;
+window.cerrarModalCategoriasAbmSiFondo = cerrarModalCategoriasAbmSiFondo;
+window.cargarCategoriasAbm = cargarCategoriasAbm;
+window.editarCatAbm = editarCatAbm;
+window.cancelarEdicionCatAbm = cancelarEdicionCatAbm;
+window.guardarCatAbm = guardarCatAbm;
+window.desactivarCatAbm = desactivarCatAbm;
+window.activarCatAbm = activarCatAbm;
+
 /* ── Aportar al banco de códigos compartido (440) ─────────────────────────
    Fire-and-forget: no bloquea el guardado del producto ni muestra error al
    usuario si falla (falta de conexión, permiso, etc.) — es un "extra" que
@@ -1140,6 +1397,7 @@ async function guardarProducto() {
     costo:        parseFloat(document.getElementById('fp-costo').value) || 0,
     stock_minimo: parseFloat(document.getElementById('fp-stock_minimo').value) || 0,
     activo:       document.getElementById('fp-activo').value === 'true',
+    destacado:    document.getElementById('fp-destacado').checked,
   };
 
   if (!payload.empresa_id) {
@@ -1194,7 +1452,7 @@ async function guardarProducto() {
         return;
       }
 
-      const { error } = await sb.rpc('fn_crear_producto', {
+      const { data: nuevoId, error } = await sb.rpc('fn_crear_producto', {
         p_nombre:       payload.nombre,
         p_deposito_ids: depositoIds,
         p_codigo:       payload.codigo,
@@ -1203,9 +1461,14 @@ async function guardarProducto() {
         p_costo:        payload.costo,
         p_stock_minimo: payload.stock_minimo,
         p_activo:       payload.activo,
+        p_destacado:    payload.destacado,
         p_foto_url:     fotoUrlNueva,
       });
       if (error) throw error;
+      // fn_crear_producto devuelve el uuid del producto recién creado —
+      // lo guardamos por si algo (etiquetas, notas) necesita el id real
+      // antes de que se recargue la tabla.
+      modalProductoId = nuevoId || null;
       toast('Producto creado', 'success');
       aportarBancoCodigos(payload.codigo, payload.nombre, fotoUrlNueva);
     }
@@ -1213,12 +1476,19 @@ async function guardarProducto() {
     await cargarProductos();
   } catch (err) {
     console.error('[productos] Error al guardar:', err);
-    toast('No se pudo guardar el producto. Probá de nuevo en un momento.', 'error');
+    // v494: trigger fn_guard_desactivar_producto_con_stock bloquea
+    // desactivar un producto que todavía tiene stock físico != 0 en algún
+    // depósito. El mensaje ya viene redactado para el usuario final.
+    if (err?.code === 'P0001' && /desactivar/i.test(err?.message || '')) {
+      toast(err.message, 'error');
+    } else {
+      toast('No se pudo guardar el producto. Probá de nuevo en un momento.', 'error');
+    }
   }
 }
 
 /* ── Eliminar producto (borrado físico) ───────────────────────────────────
-   Distinto de "dar de baja" (campo ESTADO → inactivo), que es lo normal
+   Distinto de "dar de baja" (campo ESTADO → Inactivo), que es lo normal
    para dejar de vender algo sin perder su historial. Esto borra la fila
    de verdad. Si el producto ya tiene movimientos de stock, pedidos,
    facturas, etc. asociados, la base va a rechazar el DELETE por FK —
@@ -1247,6 +1517,9 @@ async function eliminarProducto() {
     // (stock, pedidos, facturas, movimientos, etc.) y no se puede borrar
     // sin perder ese historial.
     if (err?.code === '23503') {
+      // FIX v743: se renombró la opción del select de estado de "Archivado"
+      // a "Inactivo" (ver productos.html, fp-activo) porque es la palabra
+      // que el dueño esperaba encontrar — coincide con este mismo mensaje.
       toast('No se puede eliminar: este producto ya tiene stock, pedidos o movimientos asociados. Marcalo como inactivo en su lugar.', 'error');
     } else {
       toast('No se pudo eliminar el producto. Probá de nuevo en un momento.', 'error');
@@ -1315,10 +1588,71 @@ async function init(authCtx) {
   // Cargar datos
   await cargarProductos();
   actualizarAlertasStock();
+
+  // Etiquetas (v473/474): poblar el filtro de la tabla con las etiquetas
+  // ya creadas por la empresa (no bloquea el resto de la carga si falla).
+  if (sb && window.Etiquetas) {
+    Etiquetas.renderFiltroSelect('prod-filtro-etiqueta', { onCambio: onFiltroEtiqueta })
+      .catch(err => console.warn('[productos] No se pudo cargar el filtro de etiquetas:', err?.message || err));
+  }
+
+  // Badge de la pestaña "Combos" (FIX 2026-08-23): contador liviano,
+  // independiente de la carga completa de combosAll que sigue siendo
+  // lazy (recién al primer click en la pestaña, ver cambiarVistaProductos).
+  if (sb && window.cb_cargarContadorCombos) {
+    window.cb_cargarContadorCombos();
+  }
 }
+
+/* ── Toggle de vista Productos/Combos ── */
+let _combosCargados = false;
+function cambiarVistaProductos(vista) {
+  // Combos ya no usa modal (FIX 2026-08-23, cuarta vuelta): el formulario
+  // de "Nuevo/Editar combo" es un panel inline dentro de #vista-combos
+  // (ver #cb-panel-form en productos.html), así que se oculta solo al
+  // togglear la vista. El de Producto sigue siendo modal aparte — se
+  // cierra acá como buena práctica al cambiar de pestaña.
+  cerrarModalProducto();
+  if (window.cb_cerrarFormulario) window.cb_cerrarFormulario();
+
+  document.getElementById('vtab-productos').classList.toggle('activa', vista === 'productos');
+  document.getElementById('vtab-combos').classList.toggle('activa', vista === 'combos');
+  document.getElementById('vista-productos').style.display = vista === 'productos' ? '' : 'none';
+  document.getElementById('vista-combos').style.display = vista === 'combos' ? '' : 'none';
+  if (vista === 'combos' && !_combosCargados && window.cb_cargarCombos) {
+    _combosCargados = true;
+    window.cb_cargarCombos();
+  }
+}
+window.cambiarVistaProductos = cambiarVistaProductos;
+
+function aplicarTabInicialProductos() {
+  const urlParams = new URLSearchParams(window.location.search);
+  // Deep-link desde el viejo /admin/combos (ahora redirect, ver
+  // vercel.json) y desde cualquier link guardado que apuntaba a esa
+  // pantalla — mismo criterio que ?tab=listas en clientes.js.
+  if (urlParams.get('tab') === 'combos') {
+    cambiarVistaProductos('combos');
+  }
+}
+
+/* ── Blindaje anti-modal-pegado (solo el modal de Producto — Combos ya no
+   usa modal, ver arriba) ── el navegador puede restaurar la página desde
+   bfcache (back/forward) con el DOM tal cual quedó, sin volver a correr
+   los <script>, así que se fuerza el cierre acá también en 'pageshow'. */
+function _cerrarModalesForzado() {
+  document.getElementById('modal-backdrop-producto')?.style.setProperty('display', 'none');
+  document.getElementById('modal-producto')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) _cerrarModalesForzado();
+});
 
 /* ── DOMContentLoaded ── */
 document.addEventListener('DOMContentLoaded', () => {
+  _cerrarModalesForzado();
+
   // Año dinámico en la nav
   const yearEl = document.getElementById('prod-nav-year');
   if (yearEl) yearEl.textContent = yearActivo;
@@ -1348,11 +1682,12 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => {
         console.warn('[productos] Auth no disponible, modo demo:', err?.message || err);
         init(null);
-      });
+      })
+      .finally(() => aplicarTabInicialProductos());
   } else {
     // Fallback: auth-ready.js no cargó (raro), arrancar en modo demo
     console.warn('[productos] window.authReady no disponible, cargando en modo demo.');
-    init(null);
+    init(null).finally(() => aplicarTabInicialProductos());
   }
 });
 
@@ -1632,9 +1967,9 @@ function elegirModoImagenes(contadorPrevio) {
     // el saldo exacto de la cuenta (eso solo lo tiene serper.dev), es una
     // referencia aproximada para no arrancar una corrida grande a ciegas.
     const avisoContador = (contadorPrevio == null) ? '' : `
-      <div style="font-size:11.5px;color:var(--color-text-muted);background:rgba(0,0,0,.03);
+      <div style="font-size:11.5px;color:var(--color-text-muted);background:rgba(22,24,29,.03);
                   border-radius:var(--radius-sm,6px);padding:7px 10px;margin-bottom:14px;line-height:1.4">
-        📊 Consultas a Serper registradas hasta ahora: <strong>${contadorPrevio}</strong>
+        Consultas a Serper registradas hasta ahora: <strong>${contadorPrevio}</strong>
         de las 2.500 gratis iniciales (conteo interno aproximado, no el saldo exacto de la cuenta).
       </div>`;
 
@@ -1643,7 +1978,7 @@ function elegirModoImagenes(contadorPrevio) {
       <div role="dialog" aria-modal="true" aria-labelledby="ei-titulo"
            style="position:fixed;inset:0;z-index:var(--z-modal,400);
                   display:flex;align-items:center;justify-content:center;
-                  background:rgba(0,0,0,.45);padding:1rem">
+                  background:rgba(22,24,29,.45);padding:1rem">
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);
                     padding:1.5rem;max-width:480px;width:100%;box-shadow:var(--shadow-xl)">
           <h3 id="ei-titulo" style="margin:0 0 4px;font-size:17px;font-weight:700;color:var(--color-text)">
@@ -1656,12 +1991,12 @@ function elegirModoImagenes(contadorPrevio) {
           ${avisoContador}
           <button type="button" data-action="solo_barcode" style="all:unset;box-sizing:border-box;display:block;width:100%;
                     text-align:left;padding:14px;margin-bottom:10px;border-radius:var(--radius-md);
-                    border:1.5px solid var(--color-primary);background:rgba(0,0,0,.015);cursor:pointer">
+                    border:1.5px solid var(--color-primary);background:rgba(22,24,29,.015);cursor:pointer">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-size:16px">📷</span>
+              <span style="font-size:16px;display:inline-flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
               <strong style="font-size:14px;color:var(--color-text)">Solo código de barras</strong>
               <span style="margin-left:auto;font-size:10px;font-weight:700;text-transform:uppercase;
-                    color:var(--color-primary);background:var(--color-primary-bg,rgba(232,160,0,.14));padding:3px 7px;border-radius:999px">
+                    color:var(--color-primary);background:var(--color-primary-bg,rgba(106,152,115,.14));padding:3px 7px;border-radius:999px">
                 Más confiable
               </span>
             </div>
@@ -1673,12 +2008,12 @@ function elegirModoImagenes(contadorPrevio) {
 
           <button type="button" data-action="con_busqueda_real" style="all:unset;box-sizing:border-box;display:block;width:100%;
                     text-align:left;padding:14px;margin-bottom:16px;border-radius:var(--radius-md);
-                    border:1.5px solid rgba(0,0,0,.1);cursor:pointer">
+                    border:1.5px solid rgba(22,24,29,.1);cursor:pointer">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-size:16px">🔍</span>
+              <span style="font-size:16px;display:inline-flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
               <strong style="font-size:14px;color:var(--color-text)">+ Buscar foto real por nombre</strong>
               <span style="margin-left:auto;font-size:10px;font-weight:700;text-transform:uppercase;
-                    color:var(--color-success,#17402F);background:var(--color-success-bg,#DCEDE3);padding:3px 7px;border-radius:999px">
+                    color:var(--color-success,#487050);background:var(--color-success-bg,#E2F0E5);padding:3px 7px;border-radius:999px">
                 Recomendado
               </span>
             </div>
@@ -1726,11 +2061,11 @@ function mostrarProgresoImagenes() {
     <div role="status" aria-live="polite"
          style="position:fixed;inset:0;z-index:var(--z-modal,400);
                 display:flex;align-items:center;justify-content:center;
-                background:rgba(0,0,0,.45);padding:1rem">
+                background:rgba(22,24,29,.45);padding:1rem">
       <div style="background:var(--color-surface);border-radius:var(--radius-lg);
                   padding:1.5rem;max-width:380px;width:100%;box-shadow:var(--shadow-xl);text-align:center">
         <div style="width:36px;height:36px;margin:0 auto 14px;border-radius:50%;
-                    border:3px solid rgba(0,0,0,.08);border-top-color:var(--color-primary);
+                    border:3px solid rgba(22,24,29,.08);border-top-color:var(--color-primary);
                     animation:ei-spin 0.8s linear infinite"></div>
         <style>@keyframes ei-spin { to { transform: rotate(360deg); } }</style>
         <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;color:var(--color-text)">
@@ -1781,7 +2116,7 @@ function mostrarResultadoImagenes({ detenidoPorUsuario, errorMsg, totalConFoto, 
     // Capa 2 (Serper) — con "solo código de barras" no se consumió nada.
     const detalleContador = (contadorSerper != null && totalConFotoBusqueda > 0)
       ? `<div style="font-size:11.5px;color:var(--color-text-muted);margin-top:8px">
-           📊 Consultas a Serper acumuladas: <strong>${contadorSerper}</strong> (conteo interno aproximado).
+           Consultas a Serper acumuladas: <strong>${contadorSerper}</strong> (conteo interno aproximado).
          </div>`
       : '';
 
@@ -1790,7 +2125,7 @@ function mostrarResultadoImagenes({ detenidoPorUsuario, errorMsg, totalConFoto, 
       <div role="dialog" aria-modal="true" aria-labelledby="ei-res-titulo"
            style="position:fixed;inset:0;z-index:var(--z-modal,400);
                   display:flex;align-items:center;justify-content:center;
-                  background:rgba(0,0,0,.45);padding:1rem">
+                  background:rgba(22,24,29,.45);padding:1rem">
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);
                     padding:1.5rem;max-width:400px;width:100%;box-shadow:var(--shadow-xl)">
           <h3 id="ei-res-titulo" style="margin:0 0 8px;font-size:16px;font-weight:700;color:var(--color-text)">

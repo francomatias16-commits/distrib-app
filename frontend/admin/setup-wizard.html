@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -312,7 +312,7 @@
 <div class="stepper-wrap">
   <div class="wizard-intro">
     <div class="wizard-intro-title">Configuración inicial</div>
-    <div class="wizard-intro-subtitle">Completá estos 4 pasos para dejar tu cuenta lista: datos de la empresa, facturación, catálogo y confirmación final.</div>
+    <div class="wizard-intro-subtitle">Completá estos 3 pasos para dejar tu cuenta lista: datos de la empresa, catálogo y confirmación final.</div>
   </div>
   <div class="stepper" id="stepper">
     <div class="step active" id="step-ind-1">
@@ -321,14 +321,10 @@
     </div>
     <div class="step" id="step-ind-2">
       <div class="step-dot">2</div>
-      <span class="step-label">Facturación</span>
+      <span class="step-label">Catálogo</span>
     </div>
     <div class="step" id="step-ind-3">
       <div class="step-dot">3</div>
-      <span class="step-label">Catálogo</span>
-    </div>
-    <div class="step" id="step-ind-4">
-      <div class="step-dot">4</div>
       <span class="step-label">Listo</span>
     </div>
   </div>
@@ -386,52 +382,8 @@
     </div>
   </div>
 
-  <!-- ── Paso 2: Facturación ARCA ─────────────────────────────────────── -->
+  <!-- ── Paso 2: Primera categoría y productos ─────────────────────────── -->
   <div class="step-panel" id="panel-2">
-    <p class="panel-title">Configuración de facturación</p>
-    <p class="panel-subtitle">
-      Para emitir facturas electrónicas necesitás un punto de venta habilitado en ARCA (AFIP).
-      Podés configurarlo ahora o más adelante desde <strong>Facturación → Configurar</strong>.
-    </p>
-
-    <div class="form-card">
-      <div class="row-2">
-        <div class="field">
-          <label for="p2-pv">Punto de venta ARCA</label>
-          <input type="number" id="p2-pv" placeholder="Ej: 1" min="1" max="9999">
-          <div class="field-hint">Número asignado por ARCA al habilitar el PV</div>
-        </div>
-        <div class="field">
-          <label for="p2-tipo">Comprobante por defecto</label>
-          <select id="p2-tipo">
-            <option value="B">Factura B (consumidores finales / monotributo)</option>
-            <option value="A">Factura A (responsables inscriptos)</option>
-            <option value="C">Factura C (monotributo emitiendo)</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label for="p2-razon">Razón social ARCA</label>
-        <input type="text" id="p2-razon" placeholder="Igual a como figura en AFIP">
-        <div class="field-hint">Debe coincidir exactamente con tu razón social fiscal</div>
-      </div>
-      <div class="alert-box" id="alert-p2"></div>
-    </div>
-
-    <div class="skip-step">
-      <button onclick="saltarPaso(3)">Configurar facturación después</button>
-    </div>
-    <div class="nav-buttons">
-      <button class="btn-back" onclick="irAPaso(1)">← Volver</button>
-      <button class="btn-next" id="btn-p2-next" onclick="btnAsyncClick(this, guardarPaso2)">
-        <span class="btn-label">Siguiente →</span>
-        <div class="spin"></div>
-      </button>
-    </div>
-  </div>
-
-  <!-- ── Paso 3: Primera categoría y productos ─────────────────────────── -->
-  <div class="step-panel" id="panel-3">
     <p class="panel-title">Primeros productos</p>
     <p class="panel-subtitle">
       Creá al menos una categoría para organizar tu catálogo. Después podés importar tu lista completa de productos.
@@ -454,32 +406,32 @@
         </div>
       </div>
       <div class="field">
-        <label for="p3-cat-nueva">O escribí una categoría personalizada</label>
+        <label for="p2-cat-nueva">O escribí una categoría personalizada</label>
         <div style="display:flex;gap:8px">
-          <input type="text" id="p3-cat-nueva" placeholder="Nombre de la categoría"
+          <input type="text" id="p2-cat-nueva" placeholder="Nombre de la categoría"
                  style="flex:1" onkeydown="if(event.key==='Enter')agregarCatCustom()">
           <button onclick="btnAsyncClick(this, agregarCatCustom)" style="padding:10px 16px;background:var(--azul);color:var(--color-surface);border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
             + Agregar
           </button>
         </div>
       </div>
-      <div class="alert-box" id="alert-p3"></div>
+      <div class="alert-box" id="alert-p2"></div>
     </div>
 
     <div class="skip-step">
-      <button onclick="saltarPaso(4)">Agregar productos después</button>
+      <button onclick="saltarPaso(3)">Agregar productos después</button>
     </div>
     <div class="nav-buttons">
-      <button class="btn-back" onclick="irAPaso(2)">← Volver</button>
-      <button class="btn-next" id="btn-p3-next" onclick="btnAsyncClick(this, guardarPaso3)">
+      <button class="btn-back" onclick="irAPaso(1)">← Volver</button>
+      <button class="btn-next" id="btn-p2-next" onclick="btnAsyncClick(this, guardarPaso2)">
         <span class="btn-label">Siguiente →</span>
         <div class="spin"></div>
       </button>
     </div>
   </div>
 
-  <!-- ── Paso 4: Completado ────────────────────────────────────────────── -->
-  <div class="step-panel" id="panel-4">
+  <!-- ── Paso 3: Completado ────────────────────────────────────────────── -->
+  <div class="step-panel" id="panel-3">
     <div class="finish-card">
       <div class="finish-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div>
       <h2>¡Estás listo para empezar!</h2>
@@ -487,12 +439,6 @@
         <li>Empresa configurada</li>
         <li>30 días de prueba activos</li>
       </ul>
-      <div class="alert-box warn" id="aviso-cert-arca" style="display:none">
-        Para emitir facturas con CAE real todavía falta cargar el
-        <strong>certificado y la clave privada de ARCA</strong>.
-        Podés hacerlo cuando quieras desde
-        <a href="/admin/facturacion-config.html">Facturación → Configurar</a>.
-      </div>
       <p>
         Ya podés crear tus primeros pedidos, cargar clientes y gestionar tu stock.
         Si necesitás ayuda, escribinos directamente.
@@ -507,8 +453,8 @@
 (function() {
   // ── Estado del wizard ────────────────────────────────────────────────────
   let pasoActual = 1;
-  const TOTAL = 4;
-  const completado = { empresa: false, facturacion: false, categorias: [] };
+  const TOTAL = 3;
+  const completado = { empresa: false, categorias: [] };
 
   // Token de sesión (necesario para llamar a /api/empresa)
   let _token = null;
@@ -636,86 +582,11 @@
     }
   };
 
-  // ── Paso 2: guardar config facturación ───────────────────────────────────
-  // Cachea el CUIT de la empresa (se cargó en el registro, no se vuelve a
-  // pedir acá). Se resuelve una sola vez y se reutiliza en el Paso 2.
-  let _cuitEmpresa = null;
-  async function obtenerCuitEmpresa(token) {
-    if (_cuitEmpresa) return _cuitEmpresa;
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) return null;
-      const { data: perfil } = await sb.from('usuarios')
-        .select('empresa_id').eq('id', session.user.id).single();
-      if (!perfil?.empresa_id) return null;
-      const { data: empresa } = await sb.from('empresas')
-        .select('cuit').eq('id', perfil.empresa_id).single();
-      _cuitEmpresa = empresa?.cuit || null;
-      return _cuitEmpresa;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  window.guardarPaso2 = async function() {
-    const pv    = document.getElementById('p2-pv').value.trim();
-    // "Comprobante por defecto" (A/B/C) no tiene columna propia en
-    // facturacion_config — lo que el backend guarda es la condición frente
-    // al IVA de la empresa, ya elegida en el Paso 1. La reusamos acá en vez
-    // de mandar un campo (tipo_comprobante_def) que el backend ignoraba.
-    const condicionIva = document.getElementById('p1-condicion').value;
-    const razon = document.getElementById('p2-razon').value.trim();
-
-    // Paso opcional — si no llenaron nada, simplemente avanzar
-    if (!pv && !razon) { irAPaso(3); return; }
-
-    const btn = document.getElementById('btn-p2-next');
-    btn.disabled = true; btn.classList.add('loading');
-
-    try {
-      const token = await getToken();
-      let guardadoOk = false;
-
-      if (token && pv) {
-        const cuit = await obtenerCuitEmpresa(token);
-        if (!cuit) {
-          // Sin CUIT no hay forma de guardar facturacion_config (columna
-          // NOT NULL). Avisamos y dejamos que lo complete desde el panel.
-          setAlertBox('alert-p2', 'No se encontró el CUIT de la empresa. Configuralo desde el panel de Facturación.', 'err');
-        } else {
-          const resp = await fetch('/api/facturas/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({
-              cuit,
-              punto_venta:   parseInt(pv),
-              condicion_iva: condicionIva || undefined,
-              razon_social:  razon || undefined,
-            }),
-          });
-          guardadoOk = resp.ok;
-          if (!resp.ok) {
-            const err = await resp.json().catch(() => ({}));
-            setAlertBox('alert-p2', err.error || 'No se pudo guardar la configuración.', 'err');
-          }
-        }
-      }
-
-      completado.facturacion = guardadoOk;
-      irAPaso(3);
-    } catch(err) {
-      setAlertBox('alert-p2', 'Error al guardar. Continuá y configuralo desde el panel.', 'err');
-      setTimeout(() => irAPaso(3), 2000);
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
-  };
-
-  // ── Paso 3: categorías ───────────────────────────────────────────────────
+  // ── Paso 2: categorías ───────────────────────────────────────────────────
   window.toggleChip = function(el) { el.classList.toggle('selected'); };
 
   window.agregarCatCustom = function() {
-    const input = document.getElementById('p3-cat-nueva');
+    const input = document.getElementById('p2-cat-nueva');
     const nombre = input.value.trim();
     if (!nombre) return;
     const chips = document.getElementById('cat-chips');
@@ -728,12 +599,12 @@
     input.focus();
   };
 
-  window.guardarPaso3 = async function() {
+  window.guardarPaso2 = async function() {
     const seleccionadas = [...document.querySelectorAll('.cat-chip.selected')]
       .map(c => c.textContent.trim())
       .filter(Boolean);
 
-    const btn = document.getElementById('btn-p3-next');
+    const btn = document.getElementById('btn-p2-next');
     btn.disabled = true; btn.classList.add('loading');
 
     try {
@@ -751,11 +622,10 @@
       }
     } catch(_) { /* continuar igual */ }
 
-    // Armar checklist del paso 4
+    // Armar checklist del paso 3
     const list = document.getElementById('finish-checklist');
     const extras = [];
     if (completado.empresa)     extras.push('Datos de empresa actualizados');
-    if (completado.facturacion) extras.push('Punto de venta ARCA configurado');
     if (completado.categorias.length) extras.push(`${completado.categorias.length} categoría(s) creada(s)`);
     list.innerHTML = [
       '<li>Empresa configurada</li>',
@@ -763,17 +633,8 @@
       ...extras.map(e => `<li>${e}</li>`),
     ].join('');
 
-    // El paso 2 solo guarda punto de venta / razón social — el certificado
-    // y la clave privada de ARCA se cargan aparte (textarea con el .crt/.key,
-    // ver facturacion-config.html). Si la empresa configuró el punto de
-    // venta pero no tiene certificado, mostramos el recordatorio acá para
-    // que no quede "facturación configurada" a medias sin que nadie se entere.
-    if (completado.facturacion) {
-      document.getElementById('aviso-cert-arca').style.display = 'block';
-    }
-
     btn.disabled = false; btn.classList.remove('loading');
-    irAPaso(4);
+    irAPaso(3);
   };
 
   // ── Helpers UI ───────────────────────────────────────────────────────────

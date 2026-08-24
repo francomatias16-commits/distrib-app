@@ -231,8 +231,8 @@ async function cargarOverviewChart() {
         });
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorIngreso = tokens.teal   || '#B87A00';
-        const colorEgreso   = tokens.orange || '#8F5F00';
+        const colorIngreso = tokens.teal   || '#6A9873';
+        const colorEgreso   = tokens.orange || '#8A5F13';
 
         _ovChart = crearGraficoECharts(_ovChart, 'stock-ov-chart', {
             tooltip: { trigger: 'axis' },
@@ -443,7 +443,7 @@ async function cargarRotacion() {
         const valores = fechas.map(f => movimientosPorDia[f]);
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorRotacion = tokens.blue || '#2E6088';
+        const colorRotacion = tokens.blue || '#33507A';
 
         if (!fechas.length) {
             chartsInstancias.rotacion = crearGraficoECharts(chartsInstancias.rotacion, 'chartRotacion', null);
@@ -605,25 +605,33 @@ function renderPaginacionStock() {
 // sola vez y lo renderizaba todo junto sin paginar — con un catálogo grande
 // esto queda como una sola lista interminable (mismo problema que tenía
 // Estado de Stock). Ahora usa el mismo patrón de paginación server-side.
+// Usa fn_reportes_stock_criticos_lista (migración 441), que compara contra
+// el stock_minimo real de cada producto (con piso de 5 si no tiene uno
+// configurado) — mismo criterio que ya usa el KPI "Stock Crítico" de esta
+// misma pantalla (fn_reportes_stock_kpis) y que stock.js/automatizacion.js.
+// Antes esta tabla hacía un query directo `cantidad < 10` fijo (con "10"
+// hardcodeado también en la columna Stock Mínimo), que quedó desalineado
+// del KPI de arriba: un producto con stock_minimo=50 y cantidad=15 no
+// aparecía acá aunque el KPI sí lo contara como crítico. La RPC ya existía
+// desde el 441 pero nada del frontend la llamaba.
 async function cargarProductosCriticos() {
     const tbody = document.getElementById('tbodyProductosCriticos');
     try {
         tbody.innerHTML = '<tr><td colspan="6" class="loading">Cargando datos...</td></tr>';
 
         const desde = (PAGINACION_CRITICOS.paginaActual - 1) * PAGINACION_CRITICOS.porPagina;
-        const hasta = desde + PAGINACION_CRITICOS.porPagina - 1;
 
-        const { data: stocks, error, count } = await window.authCtx.sb
-            .from('stock')
-            .select('id, cantidad, producto_id, productos!inner(nombre)', { count: 'exact' })
-            .lt('cantidad', 10)
-            .order('cantidad', { ascending: true })
-            .range(desde, hasta);
+        const { data: criticos, error } = await window.authCtx.sb.rpc('fn_reportes_stock_criticos_lista', {
+            p_deposito_id: estadoReportesStock.depositoSeleccionado || null,
+            p_categoria_id: estadoReportesStock.categoriaSeleccionada || null,
+            p_limit: PAGINACION_CRITICOS.porPagina,
+            p_offset: desde
+        });
         if (error) throw error;
 
-        PAGINACION_CRITICOS.totalRegistros = count || 0;
+        PAGINACION_CRITICOS.totalRegistros = (criticos && criticos[0]?.total_count) || 0;
 
-        const productosIds = (stocks || []).map(s => s.producto_id);
+        const productosIds = (criticos || []).map(c => c.producto_id);
 
         // Últimas ventas SOLO para los productos de esta página (antes se
         // pedían hasta 500 filas de pedido_items para TODOS los productos
@@ -641,22 +649,21 @@ async function cargarProductosCriticos() {
             .filter(p => p.pedidos?.fecha_pedido)
             .sort((a, b) => new Date(b.pedidos.fecha_pedido) - new Date(a.pedidos.fecha_pedido));
 
-        tbody.innerHTML = (stocks || [])
-            .map(s => {
-                const ultimaVenta = pedidos.find(p => p.producto_id === s.producto_id);
+        tbody.innerHTML = (criticos || [])
+            .map(c => {
+                const ultimaVenta = pedidos.find(p => p.producto_id === c.producto_id);
                 const ultimaVentaFecha = ultimaVenta
                     ? new Date(ultimaVenta.pedidos.fecha_pedido).toLocaleDateString('es-AR')
                     : 'Nunca';
-                const deficit = Math.max(0, 10 - s.cantidad);
 
                 return `
                     <tr>
-                        <td>${sanitize(s.productos?.nombre || 'Sin nombre')}</td>
-                        <td>${s.cantidad}</td>
-                        <td>10</td>
-                        <td>${deficit}</td>
+                        <td>${sanitize(c.nombre || 'Sin nombre')}</td>
+                        <td>${c.cantidad_disponible}</td>
+                        <td>${c.stock_minimo}</td>
+                        <td>${c.deficit}</td>
                         <td>${ultimaVentaFecha}</td>
-                        <td><button type="button" class="status-badge status-badge--action red" onclick="reabastecerProducto('${s.producto_id}')">Reabastecer</button></td>
+                        <td><button type="button" class="status-badge status-badge--action red" onclick="reabastecerProducto('${c.producto_id}')">Reabastecer</button></td>
                     </tr>
                 `;
             })
@@ -699,46 +706,31 @@ function renderPaginacionCriticos() {
 }
 
 // Cargar valorización
+// OPTIMIZADO (v775/494): antes traía TODA la tabla `stock` de la empresa
+// (sin .range() ni límite) más TODOS los `depositos`, solo para agrupar y
+// sumar en JS — mismo cuello de botella ya corregido para "Estado de
+// Stock" y "Productos Críticos" en este archivo, pero que había quedado
+// afuera de esa pasada. Ahora fn_reportes_stock_valorizacion (494) agrupa
+// y suma en SQL, mismo patrón que fn_reportes_stock_distribucion.
 async function cargarValorizacion() {
     try {
-        const { data: stocks } = await window.authCtx.sb
-            .from('stock')
-            .select('id, cantidad, costo_promedio, deposito_id, producto_id');
+        const { data: filas, error } = await window.authCtx.sb.rpc('fn_reportes_stock_valorizacion');
+        if (error) throw error;
 
-        const { data: depositos } = await window.authCtx.sb
-            .from('depositos')
-            .select('id, nombre')
-            .eq('empresa_id', window.authCtx.perfil.empresa_id);
-
-        // Agrupar por depósito
-        const valorizacionPorDeposito = {};
-        (stocks || []).forEach(s => {
-            if (!valorizacionPorDeposito[s.deposito_id]) {
-                valorizacionPorDeposito[s.deposito_id] = {
-                    nombre: (depositos || []).find(d => d.id === s.deposito_id)?.nombre || 'Sin nombre',
-                    cantidad: 0,
-                    unidades: 0,
-                    costo: 0
-                };
-            }
-            valorizacionPorDeposito[s.deposito_id].cantidad += 1;
-            valorizacionPorDeposito[s.deposito_id].unidades += s.cantidad;
-            valorizacionPorDeposito[s.deposito_id].costo += s.cantidad * s.costo_promedio;
-        });
-
-        const totalCosto = Object.values(valorizacionPorDeposito).reduce((sum, d) => sum + d.costo, 0);
+        const totalCosto = (filas || []).reduce((sum, d) => sum + (Number(d.costo_total) || 0), 0);
 
         // Renderizar tabla
         const tbody = document.getElementById('tbodyValorizacion');
-        tbody.innerHTML = Object.values(valorizacionPorDeposito)
+        tbody.innerHTML = (filas || [])
             .map(d => {
-                const porcentaje = totalCosto > 0 ? (d.costo / totalCosto * 100).toFixed(2) : 0;
+                const costo = Number(d.costo_total) || 0;
+                const porcentaje = totalCosto > 0 ? (costo / totalCosto * 100).toFixed(2) : 0;
                 return `
                     <tr>
-                        <td>${sanitize(d.nombre)}</td>
-                        <td>${d.cantidad}</td>
+                        <td>${sanitize(d.deposito_nombre)}</td>
+                        <td>${d.cantidad_productos}</td>
                         <td>${d.unidades}</td>
-                        <td>$${d.costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td>$${costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
                         <td>${porcentaje}%</td>
                     </tr>
                 `;
@@ -790,6 +782,10 @@ async function cargarMovimientos() {
             .map(m => {
                 const producto = (productos || []).find(p => p.id === m.producto_id);
                 const usuario = (usuarios || []).find(u => u.id === m.usuario_id);
+                // _depositosList ya está cargado (cargarDepositos() corre antes que
+                // cargarReportes() en el init) — antes esta columna mostraba la
+                // palabra "Depósito" fija en texto, no el nombre real.
+                const deposito = _depositosList.find(d => d.id === m.deposito_id);
                 const fecha = new Date(m.created_at).toLocaleDateString('es-AR');
 
                 return `
@@ -798,7 +794,7 @@ async function cargarMovimientos() {
                         <td>${sanitize(producto?.nombre || 'Sin nombre')}</td>
                         <td>${m.tipo}</td>
                         <td>${m.cantidad}</td>
-                        <td>Depósito</td>
+                        <td>${sanitize(deposito?.nombre || 'Sin depósito')}</td>
                         <td>${sanitize(usuario?.nombre || 'Sin usuario')}</td>
                     </tr>
                 `;
@@ -932,8 +928,8 @@ async function cargarConteosTopProductos() {
         const diferencias = (data || []).map(d => Number(d.diferencia_neta) || 0);
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorPositivo = tokens.teal || '#B87A00';
-        const colorNegativo = tokens.red || '#B3261E';
+        const colorPositivo = tokens.teal || '#6A9873';
+        const colorNegativo = tokens.red || '#B8402E';
 
         if (!nombres.length) {
             chartsInstancias.conteosTopProductos = crearGraficoECharts(
@@ -1076,23 +1072,23 @@ function mostrarMenuExport(fecha, tipo) {
 
     const overlay = document.createElement('div');
     overlay.id = 'export-menu-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(22,24,29,.35)';
     overlay.innerHTML = `
-      <div style="background:var(--color-surface,#FCFAF5);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <div style="background:var(--color-surface,#FFFFFF);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(22,24,29,.18)">
         <h3 style="margin:0 0 16px;font-size:16px;font-weight:600">Exportar reporte</h3>
-        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#DCEDE3);border:1px solid var(--color-success-mid,#1F5B4A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#17402F)">
+        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#E2F0E5);border:1px solid var(--color-success-mid,#75A37D);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#487050)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 10 2.5 4L13 10m0 4-2.5-4M3 7h18"/></svg>
           Excel (.xlsx)
         </button>
-        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#DAD3C0);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
+        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#E7E9E4);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           CSV (.csv)
         </button>
-        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F3DAD8);border:1px solid var(--color-danger-mid,#B3261E);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A1E19)">
+        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F5DDD8);border:1px solid var(--color-danger-mid,#D1594A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A2820)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           PDF (imprimir)
         </button>
-        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#4B4A45)">Cancelar</button>
+        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#5B6660)">Cancelar</button>
       </div>`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);

@@ -1,0 +1,73 @@
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f4f8; min-height: 100vh; padding-bottom: 2rem; }
+
+    .topbar {
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      color: #fff; padding: 1.25rem 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+    .topbar p { font-size: .8rem; opacity: .8; margin-top: .15rem; }
+    .btn-salir {
+      background: rgba(255,255,255,.15); border: none; color: #fff; cursor: pointer;
+      padding: .5rem; border-radius: 8px; display: flex; align-items: center;
+      /* AUDITORIA-RESPONSIVE-ETAPA6: con ícono de 18-20px y .5rem de padding
+         queda en ~34-36px de alto — los 3 botones del topbar (push,
+         historial, cerrar sesión) son de uso frecuente en la app del
+         chofer. */
+      min-width: 40px; min-height: 40px; justify-content: center;
+    }
+
+    .contenido { padding: 1rem; max-width: 480px; margin: 0 auto; }
+    .loading, .empty-state { text-align: center; color: #6b7280; padding: 3rem 1rem; font-size: .9rem; }
+    .empty-state svg { margin-bottom: .75rem; opacity: .5; }
+
+    .resumen-bar {
+      display: flex; gap: .6rem; margin-bottom: 1rem;
+    }
+    .resumen-chip {
+      flex: 1; background: #fff; border-radius: 10px; padding: .65rem .5rem; text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .resumen-chip .num { font-size: 1.2rem; font-weight: 700; color: #2563EB; }
+    .resumen-chip .lbl { font-size: .68rem; color: #6b7280; text-transform: uppercase; letter-spacing: .02em; margin-top: .1rem; }
+
+    .card-remito {
+      background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: 1rem 1.1rem; margin-bottom: .75rem; cursor: pointer; transition: transform .1s;
+    }
+    .card-remito:active { transform: scale(.98); }
+
+    .card-remito-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .cliente-nombre { font-size: 1rem; font-weight: 700; color: #111827; }
+    .cliente-detalle { font-size: .82rem; color: #6b7280; margin-top: .15rem; }
+    .numero-pedido { font-size: .72rem; color: #9ca3af; margin-top: .35rem; }
+
+    .chip { display: inline-block; font-size: .7rem; font-weight: 600; padding: .2rem .6rem; border-radius: 20px; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+    .chip-confirmado { background: var(--color-success-bg); color: var(--color-success-mid); }
+    .chip-preparando { background: var(--color-warning-bg); color: var(--color-warning); }
+    .chip-despachado { background: var(--color-info-bg); color: var(--color-primary-dark); }
+    .chip-entregado { background: var(--color-border-soft); color: var(--color-text-muted); }
+
+    .card-remito-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: .6rem; padding-top: .6rem; border-top: 1px solid #f3f4f6; }
+    .total-chico { font-size: .92rem; font-weight: 700; color: #111827; }
+    .flecha { color: #9ca3af; }
+
+    .btn-refrescar {
+      width: 100%; padding: .7rem; border: 1px solid #d1d5db; border-radius: 10px;
+      background: #fff; color: #4b5563; font-size: .85rem; cursor: pointer; margin-top: .5rem;
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+
+    /* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.7): esta app no tenía CSS
+       propio ni @media. En 320-360px .resumen-bar (3 chips en fila) y
+       .card-remito-top (nombre de cliente + chip de estado sin wrap)
+       quedan ajustados; se compacta sin cambiar el layout general. */
+    @media (max-width: 360px) {
+      .resumen-bar { gap: .4rem; }
+      .resumen-chip { padding: .5rem .3rem; }
+      .resumen-chip .num { font-size: 1.05rem; }
+      .card-remito-top { flex-wrap: wrap; }
+      .cliente-nombre { font-size: .92rem; }
+    }
+  

@@ -4,152 +4,212 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="/cliente/manifest.json" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#19372D" />
   <title>Mi cuenta — Fluxo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <!--
+    REESCRITURA COMPLETA (2026-08-23) — la versión anterior de esta página
+    dependía de /cliente/css/cuenta.css para pintar sus tarjetas, pero varias
+    hojas compartidas cargadas antes (reskin-patch-v2-shadcn.css en
+    particular, con una regla global ".avatar { ... !important }" pensada
+    para otros módulos del admin) le pisaban el layout con reglas
+    !important que cuenta.css no podía ganar aunque cargara al final.
+    Resultado: layout roto (avatar colapsado, tarjetas angostas) en
+    producción, de forma intermitente y muy difícil de diagnosticar desde
+    afuera.
+
+    Solución de esta reescritura: la página ya NO usa ningún nombre de
+    clase genérico compartido (avatar, card, info-row, etc.) — todo vive
+    bajo el prefijo "cta-" (Cuenta) para que sea IMPOSIBLE que una regla de
+    otra hoja de estilos lo alcance por accidente, hoy o en el futuro. El
+    contenedor raíz además lleva un estilo inline con !important como
+    última red de seguridad: una declaración inline con !important le gana
+    a cualquier regla de cualquier hoja externa, sin excepción, sin
+    importar el orden de carga ni la especificidad del selector.
+
+    Se mantienen las hojas compartidas para topbar/nav-bottom (que sí
+    rendereaban bien) y tokens.css por las variables de color/radio.
+  -->
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=2" />
+
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/cliente/pwa-init.js"></script>
   <script type="module" src="/frontend/js/push-init.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 
+  <style>
+    /* ══════════════════════════════════════════════════════════
+       Reset local — no depende de ninguna hoja compartida
+       ══════════════════════════════════════════════════════════ */
+    #cta-root, #cta-root *, #cta-root *::before, #cta-root *::after {
+      box-sizing: border-box;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg, #f5f6f2); min-height: 100vh; margin: 0; }
+
+    /* Topbar: clases propias del shared/tienda-nav.css, se dejan igual */
     .topbar {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      background: linear-gradient(135deg, var(--color-primary-dark, #19372D) 0%, var(--color-primary, #2f614b) 100%);
       color: #fff; padding: 1.25rem 1.25rem .75rem;
     }
     .topbar-row { display: flex; align-items: center; gap: .75rem; }
-    .btn-back { background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; }
-    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
-
-    /* NAV BOTTOM: ver /shared/tienda-nav.css */
-
-    .contenido { padding: 1rem 1rem 5rem; max-width: 480px; margin: 0 auto; }
-
-    /* Avatar */
-    .perfil-card {
-      background: var(--color-surface); border-radius: var(--radius-xxl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
-      padding: 1.25rem; display: flex; align-items: center; gap: 1rem; margin-bottom: .75rem;
+    .btn-back {
+      background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex;
+      min-width: 40px; min-height: 40px; align-items: center; justify-content: center; margin-left: -8px;
     }
-    .avatar {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+
+    /* ══════════════════════════════════════════════════════════
+       Contenedor raíz — namespaced, con inline !important también
+       aplicado desde el HTML como segunda capa de blindaje.
+       ══════════════════════════════════════════════════════════ */
+    #cta-root {
+      display: block !important;
+      width: 100% !important;
+      max-width: 480px !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+      margin: 0 auto !important;
+      padding: 1rem 1rem 5rem !important;
+      float: none !important;
+      position: static !important;
     }
-    .perfil-info h2 { font-size: 1rem; font-weight: 700; color: var(--color-text); }
-    .perfil-info p { font-size: .78rem; color: var(--color-text-light); margin-top: .1rem; }
-    .perfil-badge {
+    #cta-root > * { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+
+    .cta-loading { text-align: center; color: var(--color-text-light, #7c8b83); padding: 3rem 1rem; font-size: .88rem; }
+
+    /* Perfil */
+    .cta-perfil-card {
+      background: #fff; border: 1px solid var(--color-border, #dfe5df); border-radius: 5px 20px 5px 20px;
+      box-shadow: 0 5px 0 rgba(25,55,45,.03);
+      padding: 1.25rem; display: flex !important; flex-direction: row !important; align-items: center; gap: 1rem;
+      margin-bottom: .75rem;
+    }
+    .cta-avatar {
+      width: 56px !important; height: 56px !important; min-width: 56px !important; min-height: 56px !important;
+      border-radius: 4px 15px 4px 15px !important;
+      background: linear-gradient(135deg, #2f614b, var(--color-primary-dark, #19372D)) !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      font-size: 1.4rem !important; font-weight: 700 !important; color: #fff !important; flex-shrink: 0 !important;
+      line-height: 1 !important;
+    }
+    .cta-perfil-info { min-width: 0; flex: 1 1 auto; }
+    .cta-perfil-info h2 { font-size: 1rem; font-weight: 700; color: var(--color-text, #17231e); margin: 0; }
+    .cta-perfil-info p { font-size: .78rem; color: var(--color-text-light, #617169); margin: .1rem 0 0; }
+    .cta-perfil-badge {
       margin-top: .35rem; display: inline-block; font-size: .7rem; font-weight: 700;
-      padding: .2rem .6rem; border-radius: var(--radius-lg); background: var(--color-info-bg); color: var(--color-primary-dark);
+      padding: .2rem .6rem; border-radius: 999px; background: var(--color-info-bg, #eef4ee); color: var(--color-primary-dark, #19372D);
     }
 
     /* Puntos */
-    .puntos-card {
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      border-radius: var(--radius-xxl); padding: 1.1rem 1.25rem; color: #fff;
-      margin-bottom: .75rem; display: flex; align-items: center; justify-content: space-between;
+    .cta-puntos-card {
+      background: linear-gradient(135deg, #e0b16b, #9a6232);
+      border-radius: 5px 22px 5px 22px; padding: 1.25rem; color: #fff;
+      margin-bottom: .75rem; display: flex !important; flex-direction: row !important;
+      align-items: center; justify-content: space-between;
     }
-    .puntos-label { font-size: .8rem; opacity: .85; margin-bottom: .25rem; }
-    .puntos-valor { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
-    .puntos-sub { font-size: .72rem; opacity: .7; margin-top: .1rem; }
-    .puntos-icono { font-size: 2rem; opacity: .7; }
+    .cta-puntos-label { font-size: .8rem; opacity: .85; margin-bottom: .25rem; }
+    .cta-puntos-valor { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+    .cta-puntos-sub { font-size: .72rem; opacity: .7; margin-top: .1rem; }
+    .cta-puntos-icono { flex-shrink: 0; opacity: .85; }
 
-    /* Catálogo de recompensas */
-    .recompensa-card {
-      background: var(--color-surface); border-radius: var(--radius-xxl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
-      padding: 1rem; margin-bottom: .6rem; display: flex; align-items: center; gap: .75rem;
+    /* Título de sección */
+    .cta-sec-titulo {
+      display: flex; align-items: center; gap: .7rem;
+      font: 700 .78rem 'Inter', sans-serif; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--color-text-muted, #617169); margin: 1rem 0 .5rem;
     }
-    .recompensa-info { flex: 1; min-width: 0; }
-    .recompensa-nombre { font-size: .9rem; font-weight: 700; color: var(--color-text); }
-    .recompensa-desc { font-size: .76rem; color: var(--color-text-muted); margin-top: .1rem; }
-    .recompensa-puntos { font-size: .74rem; color: var(--color-primary); font-weight: 700; margin-top: .3rem; }
-    .btn-canjear {
-      flex-shrink: 0; border: none; border-radius: var(--radius-lg); padding: .55rem .9rem;
-      font-size: .78rem; font-weight: 700; cursor: pointer;
-      background: var(--color-primary); color: #fff;
-    }
-    .btn-canjear:disabled { background: var(--color-border); color: var(--color-text-light); cursor: not-allowed; }
-    .recompensas-vacio { font-size: .82rem; color: var(--color-text-light); padding: .5rem 0 .25rem; }
-    .recompensas-msg { font-size: .78rem; padding: .5rem .75rem; border-radius: var(--radius-lg); margin-bottom: .6rem; }
-    .recompensas-msg.ok  { background: var(--color-success-bg); color: var(--color-success); }
-    .recompensas-msg.err { background: var(--color-danger-bg); color: var(--color-danger); }
+    .cta-sec-titulo::after { content: ""; height: 1px; flex: 1; background: var(--color-border, #dfe5df); }
 
-    .btn-activar-push-full {
-      width: 100%; padding: .8rem; border: 1px solid var(--color-info-bg); border-radius: var(--radius-xl);
-      background: var(--color-surface); color: var(--color-primary); font-size: .88rem; font-weight: 600;
-      margin-bottom: .75rem; cursor: pointer;
+    /* Recompensas */
+    .cta-recompensa-card {
+      background: #fff; border: 1px solid var(--color-border, #dfe5df); border-radius: 5px 20px 5px 20px;
+      padding: 1rem; margin-bottom: .6rem; display: flex !important; flex-direction: row !important;
+      align-items: center; gap: .75rem; width: 100%;
+    }
+    .cta-recompensa-info { flex: 1 1 auto; min-width: 0; }
+    .cta-recompensa-nombre { font-size: .9rem; font-weight: 700; color: var(--color-text, #17231e); }
+    .cta-recompensa-desc { font-size: .76rem; color: var(--color-text-muted, #617169); margin-top: .1rem; overflow-wrap: anywhere; }
+    .cta-recompensa-puntos { font-size: .74rem; color: var(--color-primary, #2f614b); font-weight: 700; margin-top: .3rem; }
+    .cta-btn-canjear {
+      flex-shrink: 0; border: none; border-radius: 999px; padding: .55rem .9rem; max-width: 9rem;
+      font-size: .78rem; font-weight: 700; cursor: pointer; white-space: normal; line-height: 1.2;
+      background: var(--color-primary-dark, #19372D); color: #fff; min-height: 40px;
+    }
+    .cta-btn-canjear:disabled { background: var(--color-border, #dfe5df); color: var(--color-text-light, #7c8b83); cursor: not-allowed; }
+    .cta-recompensas-vacio { font-size: .82rem; color: var(--color-text-light, #7c8b83); padding: .5rem 0 .25rem; }
+    .cta-recompensas-msg { font-size: .78rem; padding: .5rem .75rem; border-radius: 10px; margin-bottom: .6rem; }
+    .cta-recompensas-msg.ok  { background: #eaf7ee; color: #1e7d3c; }
+    .cta-recompensas-msg.err { background: #fdecec; color: #b3261e; }
+
+    .cta-btn-push {
+      display: block; width: 100%; padding: .8rem; border: 1px solid #bfd4c2; border-radius: 4px 14px 4px 14px;
+      background: #fff; color: var(--color-primary-dark, #19372D); font-size: .88rem; font-weight: 600;
+      margin-bottom: .75rem; cursor: pointer; text-decoration: none; text-align: center; font-family: inherit;
     }
 
     /* Info rows */
-    .info-card {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    .cta-info-card {
+      background: #fff; border: 1px solid var(--color-border, #dfe5df); border-radius: 5px 20px 5px 20px;
       overflow: hidden; margin-bottom: .75rem;
     }
-    .info-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: .8rem 1rem; border-bottom: 1px solid var(--color-border-soft); font-size: .85rem;
+    .cta-info-row {
+      display: flex !important; flex-direction: row !important; justify-content: space-between; align-items: center;
+      padding: .9rem 1rem; border-bottom: 1px solid var(--color-border-soft, #eef1ee); font-size: .85rem;
     }
-    .info-row:last-child { border-bottom: none; }
-    .info-row-label { color: var(--color-text-muted); }
-    .info-row-val { font-weight: 600; color: var(--color-text); }
-    .info-row-val.deuda { color: var(--color-danger-mid); }
-    .info-row-val.ok { color: var(--color-success-mid); }
+    .cta-info-row:last-child { border-bottom: none; }
+    .cta-info-row-label { color: var(--color-text-muted, #617169); }
+    .cta-info-row-val { font-weight: 600; color: var(--color-text, #17231e); }
+    .cta-info-row-val.cta-deuda { color: #b3261e; }
+    .cta-info-row-val.cta-ok { color: #1e7d3c; }
 
-    .sección-titulo { font-size: .78rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .04em; margin: 1rem 0 .5rem; }
-
-    /* Botón logout */
-    .btn-logout-full {
-      width: 100%; padding: .8rem; border: 1px solid var(--color-danger-bg); border-radius: var(--radius-xl);
-      background: var(--color-surface); color: var(--color-danger-mid); font-size: .88rem; font-weight: 600;
+    /* Logout */
+    .cta-btn-logout {
+      width: 100%; padding: .8rem; border: 1px solid #f6d3d0; border-radius: 4px 14px 4px 14px;
+      background: #fff; color: #b3261e; font-size: .88rem; font-weight: 600;
       cursor: pointer; font-family: inherit; margin-top: .5rem;
     }
 
     /* Cambiar contraseña */
-    .pw-card {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    .cta-pw-card {
+      background: #fff; border: 1px solid var(--color-border, #dfe5df); border-radius: 5px 20px 5px 20px;
       overflow: hidden; margin-bottom: .75rem;
     }
-    .pw-card-header {
-      display: flex; align-items: center; justify-content: space-between;
+    .cta-pw-header {
+      display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between;
       padding: .85rem 1rem; cursor: pointer; user-select: none;
     }
-    .pw-card-header-left { display: flex; align-items: center; gap: .6rem; font-size: .88rem; font-weight: 600; color: var(--color-text-muted); }
-    .pw-card-header svg { color: var(--color-text-muted); }
-    .pw-chevron { transition: transform .2s; color: var(--color-text-light); }
-    .pw-chevron.abierto { transform: rotate(180deg); }
-    .pw-body { padding: 0 1rem 1rem; display: none; }
-    .pw-body.abierto { display: block; }
-    .pw-field { margin-bottom: .75rem; }
-    .pw-field label { display: block; font-size: .78rem; font-weight: 600; color: var(--color-text-muted); margin-bottom: .3rem; }
-    .pw-field input {
-      width: 100%; padding: .65rem .85rem; border: 1px solid var(--color-border); border-radius: var(--radius-md);
-      font-size: .9rem; font-family: inherit; color: var(--color-text); outline: none;
+    .cta-pw-header-left { display: flex; align-items: center; gap: .6rem; font-size: .88rem; font-weight: 600; color: var(--color-text-muted, #617169); }
+    .cta-pw-chevron { transition: transform .2s; color: var(--color-text-light, #7c8b83); }
+    .cta-pw-chevron.abierto { transform: rotate(180deg); }
+    .cta-pw-body { padding: 0 1rem 1rem; display: none; }
+    .cta-pw-body.abierto { display: block; }
+    .cta-pw-field { margin-bottom: .75rem; }
+    .cta-pw-field label { display: block; font-size: .78rem; font-weight: 600; color: var(--color-text-muted, #617169); margin-bottom: .3rem; }
+    .cta-pw-field input {
+      width: 100%; padding: .65rem .85rem; border: 1px solid var(--color-border, #dfe5df); border-radius: 8px;
+      font-size: 1rem; font-family: inherit; color: var(--color-text, #17231e); outline: none;
     }
-    .pw-field input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
-    .pw-msg { font-size: .8rem; margin-top: .5rem; min-height: 1.2em; }
-    .pw-msg.ok { color: var(--color-success-mid); }
-    .pw-msg.err { color: var(--color-danger-mid); }
-    .btn-pw-submit {
-      width: 100%; padding: .75rem; background: var(--color-primary); color: #fff; border: none;
-      border-radius: var(--radius-md); font-size: .9rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    .cta-pw-field input:focus { border-color: var(--color-primary, #2f614b); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+    .cta-pw-msg { font-size: .8rem; margin-top: .5rem; min-height: 1.2em; }
+    .cta-pw-msg.ok { color: #1e7d3c; }
+    .cta-pw-msg.err { color: #b3261e; }
+    .cta-btn-pw-submit {
+      width: 100%; padding: .75rem; background: var(--color-primary-dark, #19372D); color: #fff; border: none;
+      border-radius: 8px; font-size: .9rem; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .btn-pw-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .cta-btn-pw-submit:disabled { opacity: .6; cursor: not-allowed; }
 
-    .loading { text-align: center; color: var(--color-text-light); padding: 3rem 1rem; font-size: .88rem; }
+    @media (max-width: 360px) {
+      .cta-avatar { width: 46px !important; height: 46px !important; min-width: 46px !important; min-height: 46px !important; font-size: 1.15rem !important; }
+      .cta-puntos-valor { font-size: 1.35rem; }
+      .cta-puntos-card { padding: .9rem 1rem; }
+      .cta-perfil-card { padding: 1rem; gap: .75rem; }
+    }
   </style>
-  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>
   <div class="topbar">
@@ -162,8 +222,8 @@
     <p style="font-size:.8rem;opacity:.8;margin-top:.15rem">Tus datos, direcciones de entrega y estado de cuenta</p>
   </div>
 
-  <div class="contenido" id="contenidoCuenta">
-    <div class="loading">Cargando...</div>
+  <div id="cta-root" style="display:block !important; width:100% !important; max-width:480px !important; min-width:0 !important; margin:0 auto !important; padding:1rem 1rem 5rem !important; box-sizing:border-box !important;">
+    <div class="cta-loading">Cargando...</div>
   </div>
 
   <nav class="nav-bottom">
@@ -176,15 +236,13 @@
 
   <script>
     const sb = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-cliente-auth' } });
-    // FIX (auditoría 2026, etapa 15, Hallazgo 1 — causa 1): ver mismo fix
-    // en frontend/chofer/index.html — push-init.js necesita este global.
     window.authCtx = { sb };
 
     const CATEGORIAS_SCORE = {
-      premium: { label: '⭐ Premium', cls: '' },
-      bueno:   { label: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M7 10v12"/><path d="M15 5.88 14 10h6.31a2 2 0 0 1 1.94 2.5l-1.86 7A2 2 0 0 1 18.45 21H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h2.76a2 2 0 0 0 1.79-1.11L12 2a2.43 2.43 0 0 1 3 2.38z"/></svg>Buen cliente', cls: '' },
-      normal:  { label: 'Cliente normal', cls: '' },
-      riesgo:  { label: '⚠ En seguimiento', cls: '' },
+      premium: { label: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium' },
+      bueno:   { label: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M7 10v12"/><path d="M15 5.88 14 10h6.31a2 2 0 0 1 1.94 2.5l-1.86 7A2 2 0 0 1 18.45 21H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h2.76a2 2 0 0 0 1.79-1.11L12 2a2.43 2.43 0 0 1 3 2.38z"/></svg>Buen cliente' },
+      normal:  { label: 'Cliente normal' },
+      riesgo:  { label: '⚠ En seguimiento' },
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -195,16 +253,11 @@
         .select('nombre, email, empresa_id, cliente_id').eq('id', session.user.id).single();
       if (!u?.cliente_id) { window.location.href = '/cliente/login'; return; }
 
-      // Cargar datos del cliente
       const [{ data: cliente }, { data: puntos }, { count: pedidosCount }] = await Promise.all([
         sb.from('clientes').select('razon_social, email, telefono, domicilio, score_actual, score_categoria, saldo_deuda, limite_credito').eq('id', u.cliente_id).single(),
         sb.from('saldo_puntos').select('puntos_disponibles, puntos_totales').eq('cliente_id', u.cliente_id).maybeSingle(),
         sb.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', u.cliente_id).neq('estado', 'borrador'),
       ]);
-      // BUG REAL corregido: con head:true la respuesta no trae filas, así que
-      // `.data` siempre es null y el contador mostraba "0" para TODOS los
-      // clientes reales, sin importar cuántos pedidos tuvieran. El total va
-      // en `.count`, no en `.data`.
 
       const nombre = u.nombre || cliente?.razon_social || 'Cliente';
       const inicial = nombre.charAt(0).toUpperCase();
@@ -214,97 +267,97 @@
       const limite = parseFloat(cliente?.limite_credito || 0);
       const scoreCateg = CATEGORIAS_SCORE[cliente?.score_categoria] || { label: 'Normal' };
 
-      document.getElementById('contenidoCuenta').innerHTML = `
-        <div class="perfil-card">
-          <div class="avatar">${esc(inicial)}</div>
-          <div class="perfil-info">
+      document.getElementById('cta-root').innerHTML = `
+        <div class="cta-perfil-card">
+          <div class="cta-avatar">${esc(inicial)}</div>
+          <div class="cta-perfil-info">
             <h2>${esc(nombre)}</h2>
             <p>${esc(u.email || cliente?.email || '')}</p>
-            ${cliente?.score_categoria ? `<span class="perfil-badge">${esc(scoreCateg.label)}</span>` : ''}
+            ${cliente?.score_categoria ? `<span class="cta-perfil-badge">${scoreCateg.label}</span>` : ''}
           </div>
         </div>
 
-        <div class="puntos-card">
+        <div class="cta-puntos-card">
           <div>
-            <div class="puntos-label">Mis puntos disponibles</div>
-            <div class="puntos-valor">${Math.round(puntosDisp).toLocaleString('es-AR')}</div>
-            <div class="puntos-sub">${Math.round(puntosTotal).toLocaleString('es-AR')} pts acumulados en total</div>
+            <div class="cta-puntos-label">Mis puntos disponibles</div>
+            <div class="cta-puntos-valor">${Math.round(puntosDisp).toLocaleString('es-AR')}</div>
+            <div class="cta-puntos-sub">${Math.round(puntosTotal).toLocaleString('es-AR')} pts acumulados en total</div>
           </div>
-          <div class="puntos-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+          <div class="cta-puntos-icono"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
         </div>
 
-        <div class="sección-titulo">Canjear recompensas</div>
+        <div class="cta-sec-titulo">Canjear recompensas</div>
         <div id="recompensasMsg"></div>
-        <div id="recompensasLista"><div class="recompensas-vacio">Cargando catálogo...</div></div>
+        <div id="recompensasLista"><div class="cta-recompensas-vacio">Cargando catálogo...</div></div>
 
-        <div class="sección-titulo">Cuenta corriente</div>
-        <div class="info-card">
-          <div class="info-row">
-            <span class="info-row-label">${deuda < 0 ? 'Saldo a favor' : 'Saldo pendiente'}</span>
-            <span class="info-row-val ${deuda > 0 ? 'deuda' : 'ok'}">${formatPeso(Math.abs(deuda))}</span>
+        <div class="cta-sec-titulo">Cuenta corriente</div>
+        <div class="cta-info-card">
+          <div class="cta-info-row">
+            <span class="cta-info-row-label">${deuda < 0 ? 'Saldo a favor' : 'Saldo pendiente'}</span>
+            <span class="cta-info-row-val ${deuda > 0 ? 'cta-deuda' : 'cta-ok'}">${formatPeso(Math.abs(deuda))}</span>
           </div>
-          <div class="info-row">
-            <span class="info-row-label">Límite de crédito</span>
-            <span class="info-row-val">${limite > 0 ? formatPeso(limite) : 'Sin límite asignado'}</span>
+          <div class="cta-info-row">
+            <span class="cta-info-row-label">Límite de crédito</span>
+            <span class="cta-info-row-val">${limite > 0 ? formatPeso(limite) : 'Sin límite asignado'}</span>
           </div>
         </div>
 
-        <div class="sección-titulo">Actividad</div>
-        <div class="info-card">
-          <div class="info-row">
-            <span class="info-row-label">Pedidos realizados</span>
-            <span class="info-row-val">${pedidosCount ?? 0}</span>
+        <div class="cta-sec-titulo">Actividad</div>
+        <div class="cta-info-card">
+          <div class="cta-info-row">
+            <span class="cta-info-row-label">Pedidos realizados</span>
+            <span class="cta-info-row-val">${pedidosCount ?? 0}</span>
           </div>
           ${cliente?.score_actual ? `
-          <div class="info-row">
-            <span class="info-row-label">Score de cliente</span>
-            <span class="info-row-val">${cliente.score_actual}/100</span>
+          <div class="cta-info-row">
+            <span class="cta-info-row-label">Score de cliente</span>
+            <span class="cta-info-row-val">${cliente.score_actual}/100</span>
           </div>` : ''}
         </div>
 
         ${cliente?.telefono || cliente?.domicilio ? `
-        <div class="sección-titulo">Datos de contacto</div>
-        <div class="info-card">
-          ${cliente?.telefono ? `<div class="info-row"><span class="info-row-label">Teléfono</span><span class="info-row-val">${esc(cliente.telefono)}</span></div>` : ''}
-          ${cliente?.domicilio ? `<div class="info-row"><span class="info-row-label">Domicilio</span><span class="info-row-val">${esc(cliente.domicilio)}</span></div>` : ''}
+        <div class="cta-sec-titulo">Datos de contacto</div>
+        <div class="cta-info-card">
+          ${cliente?.telefono ? `<div class="cta-info-row"><span class="cta-info-row-label">Teléfono</span><span class="cta-info-row-val">${esc(cliente.telefono)}</span></div>` : ''}
+          ${cliente?.domicilio ? `<div class="cta-info-row"><span class="cta-info-row-label">Domicilio</span><span class="cta-info-row-val">${esc(cliente.domicilio)}</span></div>` : ''}
         </div>` : ''}
 
-        <div class="sección-titulo">Notificaciones</div>
-        <button class="btn-activar-push-full" id="btnActivarPush" style="display:none">
+        <div class="cta-sec-titulo">Notificaciones</div>
+        <button class="cta-btn-push" id="btnActivarPush" style="display:none">
           Activar notificaciones de mis pedidos
         </button>
-        <a class="btn-activar-push-full" style="display:block;text-decoration:none;text-align:center" href="/cliente/notificaciones">
+        <a class="cta-btn-push" href="/cliente/notificaciones">
           Ver historial de notificaciones
         </a>
 
-        <div class="sección-titulo">Seguridad</div>
-        <div class="pw-card">
-          <div class="pw-card-header" id="pwToggle">
-            <div class="pw-card-header-left">
+        <div class="cta-sec-titulo">Seguridad</div>
+        <div class="cta-pw-card">
+          <div class="cta-pw-header" id="pwToggle">
+            <div class="cta-pw-header-left">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               Cambiar contraseña
             </div>
-            <svg class="pw-chevron" id="pwChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+            <svg class="cta-pw-chevron" id="pwChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
           </div>
-          <div class="pw-body" id="pwBody">
-            <div class="pw-field">
+          <div class="cta-pw-body" id="pwBody">
+            <div class="cta-pw-field">
               <label>Contraseña actual</label>
               <input type="password" id="pwActual" autocomplete="current-password" placeholder="••••••">
             </div>
-            <div class="pw-field">
+            <div class="cta-pw-field">
               <label>Nueva contraseña (mínimo 6 caracteres)</label>
               <input type="password" id="pwNueva" autocomplete="new-password" placeholder="••••••">
             </div>
-            <div class="pw-field">
+            <div class="cta-pw-field">
               <label>Repetir nueva contraseña</label>
               <input type="password" id="pwNuevaRep" autocomplete="new-password" placeholder="••••••">
             </div>
-            <div class="pw-msg" id="pwMsg"></div>
-            <button class="btn-pw-submit" id="pwBtn">Guardar nueva contraseña</button>
+            <div class="cta-pw-msg" id="pwMsg"></div>
+            <button class="cta-btn-pw-submit" id="pwBtn">Guardar nueva contraseña</button>
           </div>
         </div>
 
-        <button class="btn-logout-full" id="btnLogout">Cerrar sesión</button>
+        <button class="cta-btn-logout" id="btnLogout">Cerrar sesión</button>
       `;
 
       document.getElementById('btnLogout').addEventListener('click', async () => {
@@ -312,9 +365,6 @@
         window.location.href = '/cliente/login';
       });
 
-      // FIX (auditoría 2026, etapa 15, Hallazgo 1 — causa 1): ver nota en
-      // window.authCtx más arriba. Botón oculto por defecto y solo visible
-      // si el navegador todavía no decidió (permission === 'default').
       const btnPush = document.getElementById('btnActivarPush');
       if (btnPush && 'Notification' in window) {
         btnPush.style.display = (Notification.permission === 'default') ? '' : 'none';
@@ -335,7 +385,6 @@
 
       cargarRecompensas();
 
-      // --- Cambiar contraseña ---
       const pwToggle  = document.getElementById('pwToggle');
       const pwBody    = document.getElementById('pwBody');
       const pwChevron = document.getElementById('pwChevron');
@@ -353,29 +402,22 @@
           const btn = document.getElementById('pwBtn');
 
           msg.textContent = '';
-          msg.className = 'pw-msg';
+          msg.className = 'cta-pw-msg';
 
           if (!pwActual || !pwNueva || !pwNuevaRep) {
-            msg.textContent = 'Completá todos los campos.'; msg.className = 'pw-msg err'; return;
+            msg.textContent = 'Completá todos los campos.'; msg.className = 'cta-pw-msg err'; return;
           }
           if (pwNueva.length < 6) {
-            msg.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.'; msg.className = 'pw-msg err'; return;
+            msg.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.'; msg.className = 'cta-pw-msg err'; return;
           }
           if (pwNueva !== pwNuevaRep) {
-            msg.textContent = 'Las contraseñas nuevas no coinciden.'; msg.className = 'pw-msg err'; return;
+            msg.textContent = 'Las contraseñas nuevas no coinciden.'; msg.className = 'cta-pw-msg err'; return;
           }
 
           btn.disabled = true;
           btn.textContent = 'Guardando...';
 
           try {
-            // FIX (auditoría UX etapa 14, Hallazgo 1): antes mandaba
-            // credentials:'include' + X-CSRF-Token leído de una cookie
-            // (access_token/csrf_token) que ningún login real llega a
-            // setear -- este login usa sb.auth.signInWithPassword(), nunca
-            // /api/auth/login. Resultado: 401 "No autenticado" el 100% de
-            // las veces. Ahora manda el Bearer token real de la sesión de
-            // Supabase, que el backend ya sabe verificar (verificarToken()).
             const { data: { session } } = await sb.auth.getSession();
             const resp = await fetch('/api/auth/change-password', {
               method: 'POST',
@@ -388,17 +430,17 @@
             const data = await resp.json();
             if (!resp.ok) {
               msg.textContent = data.error || 'Error al cambiar contraseña.';
-              msg.className = 'pw-msg err';
+              msg.className = 'cta-pw-msg err';
             } else {
               msg.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Contraseña cambiada correctamente.';
-              msg.className = 'pw-msg ok';
+              msg.className = 'cta-pw-msg ok';
               document.getElementById('pwActual').value = '';
               document.getElementById('pwNueva').value = '';
               document.getElementById('pwNuevaRep').value = '';
             }
           } catch {
             msg.textContent = 'Error de conexión. Intentá de nuevo.';
-            msg.className = 'pw-msg err';
+            msg.className = 'cta-pw-msg err';
           } finally {
             btn.disabled = false;
             btn.textContent = 'Guardar nueva contraseña';
@@ -407,11 +449,6 @@
       }
     });
 
-    // ── Etapa 13 (auditoría UX), Hallazgo 1 — canje de recompensas ──────────
-    // Antes el catálogo (admin en /admin/fidelizacion.html) era enteramente
-    // decorativo: no existía ningún camino, en ningún portal, para canjear
-    // una recompensa puntual. Esta sección + /api/fidelizacion es esa mitad
-    // que faltaba.
     async function cargarRecompensas() {
       const cont = document.getElementById('recompensasLista');
       try {
@@ -423,30 +460,30 @@
         if (!resp.ok) throw new Error(data.error || 'No se pudo cargar el catálogo');
 
         if (!data.recompensas || data.recompensas.length === 0) {
-          cont.innerHTML = '<div class="recompensas-vacio">Todavía no hay recompensas disponibles para canjear.</div>';
+          cont.innerHTML = '<div class="cta-recompensas-vacio">Todavía no hay recompensas disponibles para canjear.</div>';
           return;
         }
 
         cont.innerHTML = data.recompensas.map(r => {
           const alcanza = data.puntos_disponibles >= r.puntos_requeridos;
           return `
-            <div class="recompensa-card">
-              <div class="recompensa-info">
-                <div class="recompensa-nombre">${esc(r.nombre)}</div>
-                ${r.descripcion ? `<div class="recompensa-desc">${esc(r.descripcion)}</div>` : ''}
-                <div class="recompensa-puntos">${Math.round(r.puntos_requeridos).toLocaleString('es-AR')} pts</div>
+            <div class="cta-recompensa-card">
+              <div class="cta-recompensa-info">
+                <div class="cta-recompensa-nombre">${esc(r.nombre)}</div>
+                ${r.descripcion ? `<div class="cta-recompensa-desc">${esc(r.descripcion)}</div>` : ''}
+                <div class="cta-recompensa-puntos">${Math.round(r.puntos_requeridos).toLocaleString('es-AR')} pts</div>
               </div>
-              <button class="btn-canjear" data-id="${esc(r.id)}" data-nombre="${esc(r.nombre)}" ${alcanza ? '' : 'disabled'}>
+              <button class="cta-btn-canjear" data-id="${esc(r.id)}" data-nombre="${esc(r.nombre)}" ${alcanza ? '' : 'disabled'}>
                 ${alcanza ? 'Canjear' : 'Puntos insuficientes'}
               </button>
             </div>`;
         }).join('');
 
-        cont.querySelectorAll('.btn-canjear').forEach(btn => {
+        cont.querySelectorAll('.cta-btn-canjear').forEach(btn => {
           btn.addEventListener('click', () => canjearRecompensa(btn.dataset.id, btn.dataset.nombre, btn));
         });
       } catch (err) {
-        cont.innerHTML = '<div class="recompensas-vacio">No se pudo cargar el catálogo de recompensas.</div>';
+        cont.innerHTML = '<div class="cta-recompensas-vacio">No se pudo cargar el catálogo de recompensas.</div>';
       }
     }
 
@@ -472,15 +509,13 @@
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'No se pudo canjear la recompensa');
 
-        msgBox.innerHTML = `<div class="recompensas-msg ok">¡Listo! Canjeaste "${esc(nombre)}". Te contactará la distribuidora para coordinar la entrega.</div>`;
+        msgBox.innerHTML = `<div class="cta-recompensas-msg ok">¡Listo! Canjeaste "${esc(nombre)}". Te contactará la distribuidora para coordinar la entrega.</div>`;
 
-        // Actualizar la tarjeta de puntos y recargar el catálogo (puede
-        // que otras recompensas ahora ya no alcancen, o esta se agotó).
-        const puntosValEl = document.querySelector('.puntos-valor');
+        const puntosValEl = document.querySelector('.cta-puntos-valor');
         if (puntosValEl) puntosValEl.textContent = Math.round(data.saldo_nuevo).toLocaleString('es-AR');
         await cargarRecompensas();
       } catch (err) {
-        msgBox.innerHTML = `<div class="recompensas-msg err">${esc(err.message)}</div>`;
+        msgBox.innerHTML = `<div class="cta-recompensas-msg err">${esc(err.message)}</div>`;
         btn.disabled = false;
         btn.textContent = textoOriginal;
       }

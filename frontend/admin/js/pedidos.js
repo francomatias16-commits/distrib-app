@@ -155,6 +155,7 @@ function normalizarPedidoRpc(r) {
     iva_total: r.iva_total, total: r.total, remito_nro: r.remito_nro,
     notas_cliente: r.notas_cliente, fecha_pedido: r.fecha_pedido,
     fecha_entrega: r.fecha_entrega, created_at: r.created_at, canal: r.canal,
+    forma_pago: r.forma_pago || 'cuenta_corriente',
     factura_id: r.factura_id, fecha_despacho: r.fecha_despacho,
     factura_estado: r.factura_estado, factura_error_detalle: r.factura_error_detalle,
     vendedor_id: r.vendedor_id,
@@ -201,9 +202,9 @@ async function cargarPedidos() {
   if (tbody) {
     tbody.innerHTML = `<tr><td colspan="8" class="tabla-loading" style="padding:48px 0;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-        <div style="width:36px;height:36px;border:3px solid var(--color-border-soft,#DAD3C0);border-top-color:var(--color-primary,#B87A00);border-radius:50%;animation:spin-loader .8s linear infinite;"></div>
-        <span style="font-weight:600;color:var(--color-text,#16181D);font-size:14px;">Buscando y organizando la información en tiempo real...</span>
-        <span style="font-size:12px;color:var(--color-text-light,#6B695F);">Esto tomará solo un instante. Gracias por tu paciencia.</span>
+        <div style="width:36px;height:36px;border:3px solid var(--color-border-soft,#E7E9E4);border-top-color:var(--color-primary,#6A9873);border-radius:50%;animation:spin-loader .8s linear infinite;"></div>
+        <span style="font-weight:600;color:var(--color-text,#111A17);font-size:14px;">Buscando y organizando la información en tiempo real...</span>
+        <span style="font-size:12px;color:var(--color-text-light,#7A857E);">Esto tomará solo un instante. Gracias por tu paciencia.</span>
       </div>
     </td></tr>`;
   }
@@ -247,10 +248,10 @@ async function cargarPedidos() {
     if (tbodyErr) {
       tbodyErr.innerHTML = `<tr><td colspan="8" class="tabla-loading" style="padding:40px 0;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger-mid,#B3261E)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span style="font-weight:600;color:var(--color-text,#16181D);">No pudimos cargar los pedidos</span>
-          <span style="font-size:13px;color:var(--color-text-muted,#4B4A45);max-width:320px;text-align:center;">Revisá tu conexión a internet y recargá la página. Si el problema persiste, contactá soporte.</span>
-          <button onclick="location.reload()" style="margin-top:4px;padding:6px 16px;border-radius:8px;background:var(--color-box-primary,#B87A00);color:#fff;border:none;cursor:pointer;font-weight:500;">Reintentar</button>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger-mid,#D1594A)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style="font-weight:600;color:var(--color-text,#111A17);">No pudimos cargar los pedidos</span>
+          <span style="font-size:13px;color:var(--color-text-muted,#5B6660);max-width:320px;text-align:center;">Revisá tu conexión a internet y recargá la página. Si el problema persiste, contactá soporte.</span>
+          <button onclick="location.reload()" style="margin-top:4px;padding:6px 16px;border-radius:8px;background:var(--color-box-primary,#6A9873);color:var(--color-surface, #fff);border:none;cursor:pointer;font-weight:500;">Reintentar</button>
         </div>
       </td></tr>`;
     }
@@ -544,15 +545,13 @@ function renderTabla() {
         <td class="td-total" data-label="Total">${window.formatARS(p.total)}</td>
         <td data-label="Estado">
           <span class="chip chip-${p.estado}">${capEstado(p.estado)}</span>
-          ${facturaConError ? `<span class="chip" title="La factura de este pedido no se emitió con éxito (AFIP/ARCA)" style="background:var(--color-danger-bg,#F3DAD8);color:var(--color-danger,#7A1E19);border:1px solid var(--color-danger-mid,#B3261E);margin-left:4px;">Factura con error</span>` : ''}
+          ${facturaConError ? `<span class="chip" title="La factura de este pedido no se emitió con éxito (AFIP/ARCA)" style="background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);border:1px solid var(--color-danger-mid,#D1594A);margin-left:4px;">Factura con error</span>` : ''}
+          ${chipDevolucion(p.devolucion_estado, p.id)}
         </td>
         <td class="td-acciones col-sticky-end" data-label="Acciones" onclick="event.stopPropagation()">
           ${sigEstados.filter(e=>e!=='cancelado').map(e =>
             `<button class="btn-estado btn-est-${e}" title="${escHtml(etiquetaAccion(e, true))}" onclick="btnAsyncClick(this, () => cambiarEstado('${p.id}', '${e}'))">${etiquetaAccion(e)}</button>`
           ).join('')}
-          ${p.estado !== 'entregado' && p.estado !== 'cancelado'
-            ? `<button class="btn-cancelar-small" title="Cancelar pedido" onclick="confirmarCancelar('${p.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`
-            : ''}
           ${sigEstados.length === 0
             ? `<button class="btn-ver-detalle" title="Ver detalle del pedido" onclick="abrirModalPorId('${p.id}')">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -709,8 +708,52 @@ async function _renderNotifStatus(pedidoId) {
   }).join('');
 }
 
+// v808: devoluciones vinculadas a este pedido — antes no había ninguna
+// señal de esto en /admin/pedidos, había que ir a /admin/devoluciones y
+// cruzar el pedido_id a mano. Mismo patrón que _renderNotifStatus: consulta
+// directa vía RLS (window.supabaseClient), no pasa por el endpoint /api.
+const DEVOLUCION_ESTADO_LABEL = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' };
+const DEVOLUCION_MOTIVO_LABEL = {
+  producto_defectuoso: 'Producto defectuoso', error_pedido: 'Error de pedido',
+  cliente_arrepentido: 'Cliente arrepentido', vencido: 'Vencido', otro: 'Otro',
+};
+
+async function _renderDevolucionesPedido(pedidoId) {
+  const wrap  = document.getElementById('modal-devoluciones-wrap');
+  const lista = document.getElementById('modal-devoluciones-lista');
+  if (!wrap || !lista) return;
+
+  const { data: devs, error } = await window.supabaseClient
+    .from('devoluciones')
+    .select('id, estado, motivo, created_at')
+    .eq('pedido_id', pedidoId)
+    .order('created_at', { ascending: false });
+
+  if (error || !devs || devs.length === 0) {
+    wrap.style.display = 'none';
+    lista.innerHTML = '';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  const badgeClasePorEstado = { pendiente: 'notif-badge--pendiente', aprobada: 'notif-badge--ok', rechazada: 'notif-badge--fail' };
+  lista.innerHTML = devs.map(d => `
+    <div class="notif-item">
+      <span class="notif-canal">${DEVOLUCION_MOTIVO_LABEL[d.motivo] || d.motivo} · ${fmtFecha(d.created_at)}</span>
+      <span class="notif-badge ${badgeClasePorEstado[d.estado] || 'notif-badge--fail'}">${DEVOLUCION_ESTADO_LABEL[d.estado] || d.estado}</span>
+    </div>
+  `).join('') + `
+    <a href="/admin/devoluciones?pedido_id=${encodeURIComponent(pedidoId)}" class="btn-link" style="display:inline-block;margin-top:6px;">
+      Ver detalle en Devoluciones →
+    </a>`;
+}
+
 async function abrirModal(p) {
   pedidoActivo = p;
+  window.pedidoActivo = p; // FIX v810: pedidos.js es módulo ES6, "let pedidoActivo"
+  // no llega a window — los onclick inline en pedidos.html (btn-generar-factura,
+  // btn-imprimir-remito) corren en scope global y tiraban "pedidoActivo is not
+  // defined" (ReferenceError, antes tapado por el catch genérico de btnAsyncClick).
 
   // Título
   document.getElementById('modal-titulo').textContent = `Pedido #${p.id.slice(-6).toUpperCase()}`;
@@ -721,6 +764,7 @@ async function abrirModal(p) {
   const sig = TRANSICIONES[p.estado] || [];
   document.getElementById('modal-estado-row').innerHTML = `
     <span class="chip chip-${p.estado} chip-lg">${capEstado(p.estado)}</span>
+    ${p.forma_pago === 'pago_inmediato' ? `<span class="chip chip-pago-inmediato chip-lg" title="El cliente eligió pagar por afuera de la cuenta corriente — coordinar el cobro (transferencia/efectivo)">Pago inmediato — cobrar</span>` : ''}
     ${sig.filter(e=>e!=='cancelado').map(e =>
       `<button class="btn-estado btn-est-${e}" onclick="btnAsyncClick(this, async () => { const ok = await cambiarEstado('${p.id}','${e}'); if (ok) cerrarModal(); })">
         ${etiquetaAccion(e, true)}
@@ -784,6 +828,12 @@ async function abrirModal(p) {
     notasWrap.style.display = 'none';
   }
 
+  // v808: devoluciones vinculadas a este pedido — se consulta siempre acá
+  // (no se confía en p.devolucion_estado, que solo viene resuelto cuando
+  // el pedido salió de la lista paginada; si el modal se abrió por
+  // deep-link vía obtenerPedidoPorId() ese campo no está).
+  await _renderDevolucionesPedido(p.id);
+
   // Estado de notificaciones (Hallazgo 2, auditoría notificaciones): lee
   // notif_log para mostrar si la confirmación por WhatsApp/email/push se
   // entregó o falló (y por qué), en vez de quedar invisible como antes.
@@ -809,12 +859,22 @@ async function abrirModal(p) {
     ${esReintento ? 'Reintentar Comprobante de Venta' : 'Generar Comprobante de Venta'}`;
   document.getElementById('info-error-factura')?.remove();
   if (esReintento && p.factura_error_detalle) {
+    // FIX: antes se insertaba con btnFactura.insertAdjacentElement('afterend', ...),
+    // lo que lo metía como TERCER hijo flex dentro de #modal-acciones (junto a los
+    // dos botones). #modal-acciones es `display:flex; justify-content:flex-end`
+    // sin flex-wrap (ver pedidos-gentelella.css) y este div no tenía ancho propio,
+    // así que el texto se comprimía a un ancho mínimo y cada palabra terminaba en
+    // su propia línea ("Último / error / de / facturación..."), superpuesto con
+    // el botón "Imprimir remito". Se inserta ahora ANTES de #modal-acciones, como
+    // fila propia de ancho completo (mismo patrón que .modal-seccion), y los
+    // botones quedan solos en su fila.
     const errWrap = document.createElement('div');
     errWrap.id = 'info-error-factura';
     errWrap.className = 'info-row';
-    errWrap.style.cssText = 'color:var(--color-danger,#7A1E19);margin-top:6px;';
+    errWrap.style.cssText = 'color:var(--color-danger,#7A2820);margin-top:-8px;';
     errWrap.textContent = `Último error de facturación: ${p.factura_error_detalle}`;
-    btnFactura.insertAdjacentElement('afterend', errWrap);
+    const modalAcciones = document.getElementById('modal-acciones');
+    modalAcciones.insertAdjacentElement('beforebegin', errWrap);
   }
   }
 
@@ -829,6 +889,7 @@ function cerrarModal() {
   document.getElementById('modal-pedido').classList.remove('open');
   document.body.style.overflow = '';
   pedidoActivo = null;
+  window.pedidoActivo = null; // FIX v810: mantener sincronizado con el getter global
   // REQ-07: Limpiar banner predictivo al cerrar
   const bannerPrev = document.getElementById('banner-predictivo');
   if (bannerPrev) bannerPrev.remove();
@@ -1012,6 +1073,23 @@ const MENSAJE_CONFIRMACION_ESTADO = {
 async function cambiarEstado(id, nuevoEstado) {
   const perfil = window.authCtx?.perfil;
   if (!perfil) { window.toast('Sin sesión'); return false; }
+
+  // FIX: "Despachar" desde Pedidos actualizaba el estado directo a mano,
+  // sin pasar nunca por Repartos — el pedido nunca generaba una fila en
+  // `entregas`, así que quedaba invisible para ese módulo (no aparecía ni
+  // como pendiente de asignar ni como parte de ninguna ruta). Ahora se
+  // exige que el pedido ya tenga una ruta asignada (cualquier fila en
+  // `entregas`, sea cual sea su estado) antes de poder despacharlo a mano;
+  // si no la tiene, se lo manda a Repartos a asignarla primero.
+  if (nuevoEstado === 'despachado' && !entregasPorPedido.has(id)) {
+    const ir = await window.confirmar(
+      'Este pedido todavía no tiene una ruta de reparto asignada.<br><br>' +
+      'Asignalo desde Repartos antes de despacharlo.',
+      { labelOk: 'Ir a Repartos', labelCancel: 'Cerrar' }
+    );
+    if (ir) window.location.href = '/admin/rutas';
+    return false;
+  }
 
   if (MENSAJE_CONFIRMACION_ESTADO[nuevoEstado]) {
     const numero = `#${id.slice(-6).toUpperCase()}`;
@@ -1259,6 +1337,23 @@ function capEstado(e) {
   return m[e] || e;
 }
 
+// v808: chip "Con devolución" junto al estado del pedido, cuando tiene al
+// menos una devolución vinculada (`devolucion_estado` viene resuelto desde
+// el backend — la más reciente si hay varias). Antes un pedido con
+// devolución se veía igual que cualquier otro acá; había que ir a
+// /admin/devoluciones y cruzar el pedido_id a mano para enterarse.
+// Clickeable: lleva directo al módulo de devoluciones filtrado por este pedido.
+function chipDevolucion(estado, pedidoId) {
+  if (!estado) return '';
+  const cfg = {
+    pendiente: { texto: 'Devolución pendiente', bg: 'var(--color-warning-bg)', fg: 'var(--color-warning)', bd: 'var(--color-warning-mid)' },
+    aprobada:  { texto: 'Con devolución',        bg: 'var(--color-info-bg)',    fg: 'var(--color-info)',    bd: 'var(--color-info-mid)' },
+    rechazada: { texto: 'Devolución rechazada',  bg: 'transparent',             fg: 'var(--color-text-muted, #5B6660)', bd: 'var(--color-border, #DDE1DC)' },
+  };
+  const c = cfg[estado] || cfg.aprobada;
+  return `<span class="chip" title="Ver en Devoluciones" style="background:${c.bg};color:${c.fg};border:1px solid ${c.bd};margin-left:4px;cursor:pointer;" onclick="event.stopPropagation(); window.location.href='/admin/devoluciones?pedido_id=' + encodeURIComponent('${pedidoId}')">${c.texto}</span>`;
+}
+
 // Verbos de negocio explícitos para los botones de acción (qué va a pasar al hacer clic),
 // en vez de mostrar solo el nombre del estado. Solo cambia el texto del botón:
 // la transición de estado la sigue resolviendo cambiarEstado() sin modificaciones.
@@ -1414,6 +1509,11 @@ window.abrirModalPorId  = abrirModalPorId;
 window.confirmarCancelar = confirmarCancelar;
 window.confirmarEliminarPedido = confirmarEliminarPedido;
 window.eliminarPedido = eliminarPedido;
+// FIX v797: aplicarFiltros quedó afuera de esta lista — es la función
+// detrás del buscador (oninput) y de TODOS los selects de filtro
+// (onchange), así que el buscador de "Cliente, N° pedido..." y los
+// filtros de vendedor/zona/canal/cliente/fecha/importe no hacían nada.
+window.aplicarFiltros = aplicarFiltros;
 
 // ── REQ-07: Rellenado predictivo — banner informativo azul ─────────────────
 // Muestra qué completó el sistema automáticamente al abrir el detalle del pedido.
@@ -1439,21 +1539,21 @@ function _mostrarBannerPredictivo(p) {
   banner.style.cssText = `
     margin: 0 0 14px 0;
     padding: 12px 16px;
-    background: var(--color-info-bg,#DCE6EC);
-    border: 1px solid var(--color-info-mid,#2E6088);
+    background: var(--color-info-bg,#DDE6EE);
+    border: 1px solid var(--color-info-mid,#33507A);
     border-radius: 10px;
     font-size: 13px;
-    color: var(--color-info,#1E3A52);
+    color: var(--color-info,#1F3555);
     animation: fadeInDown .3s ease;
   `;
   banner.innerHTML = `
     <div style="display:flex;align-items:flex-start;gap:10px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info,#1E3A52)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info,#1F3555)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       <div>
-        <p style="margin:0 0 6px;font-weight:700;color:var(--color-info,#1E3A52);">¡Datos cargados automáticamente!</p>
-        <p style="margin:0 0 8px;color:var(--color-info-mid,#2E6088);font-size:12px;">El sistema ya configuró la siguiente información del cliente:</p>
+        <p style="margin:0 0 6px;font-weight:700;color:var(--color-info,#1F3555);">¡Datos cargados automáticamente!</p>
+        <p style="margin:0 0 8px;color:var(--color-info-mid,#33507A);font-size:12px;">El sistema ya configuró la siguiente información del cliente:</p>
         <ul style="margin:0;padding-left:4px;list-style:none;display:flex;flex-direction:column;gap:4px;">
-          ${items.map(i => `<li style="color:var(--color-text,#16181D);">${i}</li>`).join('')}
+          ${items.map(i => `<li style="color:var(--color-text,#111A17);">${i}</li>`).join('')}
         </ul>
       </div>
     </div>

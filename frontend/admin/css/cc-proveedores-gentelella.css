@@ -2,10 +2,12 @@
  * cc-proveedores-gentelella.css — Reskin "Gentelella v4" de Cta. Cte. Proveedores
  * ───────────────────────────────────────────────────────────────────────────────
  * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
- * Compras/Proveedores, incluye .filtros-bar, .tabla-main, .modal-box, .form-grid,
- * etc.) y del <style> inline en cc-proveedores.html (.tab-btn, .kpi-card,
- * .badge-pendiente/parcial/pagada/anulada/vencida, .cruce-table, .item-row) —
- * y de /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en <head>).
+ * Compras/Proveedores, incluye .filtros-bar, .modal-box, .form-grid, etc.),
+ * de /frontend/shared/componentes-admin.css (componente canónico — Fase 0 del
+ * plan de unificación: define .tabla-admin y .badge-estado usados acá) y del
+ * <style> inline en cc-proveedores.html (.tab-btn, .kpi-card, .cruce-table,
+ * .item-row) — y de /frontend/shared/gentelella-tokens.css (debe estar
+ * linkeado antes en <head>).
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * No se agrega ningún token nuevo en este archivo.
@@ -148,7 +150,7 @@ body.dash-cc-proveedores-gentelella .tabla-wrap {
      `overflow: hidden` de arriba (mismo patrón que admin/css/stock.css). */
   overflow-x: auto !important;
 }
-body.dash-cc-proveedores-gentelella .tabla-main th {
+body.dash-cc-proveedores-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -157,20 +159,20 @@ body.dash-cc-proveedores-gentelella .tabla-main th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-cc-proveedores-gentelella .tabla-main td {
+body.dash-cc-proveedores-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-cc-proveedores-gentelella .tabla-main td.vacio {
+body.dash-cc-proveedores-gentelella .tabla-admin td.vacio {
   color: var(--ge-muted) !important;
 }
-body.dash-cc-proveedores-gentelella .tabla-main tbody tr:hover {
+body.dash-cc-proveedores-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
 body.dash-cc-proveedores-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-cc-proveedores-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+body.dash-cc-proveedores-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
@@ -217,35 +219,12 @@ body.dash-cc-proveedores-gentelella .btn-pag:disabled {
 }
 
 /* ════════════════════════════════════════════════════════════
-   Badges de estado de factura (definidos en <style> inline del HTML:
-   badge-pendiente/parcial/pagada/anulada/vencida). Mismos valores de
-   "Pendiente" y "Vencida" que ya existen para otras pantallas de
-   finanzas, tokenizados acá con --ge-*.
+   Badges de estado de factura: migrados al componente canónico
+   (frontend/shared/componentes-admin.css, Fase 0 del plan de
+   unificación). Las 5 redefiniciones locales que vivían acá
+   (badge-fx/pendiente/parcial/pagada/anulada/vencida) se eliminaron;
+   cc-proveedores.js ahora llama a ComponentesAdmin.renderBadgeEstado().
    ════════════════════════════════════════════════════════════ */
-body.dash-cc-proveedores-gentelella .badge-fx {
-  display: inline-flex !important;
-  align-items: center !important;
-}
-body.dash-cc-proveedores-gentelella .badge-pendiente {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-cc-proveedores-gentelella .badge-parcial {
-  background: rgba(52,152,219,.12) !important;
-  color: var(--ge-blue) !important;
-}
-body.dash-cc-proveedores-gentelella .badge-pagada {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-cc-proveedores-gentelella .badge-anulada {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
-body.dash-cc-proveedores-gentelella .badge-vencida {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Modal (Nueva/Ver factura, Cruce OC ↔ Factura)

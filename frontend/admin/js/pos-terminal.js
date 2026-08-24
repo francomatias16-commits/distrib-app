@@ -4,8 +4,12 @@
 // DRIVERS SOPORTADOS:
 //   'manual'    — el cajero indica el resultado manualmente (fallback universal)
 //   'mp_point'  — Mercado Pago Point Smart / Point Plus (API Intent / Deep Link)
+//   'mp_qr'     — Mercado Pago QR (cobro presencial, backend-mediado, ver
+//                 lib/handlers/pagos.js _svc=pos-qr-*; setup en Admin → Pagos)
 //   'getnet'    — Getnet Santander (Intent Android)
-//   'lapos'     — Lapos / Prisma (WS local en LAN)
+//   'prisma'    — Prisma Paystore terminals (API cloud, ver
+//                 lib/handlers/pagos.js _svc=prisma-*; cuenta se conecta en
+//                 Admin → Hardware → Terminal de pago)
 //   'naranja'   — Naranja X (Intent Android / QR dinámico)
 //
 // FLUJO GENERAL:
@@ -27,14 +31,12 @@
 
   // ── Estado interno ────────────────────────────────────────────────────────
   let _config = {
-    driver:         'manual',  // manual | mp_point | getnet | lapos | naranja
-    mp_access_token: '',       // MP Point: access_token del vendedor
-    mp_device_id:    '',       // MP Point: device_id de la terminal
-    lapos_ip:        '',       // Lapos: IP de la PC con el agente Lapos
-    lapos_puerto:    8080,
-    naranja_token:   '',       // Naranja X: token de integración
-    getnet_pos_id:   '',       // Getnet: POS ID
-    timeout_ms:      120000,   // 2 min timeout por defecto
+    driver:             'manual',  // manual | mp_point | mp_qr | getnet | prisma | naranja
+    mp_device_id:       '',        // MP Point: device_id de la terminal (el access_token vive en el backend, ver cobrarMpPoint)
+    prisma_terminal_id: '',        // Prisma: ID de la terminal física de esta caja (la cuenta/token vive en el backend)
+    naranja_token:      '',        // Naranja X: token de integración
+    getnet_pos_id:      '',        // Getnet: POS ID
+    timeout_ms:         120000,    // 2 min timeout por defecto
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -90,84 +92,96 @@
     };
   }
 
-  // ── Driver: MERCADO PAGO POINT ────────────────────────────────────────────
-  // Usa la API de Intents de MP Point para enviar el cobro a la terminal Smart/Plus.
-  // Docs: https://www.mercadopago.com.ar/developers/es/docs/mp-point/integration-api
+  // ── Driver: MERCADO PAGO POINT (backend-mediado) ────────────────────────
+  // MIGRACIÓN: antes este driver le pegaba DIRECTO a
+  // api.mercadopago.com/point/integration-api con mp_access_token mandado
+  // en texto plano desde Admin → Hardware — el token de la cuenta de MP
+  // quedaba visible en la pestaña de red de CUALQUIER cajero (config-hardware
+  // no restringe la lectura a admin). Ahora, mismo criterio que mp_qr y
+  // prisma: el POS solo manda monto + device_id (no es sensible, es un id
+  // de hardware) al backend (lib/handlers/pagos.js, _svc=mp-point-*), que
+  // tiene el access_token cifrado — nunca viaja al frontend.
 
-  async function cobrarMpPoint(monto, medio) {
-    if (!_config.mp_access_token || !_config.mp_device_id) {
-      throw new Error('MP Point no configurado. Ir a Admin → Hardware.');
+  async function cobrarMpPoint(monto) {
+    if (!_config.mp_device_id) {
+      throw new Error('MP Point no configurado: falta el device_id de esta caja. Ir a Admin → Hardware.');
     }
+    const token = await _getSupabaseToken();
+    if (!token) throw new Error('Sesión inválida. Volvé a iniciar sesión.');
 
-    const externalRef = generarIdempotencyKey();
-    const montoEnCentavos = Math.round(monto * 100);
-
-    // 1. Crear intent de pago
-    const resp = await fetch(
-      `https://api.mercadopago.com/point/integration-api/devices/${_config.mp_device_id}/payment-intents`,
-      {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${_config.mp_access_token}`,
-          'X-Idempotency-Key': externalRef,
-        },
-        body: JSON.stringify({
-          amount:               montoEnCentavos,
-          description:          'Venta POS',
-          payment_method_id:    medio === 'naranja' ? 'naranja' : undefined,
-          print_on_terminal:    true,
-          additional_info: {
-            external_reference: externalRef,
-          },
-        }),
-      }
-    );
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error('MP Point: ' + (err.message || err.error || resp.statusText));
+    const rCobrar = await fetch(`${_apiBase()}/api/pagos?_svc=mp-point-cobrar`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ monto, device_id: _config.mp_device_id, descripcion: 'Venta mostrador' }),
+    });
+    const dCobrar = await rCobrar.json().catch(() => ({}));
+    if (!rCobrar.ok || !dCobrar.ok) {
+      throw new Error(dCobrar.error || 'No se pudo enviar el cobro a la terminal Point.');
     }
+    const intentId   = dCobrar.intent_id;
+    const referencia = dCobrar.referencia;
 
-    const intent = await resp.json();
-    const intentId = intent.id;
+    const cancelarEnMP = () => fetch(`${_apiBase()}/api/pagos?_svc=mp-point-cancelar`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ intent_id: intentId, device_id: _config.mp_device_id }),
+    }).catch(() => {});
 
-    // 2. Polling del estado (cada 3s, hasta timeout)
-    const deadline = Date.now() + (_config.timeout_ms || 120000);
-    while (Date.now() < deadline) {
-      await sleep(3000);
-      const poll = await fetch(
-        `https://api.mercadopago.com/point/integration-api/payment-intents/${intentId}`,
-        { headers: { 'Authorization': `Bearer ${_config.mp_access_token}` } }
-      );
-      const estado = await poll.json();
-
-      if (estado.state === 'FINISHED' || estado.state === 'PROCESSED') {
-        const pago = estado.payment;
-        if (!pago || pago.status !== 'approved') {
-          throw new Error('Pago no aprobado: ' + (pago?.status_detail || estado.state));
+    return new Promise((resolve, reject) => {
+      _mostrarDialogoMpPoint(monto, async (cerrar) => {
+        const deadline = Date.now() + (_config.timeout_ms || 120000);
+        try {
+          while (Date.now() < deadline) {
+            await sleep(3000);
+            const rVer = await fetch(
+              `${_apiBase()}/api/pagos?_svc=mp-point-verificar&intent_id=${encodeURIComponent(intentId)}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const dVer = await rVer.json().catch(() => ({}));
+            if (dVer.pagado) {
+              cerrar();
+              resolve({ aprobado: true, codigo: String(dVer.payment_id), referencia, detalle: dVer.metodo_pago });
+              return;
+            }
+            if (dVer.rechazado) {
+              cerrar();
+              reject(new Error('Pago no aprobado: ' + (dVer.estado || '')));
+              return;
+            }
+          }
+          cerrar();
+          cancelarEnMP();
+          reject(new Error('Tiempo de espera agotado. El cliente no respondió en la terminal.'));
+        } catch (err) {
+          cerrar();
+          cancelarEnMP();
+          reject(err);
         }
-        return {
-          aprobado:   true,
-          codigo:     String(pago.id),
-          referencia: externalRef,
-          detalle:    `${pago.payment_type_id} – ${pago.installments || 1} cuota(s)`,
-        };
-      }
+      }, () => {
+        cancelarEnMP();
+        reject(new Error('Cobro cancelado por el cajero.'));
+      });
+    });
+  }
 
-      if (['CANCELED', 'ABANDONED', 'ERROR'].includes(estado.state)) {
-        throw new Error('Terminal: pago ' + estado.state.toLowerCase());
-      }
-      // OPEN o PROCESSING → seguir esperando
-    }
-
-    // Cancelar el intent si se venció el timeout
-    await fetch(
-      `https://api.mercadopago.com/point/integration-api/devices/${_config.mp_device_id}/payment-intents/${intentId}`,
-      { method: 'DELETE', headers: { 'Authorization': `Bearer ${_config.mp_access_token}` } }
-    ).catch(() => {});
-
-    throw new Error('Tiempo de espera agotado. El cliente no respondió en la terminal.');
+  function _mostrarDialogoMpPoint(monto, onListo, onCancelar) {
+    const fmt = v => '$ ' + Number(v).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+    const overlay = document.createElement('div');
+    overlay.id = 'pos-terminal-mppoint-overlay';
+    overlay.className = 'pos-terminal-overlay';
+    overlay.innerHTML = `
+      <div class="pos-terminal-dialog">
+        <h3>Cobrando en Point</h3>
+        <p class="pos-terminal-dialog-monto">${fmt(monto)}</p>
+        <p class="pos-terminal-dialog-sub">Pasá o insertá la tarjeta en la terminal Point.</p>
+        <div class="pos-terminal-dialog-btns">
+          <button class="btn btn--danger" id="ptmp-btn-cancelar">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const cerrar = () => overlay.remove();
+    overlay.querySelector('#ptmp-btn-cancelar').onclick = () => { cerrar(); onCancelar(); };
+    onListo(cerrar);
   }
 
   // ── Driver: GETNET ────────────────────────────────────────────────────────
@@ -186,52 +200,100 @@
     return cobrarManual(monto, 'tarjeta');
   }
 
-  // ── Driver: LAPOS / PRISMA ───────────────────────────────────────────────
-  // Lapos provee un agente local (Windows/Linux) que expone un WebSocket en LAN.
-  // El POS se conecta a ws://lapos-ip:8080 y envía un mensaje de cobro.
+  // ── Driver: PRISMA (Paystore terminals — API cloud) ─────────────────────
+  // Reemplaza al driver "Lapos" anterior, que nunca fue una integración real
+  // (se conectaba a un WebSocket local inventado, ws://lapos-ip:8080, que
+  // ningún agente real expone). La cuenta (CUIT/CUIL + token) vive cifrada
+  // en el backend — igual criterio que mp_qr, nunca viaja al frontend — y
+  // el POS solo manda el monto + terminal_id de esta caja, y pollea el
+  // resultado. Ver lib/handlers/pagos.js, _svc=prisma-cobrar/prisma-verificar.
 
-  async function cobrarLapos(monto, medio) {
-    if (!_config.lapos_ip) {
-      return cobrarManual(monto, medio);
+  async function cobrarPrisma(monto) {
+    if (!_config.prisma_terminal_id) {
+      throw new Error('Prisma no configurado: falta el ID de terminal de esta caja. Ir a Admin → Hardware.');
     }
-    return new Promise((resolve, reject) => {
-      const ws  = new WebSocket(`ws://${_config.lapos_ip}:${_config.lapos_puerto || 8080}`);
-      const ref = generarIdempotencyKey();
-      let timer;
+    const referencia = generarIdempotencyKey();
+    const token = await _getSupabaseToken();
+    if (!token) throw new Error('Sesión inválida. Volvé a iniciar sesión.');
 
-      ws.onopen = () => {
-        ws.send(JSON.stringify({
-          accion:    'cobro',
-          monto:     monto,
-          cuotas:    1,
-          referencia: ref,
-        }));
-        timer = setTimeout(() => {
-          ws.close();
-          reject(new Error('Lapos: tiempo de espera agotado.'));
-        }, _config.timeout_ms || 120000);
-      };
-
-      ws.onmessage = (e) => {
-        clearTimeout(timer);
-        ws.close();
-        try {
-          const r = JSON.parse(e.data);
-          if (r.aprobado || r.estado === 'aprobado' || r.resultado === '00') {
-            resolve({ aprobado: true, codigo: r.codigo || r.autorizacion || 'LAPOS', referencia: ref });
-          } else {
-            reject(new Error('Lapos: ' + (r.mensaje || r.error || 'Pago rechazado')));
-          }
-        } catch {
-          reject(new Error('Lapos: respuesta inválida'));
-        }
-      };
-
-      ws.onerror = () => {
-        clearTimeout(timer);
-        reject(new Error(`No se pudo conectar al agente Lapos en ${_config.lapos_ip}:${_config.lapos_puerto}`));
-      };
+    const rCobrar = await fetch(`${_apiBase()}/api/pagos?_svc=prisma-cobrar`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        monto,
+        referencia,
+        terminal_id: _config.prisma_terminal_id,
+        descripcion: 'Venta mostrador',
+      }),
     });
+    const dCobrar = await rCobrar.json().catch(() => ({}));
+    if (!rCobrar.ok || !dCobrar.ok) {
+      throw new Error(dCobrar.error || 'No se pudo iniciar el cobro en la terminal Prisma.');
+    }
+    const paymentId = dCobrar.payment_id;
+
+    return new Promise((resolve, reject) => {
+      _mostrarDialogoPrisma(monto, async (cerrar) => {
+        const deadline = Date.now() + (_config.timeout_ms || 120000);
+        try {
+          while (Date.now() < deadline) {
+            await sleep(3000);
+            const rVer = await fetch(
+              `${_apiBase()}/api/pagos?_svc=prisma-verificar&payment_id=${encodeURIComponent(paymentId)}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const dVer = await rVer.json().catch(() => ({}));
+            if (dVer.pagado) {
+              cerrar();
+              resolve({ aprobado: true, codigo: paymentId, referencia, detalle: dVer.estado });
+              return;
+            }
+            if (dVer.rechazado) {
+              cerrar();
+              reject(new Error('Pago rechazado en la terminal: ' + (dVer.estado || '')));
+              return;
+            }
+          }
+          cerrar();
+          fetch(`${_apiBase()}/api/pagos?_svc=prisma-cancelar`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ payment_id: paymentId }),
+          }).catch(() => {});
+          reject(new Error('Tiempo de espera agotado. La terminal no respondió.'));
+        } catch (err) {
+          cerrar();
+          reject(err);
+        }
+      }, () => {
+        fetch(`${_apiBase()}/api/pagos?_svc=prisma-cancelar`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ payment_id: paymentId }),
+        }).catch(() => {});
+        reject(new Error('Cobro cancelado por el cajero.'));
+      });
+    });
+  }
+
+  function _mostrarDialogoPrisma(monto, onListo, onCancelar) {
+    const fmt = v => '$ ' + Number(v).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+    const overlay = document.createElement('div');
+    overlay.id = 'pos-terminal-prisma-overlay';
+    overlay.className = 'pos-terminal-overlay';
+    overlay.innerHTML = `
+      <div class="pos-terminal-dialog">
+        <h3>Cobrando en terminal</h3>
+        <p class="pos-terminal-dialog-monto">${fmt(monto)}</p>
+        <p class="pos-terminal-dialog-sub">Pasá o insertá la tarjeta en la terminal.</p>
+        <div class="pos-terminal-dialog-btns">
+          <button class="btn btn--danger" id="ptp-btn-cancelar">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const cerrar = () => overlay.remove();
+    overlay.querySelector('#ptp-btn-cancelar').onclick = () => { cerrar(); onCancelar(); };
+    onListo(cerrar);
   }
 
   // ── Driver: NARANJA X ────────────────────────────────────────────────────
@@ -246,13 +308,134 @@
     return cobrarManual(monto, 'naranja');
   }
 
+  // ── Driver: MERCADO PAGO QR (cobro presencial) ──────────────────────────
+  // A diferencia de mp_point, acá el access_token NUNCA viaja al frontend:
+  // el POS solo pide al backend (lib/handlers/pagos.js, _svc=pos-qr-*) que
+  // cargue el monto sobre el QR fijo ya configurado en Admin → Pagos, y
+  // pollea el resultado. Requiere que el admin haya hecho el setup una vez
+  // (mercadopago-config.html → "Cobro con QR en caja").
+
+  async function _getSupabaseToken() {
+    try {
+      const { data: { session } } = await window.authCtx.sb.auth.getSession();
+      return session?.access_token || '';
+    } catch { return ''; }
+  }
+
+  function _apiBase() { return window.ENV?.API_URL || ''; }
+
+  async function cobrarQrMercadoPago(monto) {
+    const referencia = generarIdempotencyKey();
+    const token = await _getSupabaseToken();
+    if (!token) throw new Error('Sesión inválida. Volvé a iniciar sesión.');
+
+    const rCobrar = await fetch(`${_apiBase()}/api/pagos/pos-qr-cobrar`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ monto, referencia, descripcion: 'Venta mostrador' }),
+    });
+    const dCobrar = await rCobrar.json().catch(() => ({}));
+    if (!rCobrar.ok || !dCobrar.ok) {
+      const sufijoRef = dCobrar.correlation_id ? ` (ref: ${dCobrar.correlation_id})` : '';
+      throw new Error((dCobrar.error || 'No se pudo generar el cobro QR.') + sufijoRef);
+    }
+    // MIGRACIÓN v782 (Orders API): pos-qr-cobrar ya no devuelve un recurso
+    // buscable por `referencia` — hay que reenviar el order_id que devolvió
+    // para poder consultar el estado en pos-qr-verificar.
+    const orderId = dCobrar.order_id;
+
+    // MIGRACIÓN 498: además del polling (que sigue como red de contención
+    // si Realtime no está disponible), nos suscribimos a cobros_qr_pos —
+    // el webhook de MP (manejarWebhook, topic 'order') actualiza esa fila
+    // apenas se confirma el pago, y acá lo escuchamos al toque en vez de
+    // esperar el próximo tick de 3s (que el browser puede espaciar si la
+    // pestaña pierde foco).
+    const nombreCanalRealtime = orderId ? `cobro-qr-pos-${orderId}` : null;
+    let resuelto = false;
+
+    return new Promise((resolve, reject) => {
+      const finalizar = (cerrar, fn, arg) => {
+        if (resuelto) return;
+        resuelto = true;
+        if (nombreCanalRealtime) window.DistribRealtime?.desuscribir(nombreCanalRealtime);
+        cerrar();
+        fn(arg);
+      };
+
+      _mostrarDialogoQr(monto, dCobrar.qr_image, async (cerrar) => {
+        if (nombreCanalRealtime && window.authCtx?.sb) {
+          window.DistribRealtime?.suscribir({
+            sb:         window.authCtx.sb,
+            nombreCanal: nombreCanalRealtime,
+            tabla:      'cobros_qr_pos',
+            evento:     'UPDATE',
+            filtro:     `order_id=eq.${orderId}`,
+            onCambio:   (payload) => {
+              const fila = payload?.new;
+              if (fila?.estado === 'aprobado') {
+                finalizar(cerrar, resolve, { aprobado: true, codigo: String(fila.payment_id), referencia, detalle: fila.metodo_pago });
+              }
+            },
+          });
+        }
+
+        const deadline = Date.now() + (_config.timeout_ms || 120000);
+        try {
+          while (Date.now() < deadline && !resuelto) {
+            await sleep(3000);
+            if (resuelto) return;
+            const rVer = await fetch(
+              `${_apiBase()}/api/pagos/pos-qr-verificar?order_id=${encodeURIComponent(orderId || '')}&referencia=${encodeURIComponent(referencia)}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const dVer = await rVer.json().catch(() => ({}));
+            if (dVer.pagado) {
+              finalizar(cerrar, resolve, { aprobado: true, codigo: String(dVer.payment_id), referencia, detalle: dVer.metodo_pago });
+              return;
+            }
+          }
+          finalizar(cerrar, reject, new Error('Tiempo de espera agotado. El cliente no pagó el QR.'));
+        } catch (err) {
+          finalizar(cerrar, reject, err);
+        }
+      }, () => {
+        if (resuelto) return;
+        resuelto = true;
+        if (nombreCanalRealtime) window.DistribRealtime?.desuscribir(nombreCanalRealtime);
+        reject(new Error('Cobro con QR cancelado por el cajero.'));
+      });
+    });
+  }
+
+  function _mostrarDialogoQr(monto, qrImage, onListo, onCancelar) {
+    const fmt = v => '$ ' + Number(v).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+    const overlay = document.createElement('div');
+    overlay.id = 'pos-terminal-qr-overlay';
+    overlay.className = 'pos-terminal-overlay';
+    overlay.innerHTML = `
+      <div class="pos-terminal-dialog">
+        <h3>Cobrar con QR</h3>
+        <p class="pos-terminal-dialog-monto">${fmt(monto)}</p>
+        <p class="pos-terminal-dialog-sub">El cliente escanea este QR con la app de Mercado Pago.</p>
+        ${qrImage ? `<img src="${qrImage}" alt="QR de cobro" style="max-width:200px;margin:10px auto;display:block">` : '<p class="pos-terminal-dialog-sub">QR no disponible — verificá el setup en Admin → Pagos.</p>'}
+        <div class="pos-terminal-dialog-btns">
+          <button class="btn btn--danger" id="ptq-btn-cancelar">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const cerrar = () => overlay.remove();
+    overlay.querySelector('#ptq-btn-cancelar').onclick = () => { cerrar(); onCancelar(); };
+    onListo(cerrar);
+  }
+
   // ── Router principal ──────────────────────────────────────────────────────
 
   async function cobrarConTerminal(monto, medio = 'tarjeta') {
     switch (_config.driver) {
       case 'mp_point': return cobrarMpPoint(monto, medio);
+      case 'mp_qr':    return cobrarQrMercadoPago(monto);
       case 'getnet':   return cobrarGetnet(monto);
-      case 'lapos':    return cobrarLapos(monto, medio);
+      case 'prisma':   return cobrarPrisma(monto);
       case 'naranja':  return cobrarNaranja(monto);
       default:         return cobrarManual(monto, medio);
     }
@@ -272,8 +455,9 @@
     return [
       { id: 'manual',   nombre: 'Manual (cualquier terminal)',   descripcion: 'El cajero confirma el resultado manualmente. Compatible con cualquier terminal física.' },
       { id: 'mp_point', nombre: 'Mercado Pago Point Smart/Plus', descripcion: 'Integración automática via API. Requiere access_token y device_id de MP.' },
+      { id: 'mp_qr',    nombre: 'Mercado Pago QR (cobro presencial)', descripcion: 'Muestra el QR fijo configurado en Admin → Pagos y espera el pago. No requiere terminal física — se configura una sola vez.' },
       { id: 'getnet',   nombre: 'Getnet (Santander)',            descripcion: 'Integración via Intent Android. Requiere POS ID de Getnet.' },
-      { id: 'lapos',    nombre: 'Lapos / Prisma (Visa-MC)',      descripcion: 'Requiere el agente Lapos corriendo en la misma red (IP configurable).' },
+      { id: 'prisma',   nombre: 'Prisma (terminal, cobro con tarjeta)', descripcion: 'Integración cloud con la API de Prisma Paystore terminals. La cuenta se conecta una sola vez en Admin → Hardware; requiere el ID de terminal de esta caja.' },
       { id: 'naranja',  nombre: 'Naranja X',                     descripcion: 'Integración via QR dinámico. Requiere token de Naranja X.' },
     ];
   }

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Gastos generales — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
+  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/gastos-generales-gentelella.css?v=2" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+  <style>
+    .hidden { display: none !important; }
+
+    .tabla-wrap {
+      background: var(--color-surface);
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .tabla-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
+    .filtros-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filtros-bar input, .filtros-bar select {
+      padding: 6px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background: var(--color-surface);
+    }
+    .tabla-overflow { overflow-x: auto; }
+    /* .tabla/.tabla th/td (pre-reskin) se quitó acá: componentes-admin.css
+       (.tabla-admin) es ahora la fuente única de estos estilos. white-space
+       del thead (que el gentelella de esta página no pisaba) y el efecto de
+       fila inactiva (.gasto-inactivo, que el gentelella tenía roto — ver
+       gastos-generales-gentelella.css) se preservaron explícitamente ahí. */
+
+    .chip-cat-alquiler  { background: rgba(24,95,165,.12); color: #2563EB; }
+    .chip-cat-sueldos   { background: rgba(147,51,234,.12); color: #7e22ce; }
+    .chip-cat-servicios { background: rgba(217,119,6,.12); color: #b45309; }
+    .chip-cat-impuestos { background: rgba(239,68,68,.12); color: var(--color-danger); }
+    .chip-cat-otros     { background: rgba(107,114,128,.15); color: #4b5563; }
+    .chip-recurrente    { background: rgba(34,197,94,.12); color: var(--color-success); }
+    .chip-activo        { background: rgba(34,197,94,.12); color: var(--color-success); }
+    .chip-inactivo      { background: rgba(107,114,128,.15); color: #4b5563; }
+    .chip {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+    }
+
+    .fila-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fila-acciones button {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--color-text);
+    }
+    .fila-acciones button:hover { background: var(--color-bg); }
+    .fila-acciones button.danger { color: var(--color-danger); border-color: rgba(239,68,68,.3); }
+  </style>
+</head>
+<body class="dash-gastos-generales-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Gastos generales</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro-row">
+    <div class="page-intro">
+  Gastos fijos del negocio (alquiler, sueldos, servicios, impuestos, otros). Se descuentan del Margen Bruto en Reportes → Finanzas para calcular la Ganancia Neta real del período.
+</div>
+  </div>
+
+  <main class="main">
+
+    <div id="sin-permiso" class="hidden" style="padding:40px;text-align:center;color:var(--color-text-light);">
+      <p>No tenés permiso para ver esta sección. Disponible para dueño, admin o contador.</p>
+    </div>
+
+    <div id="contenido-gastos">
+
+      <!-- Resumen del período -->
+      <div class="kpis-grid" id="kpis-grid"></div>
+
+      <!-- Tabla -->
+      <div class="tabla-wrap">
+        <div class="tabla-header">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h2>Gastos cargados</h2>
+            <button type="button" class="btn btn--primary" id="btn-nuevo-gasto" onclick="abrirModalNuevo()" style="padding:6px 14px;font-size:13px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo gasto
+            </button>
+          </div>
+          <div class="filtros-bar">
+            <input type="text" id="filtro-busqueda" placeholder="Buscar por descripción, categoría o notas..." style="min-width:240px;" oninput="filtrarYRenderizar()">
+            <select id="filtro-categoria" onchange="cargarGastos()">
+              <option value="">Todas las categorías</option>
+              <option value="alquiler">Alquiler</option>
+              <option value="sueldos">Sueldos</option>
+              <option value="servicios">Servicios</option>
+              <option value="impuestos">Impuestos</option>
+              <option value="otros">Otros</option>
+            </select>
+            <select id="filtro-estado" onchange="cargarGastos()">
+              <option value="">Todos</option>
+              <option value="true" selected>Solo activos</option>
+              <option value="false">Solo inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tabla-overflow">
+          <table class="tabla-admin">
+            <thead>
+            <tr>
+                <th class="col-fit">Fecha</th>
+                <th class="col-fit">Categoría</th>
+                <th class="thead-sep">Descripción</th>
+                <th class="col-fit">Monto</th>
+                <th class="thead-sep col-fit">Recurrente</th>
+                <th class="col-fit">Estado</th>
+                <th class="col-sticky-end col-fit">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-gastos"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /contenido-gastos -->
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Modal: alta / edición de gasto general
+═════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-gasto-backdrop" onclick="cerrarModalGasto()" aria-hidden="true" style="display:none"></div>
+
+<div class="modal" id="modal-gasto" style="display:none">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo" id="modal-gasto-titulo">Nuevo gasto</h2>
+      <div class="modal-subtitulo">Gasto fijo del negocio (alquiler, sueldos, servicios, impuestos, otros)</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalGasto()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-seccion">
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Descripción <span class="form-requerido">*</span></label>
+        <input type="text" id="fg-descripcion" class="form-input" placeholder="Ej: Alquiler del depósito - Agosto" maxlength="200" />
+        <p class="field-error-msg" id="fg-descripcion-error" style="display:none;"></p>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría <span class="form-requerido">*</span></label>
+        <select id="fg-categoria" class="form-select">
+          <option value="alquiler">Alquiler</option>
+          <option value="sueldos">Sueldos</option>
+          <option value="servicios">Servicios</option>
+          <option value="impuestos">Impuestos</option>
+          <option value="otros">Otros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monto <span class="form-requerido">*</span></label>
+        <input type="number" id="fg-monto" class="form-input" min="0" step="0.01" placeholder="Ej: 85000.00" />
+        <p class="field-error-msg" id="fg-monto-error" style="display:none;"></p>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha <span class="form-requerido">*</span></label>
+        <input type="date" id="fg-fecha" class="form-input" />
+        <p class="field-error-msg" id="fg-fecha-error" style="display:none;"></p>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <input type="checkbox" id="fg-recurrente" style="width:auto;margin:0;" /> Gasto recurrente (se repite todos los meses)
+        </label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Notas</label>
+        <textarea id="fg-notas" class="form-input" rows="2" placeholder="Opcional"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <input type="checkbox" id="fg-activo" checked style="width:auto;margin:0;" /> Gasto activo
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-acciones">
+    <button type="button" class="btn-secundario" onclick="cerrarModalGasto()">Cancelar</button>
+    <button type="button" class="btn-primario" id="btn-guardar-gasto" onclick="btnAsyncClick(this, guardarGasto)" aria-live="polite">
+      Guardar gasto
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
+<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/gastos-generales.js?v1"></script>
+<script src="/frontend/shared/tabla-agrupada.js"></script>
+</body>
+</html>

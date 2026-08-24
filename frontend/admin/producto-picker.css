@@ -1,0 +1,231 @@
+/* frontend/admin/css/producto-picker.css
+   REQ-06: Estilos del ProductoPicker — compartido por pedidos y presupuestos */
+
+/* ── Wrapper ── */
+.pp-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Buscador ── */
+.pp-search-row { display: flex; gap: 8px; }
+.pp-search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  color: var(--color-text-muted);
+  transition: border-color .15s;
+}
+.pp-search-box:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+/* REQ-AGIL: feedback breve al agregar con Enter desde el buscador */
+.pp-search-box--ok {
+  border-color: var(--color-success-mid) !important;
+  box-shadow: 0 0 0 3px rgba(22,163,74,.15) !important;
+  transition: border-color .15s, box-shadow .15s;
+}
+.pp-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.pp-input::placeholder { color: var(--color-text-muted); }
+
+/* ── Chips de categoría ── */
+.pp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pp-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.pp-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.pp-chip--activa {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+.pp-chip--frec {
+  border-color: var(--color-warning-mid);
+  color: var(--color-warning);
+  font-weight: 600;
+}
+.pp-chip--frec.pp-chip--activa {
+  background: var(--color-warning-mid);
+  border-color: var(--color-warning-mid);
+  color: var(--color-surface);
+}
+
+/* ── Grid de productos ── */
+.pp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* scrollbar discreta */
+.pp-grid::-webkit-scrollbar { width: 4px; }
+.pp-grid::-webkit-scrollbar-track { background: transparent; }
+.pp-grid::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-sm); }
+
+/* ── Card ── */
+.pp-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+  transition: box-shadow .15s, border-color .15s;
+  cursor: pointer; /* v904: toda la card agrega el producto al clickearla */
+}
+.pp-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+/* Los controles interactivos internos mantienen su propio cursor, no el
+   "pointer" general de la card (el input de cantidad debe verse editable). */
+.pp-card .pp-cant { cursor: text; }
+.pp-card .pp-btn-add { cursor: pointer; }
+
+.pp-card-img {
+  height: 72px;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.pp-card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.pp-card-body {
+  flex: 1;
+  padding: 8px 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pp-card-nombre {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  /* dos líneas máx */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pp-card-codigo {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+.pp-card-discontinuado {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin: 2px 0;
+}
+.pp-card-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.pp-card-precio {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+/* ── Fila agregar ── */
+.pp-card-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 8px;
+  border-top: 1px solid var(--color-border-soft);
+}
+.pp-cant {
+  width: 52px;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: center;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+}
+.pp-cant:focus { border-color: var(--color-primary); }
+
+.pp-btn-add {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 8px;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+  white-space: nowrap;
+}
+.pp-btn-add:hover { background: var(--color-primary-dark); }
+.pp-btn-add--ok   { background: var(--color-success-mid) !important; }
+
+/* ── Estados vacío / loading ── */
+.pp-empty, .pp-loading {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 20px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+@keyframes pp-spin { to { transform: rotate(360deg); } }
+.pp-spin { animation: pp-spin .8s linear infinite; }
+
+/* ── Responsive: en pantallas chicas colapsa a 1 col ── */
+@media (max-width: 480px) {
+  .pp-grid { grid-template-columns: 1fr 1fr; }
+}

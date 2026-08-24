@@ -64,7 +64,7 @@ const PORTAL_ROOT_ALIASES = {
 // así que apuntan directo al .html final para no tener que resolver dos
 // saltos acá.
 const ROOT_ALIASES = {
-  '/': '/frontend/index.html',
+  '/': '/frontend/landing/index.html',
   '/setup': '/frontend/admin/setup.html',
   '/suspendida': '/frontend/admin/suspendida.html',
   '/demo': '/frontend/admin/login.html',
@@ -74,6 +74,20 @@ const ROOT_ALIASES = {
 // URL limpia raíz sin extensión ni prefijo de portal: '/registro',
 // '/completar-registro', etc.
 const CLEAN_ROOT_URL = /^\/([a-z0-9-]+)$/i;
+
+// Rewrites explícitos para los assets de la landing nueva (v917), copiados
+// 1:1 de vercel.json: '/app.js', '/styles.css' y '/fonts/*.woff2' →
+// frontend/landing/*. index.html de la landing los referencia como rutas
+// absolutas cortas ("/app.js", "/styles.css", "/fonts/ESBuild-400.woff2"),
+// confiando en que el rewrite exista — sin esto acá, cualquier test que
+// cargue "/" y deje avanzar la carga real de la página (no solo el HTML)
+// pega un 404 real contra este server para los tres, aunque en Vercel
+// resuelve bien (falso negativo del smoke test, no bug real de la app).
+const LANDING_ASSET_ALIASES = {
+  '/app.js': '/frontend/landing/app.js',
+  '/styles.css': '/frontend/landing/styles.css',
+};
+const LANDING_FONT_URL = /^\/fonts\/(.+\.woff2)$/;
 
 import http from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
@@ -120,6 +134,10 @@ function resolverUrlPath(urlPath) {
 
   if (PORTAL_ROOT_ALIASES[urlPath]) return PORTAL_ROOT_ALIASES[urlPath];
   if (ROOT_ALIASES[urlPath]) return ROOT_ALIASES[urlPath];
+  if (LANDING_ASSET_ALIASES[urlPath]) return LANDING_ASSET_ALIASES[urlPath];
+
+  const mFont = urlPath.match(LANDING_FONT_URL);
+  if (mFont) return `/frontend/landing/fonts/${mFont[1]}`;
 
   const mClean = urlPath.match(CLEAN_PAGE_URL);
   if (mClean) {

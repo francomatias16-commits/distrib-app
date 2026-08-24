@@ -12,7 +12,7 @@
 
 'use strict';
 
-const SW_VERSION   = 'admin-v149';
+const SW_VERSION   = 'admin-v150';
 const CACHE_STATIC = `${SW_VERSION}-static`;
 const CACHE_DATA   = `${SW_VERSION}-data`;
 
@@ -37,20 +37,18 @@ const PRECACHE_URLS = [
   '/shared/skeletons.css',
 ];
 
-const SWR_PATTERNS = [
-  /\/api\/admin\/kpis/,
-  /\/api\/pedidos(\?|$)/,
-  /\/api\/clientes(\?|$)/,
-  /\/api\/stock(\?|$)/,
-  /\/api\/lotes(\?|$)/,
-  /\/api\/reportes/,
-  /\/api\/empresa/,
-  /\/api\/automatizacion/,
-  /\/api\/notif\/log/,
-  /\/api\/pos\/productos/,       // catálogo POS — se sirve desde caché si está disponible
-  /\/api\/pos\/cajas/,           // lista de cajas — cambia poco
-  /\/api\/pos\/favoritos/,       // favoritos de la grilla
-];
+// FIX v150 — bug "hay que hacer Ctrl+Shift+R para ver el dato nuevo":
+// Todo lo que vivía acá quedaba en Stale-While-Revalidate: el SW devolvía
+// la respuesta VIEJA cacheada al toque y recién en paralelo pedía la nueva
+// (que queda guardada para la PRÓXIMA vez, no para esta). Como después de
+// cada alta/baja/edición la UI dispara un GET de refresco inmediato, ese
+// refresco mostraba el dato viejo hasta el siguiente reload — exactamente
+// el mismo bug que ya se había detectado y corregido en sw-cliente.js
+// (ver comentario FIX F4-02 más abajo en NETWORK_ONLY_PATTERNS de ese SW).
+// Se deja el array vacío (no se borra la estrategia SWR por si en el futuro
+// se agrega ahí un endpoint realmente de "bajo riesgo" que no se edite
+// nunca desde un modal/formulario del propio admin).
+const SWR_PATTERNS = [];
 
 const NETWORK_ONLY_PATTERNS = [
   /\/api\/auth/,
@@ -61,6 +59,23 @@ const NETWORK_ONLY_PATTERNS = [
   /\/api\/compras/,
   // Nota: /api/pos (POST de venta) NO está acá — el manejo offline
   // lo hace pos-offline.js interceptando el fetch antes de que llegue al SW
+
+  // ── Movidos acá desde SWR_PATTERNS (FIX v150, auditoría stale-cache) ──
+  // Todos estos se editan/crean/borran desde algún modal o formulario del
+  // admin y la UI relee por GET apenas termina la mutación — necesitan el
+  // dato posta, no el cacheado.
+  /\/api\/admin\/kpis/,          // dashboard
+  /\/api\/pedidos(\?|$)/,        // grilla de pedidos
+  /\/api\/clientes(\?|$)/,       // alta/edición de cliente
+  /\/api\/stock(\?|$)/,          // ajustes/entradas/salidas de stock
+  /\/api\/lotes(\?|$)/,          // alta/edición/baja de lotes
+  /\/api\/reportes/,
+  /\/api\/empresa/,              // config de empresa
+  /\/api\/automatizacion/,       // reglas de automatización
+  /\/api\/notif\/log/,
+  /\/api\/pos\/productos/,       // catálogo POS
+  /\/api\/pos\/cajas/,           // apertura/cierre de caja
+  /\/api\/pos\/favoritos/,       // ← el bug reportado: favoritos del POS
 ];
 
 // ── Instalación ───────────────────────────────────────────────────────────
@@ -223,6 +238,23 @@ self.addEventListener('message', (e) => {
   if (e.data?.type === 'INVALIDATE_CACHE') {
     const { pattern } = e.data;
     if (pattern) invalidarCache(CACHE_DATA, pattern);
+    return;
+  }
+  // FIX BUG-03: al hacer logout, auth.js manda este mensaje para que el SW
+  // vacíe CACHE_DATA (respuestas de páginas /admin/* y API cacheadas por
+  // networkFirst/staleWhileRevalidate, potencialmente con datos de la
+  // empresa/usuario que cerró sesión). Caches son globales por origin —
+  // sin esto, en un dispositivo compartido el próximo login (misma u otra
+  // empresa) podía servir en modo offline una respuesta vieja cacheada de
+  // la sesión anterior. Solo se vacía CACHE_DATA, no CACHE_STATIC (shell
+  // JS/CSS, sin datos de usuario) — evita recachear todo el shell en el
+  // siguiente login sin necesidad.
+  if (e.data?.type === 'CLEAR_ON_LOGOUT') {
+    e.waitUntil(
+      caches.delete(CACHE_DATA).then(() => {
+        e.ports?.[0]?.postMessage({ ok: true });
+      })
+    );
   }
 });
 

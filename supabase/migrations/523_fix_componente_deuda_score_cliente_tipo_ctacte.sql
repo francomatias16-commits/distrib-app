@@ -1,0 +1,19 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 523_fix_componente_deuda_score_cliente_tipo_ctacte.sql
+--
+-- BUG encontrado al inyectar historial real de scores_cliente para clientes
+-- que nunca lo tuvieron: el componente "Nivel de deuda" de
+-- calcular_score_cliente() comparaba cta_cte.tipo contra 'debito'/'credito',
+-- valores que NUNCA existieron en esa columna (los reales son
+-- 'factura'/'cobro'/'nota_credito'). Como 'debito' nunca matchea, el CASE
+-- caía siempre al ELSE (-monto) para todas las filas, así que el
+-- componente Deuda daba siempre 20/20 sin importar la deuda real.
+--
+-- Fix: tipo = 'factura' como débito, todo lo demás como haber — mismo
+-- criterio que clientes.saldo_deuda (verificado: coincide exacto). Se
+-- agrega también el filtro anulado=false que faltaba.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- Ver el cuerpo completo de la función en
+-- 524_fix_componente_pagos_score_cliente_cobro_facturas_aplicadas.sql,
+-- que incluye este fix + el de Pagos aplicado a continuación.

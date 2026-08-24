@@ -149,7 +149,7 @@ body.dash-reglas-precio-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-reglas-precio-gentelella .tabla th {
+body.dash-reglas-precio-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -158,64 +158,38 @@ body.dash-reglas-precio-gentelella .tabla th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin quitado al migrar a .tabla-admin (Fase 2) */
 }
-body.dash-reglas-precio-gentelella .tabla td {
+body.dash-reglas-precio-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-reglas-precio-gentelella .tabla tbody tr:last-child td {
+body.dash-reglas-precio-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-reglas-precio-gentelella .tabla tbody tr:hover td {
+body.dash-reglas-precio-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
 }
 /* Filas con estado visual */
-body.dash-reglas-precio-gentelella .tabla tr.regla-inactiva td {
+body.dash-reglas-precio-gentelella .tabla-admin tr.regla-inactiva td {
   opacity: .5 !important;
 }
-body.dash-reglas-precio-gentelella .tabla tr.regla-vencida td {
+body.dash-reglas-precio-gentelella .tabla-admin tr.regla-vencida td {
   opacity: .55 !important;
 }
 body.dash-reglas-precio-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-reglas-precio-gentelella .tabla tbody tr:hover .col-sticky-end {
+body.dash-reglas-precio-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips (inline styles en HTML + generados por JS)
+   Chips — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
    ════════════════════════════════════════════════════════════ */
-body.dash-reglas-precio-gentelella .chip {
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 9px !important;
-}
-/* tipo de descuento */
-body.dash-reglas-precio-gentelella .chip-desc-pct {
-  background: rgba(52,152,219,.13) !important;
-  color: var(--ge-blue) !important;
-}
-body.dash-reglas-precio-gentelella .chip-desc-fijo {
-  background: rgba(142,68,173,.13) !important;
-  color: var(--ge-purple) !important;
-}
-/* estado de vigencia */
-body.dash-reglas-precio-gentelella .chip-vencida {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-reglas-precio-gentelella .chip-activa {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-reglas-precio-gentelella .chip-inactiva {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Botones de acción en tabla (fila-acciones)
@@ -460,7 +434,7 @@ body.dash-reglas-precio-gentelella .toast {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.35);
-  z-index: 300;
+  z-index: var(--z-modal-backdrop);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -475,7 +449,7 @@ body.dash-reglas-precio-gentelella .toast {
   height: 100vh;
   max-height: 100vh;
   border-radius: 0;
-  z-index: 400;
+  z-index: var(--z-modal);
   overflow-y: auto;
   padding: 28px;
   display: flex;

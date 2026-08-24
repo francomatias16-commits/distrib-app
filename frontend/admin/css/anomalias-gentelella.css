@@ -241,10 +241,15 @@ body.dash-anomalias-gentelella .anomalia-detalle-lbl {
   color: var(--ge-muted) !important;
 }
 body.dash-anomalias-gentelella .anomalia-detalle-evento {
-  border-bottom: 1px dashed var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
 }
 body.dash-anomalias-gentelella .anomalia-detalle-evento strong {
   color: var(--ge-muted) !important;
+}
+body.dash-anomalias-gentelella .anomalia-detalle-grupo-titulo {
+  color: var(--ge-muted) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
 }
 body.dash-anomalias-gentelella .anomalia-card__footer {
   border-top: 1px solid var(--ge-border) !important;

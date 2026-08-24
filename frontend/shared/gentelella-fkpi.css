@@ -211,7 +211,7 @@ body.dash-gentelella .resumen-card:has(.kpi-icono.verde),
 body.dash-gentelella .stat-chip:has(.kpi-icono.verde),
 body.dash-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.verde) {
   background: var(--ge-teal-light)   !important;
-  border-color: rgba(184,122,0,.3)  !important;
+  border-color: rgba(106,152,115,.3)  !important;
 }
 body.dash-gentelella .fkpi:has(.fkpi-icono.morado),
 body.dash-gentelella:not(.dash-fireart) .kpi-card:has(.kpi-icono.morado),

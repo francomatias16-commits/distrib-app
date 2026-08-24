@@ -180,7 +180,7 @@ body.dash-conciliacion-bancaria-gentelella .btn.btn--primary {
 body.dash-conciliacion-bancaria-gentelella .btn.btn--primary:hover {
   background: var(--ge-teal-dark) !important;
 }
-body.dash-conciliacion-bancaria-gentelella .tabla th {
+body.dash-conciliacion-bancaria-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -188,16 +188,18 @@ body.dash-conciliacion-bancaria-gentelella .tabla th {
   text-transform: uppercase !important;
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin quitado al migrar a .tabla-admin (Fase 2) */
 }
-body.dash-conciliacion-bancaria-gentelella .tabla td {
+body.dash-conciliacion-bancaria-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   font-size: 13px !important;
+  vertical-align: top !important; /* la columna "Candidatos / Match" tiene contenido multilínea; .tabla-admin base usa middle */
 }
-body.dash-conciliacion-bancaria-gentelella .tabla tr:last-child td { border-bottom: none !important; }
-body.dash-conciliacion-bancaria-gentelella .tabla tbody tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-conciliacion-bancaria-gentelella .tabla-admin tr:last-child td { border-bottom: none !important; }
+body.dash-conciliacion-bancaria-gentelella .tabla-admin tbody tr:hover td { background: var(--ge-teal-light) !important; }
 body.dash-conciliacion-bancaria-gentelella .col-sticky-end { background: var(--ge-panel) !important; }
-body.dash-conciliacion-bancaria-gentelella .tabla tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
+body.dash-conciliacion-bancaria-gentelella .tabla-admin tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
 
 /* ════════════════════════════════════════════════════════════
    Badges de estado / tipo
@@ -232,6 +234,15 @@ body.dash-conciliacion-bancaria-gentelella .badge-tipo.debito {
 /* ════════════════════════════════════════════════════════════
    Candidatos de match
    ════════════════════════════════════════════════════════════ */
+body.dash-conciliacion-bancaria-gentelella .td-candidatos {
+  white-space: normal !important;
+  width: 220px !important;
+  max-width: 220px !important;
+}
+body.dash-conciliacion-bancaria-gentelella .cobro-conciliado-inline,
+body.dash-conciliacion-bancaria-gentelella .candidato-item {
+  overflow-wrap: break-word !important;
+}
 body.dash-conciliacion-bancaria-gentelella .candidato-item {
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;

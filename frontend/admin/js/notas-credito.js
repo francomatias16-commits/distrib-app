@@ -143,36 +143,102 @@ function renderTablaNC() {
 
   tbody.innerHTML = ncData.map(nc => {
     const fecha  = new Date(nc.fecha_emision).toLocaleDateString('es-AR');
-    const nombre = nc.clientes?.razon_social || nc.clientes?.nombre_fantasia || '—';    return `
-      <tr>
-        <td style="font-weight:600">${nc.numero || `NC-${nc.tipo} (pendiente)`}</td>
-        <td>${sanitize(nombre)}</td>
-        <td style="font-size:12px;color:var(--color-text-muted)">${fecha}</td>
-        <td style="font-size:12px;color:var(--color-text-muted)">${nc.facturas?.numero || '—'}</td>
-        <td style="text-align:left;font-weight:600">$${Number(nc.total).toLocaleString('es-AR',{minimumFractionDigits:2})}</td>
-        <td><span class="badge badge-${nc.estado}">${labelEstadoNC(nc.estado)}</span></td>
-        <td class="col-sticky-end">
-          <div class="acciones-td" style="white-space:nowrap">
-            ${nc.estado === 'pendiente'
-              ? `<button class="btn-tabla primario" onclick="emitirNC('${nc.id}')">Emitir AFIP</button>
-                 <button class="btn-tabla" onclick="verDetalleNC('${nc.id}')">Ver</button>`
-              : `<button class="btn-tabla" onclick="verDetalleNC('${nc.id}')">Ver</button>`
-            }
-            ${nc.pdf_url ? `<a class="btn-tabla" href="${nc.pdf_url}" target="_blank">PDF</a>` : ''}
-          </div>
+    const nombre = nc.clientes?.razon_social || nc.clientes?.nombre_fantasia || '—';
+    const est = estadoInfoNC(nc.estado);
+    const tieneSecundaria = nc.estado === 'pendiente' || !!nc.pdf_url;
+    return `
+      <tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) verDetalleNC('${nc.id}')">
+        <td data-label="N° NC" style="font-weight:600;white-space:nowrap">${nc.numero || `NC-${nc.tipo} (pendiente)`}</td>
+        <td data-label="Cliente">${sanitize(nombre)}</td>
+        <td data-label="Fecha" style="font-size:12px;color:var(--color-text-muted)">${fecha}</td>
+        <td data-label="Factura asociada" style="font-size:12px;color:var(--color-text-muted);white-space:nowrap">${nc.facturas?.numero || '—'}</td>
+        <td data-label="Total" style="text-align:left;font-weight:600">$${Number(nc.total).toLocaleString('es-AR',{minimumFractionDigits:2})}</td>
+        <td data-label="Estado">${ComponentesAdmin.renderBadgeEstado(est.label, est.variante)}</td>
+        <td class="td-acciones col-sticky-end" data-label="Acciones">
+          <span class="fila-acciones">
+            <button type="button" class="btn-tabla" onclick="verDetalleNC('${nc.id}')">Ver</button>
+            ${tieneSecundaria ? `<button type="button" class="btn-kebab btn-kebab-nc" data-nc-id="${nc.id}" data-estado="${nc.estado}" data-pdf-url="${nc.pdf_url || ''}" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>` : ''}
+          </span>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-function labelEstadoNC(e) {
+// ── Estado NC → variante canónica (ok/critico/inactivo/info/pendiente) ──────
+// pendiente: falta emitir a AFIP. emitida: emitida, todavía no aplicada a la
+// factura. aplicada: estado final positivo. anulada: dada de baja. error_afip:
+// falló la emisión — mismos criterios de color que usaba compras.css.
+function estadoInfoNC(estado) {
   const map = {
-    pendiente: 'Pendiente', emitida: 'Emitida', aplicada: 'Aplicada',
-    anulada: 'Anulada', error_afip: 'Error AFIP'
+    pendiente:  { label: 'Pendiente',  variante: 'pendiente' },
+    emitida:    { label: 'Emitida',    variante: 'info' },
+    aplicada:   { label: 'Aplicada',   variante: 'ok' },
+    anulada:    { label: 'Anulada',    variante: 'inactivo' },
+    error_afip: { label: 'Error AFIP', variante: 'critico' },
   };
-  return map[e] || (typeof sanitize === 'function' ? sanitize(e) : e);
+  return map[estado] || { label: estado, variante: 'inactivo' };
 }
+
+// ── Menú "⋮" de acciones secundarias por fila (Emitir a AFIP / Ver PDF) ─────
+// Mismo patrón de menú flotante compartido que Facturación/Cheques — ver
+// PLAN_UNIFICACION_UX_ADMIN.md §2 y §5.
+(function iniciarMenuAccionesNC() {
+  const menu = document.getElementById('menu-acciones-nc');
+  if (!menu) return;
+
+  const cerrar = () => {
+    menu.hidden = true;
+    document.querySelectorAll('.btn-kebab-nc[aria-expanded="true"]')
+      .forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.btn-kebab-nc');
+    if (!btn) { if (!ev.target.closest('#menu-acciones-nc')) cerrar(); return; }
+    ev.stopPropagation();
+
+    const yaAbiertoParaEsteBtn = !menu.hidden && menu.dataset.ncId === btn.dataset.ncId;
+    cerrar();
+    if (yaAbiertoParaEsteBtn) return;
+
+    const ncId = btn.dataset.ncId;
+    const estado = btn.dataset.estado;
+    const pdfUrl = btn.dataset.pdfUrl;
+    const items = [];
+    if (estado === 'pendiente') {
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" onclick="emitirNC('${ncId}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+        Emitir a AFIP
+      </button>`);
+    }
+    if (pdfUrl) {
+      items.push(`<a class="dropdown-item" role="menuitem" href="${pdfUrl}" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ver / descargar PDF
+      </a>`);
+    }
+    if (!items.length) return;
+
+    menu.innerHTML = items.join('');
+    menu.dataset.ncId = ncId;
+
+    const r = btn.getBoundingClientRect();
+    menu.style.top   = `${r.bottom + 4}px`;
+    menu.style.left  = 'auto';
+    menu.style.right = `${window.innerWidth - r.right}px`;
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  });
+
+  menu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (ev.target.closest('.dropdown-item')) cerrar();
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
+  window.addEventListener('resize', cerrar);
+  document.getElementById('tbody-nc')?.addEventListener('scroll', cerrar);
+})();
 
 // ── Modal nueva NC ────────────────────────────────────────────────────
 function abrirModalNuevoNC() {
@@ -393,7 +459,10 @@ async function verDetalleNC(id) {
     const nombre = nc.clientes?.razon_social || nc.clientes?.nombre_fantasia || '—';
     if (el('nc-detalle-numero'))  el('nc-detalle-numero').textContent  = nc.numero || 'Sin número AFIP';
     if (el('nc-detalle-cliente')) el('nc-detalle-cliente').textContent = nombre;
-    if (el('nc-detalle-estado'))  el('nc-detalle-estado').innerHTML    = `<span class="badge badge-${sanitize(nc.estado)}">${labelEstadoNC(nc.estado)}</span>`;
+    if (el('nc-detalle-estado')) {
+      const est = estadoInfoNC(nc.estado);
+      el('nc-detalle-estado').innerHTML = ComponentesAdmin.renderBadgeEstado(est.label, est.variante);
+    }
     if (el('nc-detalle-total'))   el('nc-detalle-total').textContent   = `$${Number(nc.total).toLocaleString('es-AR',{minimumFractionDigits:2})}`;
     if (el('nc-detalle-cae'))     el('nc-detalle-cae').textContent     = nc.cae || '—';
     if (el('nc-detalle-motivo'))  el('nc-detalle-motivo').textContent  = nc.motivo;

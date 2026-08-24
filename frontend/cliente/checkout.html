@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -20,169 +20,7 @@
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/cliente/pwa-init.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--color-bg);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 2rem 1rem;
-    }
-
-    .card {
-      background: var(--color-surface);
-      border-radius: var(--radius-xxl);
-      box-shadow: 0 4px 24px rgba(0,0,0,.10);
-      width: 100%;
-      max-width: 460px;
-      overflow: hidden;
-    }
-
-    .portal-card-header {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-      color: #fff;
-      padding: 1.5rem;
-      text-align: center;
-    }
-    .portal-card-header .badge {
-      display: inline-block;
-      background: rgba(255,255,255,.2);
-      border-radius: var(--radius-full);
-      padding: .25rem .75rem;
-      font-size: .8rem;
-      font-weight: 600;
-      letter-spacing: .5px;
-      margin-bottom: .75rem;
-    }
-    .portal-card-header h2 { font-size: 1.25rem; font-weight: 700; }
-    .portal-card-header p  { font-size: .85rem; opacity: .8; margin-top: .25rem; }
-
-    .card-body { padding: 1.5rem; }
-
-    .section-label {
-      font-size: .75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      color: var(--color-text-muted);
-      margin-bottom: .75rem;
-    }
-
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: .6rem 0;
-      border-bottom: 1px solid var(--color-border-soft);
-    }
-    .item-row:last-child { border-bottom: none; }
-    .item-nombre { font-weight: 600; color: var(--color-text); font-size: .95rem; }
-    .item-unidad { font-size: .8rem; color: var(--color-text-muted); margin-left: .25rem; }
-    .item-cant   { font-size: .85rem; color: var(--color-text-muted); margin-right: .5rem; }
-    .item-precio { font-weight: 700; color: var(--color-primary); }
-
-    .total-box {
-      background: var(--color-primary-bg);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1rem;
-    }
-    .total-label { font-weight: 600; color: var(--color-text-muted); }
-    .total-valor { font-size: 1.35rem; font-weight: 700; color: var(--color-primary); }
-
-    .btn-confirmar {
-      display: block;
-      width: 100%;
-      padding: .9rem;
-      margin-top: 1.25rem;
-      background: linear-gradient(135deg, var(--color-success-mid), var(--color-box-success));
-      color: #fff;
-      font-family: inherit;
-      font-size: 1.05rem;
-      font-weight: 700;
-      border: none;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      transition: opacity .2s;
-    }
-    .btn-confirmar:disabled { opacity: .6; cursor: not-allowed; }
-    .hint {
-      font-size: .8rem;
-      color: var(--color-text-light);
-      text-align: center;
-      margin-top: .75rem;
-    }
-
-    /* Etapa 5 offline (Mercado Pago) — botón de pago público, mismo look
-       que btn-confirmar pero en la paleta de "acción secundaria positiva"
-       (verde MP) para no confundirlo con "Confirmar Pedido". */
-    .btn-pagar {
-      display: block;
-      width: 100%;
-      padding: .9rem;
-      margin-top: .75rem;
-      background: linear-gradient(135deg, #00b1ea, #009ee3);
-      color: #fff;
-      font-family: inherit;
-      font-size: 1.05rem;
-      font-weight: 700;
-      border: none;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      transition: opacity .2s;
-    }
-    .btn-pagar:disabled { opacity: .6; cursor: not-allowed; }
-    .pago-estado {
-      text-align: center;
-      font-size: .85rem;
-      padding: .5rem 0;
-      display: none;
-    }
-    .pago-estado.pendiente { color: var(--color-text-light); display: block; }
-    .pago-estado.error     { color: var(--color-danger, #e11d48); display: block; }
-
-    /* Estados */
-    .estado { display: none; text-align: center; padding: 2rem 1.5rem; }
-    .estado.activo { display: block; }
-    .estado-icono { font-size: 3rem; margin-bottom: 1rem; }
-    .estado h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
-    .estado p  { font-size: .9rem; color: var(--color-text-muted); }
-    .numero-pedido { font-size: .85rem; color: var(--color-text-light); margin-top: .5rem; }
-
-    /* Loading */
-    #loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 60vh;
-      color: var(--color-text-muted);
-      gap: 1rem;
-    }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--color-border-soft);
-      border-top-color: var(--color-primary);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    footer {
-      margin-top: 1.5rem;
-      font-size: .78rem;
-      color: var(--color-text-light);
-      text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" href="/cliente/css/checkout.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>
@@ -255,6 +93,7 @@
       <div class="estado-icono"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <h3>No pudimos confirmar el pedido</h3>
       <p id="msg-error">—</p>
+      <button type="button" id="btn-reintentar-confirmar" class="btn-confirmar">Reintentar</button>
     </div>
 
     <!-- Estado: no encontrado -->
@@ -418,9 +257,28 @@ function _mostrarBotonPagar(pedidoId) {
   });
 }
 
-document.getElementById('btn-confirmar').addEventListener('click', async function() {
-  this.disabled = true;
-  this.textContent = 'Confirmando...';
+document.getElementById('btn-confirmar').addEventListener('click', confirmarPedido);
+document.getElementById('btn-reintentar-confirmar').addEventListener('click', () => {
+  // BUG-05: antes, al fallar la confirmación (red caída o `ok:false`), la
+  // pantalla pasaba a `estado-error` sin ningún camino de vuelta — el botón
+  // "Confirmando..." quedaba deshabilitado por debajo, en una sección
+  // oculta, así que ni recargando volvía a un estado usable sin refrescar
+  // toda la página. Ahora reintentar vuelve a mostrar la sección de items
+  // con el botón reseteado; `pedidoId` (la idempotency key real del pedido)
+  // no cambia entre intentos, así que reintentar es seguro.
+  document.getElementById('estado-error').classList.remove('activo');
+  const seccionItems = document.getElementById('seccion-items');
+  if (seccionItems) seccionItems.style.display = '';
+  document.getElementById('card-main').style.display = '';
+  const btn = document.getElementById('btn-confirmar');
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar Pedido';
+});
+
+async function confirmarPedido() {
+  const btn = document.getElementById('btn-confirmar');
+  btn.disabled = true;
+  btn.textContent = 'Confirmando...';
 
   let data;
   try {
@@ -444,7 +302,7 @@ document.getElementById('btn-confirmar').addEventListener('click', async functio
 
   document.getElementById('numero-pedido').textContent = data.numero_pedido || pedidoId.slice(0,8).toUpperCase();
   mostrarEstado('estado-ok');
-});
+}
 
 cargar();
 </script>

@@ -4,181 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="/cliente/manifest.json" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#19372D" />
   <title>Catálogo — Fluxo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
 
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=2" />
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/cliente/pwa-init.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; padding-bottom: 8rem; -webkit-font-smoothing: antialiased; }
-
-    .topbar {
-      background: linear-gradient(155deg, var(--color-primary-dark) 0%, var(--color-primary) 62%, var(--color-primary) 100%);
-      color: var(--color-surface); padding: 1.35rem 1.25rem 1.6rem; position: sticky; top: 0; z-index: 10;
-      box-shadow: 0 6px 20px -6px rgba(12,39,64,.35);
-    }
-    .topbar h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
-    .topbar p { font-size: .8rem; opacity: .78; margin-top: .2rem; }
-
-    .buscador-wrap { margin-top: 1rem; position: relative; }
-    .buscador-wrap input {
-      width: 100%; padding: .7rem .9rem .7rem 2.5rem; border: 1px solid transparent; border-radius: var(--radius-xl);
-      font-size: .9rem; font-family: inherit; outline: none; background: rgba(255,255,255,.96);
-      box-shadow: 0 2px 10px rgba(8,25,42,.12); transition: box-shadow .15s, border-color .15s;
-    }
-    .buscador-wrap input:focus {
-      border-color: rgba(255,255,255,.6); box-shadow: 0 0 0 3px rgba(255,255,255,.18), 0 2px 10px rgba(8,25,42,.12);
-    }
-    .buscador-wrap input::placeholder { color: var(--color-text-light); }
-    .buscador-wrap svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); opacity: .45; color: var(--color-primary); }
-
-    .categorias-scroll {
-      display: flex; gap: .5rem; overflow-x: auto; padding: 1rem 1.25rem 0;
-      -ms-overflow-style: none; scrollbar-width: none;
-    }
-    .categorias-scroll::-webkit-scrollbar { display: none; }
-    .chip-cat {
-      flex-shrink: 0; padding: .42rem .95rem; border-radius: var(--radius-full); font-size: .8rem; font-weight: 600;
-      background: rgba(255,255,255,.14); color: var(--color-surface); cursor: pointer; white-space: nowrap; border: 1px solid rgba(255,255,255,.18);
-      font-family: inherit; transition: background .15s, color .15s, transform .1s;
-    }
-    .chip-cat:active { transform: scale(.96); }
-    .chip-cat.activa { background: var(--color-surface); color: var(--color-primary); border-color: var(--color-surface); box-shadow: 0 2px 8px rgba(8,25,42,.18); }
-
-    .contenido { padding: 1.1rem 1rem; max-width: 720px; margin: 0 auto; }
-    .loading, .empty-state {
-      text-align: center; color: var(--color-text-muted); padding: 3.25rem 1.5rem; font-size: .9rem;
-      display: flex; flex-direction: column; align-items: center;
-    }
-    .empty-state svg { margin-bottom: .85rem; opacity: .45; }
-    .empty-state div { max-width: 240px; line-height: 1.4; }
-
-    .grid-productos {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem;
-    }
-    @media (min-width: 520px) { .grid-productos { grid-template-columns: repeat(3, 1fr); } }
-
-    .card-producto {
-      background: var(--color-surface); border-radius: var(--radius-xxl); box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px rgba(15,23,42,.06);
-      overflow: hidden; display: flex; flex-direction: column; position: relative;
-      border: 1px solid rgba(15,23,42,.04); transition: box-shadow .2s, transform .2s;
-    }
-    .card-producto:active { transform: scale(.98); }
-    .producto-img-wrap {
-      width: 100%; aspect-ratio: 1.3 / 1; background: linear-gradient(155deg, #eef2f6, #e4eaf1);
-      display: flex; align-items: center; justify-content: center; overflow: hidden;
-    }
-    .producto-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .producto-img-wrap svg { opacity: .28; color: var(--color-text-light); }
-
-    .badge-oferta {
-      position: absolute; top: .55rem; left: .55rem; z-index: 2;
-      background: linear-gradient(135deg, var(--color-danger-mid), var(--color-danger)); color: var(--color-surface);
-      font-size: .68rem; font-weight: 700; padding: .28rem .58rem; border-radius: var(--radius-md);
-      display: flex; align-items: center; gap: .2rem; box-shadow: 0 2px 6px rgba(176,42,55,.35);
-    }
-
-    .producto-body { padding: .75rem .8rem .85rem; flex: 1; display: flex; flex-direction: column; }
-    .producto-nombre { font-size: .85rem; font-weight: 600; color: var(--color-text); line-height: 1.28; margin-bottom: .25rem; }
-    .producto-unidad { font-size: .72rem; color: var(--color-text-light); margin-bottom: .55rem; }
-
-    .producto-precios { margin-top: auto; }
-    .precio-tachado { font-size: .75rem; color: var(--color-text-light); text-decoration: line-through; }
-    .precio-actual { font-size: 1.05rem; font-weight: 800; color: var(--color-primary); letter-spacing: -.01em; }
-    .precio-actual.con-oferta { color: var(--color-danger-mid); }
-
-    .vence-oferta { font-size: .68rem; color: var(--color-danger); font-weight: 600; margin-top: .15rem; }
-
-    .sin-stock-overlay {
-      position: absolute; inset: 0; background: rgba(255,255,255,.78);
-      display: flex; align-items: center; justify-content: center; z-index: 1;
-      -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
-    }
-    .sin-stock-tag {
-      background: var(--color-text-muted); color: var(--color-surface); font-size: .72rem; font-weight: 600;
-      padding: .32rem .75rem; border-radius: var(--radius-md); letter-spacing: .01em;
-    }
-
-    .btn-cargar-mas {
-      width: 100%; padding: .8rem; border: 1px solid var(--color-border-soft); border-radius: var(--radius-xl);
-      background: var(--color-surface); color: var(--color-primary); font-weight: 600; font-size: .85rem; cursor: pointer; margin-top: 1.1rem;
-      font-family: inherit; transition: background .15s, box-shadow .15s;
-    }
-    .btn-cargar-mas:hover { background: var(--color-primary-bg); }
-    .btn-cargar-mas:disabled { opacity: .6; cursor: not-allowed; }
-
-    /* Agregar al carrito */
-    .producto-accion { margin-top: .55rem; }
-    .btn-agregar {
-      width: 100%; padding: .5rem; border: none; border-radius: var(--radius-md);
-      background: var(--color-primary); color: var(--color-surface); font-size: .78rem; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .3rem;
-      font-family: inherit; transition: background .15s, transform .1s;
-    }
-    .btn-agregar:active { transform: scale(.96); }
-    .btn-agregar:disabled { opacity: .6; cursor: not-allowed; }
-    .btn-agregar.agregado { background: var(--color-success-mid); }
-
-    .qty-stepper {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--color-primary); border-radius: var(--radius-md); overflow: hidden;
-    }
-    .qty-stepper button {
-      width: 30px; height: 32px; border: none; background: transparent; color: var(--color-surface);
-      font-size: 1rem; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: background .15s;
-    }
-    .qty-stepper button:active { background: rgba(255,255,255,.18); }
-    .qty-stepper .qty-val { color: var(--color-surface); font-size: .82rem; font-weight: 700; }
-
-    /* Toast */
-    #toastCarrito {
-      position: fixed; bottom: 8rem; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: var(--color-text); color: var(--color-surface); padding: .7rem 1.15rem; border-radius: var(--radius-xl);
-      font-size: .85rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.28);
-      opacity: 0; transition: opacity .2s, transform .2s; z-index: 50; pointer-events: none;
-      display: flex; align-items: center; gap: .45rem;
-    }
-    #toastCarrito.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Barra inferior de pedido — se apoya sobre el zócalo, respetando el safe-area de iOS */
-    .bar-confirmar {
-      position: fixed; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; z-index: 40;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); color: var(--color-surface); display: none;
-      align-items: center; justify-content: space-between;
-      padding: .9rem 1.25rem; box-shadow: 0 -6px 18px rgba(15,47,74,.22);
-    }
-    .bar-confirmar.visible { display: flex; }
-    .bar-confirmar-info { font-size: .82rem; opacity: .88; }
-    .bar-confirmar-total { font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; }
-    .bar-confirmar-btn {
-      background: var(--color-surface); color: var(--color-primary); border: none; border-radius: var(--radius-lg);
-      padding: .62rem 1.15rem; font-size: .9rem; font-weight: 700; cursor: pointer;
-      font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: transform .1s;
-    }
-    .bar-confirmar-btn:active { transform: scale(.96); }
-  </style>
+  <link rel="stylesheet" href="/cliente/css/catalogo.css?v=3" />
   <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>
   <div class="topbar">
-    <h1>Catálogo</h1>
-    <p>Productos disponibles para tu próximo pedido</p>
+    <div class="topbar-header-row">
+      <div class="topbar-logo-catalogo" id="catalogoLogo" hidden></div>
+      <div>
+        <h1>Catálogo</h1>
+        <p>Productos disponibles para tu próximo pedido</p>
+      </div>
+    </div>
 
     <div class="buscador-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="inputBuscar" aria-label="Buscar producto" placeholder="Buscar producto...">
     </div>
 
@@ -190,7 +44,43 @@
        más abajo). Aclara que esto no es la vista de un cliente real logueado,
        aunque los datos (precios, stock, categorías) sean exactamente los mismos. -->
   <div id="bannerPreviewAdmin" style="display:none;background:var(--color-warning-bg);color:var(--color-warning);font-size:13px;font-weight:600;text-align:center;padding:8px 12px;">
-    👁 Vista previa — así ve el catálogo un cliente de tu empresa
+    Vista previa — así ve el catálogo un cliente de tu empresa
+  </div>
+
+  <!-- Sección fija de destacados (productos.destacado, migración 527/529):
+       fetch propio con ?destacados=1, independiente de categoría/búsqueda/
+       paginación del resto del catálogo. Se oculta si la empresa no tiene
+       ningún producto marcado como destacado. -->
+  <div class="seccion-destacados" id="seccionDestacados" style="display:none">
+    <div class="seccion-destacados-titulo">Destacados</div>
+    <div class="seccion-destacados-scroll" id="destacadosScroll"></div>
+  </div>
+
+  <!-- Combos (migración 530/531): mismo patrón de sección fija que
+       Destacados — fetch propio vía cliente_combos_disponibles, no
+       comparte paginación/filtros con el listado principal de productos.
+       Se oculta si la empresa no tiene ningún combo activo con stock. -->
+  <div class="seccion-destacados" id="seccionCombos" style="display:none">
+    <div class="seccion-destacados-titulo">Combos</div>
+    <div class="seccion-destacados-scroll" id="combosScroll"></div>
+  </div>
+
+  <div class="filtro-bar">
+    <button type="button" class="filtro-bar-toggle" id="btnSoloOfertas" aria-pressed="false">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .83 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg>
+      Solo ofertas
+    </button>
+    <span class="filtro-bar-count" id="filtroBarCount">0 productos</span>
+    <div class="filtro-bar-orden">
+      <select id="selectOrden" aria-label="Ordenar productos">
+        <option value="relevancia">Destacados</option>
+        <option value="precio_asc">Precio: menor a mayor</option>
+        <option value="precio_desc">Precio: mayor a menor</option>
+        <option value="nombre_asc">Nombre A-Z</option>
+        <option value="ofertas_primero">Ofertas primero</option>
+      </select>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
   </div>
 
   <div class="contenido">
@@ -241,6 +131,11 @@
     const params = new URLSearchParams(window.location.search);
 
     let empresaId = params.get('empresa_id');
+    // 501: link corto y legible del catálogo (/cliente/catalogo?e=<slug>),
+    // alternativa a pasar el UUID crudo — se resuelve a empresaId más abajo,
+    // antes de cargar nada, así el resto del archivo sigue usando empresaId
+    // sin ningún otro cambio.
+    const empresaSlug = params.get('e');
     let categoriaActiva = null;
     let busquedaActual = '';
     let paginaActual = 1;
@@ -251,6 +146,15 @@
     let clienteId = null;       // null si no hay sesión de cliente (catálogo público / sin login)
     let accessToken = null;     // JWT de la sesión, si hay una — se manda al backend en Authorization
     const carritoMap = new Map(); // producto_id -> cantidad (refleja lo que ya está en carrito_items)
+    const comboCarritoMap = new Map(); // combo_id -> cantidad (mismo criterio, para renglones de combo)
+    let combosCargados = []; // combos ya traídos de cliente_combos_disponibles, para pintarCardCombo/stepper
+
+    // Filtro/orden estilo "shop all" (client-side, sobre lo ya cargado por
+    // paginación): no requiere tocar el backend — se reordena/filtra lo que
+    // ya llegó del server, y sigue sumando lo que trae "Ver más productos".
+    let productosCargados = [];  // acumula todos los productos traídos hasta ahora
+    let ordenActual = 'relevancia';
+    let soloOfertas = false;
 
     // FIX v477 — "Ver catálogo" (panel admin): el link llega con el access
     // token del admin en el fragmento de la URL (#preview_token=...), nunca
@@ -290,6 +194,18 @@
         }
       }
 
+      // 501: si no vino empresa_id pero sí el slug corto (?e=), se resuelve
+      // acá — mismo gateo (catalogo_publico_habilitado) que empresa_publica_por_id,
+      // así que si falla (slug inexistente o catálogo no habilitado) simplemente
+      // no se completa empresaId y cae en el mensaje de abajo, igual que hoy
+      // pasa con un empresa_id inválido.
+      if (!empresaId && empresaSlug) {
+        try {
+          const { data } = await sb.rpc('empresa_publica_por_slug', { p_slug: empresaSlug });
+          if (data && data[0]) empresaId = data[0].id;
+        } catch (e) { /* cae al mensaje de "no se especificó la empresa" */ }
+      }
+
       if (!empresaId) {
         document.getElementById('listaProductos').innerHTML = `
           <div class="empty-state">No se especificó la empresa. Accedé desde el link que te compartió tu distribuidora.</div>`;
@@ -298,15 +214,103 @@
 
       if (clienteId) await cargarCarritoActual();
 
+      cargarLogoEmpresa();
       await cargarCategorias();
       await cargarProductos(true);
+      cargarDestacados(); // independiente del listado principal, no bloquea su carga
+      cargarCombos();     // ídem — sección fija propia
     });
+
+    // Combos (531/cliente_combos_disponibles): mismo criterio que
+    // cargarDestacados — fetch propio, no bloquea el catálogo principal si
+    // falla, y queda oculta si la empresa no tiene combos disponibles.
+    async function cargarCombos() {
+      try {
+        const { data, error } = await sb.rpc('cliente_combos_disponibles', {
+          p_empresa_id: empresaId, p_limit: 12, p_offset: 0,
+        });
+        if (error) throw error;
+
+        combosCargados = data || [];
+        const sec = document.getElementById('seccionCombos');
+        const scroll = document.getElementById('combosScroll');
+        if (!combosCargados.length) { sec.style.display = 'none'; return; }
+
+        scroll.innerHTML = combosCargados.map(pintarCardCombo).join('');
+        sec.style.display = '';
+      } catch (e) {
+        console.error('[catalogo] No se pudieron cargar los combos:', e.message);
+      }
+    }
+
+    // Sección fija de destacados: fetch propio (?destacados=1), no comparte
+    // paginación ni filtros de categoría/búsqueda con el listado principal.
+    // Si no hay ningún producto destacado, la sección queda oculta.
+    async function cargarDestacados() {
+      try {
+        const qs = new URLSearchParams({ empresa_id: empresaId, destacados: '1', limit: 10 });
+        const r = await fetch(`/api/cliente/productos?${qs.toString()}`, { headers: headersAuth() });
+        const data = await r.json();
+        if (!r.ok) return;
+
+        const destacados = data.productos || [];
+        const sec = document.getElementById('seccionDestacados');
+        const scroll = document.getElementById('destacadosScroll');
+        if (!destacados.length) { sec.style.display = 'none'; return; }
+
+        scroll.innerHTML = destacados.map(p => pintarCardProducto(p)).join('');
+        sec.style.display = '';
+      } catch (e) {
+        // La sección fija es un complemento — si falla, el catálogo
+        // principal sigue funcionando igual, no se muestra error.
+        console.error('[catalogo] No se pudieron cargar los destacados:', e.message);
+      }
+    }
+
+    // v744 — logo de la empresa en el header del catálogo público. Falla en
+    // silencio (deja el logo oculto) si el RPC no devuelve fila: pasa si la
+    // empresa no habilitó catalogo_publico_habilitado (ver 475), o si el
+    // cliente logueado todavía no tiene sesión resuelta contra RLS — en
+    // ningún caso debe romper la carga del catálogo en sí.
+    async function cargarLogoEmpresa() {
+      try {
+        const { data, error } = await sb.rpc('empresa_publica_por_id', { p_empresa_id: empresaId });
+        if (error || !data || !data[0]) return;
+
+        const empresa = data[0];
+        const el = document.getElementById('catalogoLogo');
+        if (!el) return;
+
+        if (empresa.logo_url) {
+          const img = document.createElement('img');
+          img.src = empresa.logo_url;
+          img.alt = empresa.nombre || 'Logo de la empresa';
+          img.onerror = () => {
+            el.innerHTML = '';
+            el.textContent = empresa.nombre?.charAt(0)?.toUpperCase() || '';
+          };
+          el.innerHTML = '';
+          el.appendChild(img);
+        } else if (empresa.nombre) {
+          el.textContent = empresa.nombre.charAt(0).toUpperCase();
+        } else {
+          return; // sin logo ni nombre: no hay nada útil que mostrar
+        }
+        el.hidden = false;
+      } catch {
+        // sin conexión / RPC no disponible: el catálogo sigue funcionando sin logo
+      }
+    }
 
     async function cargarCarritoActual() {
       try {
         const { data } = await sb.rpc('get_carrito_cliente', { p_cliente_id: clienteId });
         carritoMap.clear();
-        (data || []).forEach(it => carritoMap.set(it.producto_id, it.cantidad));
+        comboCarritoMap.clear();
+        (data || []).forEach(it => {
+          if (it.combo_id) comboCarritoMap.set(it.combo_id, it.cantidad);
+          else carritoMap.set(it.producto_id, it.cantidad);
+        });
         actualizarFab();
       } catch (e) {
         // si falla, el catálogo sigue mostrando productos sin estado de carrito
@@ -314,7 +318,7 @@
     }
 
     function actualizarFab() {
-      const cantidades = [...carritoMap.values()];
+      const cantidades = [...carritoMap.values(), ...comboCarritoMap.values()];
       const totalItems = cantidades.reduce((a, b) => a + b, 0);
       const bar = document.getElementById('barConfirmar');
 
@@ -343,6 +347,17 @@
         busquedaActual = e.target.value.trim();
         cargarProductos(true);
       }, 350);
+    });
+
+    document.getElementById('selectOrden').addEventListener('change', (e) => {
+      ordenActual = e.target.value;
+      renderGrid();
+    });
+
+    document.getElementById('btnSoloOfertas').addEventListener('click', (e) => {
+      soloOfertas = !soloOfertas;
+      e.currentTarget.setAttribute('aria-pressed', String(soloOfertas));
+      renderGrid();
     });
 
     async function cargarCategorias() {
@@ -377,6 +392,7 @@
 
       if (reset) {
         paginaActual = 1;
+        productosCargados = [];
         document.getElementById('listaProductos').innerHTML = '<div class="loading">Cargando catálogo...</div>';
       }
 
@@ -400,23 +416,57 @@
               </svg>
               <div>No encontramos productos con ese criterio.</div>
             </div>`;
+          document.getElementById('filtroBarCount').textContent = '0 productos';
           return;
         }
 
-        const html = `<div class="grid-productos" id="gridProductos">${productos.map(pintarCardProducto).join('')}</div>`;
-
-        if (reset) {
-          document.getElementById('listaProductos').innerHTML = html;
-        } else {
-          document.getElementById('gridProductos').insertAdjacentHTML('beforeend', productos.map(pintarCardProducto).join(''));
-        }
-
-        renderBotonCargarMas();
+        productosCargados = productosCargados.concat(productos);
+        renderGrid();
       } catch (e) {
         document.getElementById('listaProductos').innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
       } finally {
         cargando = false;
       }
+    }
+
+    // Aplica orden + filtro "solo ofertas" sobre lo ya cargado, y repinta la
+    // grilla entera. No dispara ningún fetch: es instantáneo, como el sort
+    // de un listado ya traído a memoria.
+    function renderGrid() {
+      let lista = productosCargados.slice();
+
+      if (soloOfertas) lista = lista.filter(p => !!p.oferta_liquidacion);
+
+      const precioDe = p => +(p.oferta_liquidacion ? p.oferta_liquidacion.precio_oferta : p.precio_base) || 0;
+      if (ordenActual === 'precio_asc') {
+        lista.sort((a, b) => precioDe(a) - precioDe(b));
+      } else if (ordenActual === 'precio_desc') {
+        lista.sort((a, b) => precioDe(b) - precioDe(a));
+      } else if (ordenActual === 'nombre_asc') {
+        lista.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
+      } else if (ordenActual === 'ofertas_primero') {
+        lista.sort((a, b) => (b.oferta_liquidacion ? 1 : 0) - (a.oferta_liquidacion ? 1 : 0));
+      }
+
+      const cont = document.getElementById('listaProductos');
+      const countEl = document.getElementById('filtroBarCount');
+
+      if (!lista.length) {
+        cont.innerHTML = `
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .83 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/>
+            </svg>
+            <div>No hay productos en oferta en este momento.</div>
+          </div>`;
+        countEl.textContent = '0 productos';
+        return;
+      }
+
+      cont.innerHTML = `<div class="grid-productos" id="gridProductos">${lista.map(pintarCardProducto).join('')}</div>`;
+      const plural = lista.length === 1 ? '1 producto' : `${lista.length} productos`;
+      countEl.textContent = totalPaginas > paginaActual ? `${plural}+` : plural;
+      renderBotonCargarMas();
     }
 
     function renderBotonCargarMas() {
@@ -437,6 +487,20 @@
       document.getElementById('listaProductos').appendChild(btn);
     }
 
+    // Texto teaser de regla de volumen ("Desde 6 un.: 5% off" / "Desde 6 un.: $450 c/u").
+    // No es el precio que se cobra (eso se recalcula real al armar el carrito);
+    // es solo un incentivo informativo. Se oculta si ya hay una oferta de
+    // liquidación activa, para no saturar la card con dos mensajes de precio.
+    function textoReglaVolumen(p) {
+      const r = p.regla_volumen;
+      if (!r || p.oferta_liquidacion) return '';
+      const cant = r.cantidad_minima;
+      const detalle = r.tipo_descuento === 'porcentaje'
+        ? `${Math.round(r.valor)}% off`
+        : `${formatPeso(r.valor)} c/u`;
+      return `<div class="teaser-volumen">Desde ${cant} un.: ${esc(detalle)}</div>`;
+    }
+
     function pintarCardProducto(p) {
       const oferta = p.oferta_liquidacion;
       const sinStock = (p.stock_disponible || 0) <= 0;
@@ -454,9 +518,9 @@
         <div class="card-producto" data-producto-id="${p.id}">
           ${sinStock ? `<div class="sin-stock-overlay"><span class="sin-stock-tag">Sin stock</span></div>` : ''}
           ${oferta ? `<div class="badge-oferta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .83 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg>-${Math.round(oferta.descuento_pct)}%</div>` : ''}
-          <div class="producto-img-wrap">
-            ${p.imagen_url
-              ? `<img src="${esc(p.imagen_url)}" alt="${esc(p.nombre)}" loading="lazy">`
+          <div class="producto-img-wrap" onclick="abrirZoomProducto('${p.id}')">
+            ${p.foto_url
+              ? `<img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}" loading="lazy">`
               : `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/><path d="M9 11v3M15 11v3"/></svg>`}
           </div>
           <div class="producto-body">
@@ -466,6 +530,7 @@
               ${oferta ? `<div class="precio-tachado">${formatPeso(precioBase)}</div>` : ''}
               <div class="precio-actual ${oferta ? 'con-oferta' : ''}">${formatPeso(precioFinal)}</div>
               ${venceTexto ? `<div class="vence-oferta">⏱ ${esc(venceTexto)}</div>` : ''}
+              ${textoReglaVolumen(p)}
             </div>
             <div class="producto-accion" id="accion-${p.id}">
               ${renderAccionHtml(p.id, sinStock, precioFinal)}
@@ -473,6 +538,73 @@
           </div>
         </div>`;
     }
+
+    function abrirZoomProducto(productoId) {
+      const p = productosCargados.find(x => String(x.id) === String(productoId));
+      if (!p) return;
+
+      const oferta = p.oferta_liquidacion;
+      const sinStock = (p.stock_disponible || 0) <= 0;
+      const precioBase = +p.precio_base || 0;
+      const precioFinal = oferta ? +oferta.precio_oferta : precioBase;
+
+      let venceTexto = '';
+      if (oferta?.vence_oferta_at) {
+        const dias = Math.max(0, Math.ceil((new Date(oferta.vence_oferta_at) - new Date()) / 86400000));
+        venceTexto = dias <= 0 ? 'Vence hoy' : `Vence en ${dias} día${dias === 1 ? '' : 's'}`;
+      }
+
+      let overlay = document.getElementById('zoomOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'zoomOverlay';
+        overlay.className = 'zoom-overlay';
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrarZoomProducto(); });
+        document.body.appendChild(overlay);
+      }
+
+      overlay.innerHTML = `
+        <div class="zoom-panel">
+          <button type="button" class="zoom-cerrar" onclick="cerrarZoomProducto()" aria-label="Cerrar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+          ${sinStock ? `<div class="sin-stock-overlay" style="border-radius:var(--radius-xxl) var(--radius-xxl) 0 0;"><span class="sin-stock-tag">Sin stock</span></div>` : ''}
+          ${oferta ? `<div class="badge-oferta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.6 3H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .83 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg>-${Math.round(oferta.descuento_pct)}%</div>` : ''}
+          <div class="zoom-img-wrap">
+            ${p.foto_url
+              ? `<img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}">`
+              : `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/><path d="M9 11v3M15 11v3"/></svg>`}
+          </div>
+          <div class="zoom-body">
+            <div class="zoom-nombre">${esc(p.nombre)}</div>
+            <div class="zoom-unidad">${esc(p.unidad || '')}</div>
+            ${p.descripcion ? `<div class="zoom-descripcion">${esc(p.descripcion)}</div>` : ''}
+            <div class="zoom-precios producto-precios">
+              ${oferta ? `<div class="precio-tachado">${formatPeso(precioBase)}</div>` : ''}
+              <div class="precio-actual ${oferta ? 'con-oferta' : ''}">${formatPeso(precioFinal)}</div>
+              ${venceTexto ? `<div class="vence-oferta">⏱ ${esc(venceTexto)}</div>` : ''}
+              ${textoReglaVolumen(p)}
+            </div>
+            <div class="producto-accion" id="accion-modal-${p.id}">
+              ${renderAccionHtml(p.id, sinStock, precioFinal)}
+            </div>
+          </div>
+        </div>`;
+
+      requestAnimationFrame(() => overlay.classList.add('abierto'));
+      document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarZoomProducto() {
+      const overlay = document.getElementById('zoomOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('abierto');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') cerrarZoomProducto();
+    });
 
     function renderAccionHtml(productoId, sinStock, precioFinal) {
       if (sinStock) {
@@ -496,6 +628,124 @@
     function refrescarAccionCard(productoId, precioFinal) {
       const cont = document.getElementById(`accion-${productoId}`);
       if (cont) cont.innerHTML = renderAccionHtml(productoId, false, precioFinal);
+      const contModal = document.getElementById(`accion-modal-${productoId}`);
+      if (contModal) contModal.innerHTML = renderAccionHtml(productoId, false, precioFinal);
+    }
+
+    // Composición del combo como texto teaser corto, ej. "2x Coca 1.5L + 1x Papas 500g".
+    function textoComposicionCombo(items) {
+      if (!items?.length) return '';
+      return items.map(it => `${it.cantidad}x ${esc(it.nombre)}`).join(' + ');
+    }
+
+    function pintarCardCombo(c) {
+      return `
+        <div class="card-producto" data-combo-id="${c.id}">
+          <div class="producto-img-wrap">
+            ${c.foto_url
+              ? `<img src="${esc(c.foto_url)}" alt="${esc(c.nombre)}" loading="lazy">`
+              : `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/><path d="M9 11v3M15 11v3"/></svg>`}
+          </div>
+          <div class="producto-body">
+            <div class="producto-nombre">${esc(c.nombre)} <span class="badge-combo">Combo</span></div>
+            <div class="producto-unidad">${textoComposicionCombo(c.items)}</div>
+            <div class="producto-precios">
+              <div class="precio-actual">${formatPeso(c.precio)}</div>
+            </div>
+            <div class="producto-accion" id="accion-combo-${c.id}">
+              ${renderAccionComboHtml(c.id, +c.precio)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAccionComboHtml(comboId, precio) {
+      const cantidadEnCarrito = comboCarritoMap.get(comboId) || 0;
+      if (cantidadEnCarrito > 0) {
+        return `
+          <div class="qty-stepper">
+            <button type="button" onclick="cambiarCantidadCombo('${comboId}', ${precio}, -1)">−</button>
+            <span class="qty-val">${cantidadEnCarrito}</span>
+            <button type="button" onclick="cambiarCantidadCombo('${comboId}', ${precio}, 1)">+</button>
+          </div>`;
+      }
+      return `<button class="btn-agregar" onclick="agregarComboAlCarrito('${comboId}', ${precio})">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar
+      </button>`;
+    }
+
+    function refrescarAccionCombo(comboId, precio) {
+      const cont = document.getElementById(`accion-combo-${comboId}`);
+      if (cont) cont.innerHTML = renderAccionComboHtml(comboId, precio);
+    }
+
+    async function agregarComboAlCarrito(comboId, precio) {
+      if (!clienteId) {
+        window.location.href = `/cliente/login`;
+        return;
+      }
+      const cont = document.getElementById(`accion-combo-${comboId}`);
+      const btn = cont?.querySelector('.btn-agregar');
+      if (btn) { btn.disabled = true; btn.textContent = 'Agregando...'; }
+
+      try {
+        const { error } = await sb.from('carrito_items')
+          .upsert({
+            empresa_id: empresaId,
+            cliente_id: clienteId,
+            combo_id: comboId,
+            cantidad: (comboCarritoMap.get(comboId) || 0) + 1,
+            precio_snap: precio,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'cliente_id,combo_id' });
+
+        if (error) throw error;
+
+        comboCarritoMap.set(comboId, (comboCarritoMap.get(comboId) || 0) + 1);
+        refrescarAccionCombo(comboId, precio);
+        actualizarFab();
+        mostrarToast('Agregado al carrito');
+      } catch (e) {
+        mostrarToast('No se pudo agregar. Probá de nuevo.');
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Agregar'; }
+      }
+    }
+
+    async function cambiarCantidadCombo(comboId, precio, delta) {
+      const procesoKey = `combo:${comboId}`;
+      if (productosEnProceso.has(procesoKey)) return;
+      productosEnProceso.add(procesoKey);
+      const actual = comboCarritoMap.get(comboId) || 0;
+      const nueva = actual + delta;
+
+      try {
+        if (nueva <= 0) {
+          const { error } = await sb.from('carrito_items')
+            .delete().eq('cliente_id', clienteId).eq('combo_id', comboId);
+          if (error) throw error;
+          comboCarritoMap.delete(comboId);
+        } else {
+          const { error } = await sb.from('carrito_items')
+            .upsert({
+              empresa_id: empresaId,
+              cliente_id: clienteId,
+              combo_id:   comboId,
+              cantidad:   nueva,
+              precio_snap: precio,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'cliente_id,combo_id' });
+          if (error) throw error;
+          comboCarritoMap.set(comboId, nueva);
+        }
+        refrescarAccionCombo(comboId, precio);
+        actualizarFab();
+      } catch (e) {
+        console.error('[carrito] error update combo:', e);
+        mostrarToast('No se pudo actualizar el carrito.');
+      } finally {
+        productosEnProceso.delete(procesoKey);
+      }
     }
 
     async function agregarAlCarrito(productoId, precioFinal) {

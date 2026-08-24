@@ -110,12 +110,12 @@
   background: rgba(143,95,0,.18); color: #E3B278;
   display: inline-flex; align-items: center; gap: 3px;
 }
-.stock-ov-mini__badge.ok { background: rgba(184,122,0,.18); color: #8FCBB4; }
+.stock-ov-mini__badge.ok { background: rgba(106,152,115,.18); color: #8FCBB4; }
 
 /* ══════════════════════════════════════════════════════════════════
    TABLA restyle — fila con avatar/ícono de producto, badges tipo pill
    ══════════════════════════════════════════════════════════════════ */
-.tabla-stock .fila-stock .td-producto { display: table-cell; }
+.tabla-admin .fila-stock .td-producto { display: table-cell; }
 .prod-row {
   display: flex;
   align-items: center;
@@ -130,20 +130,9 @@
 .prod-row .prod-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .prod-row .prod-nombre { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Estado de stock — sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) */
-.badge-estado {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 1px 9px; border-radius: var(--radius-sm);
-  border-width: 3px; border-style: double;
-  font-family: var(--font-family-display);
-  font-size: 10.5px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .04em;
-  white-space: nowrap;
-}
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.badge-ok        { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
-.badge-bajo      { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
-.badge-critico   { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); }
+/* Badges de estado: migrado al canónico de componentes-admin.css (Fase 5,
+   ver PLAN_UNIFICACION_UX_ADMIN.md §32) — misma redeclaración byte-idéntica
+   que había en stock.css, retirada por el mismo motivo, sin efecto visual. */
 
 .td-acciones { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
 .btn-ajustar {
@@ -194,6 +183,10 @@
 }
 .stockauto-head h3 { font-size: 14.5px; font-weight: 700; margin: 0; color: var(--color-text); }
 .stockauto-head__sub { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+.stockauto-head__desglose {
+  font-size: 11.5px; font-weight: 600; color: var(--color-text-muted);
+  margin-top: 4px; letter-spacing: .1px;
+}
 .stockauto-head__count {
   font-size: 12px; font-weight: 700; color: var(--color-danger-mid);
   background: var(--color-danger-bg);
@@ -270,6 +263,7 @@
   padding: 10px 18px;
   border-top: 1px solid rgba(0,0,0,.06);
   text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .stockauto-toggle {
   background: none; border: none; cursor: pointer;
@@ -277,6 +271,7 @@
   padding: 4px 10px;
 }
 .stockauto-toggle:hover { text-decoration: underline; }
+.stockauto-toggle--ghost { color: var(--color-text-muted); font-weight: 500; }
 
 .stockauto-empty {
   padding: 22px 18px; text-align: center;
@@ -296,4 +291,80 @@
 }
 @media (max-width: 640px) {
   .stock-ov-kpis { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Foto real de producto en la fila (v461, mismo patrón que productos.css)
+   ══════════════════════════════════════════════════════════════════ */
+.prod-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.prod-avatar--foto {
+  object-fit: cover;
+  background: var(--color-surface-2);
+  border: 1px solid rgba(0, 0, 0, .06);
+  cursor: zoom-in;
+}
+
+/* ── Zoom de imagen de producto (compartido con Productos) ── */
+.foto-zoom-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 12, .72);
+  z-index: var(--z-super-overlay);
+}
+
+.foto-zoom-backdrop.activo {
+  display: block;
+}
+
+.foto-zoom-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-super-overlay-content);
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  pointer-events: none;
+}
+
+.foto-zoom-modal.activo {
+  display: flex;
+}
+
+.foto-zoom-modal #foto-zoom-img {
+  max-width: min(90vw, 720px);
+  max-height: 85vh;
+  border-radius: 12px;
+  box-shadow: var(--shadow-big, 0 12px 40px rgba(0,0,0,.35));
+  background: var(--color-surface);
+  object-fit: contain;
+  pointer-events: auto;
+}
+
+.foto-zoom-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background .15s ease;
+}
+
+.foto-zoom-close:hover {
+  background: rgba(255, 255, 255, .22);
 }

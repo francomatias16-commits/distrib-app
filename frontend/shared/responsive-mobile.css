@@ -13,6 +13,19 @@
  *   ≤640px  → mobile normal
  *   ≤480px  → mobile pequeño
  *   ≤360px  → mobile muy pequeño (ej: Galaxy A series)
+ *
+ * AUDITORIA-RESPONSIVE FASE1 (2026-08-22): escaneo del proyecto completo
+ * encontró 27 valores de @media(max-width) distintos entre 360 y 1200px.
+ * La mayoría no tiene justificación de diseño (son "lo que funcionó al
+ * probar en un momento dado") y se van migrando a esta escala de a poco.
+ * Excepción documentada y aceptada por ahora (NO migrar sin QA visual en
+ * dispositivo real, son layouts de grilla ajustados a mano):
+ *   - frontend/admin/css/pos.css: 1180px/980px/860px/400px — cascada
+ *     propia de .pos-grid--facil y el modal admin del POS. Tocar esto
+ *     sin probar en pantalla real puede romper el flujo de venta.
+ *   - frontend/landing/*.css: 760px/620px/900px — breakpoint de la
+ *     landing, consistente entre sí, pendiente de unificar con el resto
+ *     del sitio en una fase aparte (no es una superficie transaccional).
  */
 
 /* ══════════════════════════════════════════════════════════════
@@ -135,7 +148,7 @@ html, body {
    ══════════════════════════════════════════════════════════════
    reskin-patch-v2-shadcn.css define .modal-footer con justify-content
    flex-end pero sin flex-wrap. En mobile los botones desbordan. */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .modal-footer,
   .dialog-footer,
   .form-acciones,
@@ -166,7 +179,7 @@ html, body {
 /* ══════════════════════════════════════════════════════════════
    6. GRIDS DE FORMULARIO — 2 columnas → 1 en mobile
    ══════════════════════════════════════════════════════════════ */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .grid-2col,
   .form-grid-2col,
   [class*="grid-2"],

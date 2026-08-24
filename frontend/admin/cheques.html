@@ -14,13 +14,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=281" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -31,7 +31,8 @@
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/cheques-gentelella.css?v=2" />
   <link rel="stylesheet" href="/shared/pagination.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
@@ -59,19 +60,22 @@
 
   <main class="main" id="vista-cheques">
 
-    <!-- 3 de los 4 coinciden con opciones reales de #filtro-estado-cheque
-         → pestañas. "Vencen en 3 días" es un subconjunto por fecha de
-         "En cartera" sin filtro propio en la tabla → queda de solo lectura. -->
+    <!-- Todas las pestañas (Todos, En cartera, Depositados, Cobrado (mes),
+         Rechazados, Anulados) coinciden con opciones reales de
+         #filtro-estado-cheque y disparan filtrarCheques() al hacer clic.
+         "Vencen en 3 días" es un subconjunto por fecha de "En cartera" —
+         desde v908 tiene su propio filtro clickeable (ver sello-proximos
+         más abajo y activarFiltroProximos() en cheques.js), no es una
+         categoría más de esta barra porque no es mutuamente excluyente
+         con los estados (un cheque "en cartera" puede o no vencer en los
+         próximos 3 días). -->
     <div class="barra-filtros" id="filtro-tabs-cheques"></div>
-    <div class="franja-resumen-sololectura">
-      <span>Vencen en 3 días: <strong id="kpi-proximos">$0</strong> <span id="kpi-proximos-sub"></span></span>
-    </div>
 
     <!-- Alerta vencimientos próximos -->
     <div id="alerta-vencimientos" style="display:none"></div>
 
     <!-- Tabla -->
-    <div class="tabla-wrap">
+    <div class="tabla-wrap table-responsive-cards">
       <div class="tabla-header">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h2>Cheques recibidos</h2>
@@ -81,6 +85,12 @@
           </button>
         </div>
         <div class="filtros-bar">
+          <!-- "Vencen en 3 días": antes de solo lectura (ver v908), ahora es
+               un botón que filtra la tabla a esos cheques puntuales
+               (activarFiltroProximos(), en cheques.js). -->
+          <button type="button" id="sello-proximos" class="dato-sello dato-sello--integrado dato-sello--clickeable" data-tono="ambar" onclick="activarFiltroProximos()" title="Ver los cheques que vencen en los próximos 3 días">
+            <div class="dato-sello-valor" id="kpi-proximos">$0</div><div class="dato-sello-etiqueta">Vencen en 3 días</div><div class="dato-sello-nota" id="kpi-proximos-sub"></div>
+          </button>
           <input type="search" id="buscar-cheque" aria-label="Buscar cheque" placeholder="Cliente, banco, N°..." />
           <select id="filtro-estado-cheque" onchange="filtrarCheques()" class="oculto">
             <option value="">Todos los estados</option>
@@ -89,24 +99,25 @@
             <option value="cobrado">Cobrado</option>
             <option value="rechazado">Rechazado</option>
             <option value="entregado_proveedor">Endosado</option>
+            <option value="anulado">Anulado</option>
           </select>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap;color:var(--color-text-muted)">
-            <input type="checkbox" id="filtro-vencidos-cheque" onchange="filtrarCheques()" />
+            <input type="checkbox" id="filtro-vencidos-cheque" onchange="onFiltroVencidosChange()" />
             Solo vencidos
           </label>
         </div>
       </div>
       <div class="tabla-overflow">
-        <table class="tabla table-compact">
+        <table class="tabla-admin table-compact">
           <thead>
             <tr>
-              <th>N° Cheque</th>
+              <th class="col-fit">N° Cheque</th>
               <th class="thead-sep">Cliente</th>
-              <th>Banco</th>
-              <th class="thead-sep">Monto</th>
-              <th>Vencimiento</th>
-              <th class="thead-sep">Estado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="col-fit">Banco</th>
+              <th class="thead-sep col-fit">Monto</th>
+              <th class="col-fit">Vencimiento</th>
+              <th class="thead-sep col-fit">Estado</th>
+              <th class="col-sticky-end th-acciones col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody-cheques">
@@ -118,6 +129,7 @@
 
   </main>
 </div>
+
 
 <!-- Modal verificación denuncia BCRA (robado/extraviado/adulterado) -->
 <div class="modal-overlay hidden" id="modal-bcra-denuncia" role="dialog" aria-modal="true" aria-labelledby="modal-bcra-denuncia-titulo">
@@ -210,19 +222,19 @@
 <div class="toast" id="toast"></div>
 
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
-  <script src="/frontend/admin/js/cheques.js?v280"></script>
+  <script src="/frontend/admin/js/cheques.js?v908"></script>
 <script src="/frontend/shared/tabla-agrupada.js"></script>
 </body>
 </html>

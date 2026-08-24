@@ -81,9 +81,14 @@ const ok     = [];
 for (const page of htmlFiles) {
   const html = fs.readFileSync(page.htmlPath, 'utf8');
 
-  // Redirect: saltar
-  if (html.includes('window.location.replace') ||
-      html.includes('location.replace') ||
+  // Redirect: saltar. Cubre tanto `window.location.replace(...)` como el
+  // `location.replace(...)` sin prefijo (mismo objeto global — equivalente
+  // en cualquier browser, pero el checker original solo reconocía la forma
+  // con `window.`, lo que producía un falso positivo en liquidacion.html:
+  // el checker terminaba comparando la página contra js/liquidacion.js, un
+  // archivo que esa página ni siquiera carga — el que lo carga de verdad es
+  // vencimientos.html, que sí tiene ui-utils.js).
+  if (/(?:window\.)?location\.replace\(/.test(html) ||
       html.includes('meta http-equiv="refresh"')) {
     log(`  ⏭  ${page.name} (redirect)`);
     continue;

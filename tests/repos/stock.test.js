@@ -41,6 +41,7 @@ function fakeQuery(result) {
     upsert:      vi.fn(() => obj),
     delete:      vi.fn(() => obj),
     eq:          vi.fn(() => obj),
+    neq:         vi.fn(() => obj),
     in:          vi.fn(() => obj),
     not:         vi.fn(() => obj),
     is:          vi.fn(() => obj),
@@ -278,24 +279,45 @@ describe('listarLotes', () => {
 });
 
 describe('crearLote', () => {
-  it('inserta el payload tal cual y devuelve el lote creado', async () => {
-    const query = fakeQuery({ data: { id: 'lote-nuevo' }, error: null });
-    dbMock.from.mockReturnValue(query);
+  it('llama fn_lotes_crear (mig. 472) con los parámetros mapeados y devuelve el resultado', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: true, id: 'lote-nuevo', deposito_id: 'dep-1', stock_sincronizado: true },
+      error: null,
+    });
 
-    const payload = { empresa_id: 'empresa-1', producto_id: 'p1', cantidad: 10 };
-    const { data, error } = await crearLote(payload);
+    const payload = {
+      empresa_id: 'empresa-1', producto_id: 'p1', cantidad: 10,
+      deposito_id: 'dep-1', numero_lote: 'L-1', costo_unitario: 5,
+      fecha_fabricacion: null, fecha_vencimiento: null, estado: 'activo',
+    };
+    const { data, error } = await crearLote(payload, 'user-1');
 
-    expect(query.insert).toHaveBeenCalledWith(payload);
-    expect(data).toEqual({ id: 'lote-nuevo' });
+    expect(dbMock.rpc).toHaveBeenCalledWith('fn_lotes_crear', {
+      p_empresa_id: 'empresa-1', p_producto_id: 'p1', p_cantidad: 10,
+      p_deposito_id: 'dep-1', p_numero_lote: 'L-1', p_costo_unitario: 5,
+      p_fecha_fabricacion: null, p_fecha_vencimiento: null,
+      p_estado: 'activo', p_usuario_id: 'user-1',
+    });
+    expect(data).toEqual({ ok: true, id: 'lote-nuevo', deposito_id: 'dep-1', stock_sincronizado: true });
     expect(error).toBeNull();
   });
 
-  it('propaga error (el handler lo maneja con errorSeguro)', async () => {
-    dbMock.from.mockReturnValue(fakeQuery({ data: null, error: { message: 'producto_id inválido' } }));
+  it('propaga error de red/DB de la RPC', async () => {
+    dbMock.rpc.mockResolvedValue({ data: null, error: { message: 'producto_id inválido' } });
 
-    const { error } = await crearLote({});
+    const { data, error } = await crearLote({});
 
+    expect(data).toBeNull();
     expect(error).toEqual({ message: 'producto_id inválido' });
+  });
+
+  it('mapea { ok: false, error } de la RPC a un error propagable', async () => {
+    dbMock.rpc.mockResolvedValue({ data: { ok: false, error: 'Sin autorización' }, error: null });
+
+    const { data, error } = await crearLote({ empresa_id: 'empresa-1' });
+
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'Sin autorización' });
   });
 });
 
@@ -351,13 +373,13 @@ describe('actualizarLote', () => {
 });
 
 describe('eliminarLote', () => {
-  it('elimina por id y propaga error', async () => {
+  it('marca el lote como eliminado por id y propaga error', async () => {
     const query = fakeQuery({ error: null });
     dbMock.from.mockReturnValue(query);
 
     const { error } = await eliminarLote('l1');
 
-    expect(query.delete).toHaveBeenCalled();
+    expect(query.update).toHaveBeenCalledWith(expect.objectContaining({ estado: 'eliminado' }));
     expect(query.eq).toHaveBeenCalledWith('id', 'l1');
     expect(error).toBeNull();
   });

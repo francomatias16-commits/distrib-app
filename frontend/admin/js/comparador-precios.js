@@ -156,9 +156,8 @@ function renderKpis(filas) {
 
   cont.className = 'franja-resumen-sololectura';
   cont.innerHTML = `
-    <span title="Últimos ${mesesActuales} meses, si siempre se hubiera comprado al proveedor más barato">Ahorro potencial total: <strong class="monto-verde">${fmtPeso(totalAhorro)}</strong></span>
-    <span class="sep">·</span>
-    <span title="De ${filas.length} productos comprados a más de un proveedor">Productos con oportunidad: <strong>${productosConOportunidad}</strong></span>
+    <div class="dato-sello" data-tono="verde" title="Últimos ${mesesActuales} meses, si siempre se hubiera comprado al proveedor más barato"><div class="dato-sello-valor">${fmtPeso(totalAhorro)}</div><div class="dato-sello-etiqueta">Ahorro potencial total</div></div>
+    <div class="dato-sello" data-tono="ambar" title="De ${filas.length} productos comprados a más de un proveedor"><div class="dato-sello-valor">${productosConOportunidad}</div><div class="dato-sello-etiqueta">Productos con oportunidad</div></div>
   `;
 }
 

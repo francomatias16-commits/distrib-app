@@ -38,3 +38,19 @@
   min-width: 80px;
   text-align: center;
 }
+
+/* AUDITORIA-RESPONSIVE-ETAPA3 (continuación): .btn-pag (Anterior/Siguiente)
+   mide ~24-26px de alto — igual que el caso ya resuelto de .btn-sm en
+   finanzas.css, queda fuera de la regla táctil de responsive-mobile.css
+   porque esa regla solo cubre .btn-primario/.btn-secundario/.btn-peligro
+   (convención admin), no .btn-pag (convención Bootstrap-ish). A diferencia
+   del fix anterior, este archivo se carga en TODAS las páginas de listado
+   del panel (no solo en los módulos financieros), así que el impacto es
+   mayor. Se usa el mismo breakpoint (768px) y min-height (40px) que
+   responsive-mobile.css para mantener consistencia. */
+@media (max-width: 768px) {
+  .btn-pag {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
+}

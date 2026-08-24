@@ -22,6 +22,12 @@ vi.mock('../../lib/plan-limits.js', () => ({
   LimitePlanError: class LimitePlanError extends Error {},
 }));
 
+// El handler consulta el servicio de contraseñas filtradas; estas pruebas
+// verifican autorización y persistencia, no la red ni el catálogo externo.
+vi.mock('../../lib/auth/leaked-password-check.js', () => ({
+  chequearPasswordONull: vi.fn(async () => null),
+}));
+
 const repoMock = vi.hoisted(() => ({
   listarEquipo: vi.fn(async () => []),
   obtenerUsuarioParaEdicion: vi.fn(async () => null),

@@ -21,7 +21,7 @@ body { background: var(--color-bg); font-family: var(--font-family); }
 /* Tablas con fondo alternado */
 table th { background: var(--color-bg) !important; }
 tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
-tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
+tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 
 /* [Etapa 4 · Media] .topbar-contador se removio de este archivo: estaba duplicado en 9 hojas de pagina con formas inconsistentes (radius-md vs radius-lg). Definicion canonica unica en shared/adminlte-components.css. */
 
@@ -40,19 +40,6 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 }
 .motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
 
-/* Botones secundarios */
-.btn-exportar, .btn-importar {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm); padding: 6px 14px;
-  font-size: 13px; font-weight: 500;
-  transition: all .12s; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
-  color: var(--color-text-muted);
-}
-.btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
-.btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info); color: var(--color-info); }
-
 /* Filtros */
 .filtros-section {
   background: var(--color-surface);
@@ -68,25 +55,6 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 
 /* [Etapa 4 · Media] segunda declaración de .topbar-contador removida de aquí (ganaba por cascada y usaba color-text-light, contraste bajo, y radius-lg inconsistente con otras páginas). Definición canónica única en shared/adminlte-components.css. */
 
-.btn-exportar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(0,0,0,.07);
-  background: var(--color-surface);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all .12s;
-}
-.btn-exportar:hover {
-  background: var(--color-success-bg);
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
 
 /* ── Alertas de stock ──────────────────────────────────────────── */
 .alertas-stock {
@@ -124,7 +92,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   align-items: center;
   gap: 8px;
   background: var(--color-bg);
-  border: 1px solid rgba(0,0,0,.07);
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   padding: 8px 14px;
   flex: 1;
@@ -200,6 +168,19 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 }
 .select-filtro:focus { border-color: var(--color-primary); }
 
+/* Resalte temporal cuando se redirige al usuario a este campo (ej: intentó
+   escanear/vincular celular sin elegir depósito puntual) — ver
+   irAlFiltroDeposito() en stock-scanner-remoto.js. */
+.campo-resaltado-atencion {
+  animation: campo-resaltado-pulso 0.6s ease-in-out 2;
+  border-color: var(--color-danger, #dc2626) !important;
+  box-shadow: 0 0 0 3px rgba(220,38,38,.15);
+}
+@keyframes campo-resaltado-pulso {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(220,38,38,.05); }
+}
+
 .btn-limpiar {
   padding: 6px 14px;
   border: 1px solid rgba(0,0,0,.07);
@@ -220,27 +201,12 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   overflow-x: auto;
 }
 
-.tabla-stock {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.tabla-stock thead {
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.tabla-stock th {
-  padding: 11px 14px;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
+/* .tabla-stock migrada al canónico .tabla-admin (Fase 4, ver
+   PLAN_UNIFICACION_UX_ADMIN.md §26). El ancho/borde/tipografía/padding/thead
+   base ya los cubre .tabla-admin — se retira el bloque entero. Las dos
+   tablas de esta página (listado principal en #vista-stock, depósitos en
+   el modal) quedan en el canónico sin override propio salvo lo que sigue
+   distinto a propósito para #vista-stock, ver más abajo. */
 
 .th-num { text-align: left; }
 
@@ -259,9 +225,6 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   70%  { background: var(--color-success-bg); }
   100% { background: transparent; }
 }
-
-.tabla-stock td { padding: 11px 14px; vertical-align: middle; }
-
 
 .td-producto { min-width: 180px; }
 .prod-nombre { font-weight: 500; }
@@ -294,36 +257,24 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 .num-amarillo{ color: var(--color-warning); }
 .num-verde   { color: var(--color-success); }
 
-/* ── Badges de estado — sello (ver DESIGN_SYSTEM_HOJA_DE_RUTA.md) ── */
-.badge-estado {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 1px 9px;
+/* ── Badges de estado: migrado al canónico de componentes-admin.css
+   (Fase 5, ver PLAN_UNIFICACION_UX_ADMIN.md §32). Retirada la redeclaración
+   completa que había acá — era byte-idéntica a la canónica (mismo padding,
+   border-width/style, radius, colores por variante), así que no cambia
+   nada visualmente; solo se centraliza. El acento teal real (radius pill,
+   colores propios) sigue viviendo en stock-gentelella.css. */
+
+.tag-producto-inactivo {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
   border-radius: var(--radius-sm);
-  border-width: 3px; border-style: double;
-  font-family: var(--font-family-display);
   font-size: 10.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  white-space: nowrap;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  vertical-align: middle;
 }
-
-.badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.badge-critico { background: var(--color-danger-bg);  color: var(--color-danger); border-color: var(--color-danger); }
-.badge-critico .badge-dot { background: var(--color-danger); }
-
-.badge-bajo    { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
-.badge-bajo .badge-dot { background: var(--color-warning); }
-
-.badge-ok      { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
-.badge-ok .badge-dot { background: var(--color-success); }
 
 /* ── Botón ajustar ─────────────────────────────────────────────── */
 .td-acciones { white-space: nowrap; }
@@ -357,7 +308,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.35);
-  z-index: 300;
+  z-index: var(--z-modal-backdrop);
   display: none;
 }
 
@@ -370,7 +321,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   height: 100vh;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  z-index: 400;
+  z-index: var(--z-modal);
   overflow-y: auto;
   padding: 28px;
   transition: right .25s cubic-bezier(.4,0,.2,1);
@@ -483,7 +434,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
-  z-index: 50;
+  z-index: var(--z-panel);
   box-shadow: var(--shadow-fluffy);
 }
 .ayuda-contextual:hover::after,
@@ -806,52 +757,16 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 }
 
 /* ── Tabla → Tarjetas en mobile (v79-bloque4) ──────────────────── */
+/* El bloque .table-responsive-cards .tabla-stock (display:block, thead
+   oculto, fila-tarjeta, td::before con data-label) se retiró: es idéntico
+   valor por valor al genérico .table-responsive-cards .tabla-admin ya
+   definido en componentes-admin.css (Fase 4, PLAN_UNIFICACION_UX_ADMIN.md
+   §26) — al migrar la tabla a .tabla-admin, el canónico lo cubre solo.
+   Quedan acá únicamente las reglas verdaderamente propias de esta página
+   (columnas .td-producto/.td-acciones y el botón .btn-ajustar). */
 @media (max-width: 768px) {
   .search-wrap { max-width: none; }
 
-  .table-responsive-cards .tabla-stock,
-  .table-responsive-cards .tabla-stock thead,
-  .table-responsive-cards .tabla-stock tbody,
-  .table-responsive-cards .tabla-stock th,
-  .table-responsive-cards .tabla-stock td,
-  .table-responsive-cards .tabla-stock tr {
-    display: block;
-  }
-  .table-responsive-cards .tabla-stock thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-  .table-responsive-cards .fila-stock {
-    border: 1px solid rgba(0,0,0,.07);
-    border-bottom: 1px solid var(--color-border);
-    margin: 0 0 12px;
-    border-radius: var(--radius-lg);
-    padding: 4px 14px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-xs);
-  }
-  .table-responsive-cards .fila-stock:hover { background: var(--color-surface); }
-  .table-responsive-cards .tabla-stock td {
-    border: none !important;
-    position: relative;
-    padding: 9px 0 9px 42%;
-    text-align: right;
-    border-bottom: 1px solid var(--color-bg) !important;
-    min-height: 20px;
-  }
-  .table-responsive-cards .tabla-stock td:last-child { border-bottom: none !important; }
-  .table-responsive-cards .tabla-stock td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    top: 9px;
-    width: 40%;
-    font-weight: 600;
-    text-align: left;
-    color: var(--color-text-muted);
-    font-size: 12px;
-  }
   .table-responsive-cards .td-producto { text-align: left; padding-left: 0; }
   .table-responsive-cards .td-producto::before { display: none; }
   .table-responsive-cards .td-acciones { text-align: left; padding-left: 0; }
@@ -884,7 +799,7 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 #vista-stock .search-wrap {
   border-radius: 999px;
   background: var(--color-surface-2);
-  border-color: var(--color-border);
+  border-color: transparent;
 }
 
 #vista-stock .e-pill { border-radius: 999px; }
@@ -895,8 +810,9 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 #vista-stock .select-filtro,
 #vista-stock .btn-limpiar { border-radius: 999px; }
 
-#vista-stock .tabla-stock thead { background: transparent; }
-#vista-stock .tabla-stock th { color: var(--color-text-light); padding: 14px; }
+/* thead transparente ya es el default del canónico, no hace falta repetirlo.
+   El color/padding de los th sí es intencional y propio de esta vista. */
+#vista-stock .tabla-admin th { color: var(--color-text-light); padding: 14px; }
 #vista-stock .fila-stock { border-bottom-color: var(--color-surface-2); }
 #vista-stock .fila-stock:hover { background: var(--color-primary-bg); }
 
@@ -991,6 +907,28 @@ tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
 }
 
 @media (max-width: 900px) {
+  /* AUDITORIA-RESPONSIVE-ETAPA2: en desktop las 6 columnas (nombre,
+     disponible, reservado, total, costo, botón) se identifican por
+     posición — no hay fila de encabezado en ningún ancho. Al reflowear
+     a 2 columnas × 3 filas eso se rompe: "reservado" y "total" quedan
+     uno al lado del otro sin ninguna pista de cuál es cuál. Se agrega
+     una micro-etiqueta (data-label, ver stock.js) arriba de cada valor
+     solo en este breakpoint — en desktop sigue sin etiquetas, como
+     siempre estuvo. */
   .detalle-dep-fila { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
   .td-detalle-depositos { padding-left: 14px !important; }
+  .detalle-dep-fila .td-num {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+  .detalle-dep-fila .td-num::before {
+    content: attr(data-label);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-weight: 700;
+    color: var(--color-text-light);
+  }
 }

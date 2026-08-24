@@ -10,12 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
     <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -25,7 +25,8 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/reportes-financieros-gentelella.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -71,27 +72,112 @@
                     <button type="button" id="btnExportarFinanzas" class="btn btn--ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button>
                 </div>
 
-                <!-- KPIs Financieros -->
-                <div class="franja-resumen-sololectura">
-  <span>Ingresos Totales: <strong id="kpiIngresos">$0</strong> <span id="kpiCambioIngresos">+0% vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>Costos Totales: <strong id="kpiCostos">$0</strong> <span id="kpiCambioCostos">+0% vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>Margen Bruto: <strong id="kpiMargen">$0</strong> <span id="kpiCambioMargen">+0% vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>% Margen: <strong id="kpiPorcentajeMargen">0%</strong> <span id="kpiCambioPorcentajeMargen">+0% vs período anterior</span></span>
-</div>
+                <!-- KPIs Financieros — manifiesto tipo hoja de ruta (remito/planilla), no tarjetas SaaS genéricas -->
+                <section class="manifiesto">
+                  <header class="manifiesto-head">
+                    <h2 class="manifiesto-titulo">Resultado del período</h2>
+                    <span class="manifiesto-partidas">04 partidas</span>
+                  </header>
+                  <div class="manifiesto-body">
+                    <div class="linea">
+                      <span class="linea-n">01</span>
+                      <h3 class="linea-label">Ingresos Totales</h3>
+                      <p class="linea-valor dato-mono" id="kpiIngresos">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioIngresos">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarIngresos"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">02</span>
+                      <h3 class="linea-label">Costos Totales</h3>
+                      <p class="linea-valor dato-mono" id="kpiCostos">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioCostos">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarCostos"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">03</span>
+                      <h3 class="linea-label">Margen Bruto</h3>
+                      <p class="linea-valor dato-mono" id="kpiMargen">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioMargen">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarMargen"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">04</span>
+                      <h3 class="linea-label">% Margen</h3>
+                      <p class="linea-valor dato-mono" id="kpiPorcentajeMargen">0%</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioPorcentajeMargen">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarPorcentajeMargen"></span></div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Ganancia Neta (migración 479) = Margen Bruto - Gastos Generales del período -->
+                <section class="manifiesto" id="franjaGananciaNeta">
+                  <header class="manifiesto-head">
+                    <h2 class="manifiesto-titulo">Rentabilidad neta</h2>
+                    <span class="manifiesto-partidas">03 partidas</span>
+                  </header>
+                  <div class="manifiesto-body manifiesto-body--3">
+                    <div class="linea">
+                      <span class="linea-n">01</span>
+                      <h3 class="linea-label">Gastos Generales</h3>
+                      <p class="linea-valor dato-mono" id="kpiGastosGenerales">$0</p>
+                      <a href="/admin/gastos-generales" class="linea-delta linea-link">Ver / cargar →</a>
+                      <div class="linea-bar"><span id="kpiBarGastosGenerales"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">02</span>
+                      <h3 class="linea-label">Ganancia Neta</h3>
+                      <p class="linea-valor dato-mono" id="kpiGananciaNeta">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioGananciaNeta">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarGananciaNeta"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">03</span>
+                      <h3 class="linea-label">% Ganancia Neta</h3>
+                      <p class="linea-valor dato-mono" id="kpiPorcentajeGananciaNeta">0%</p>
+                      <span class="linea-delta linea-caption">sobre ingresos</span>
+                      <div class="linea-bar"><span id="kpiBarPorcentajeGananciaNeta"></span></div>
+                    </div>
+                  </div>
+                </section>
 
                 <!-- KPIs de Cobranza -->
-                <div class="franja-resumen-sololectura">
-  <span>Facturas Emitidas: <strong id="kpiFacturasEmitidas">$0</strong> <span id="kpiCambioFacturas">+0 vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>Cobros Realizados: <strong id="kpiCobrosRealizados">$0</strong> <span id="kpiCambioCobros">+0% vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>Deuda Pendiente: <strong id="kpiDeudaPendiente">$0</strong> <span id="kpiCambioDeuda">+0% vs período anterior</span></span>
-  <span class="sep">·</span>
-  <span>Deuda Vencida: <strong id="kpiDeudaVencida">$0</strong> <span id="kpiCambioDeudaVencida">+0% vs período anterior</span></span>
-</div>
+                <section class="manifiesto">
+                  <header class="manifiesto-head">
+                    <h2 class="manifiesto-titulo">Cobranza y cartera</h2>
+                    <span class="manifiesto-partidas">04 partidas</span>
+                  </header>
+                  <div class="manifiesto-body">
+                    <div class="linea">
+                      <span class="linea-n">01</span>
+                      <h3 class="linea-label">Facturas Emitidas</h3>
+                      <p class="linea-valor dato-mono" id="kpiFacturasEmitidas">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioFacturas">+0</span>
+                      <div class="linea-bar"><span id="kpiBarFacturas"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">02</span>
+                      <h3 class="linea-label">Cobros Realizados</h3>
+                      <p class="linea-valor dato-mono" id="kpiCobrosRealizados">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioCobros">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarCobros"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">03</span>
+                      <h3 class="linea-label">Deuda Pendiente</h3>
+                      <p class="linea-valor dato-mono" id="kpiDeudaPendiente">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioDeuda">+0%</span>
+                      <div class="linea-bar"><span id="kpiBarDeudaPendiente"></span></div>
+                    </div>
+                    <div class="linea linea--critica">
+                      <span class="linea-n">04</span>
+                      <h3 class="linea-label">Deuda Vencida</h3>
+                      <p class="linea-valor dato-mono" id="kpiDeudaVencida">$0</p>
+                      <span class="linea-delta kpi-change" id="kpiCambioDeudaVencida">capital en mora</span>
+                      <div class="linea-bar"><span id="kpiBarDeudaVencida"></span></div>
+                    </div>
+                  </div>
+                </section>
 
                 <!-- Gráfico de Flujo de Caja -->
                 <div class="chart-section">
@@ -112,15 +198,15 @@
                 <!-- Tabla de Deuda por Cliente -->
                 <div class="ranking-section">
                     <h2>Deuda Pendiente por Cliente</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-fin-deuda">
                         <thead>
                             <tr>
                                 <th>Cliente</th>
-                                <th>Deuda Total</th>
-                                <th>Deuda Vencida</th>
-                                <th>Deuda por Vencer</th>
-                                <th>Días Promedio</th>
-                                <th>Estado</th>
+                                <th class="col-fit">Deuda Total</th>
+                                <th class="col-fit">Deuda Vencida</th>
+                                <th class="col-fit">Deuda por Vencer</th>
+                                <th class="col-fit">Días Promedio</th>
+                                <th class="col-fit">Estado</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyDeuda">
@@ -132,13 +218,13 @@
                 <!-- Resumen de Cobranzas -->
                 <div class="ranking-section">
                     <h2>Resumen de Cobranzas</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-fin-cobranzas">
                         <thead>
                             <tr>
                                 <th>Medio de Pago</th>
-                                <th>Cantidad</th>
-                                <th>Monto Total</th>
-                                <th>% del Total</th>
+                                <th class="col-fit">Cantidad</th>
+                                <th class="col-fit">Monto Total</th>
+                                <th class="col-fit">% del Total</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyCobranzas">
@@ -150,14 +236,14 @@
                 <!-- Evolución de Margen -->
                 <div class="ranking-section">
                     <h2>Evolución del Margen Bruto</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-fin-margen">
                         <thead>
                             <tr>
                                 <th>Período</th>
-                                <th>Ingresos</th>
-                                <th>Costos</th>
-                                <th>Margen Bruto</th>
-                                <th>% Margen</th>
+                                <th class="col-fit">Ingresos</th>
+                                <th class="col-fit">Costos</th>
+                                <th class="col-fit">Margen Bruto</th>
+                                <th class="col-fit">% Margen</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyMargen">
@@ -176,15 +262,15 @@
     <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
     <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
     <script src="/frontend/admin/js/reportes-financieros.js?v1782328742714"></script>

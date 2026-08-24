@@ -50,7 +50,6 @@ window.authReady.then(async () => {
   document.getElementById('cobro-fecha').value = window.hoyLocalISO ? window.hoyLocalISO() : hoy.toISOString().split('T')[0];
 
   (document.getElementById('topbar-usuario') || {}).textContent = user.nombre || user.email;
-  const _elEmp = document.getElementById('sidebar-empresa'); if (_elEmp) _elEmp.textContent = user.empresa_nombre || 'Distribuidora';
 
   initFiltroTabsSaldos();
   await cargarCtaCte();
@@ -235,15 +234,15 @@ function renderTabla(datos) {
     const estado = estadoSaldo(c);
     const nombre = c.nombre_fantasia || c.razon_social;
     return `<tr onclick="abrirCliente('${c.cliente_id}')" data-testid="cc-fila" data-cliente-id="${c.cliente_id}">
-      <td>
+      <td data-label="Cliente">
         <div style="font-weight:600">${nombre}</div>
         ${c.razon_social !== nombre ? `<div style="font-size:11px;color:var(--color-text-light)">${sanitize(c.razon_social)}</div>` : ''}
       </td>
-      <td><span class="semaforo ${estado.cls}"><span class="semaforo-dot"></span>${estado.label}</span></td>
-      <td class="monto ${(c.deuda_total||0) > 0 ? 'monto-rojo' : ''}">${formatPeso(c.deuda_total || 0)}</td>
-      <td class="monto ${(c.deuda_vencida||0) > 0 ? 'monto-rojo' : 'monto-verde'}">${formatPeso(c.deuda_vencida || 0)}</td>
-      <td style="font-size:12px;color:var(--color-text-muted)">${c.ultimo_pago ? formatFecha(c.ultimo_pago) : '—'}</td>
-      <td class="col-sticky-end">
+      <td data-label="Estado"><span class="semaforo ${estado.cls}"><span class="semaforo-dot"></span>${estado.label}</span></td>
+      <td class="monto ${(c.deuda_total||0) > 0 ? 'monto-rojo' : ''}" data-label="Deuda total">${formatPeso(c.deuda_total || 0)}</td>
+      <td class="monto ${(c.deuda_vencida||0) > 0 ? 'monto-rojo' : 'monto-verde'}" data-label="Vencido">${formatPeso(c.deuda_vencida || 0)}</td>
+      <td data-label="Último pago" style="font-size:12px;color:var(--color-text-muted)">${c.ultimo_pago ? formatFecha(c.ultimo_pago) : '—'}</td>
+      <td class="col-sticky-end" data-label="Acciones">
         <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();abrirModalCobroDirecto('${c.cliente_id}')">Cobrar</button>
       </td>
     </tr>`;
@@ -330,14 +329,20 @@ async function abrirCliente(clienteId) {
       `${window.ENV.SUPABASE_URL}/rest/v1/cta_cte?empresa_id=eq.${window.authCtx?.perfil?.empresa_id}&cliente_id=eq.${clienteId}&order=fecha.desc&limit=50`,
       { headers: await getHeaders() }
     );
-    const movs = r.ok ? await r.json() : [];
+    // BUG-06: antes, un !r.ok se traducía silenciosamente en `movs = []` —
+    // el panel mostraba "Sin movimientos registrados" exactamente igual que
+    // un cliente sin historial real, sin ninguna forma de distinguir "no
+    // hay movimientos" de "no pudimos leerlos". Ahora se propaga el error
+    // real y se renderiza distinto.
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const movs = await r.json();
     renderPanelBody(c, movs);
-  } catch(e) {
-    renderPanelBody(c, []);
+  } catch (e) {
+    renderPanelBody(c, [], { error: true, onRetry: () => abrirCliente(clienteId) });
   }
 }
 
-function renderPanelBody(c, movs) {
+function renderPanelBody(c, movs, opts = {}) {
   const vencido   = c.deuda_vencida || 0;
   const porVencer = c.deuda_por_vencer || 0;
   const total     = c.deuda_total || 0;
@@ -369,7 +374,12 @@ function renderPanelBody(c, movs) {
   }
 
   html += `<div class="detalle-seccion"><h4>Últimos movimientos</h4>`;
-  if (!movs.length) {
+  if (opts.error) {
+    html += `<div class="alerta-inline danger" style="font-size:13px">
+      No se pudieron cargar los movimientos. El saldo de arriba puede no reflejar el detalle real.
+      <button type="button" id="btn-retry-movimientos" class="btn-link" style="text-decoration:underline;background:none;border:none;padding:0;cursor:pointer;color:inherit;font:inherit;margin-left:4px">Reintentar</button>
+    </div>`;
+  } else if (!movs.length) {
     html += '<div style="font-size:13px;color:var(--color-text-light);padding:8px 0">Sin movimientos registrados</div>';
   } else {
     html += movs.map(m => {
@@ -396,6 +406,10 @@ function renderPanelBody(c, movs) {
   html += '</div>';
 
   document.getElementById('panel-body').innerHTML = html;
+
+  if (opts.error && opts.onRetry) {
+    document.getElementById('btn-retry-movimientos')?.addEventListener('click', opts.onRetry);
+  }
 }
 
 function cerrarPanel() {

@@ -22,6 +22,20 @@ const ESTADOS_LABEL = {
 
 let tokenGlobal = null;
 
+// Paginación client-side (Órdenes de compra y Facturas) — el backend ya
+// limita cada lista a 50 registros (lib/repos/portal-proveedor.js), pero
+// mostrarlas todas juntas en una pantalla pública pensada para celular
+// generaba una lista interminable y mucho scroll. Se pagina en el cliente
+// sobre esos mismos datos, sin tocar el fetch. El número de página se
+// preserva entre re-renders (post guardarFecha/guardarFactura) y se
+// clampea si la lista cambió de tamaño.
+const PAGE_SIZE_OC = 5;
+const PAGE_SIZE_FACTURAS = 5;
+let ordenesData = [];
+let facturasData = [];
+let paginaOC = 1;
+let paginaFacturas = 1;
+
 async function init() {
   const params = new URLSearchParams(location.search);
   const token = params.get('t');
@@ -87,6 +101,9 @@ function render(data) {
   const ordenes  = (data.ordenes  || []).filter(o => !ESTADOS_OCULTOS_PROVEEDOR.includes(o.estado));
   const facturas = data.facturas || [];
 
+  ordenesData = ordenes;
+  facturasData = facturas;
+
   const pendientesEntrega = ordenes.filter(o => ['enviada', 'confirmada'].includes(o.estado));
   const totalAbierto = ordenes
     .filter(o => !['recibida', 'cancelada'].includes(o.estado))
@@ -116,10 +133,12 @@ function render(data) {
     </div>
 
     <div class="portal-seccion-titulo">Órdenes de compra</div>
-    ${ordenes.length ? ordenes.map(renderOC).join('') : '<div class="portal-vacio">Todavía no hay órdenes de compra registradas.</div>'}
+    <div id="portal-ordenes-lista"></div>
+    <div id="portal-ordenes-paginacion"></div>
 
     <div class="portal-seccion-titulo">Tus facturas cargadas</div>
-    ${facturas.length ? facturas.map(renderFactura).join('') : '<div class="portal-vacio">Todavía no cargaste ninguna factura.</div>'}
+    <div id="portal-facturas-lista"></div>
+    <div id="portal-facturas-paginacion"></div>
     <div class="portal-oc-card">
       <button type="button" class="portal-btn" data-toggle="factura-form-suelta">+ Cargar una factura</button>
       ${formFactura('suelta')}
@@ -130,7 +149,60 @@ function render(data) {
   `;
 
   document.getElementById('portal-main').innerHTML = html;
+  renderOrdenesLista();
+  renderFacturasLista();
   cargarNotificaciones();
+}
+
+/** Recorta ordenesData a la página actual y la pinta junto a sus controles. */
+function renderOrdenesLista() {
+  const cont = document.getElementById('portal-ordenes-lista');
+  const pagCont = document.getElementById('portal-ordenes-paginacion');
+  if (!cont) return;
+
+  if (!ordenesData.length) {
+    cont.innerHTML = '<div class="portal-vacio">Todavía no hay órdenes de compra registradas.</div>';
+    pagCont.innerHTML = '';
+    return;
+  }
+
+  const totalPaginas = Math.max(1, Math.ceil(ordenesData.length / PAGE_SIZE_OC));
+  if (paginaOC > totalPaginas) paginaOC = totalPaginas;
+  const inicio = (paginaOC - 1) * PAGE_SIZE_OC;
+
+  cont.innerHTML = ordenesData.slice(inicio, inicio + PAGE_SIZE_OC).map(renderOC).join('');
+  pagCont.innerHTML = renderPaginacion('oc', paginaOC, totalPaginas);
+}
+
+/** Idem renderOrdenesLista() pero para facturasData. */
+function renderFacturasLista() {
+  const cont = document.getElementById('portal-facturas-lista');
+  const pagCont = document.getElementById('portal-facturas-paginacion');
+  if (!cont) return;
+
+  if (!facturasData.length) {
+    cont.innerHTML = '<div class="portal-vacio">Todavía no cargaste ninguna factura.</div>';
+    pagCont.innerHTML = '';
+    return;
+  }
+
+  const totalPaginas = Math.max(1, Math.ceil(facturasData.length / PAGE_SIZE_FACTURAS));
+  if (paginaFacturas > totalPaginas) paginaFacturas = totalPaginas;
+  const inicio = (paginaFacturas - 1) * PAGE_SIZE_FACTURAS;
+
+  cont.innerHTML = facturasData.slice(inicio, inicio + PAGE_SIZE_FACTURAS).map(renderFactura).join('');
+  pagCont.innerHTML = renderPaginacion('facturas', paginaFacturas, totalPaginas);
+}
+
+function renderPaginacion(prefix, actual, total) {
+  if (total <= 1) return '';
+  return `
+    <div class="portal-paginacion">
+      <button type="button" class="portal-btn" data-pag="${prefix}" data-dir="prev" ${actual <= 1 ? 'disabled' : ''}>‹ Anterior</button>
+      <span class="portal-paginacion-info">Página ${actual} de ${total}</span>
+      <button type="button" class="portal-btn" data-pag="${prefix}" data-dir="next" ${actual >= total ? 'disabled' : ''}>Siguiente ›</button>
+    </div>
+  `;
 }
 
 // Fase 4 (plan ERP), generalización del centro de notificaciones: fetch
@@ -442,5 +514,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ordenFactura = e.target.dataset.guardarFactura;
     if (ordenFactura) { guardarFactura(ordenFactura); return; }
+
+    const pagPrefix = e.target.dataset.pag;
+    if (pagPrefix) {
+      const delta = e.target.dataset.dir === 'next' ? 1 : -1;
+      if (pagPrefix === 'oc') {
+        paginaOC += delta;
+        renderOrdenesLista();
+        document.getElementById('portal-ordenes-lista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (pagPrefix === 'facturas') {
+        paginaFacturas += delta;
+        renderFacturasLista();
+        document.getElementById('portal-facturas-lista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
   });
 });

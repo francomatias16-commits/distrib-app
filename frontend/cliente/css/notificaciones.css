@@ -1,0 +1,85 @@
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-row { display: flex; align-items: center; gap: .75rem; }
+    .btn-back {
+      background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center;
+      /* AUDITORIA-RESPONSIVE-ETAPA5: mismo caso que carrito.html/cuenta.html. */
+      min-width: 40px; min-height: 40px; justify-content: center; margin-left: -8px;
+    }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+
+    /* NAV BOTTOM: ver /shared/tienda-nav.css — esta página se abre desde
+       Cuenta, no tiene ítem propio en la barra (mismo criterio que el
+       resto de subpáginas sin nav-item dedicado, ej. checkout). */
+
+    .contenido { padding: .75rem .75rem 5rem; max-width: 480px; margin: 0 auto; }
+
+    /* BUG REAL: `#btnCargarMas` se oculta con `classList.toggle('hidden', ...)`
+       (ver cargarNotif() más abajo), pero esta página nunca definía la clase
+       `.hidden` — a diferencia de casi todas las demás páginas del admin
+       (conciliacion-bancaria.html, whatsapp-conversaciones.html, etc.), que sí
+       la declaran localmente en su propio <style>. Sin esta regla, `classList`
+       sí agrega/saca la clase (se ve en el DOM) pero no tiene ningún efecto
+       visual — el botón queda siempre visible aunque no haya más páginas para
+       cargar. La hoja de estilos compartida tampoco la define. */
+    .hidden { display: none !important; }
+
+    .btn-activar-push-full {
+      width: 100%; padding: .8rem; border: 1px solid var(--color-info-bg); border-radius: var(--radius-xl);
+      background: var(--color-surface); color: var(--color-primary); font-size: .88rem; font-weight: 600;
+      margin-bottom: .85rem; cursor: pointer; font-family: inherit;
+    }
+
+    .card-notif {
+      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: .85rem 1rem; margin-bottom: .6rem; display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .notif-icono {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-info-bg); color: var(--color-primary);
+    }
+    .notif-icono.deuda   { background: var(--color-danger-bg); color: var(--color-danger-mid); }
+    .notif-icono.puntos  { background: #ede9fe; color: #7c3aed; }
+    .notif-icono.pedido  { background: var(--color-success-bg); color: var(--color-success-mid); }
+    .notif-info { flex: 1; min-width: 0; }
+    .notif-tipo { font-size: .88rem; font-weight: 700; color: var(--color-text); }
+    .notif-canal { font-size: .74rem; color: var(--color-text-light); margin-top: .1rem; }
+    .notif-fecha { font-size: .72rem; color: var(--color-text-light); margin-top: .3rem; }
+    .notif-motivo { font-size: .74rem; color: var(--color-danger-mid); margin-top: .25rem; }
+
+    .filtros-scroll {
+      display: flex; gap: .45rem; overflow-x: auto; margin-bottom: .85rem;
+      -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 2px;
+    }
+    .filtros-scroll::-webkit-scrollbar { display: none; }
+    .chip-filtro {
+      flex-shrink: 0; padding: .35rem .85rem; border-radius: var(--radius-full);
+      font-size: .78rem; font-weight: 600; border: 1px solid var(--color-border);
+      background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+    .chip-filtro.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    .vacio { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-light); font-size: .85rem; }
+    .loading { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-light); font-size: .85rem; }
+
+    .btn-cargar-mas {
+      width: 100%; padding: .7rem; border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+      background: var(--color-surface); color: var(--color-text-muted); font-size: .82rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: .3rem;
+    }
+
+    /* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.7): sin @media propio.
+       El ícono circular de 36px le come espacio al texto de la
+       notificación en 320px; se achica solo en ese rango. */
+    @media (max-width: 360px) {
+      .notif-icono { width: 30px; height: 30px; }
+      .card-notif { padding: .7rem .8rem; gap: .55rem; }
+    }
+  

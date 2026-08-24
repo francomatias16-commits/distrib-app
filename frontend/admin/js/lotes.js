@@ -15,8 +15,9 @@ let paginaActual = 1;
 let totalPaginas = 1;
 const ITEMS_POR_PAGINA = 100;
 
-let modalLoteId  = null; // null = nuevo
-let prodSugs     = [];   // sugerencias de producto en modal
+let modalLoteId       = null; // null = nuevo
+let modalCantidadOrig = null; // cantidad al abrir el modal, para detectar si cambió
+let prodSugs          = [];   // sugerencias de producto en modal
 
 // ── Init ──────────────────────────────────────────────────────────────────
 // Nombrada `initLotes` (no `init`) a propósito: liquidacion.js, cargado
@@ -46,11 +47,9 @@ async function initLotes() {
     return;
   }
 
+  // v903: sidebar-logo/sidebar-empresa los pinta nav.js (pintarEmpresaSidebar,
+  // corre en cada renderConRol) — no duplicar acá, pisaba el valor bueno.
   if (empresaData.nombre) {
-    const elLogo    = document.getElementById('sidebar-logo');
-    const elEmpresa = document.getElementById('sidebar-empresa');
-    if (elLogo)    elLogo.textContent    = (empresaData.nombre || 'D')[0].toUpperCase();
-    if (elEmpresa) elEmpresa.textContent = empresaData.nombre;
     document.title = `Lotes — ${sanitize(empresaData.nombre)}`;
   }
   const elUsuario = document.getElementById('topbar-usuario');
@@ -170,17 +169,19 @@ function renderTablaLotes() {
     const estado  = badgeEstado(l.estado);
     const esEscritor = ['dueno','admin','depositero'].includes(usuario?.rol);
 
-    return `<tr data-testid="lote-fila" data-id="${l.id}">
-      <td>${cod} ${prod}</td>
-      <td>${nro}</td>
-      <td>${dep}</td>
-      <td style="text-align:left">${cant}</td>
-      <td>${venc}</td>
-      <td>${estado}</td>
-      <td class="acciones col-sticky-end">
-        ${esEscritor ? `<button class="btn-acc" onclick="abrirModalEditar('${l.id}')">Editar</button>` : ''}
-        ${esEscritor && l.cantidad > 0 ? `<button class="btn-acc btn-danger" onclick="btnAsyncClick(this, () => darDeBajaLote('${l.id}'))">Dar de baja</button>` : ''}
-        ${esEscritor && l.cantidad == 0 ? `<button class="btn-acc btn-danger" onclick="btnAsyncClick(this, () => eliminarLote('${l.id}'))">Eliminar</button>` : ''}
+    return `<tr data-testid="lote-fila" data-id="${l.id}" class="${esEscritor ? 'fila-clickeable' : ''}" ${esEscritor ? `onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${l.id}')"` : ''}>
+      <td data-label="Producto">${cod} ${prod}</td>
+      <td data-label="Nº Lote">${nro}</td>
+      <td data-label="Depósito">${dep}</td>
+      <td data-label="Cantidad" style="text-align:left">${cant}</td>
+      <td data-label="Vencimiento">${venc}</td>
+      <td data-label="Estado">${estado}</td>
+      <td class="acciones col-sticky-end" data-label="Acciones">
+        ${ComponentesAdmin.renderFilaAcciones([
+          esEscritor ? { label: 'Editar', attrs: `onclick="abrirModalEditar('${l.id}')"` } : null,
+          esEscritor && l.cantidad > 0 ? { label: 'Dar de baja', cls: 'peligro', attrs: `onclick="btnAsyncClick(this, () => darDeBajaLote('${l.id}'))"` } : null,
+          esEscritor && l.cantidad == 0 ? { label: 'Eliminar', cls: 'peligro', attrs: `onclick="btnAsyncClick(this, () => eliminarLote('${l.id}'))"` } : null,
+        ].filter(Boolean))}
       </td>
     </tr>`;
   }).join('');
@@ -188,15 +189,15 @@ function renderTablaLotes() {
 
 function badgeEstado(e) {
   const m = {
-    activo:       { cls: 'badge-ok',      txt: 'Activo' },
-    por_vencer:   { cls: 'badge-warn',    txt: 'Por vencer' },
-    vencido:      { cls: 'badge-danger',  txt: 'Vencido' },
-    agotado:      { cls: 'badge-muted',   txt: 'Agotado' },
+    activo:       { variante: 'ok',       txt: 'Activo' },
+    por_vencer:   { variante: 'warning',  txt: 'Por vencer' },
+    vencido:      { variante: 'critico',  txt: 'Vencido' },
+    agotado:      { variante: 'inactivo', txt: 'Agotado' },
     // dado_de_baja removed (not a valid lotes.estado value)
 
   };
-  const b = m[e] || { cls: 'badge-muted', txt: e };
-  return `<span class="badge ${b.cls}">${b.txt}</span>`;
+  const b = m[e] || { variante: 'inactivo', txt: e };
+  return ComponentesAdmin.renderBadgeEstado(b.txt, b.variante);
 }
 
 // ── Paginación ────────────────────────────────────────────────────────────
@@ -216,8 +217,10 @@ function cambiarPagina(delta) {
 // ── Modal: nuevo ──────────────────────────────────────────────────────────
 function abrirModalNuevo() {
   modalLoteId = null;
+  modalCantidadOrig = null;
   document.getElementById('modal-titulo').textContent = 'Nuevo lote';
   limpiarModal();
+  document.getElementById('f-motivo-wrap').style.display = 'none';
   document.getElementById('modal-lote').style.display = 'flex';
 }
 
@@ -225,6 +228,7 @@ function abrirModalEditar(id) {
   const l = lotesData.find(x => x.id === id);
   if (!l) return;
   modalLoteId = id;
+  modalCantidadOrig = l.cantidad;
   document.getElementById('modal-titulo').textContent = 'Editar lote';
   document.getElementById('f-producto-busq').value   = `${l.productos?.codigo || ''} — ${l.productos?.nombre || ''}`;
   document.getElementById('f-producto_id').value      = l.producto_id;
@@ -234,15 +238,27 @@ function abrirModalEditar(id) {
   document.getElementById('f-costo_unitario').value   = l.costo_unitario || '';
   document.getElementById('f-fecha_fabricacion').value = l.fecha_fabricacion || '';
   document.getElementById('f-fecha_vencimiento').value = l.fecha_vencimiento || '';
+  document.getElementById('f-motivo').value = '';
+  document.getElementById('f-motivo-wrap').style.display = 'none';
   document.getElementById('modal-lote').style.display = 'flex';
 }
 
 function limpiarModal() {
-  ['f-producto-busq','f-numero_lote','f-cantidad','f-costo_unitario','f-fecha_fabricacion','f-fecha_vencimiento'].forEach(id => {
+  ['f-producto-busq','f-numero_lote','f-cantidad','f-costo_unitario','f-fecha_fabricacion','f-fecha_vencimiento','f-motivo'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('f-producto_id').value = '';
   document.getElementById('f-deposito_id').value = '';
+}
+
+// Etapa 3 del robustecimiento de lotes: si estás editando un lote y tocás
+// la cantidad, aparece (y se exige) el campo de motivo — ese cambio va a
+// quedar registrado como un movimiento de stock real (ver 470).
+function onCantidadInput() {
+  if (modalLoteId === null) return; // en alta no aplica
+  const nueva = parseFloat(document.getElementById('f-cantidad').value);
+  const cambio = !isNaN(nueva) && nueva !== modalCantidadOrig;
+  document.getElementById('f-motivo-wrap').style.display = cambio ? '' : 'none';
 }
 
 function cerrarModal() {
@@ -310,9 +326,18 @@ async function guardarLote() {
   const costo_unitario   = parseFloat(document.getElementById('f-costo_unitario').value) || null;
   const fecha_fabricacion = document.getElementById('f-fecha_fabricacion').value || null;
   const fecha_vencimiento = document.getElementById('f-fecha_vencimiento').value || null;
+  const motivo            = document.getElementById('f-motivo').value.trim() || null;
 
   if (!modalLoteId && (!producto_id || isNaN(cantidad) || cantidad <= 0)) {
     toast('Producto y cantidad son requeridos.', 'error'); return;
+  }
+
+  const cantidadCambio = modalLoteId !== null && !isNaN(cantidad) && cantidad !== modalCantidadOrig;
+  if (cantidadCambio && !motivo) {
+    toast('Indicá un motivo para el cambio de cantidad.', 'error');
+    document.getElementById('f-motivo-wrap').style.display = '';
+    document.getElementById('f-motivo').focus();
+    return;
   }
 
   const okLote = await confirmar(
@@ -327,10 +352,16 @@ async function guardarLote() {
 
     let r;
     if (modalLoteId) {
+      const body = { id: modalLoteId, numero_lote, deposito_id, costo_unitario, fecha_fabricacion, fecha_vencimiento };
+      // Solo se manda `cantidad` (y su motivo obligatorio) si realmente
+      // cambió — así una edición de, por ejemplo, la fecha de vencimiento
+      // no dispara de paso un movimiento de stock por una cantidad igual.
+      if (cantidadCambio) { body.cantidad = cantidad; body.motivo = motivo; }
+
       r = await fetch('/api/lotes', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
-        body: JSON.stringify({ id: modalLoteId, cantidad, numero_lote, deposito_id, costo_unitario, fecha_fabricacion, fecha_vencimiento }),
+        body: JSON.stringify(body),
       });
     } else {
       r = await fetch('/api/lotes', {
@@ -343,7 +374,11 @@ async function guardarLote() {
     const json = await r.json();
     if (!r.ok) { toast(json.error || 'No se pudo guardar el lote.', 'error'); return; }
 
-    toast(modalLoteId ? 'Lote actualizado.' : 'Lote creado.', 'exito');
+    if (!modalLoteId && json.stock_sincronizado === false) {
+      toast('Lote creado, pero sin depósito no se sumó al stock real (asignale un depósito principal a la empresa o uno al lote).', 'toast--warning');
+    } else {
+      toast(modalLoteId ? 'Lote actualizado.' : 'Lote creado.', 'exito');
+    }
     cerrarModal();
     paginaActual = 1;
     await cargarLotes();

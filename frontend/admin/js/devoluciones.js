@@ -18,6 +18,12 @@ let clientesCache = [];        // para el <select> de cliente en el alta manual
 let ndItems      = [];         // ítems agregados en el modal de alta manual
 let ndPicker     = null;       // instancia de ProductoPicker
 
+// v808: cuando se llega acá desde el chip "Con devolución" de
+// /admin/pedidos?pedido_id=..., filtra la lista a las devoluciones de ESE
+// pedido puntual (independiente de los filtros de estado/búsqueda/fecha
+// normales, que siguen disponibles si el admin quiere ampliar la vista).
+let filtroPedidoId = null;
+
 // Paginación real (antes: se traían hasta 200 devoluciones sin filtro de
 // búsqueda/motivo server-side —solo `estado` estaba soportado y el
 // frontend ni lo mandaba— y se filtraba con Array.filter() en cada tecla,
@@ -62,6 +68,11 @@ async function init() {
   sb       = window.authCtx.sb;
   empresaId = window.authCtx.perfil?.empresa_id;
 
+  // v808: filtro por pedido_id vía query string (llegando desde el chip
+  // "Con devolución" de /admin/pedidos).
+  filtroPedidoId = new URLSearchParams(window.location.search).get('pedido_id') || null;
+  renderBannerFiltroPedido();
+
   initFiltroTabsDevoluciones();
   await cargarDevoluciones();
   await cargarKPIs();
@@ -69,6 +80,31 @@ async function init() {
   try { await cargarDepositos(); } catch (e) { console.warn('[devoluciones] depositos init:', e.message); }
   try { await cargarClientes(); } catch (e) { console.warn('[devoluciones] clientes init:', e.message); }
 }
+
+// v808: banner arriba de la tabla avisando que hay un filtro por pedido
+// activo (no es obvio a simple vista mirando la lista filtrada), con botón
+// para volver a la vista completa sin tener que tocar la URL a mano.
+function renderBannerFiltroPedido() {
+  const cont = document.getElementById('filtro-pedido-banner');
+  if (!cont) return;
+  if (!filtroPedidoId) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+  cont.style.display = 'flex';
+  cont.innerHTML = `
+    <span>Mostrando devoluciones del pedido <strong>#${filtroPedidoId.slice(-6).toUpperCase()}</strong></span>
+    <button type="button" onclick="quitarFiltroPedido()" class="btn-link">Ver todas las devoluciones</button>
+  `;
+}
+
+function quitarFiltroPedido() {
+  filtroPedidoId = null;
+  const url = new URL(window.location.href);
+  url.searchParams.delete('pedido_id');
+  window.history.replaceState({}, '', url);
+  renderBannerFiltroPedido();
+  paginaActualDevoluciones = 1;
+  cargarDevoluciones();
+}
+
 
 // ── Depósitos (para el selector al aprobar) ────────────────────────────────
 async function cargarDepositos() {
@@ -110,6 +146,7 @@ async function cargarDevoluciones() {
     if (motivo) params.set('motivo', motivo);
     if (fDesde) params.set('fecha_desde', fDesde);
     if (fHasta) params.set('fecha_hasta', fHasta);
+    if (filtroPedidoId) params.set('pedido_id', filtroPedidoId);
 
     const data = await api(`/api/admin/devoluciones?${params.toString()}`);
     devolucionesPagina = data?.devoluciones || [];
@@ -168,17 +205,17 @@ function renderTabla(lista) {
   tbody.innerHTML = lista.map(d => {
     const cliente = d.clientes?.nombre_fantasia || d.clientes?.razon_social || '—';
     return `<tr data-testid="dev-fila" data-id="${d.id}" onclick="abrirDetalle('${d.id}')">
-      <td>${formatFecha(d.created_at)}</td>
-      <td>${s(cliente)}</td>
-      <td>${s(motivoLabel(d.motivo))}</td>
-      <td>${d.foto_url
+      <td data-label="Fecha">${formatFecha(d.created_at)}</td>
+      <td data-label="Cliente">${s(cliente)}</td>
+      <td data-label="Motivo">${s(motivoLabel(d.motivo))}</td>
+      <td data-label="Foto">${d.foto_url
         ? `<a href="${d.foto_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Ver foto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></a>`
         : '<span style="color:var(--color-text-light)">—</span>'}</td>
-      <td>${chipEstado(d.estado)}</td>
-      <td class="col-sticky-end">
-        <button class="btn-icon" title="Ver detalle" onclick="event.stopPropagation(); abrirDetalle('${d.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
+      <td data-label="Estado">${chipEstado(d.estado)}</td>
+      <td class="col-sticky-end" data-label="Acciones">
+        <span class="fila-acciones">
+          <button type="button" class="btn-tabla" onclick="event.stopPropagation(); abrirDetalle('${d.id}')">Ver</button>
+        </span>
       </td>
     </tr>`;
   }).join('');
@@ -292,7 +329,7 @@ function renderPanel(d) {
     <div class="detalle-seccion">
       <h4>Notas internas</h4>
       <textarea id="panel-notas-edit" rows="2" style="width:100%" placeholder="Sin notas...">${d.notas || ''}</textarea>
-      <button type="button" class="btn btn--ghost" style="margin-top:6px;font-size:12px;padding:4px 10px" onclick="guardarNotasDevolucion()">Guardar notas</button>
+      <button type="button" class="btn btn--ghost" style="margin-top:6px;font-size:13px;padding:5px 12px" onclick="guardarNotasDevolucion()">Guardar notas</button>
     </div>
   `;
 
@@ -357,7 +394,11 @@ async function revisarDevolucion(estado) {
       method: 'PATCH',
       body: JSON.stringify({ id: devolucionActiva.id, estado, reponer_stock, generar_nc, deposito_id, items_reponer }),
     });
-    if (!data?.ok) throw new Error(data?.error || 'Error al revisar la devolución');
+    if (!data?.ok) {
+      const err = new Error(data?.error || 'Error al revisar la devolución');
+      err.correlation_id = data?.correlation_id;
+      throw err;
+    }
 
     // FIX (auditoría etapa 9): antes solo mostraba "aprobada/rechazada" sin
     // decir qué había pasado realmente con el stock o la NC — ahora se
@@ -377,7 +418,19 @@ async function revisarDevolucion(estado) {
     await cargarKPIs();
   } catch (e) {
     console.error(e);
-    mostrarToast('No se pudo registrar la revisión. Probá de nuevo.', 'err');
+    // FIX v801: antes esto pisaba SIEMPRE con un texto fijo ("Probá de
+    // nuevo"), sin importar qué haya fallado — descartaba tanto el mensaje
+    // público que ya arma el backend (errorSeguro / validaciones puntuales,
+    // ej. "Sin permiso para revisar devoluciones") como el correlation_id
+    // pensado justamente para poder rastrear el error real en los logs del
+    // servidor. Si ni eso vino (ej. la respuesta no fue JSON válido — caída
+    // del servidor, red), se usa un mensaje de conexión en vez del genérico.
+    const esErrorDeParseo = e instanceof SyntaxError;
+    const base = esErrorDeParseo
+      ? 'No se pudo conectar con el servidor. Revisá tu conexión y probá de nuevo.'
+      : (e.message || 'No se pudo registrar la revisión.');
+    const sufijo = e.correlation_id ? ` (código: ${e.correlation_id.slice(0, 8)})` : '';
+    mostrarToast(base + sufijo, 'err');
     footer.querySelectorAll('button').forEach(b => b.disabled = false);
   }
 }
@@ -438,13 +491,20 @@ async function abrirModalNuevaDevolucion() {
   document.getElementById('nd-notas').value = '';
   document.getElementById('nd-foto').value = '';
   renderNdItems();
+  ndBloquearPicker(); // FIX v800: sin cliente elegido, el picker queda tapado
 
   document.getElementById('modal-backdrop-devolucion').style.display = 'block';
-  document.getElementById('modal-nueva-devolucion').style.display = 'block';
+  const modalNd = document.getElementById('modal-nueva-devolucion');
+  modalNd.style.display = 'flex';
+  modalNd.classList.add('nd-abierto');
   document.body.style.overflow = 'hidden';
 
   if (!ndPicker) {
     ndPicker = new window.ProductoPicker(document.getElementById('nd-picker-container'), {
+      // v905: lista compacta (sin cards/imagen) — el admin acá ya sabe qué
+      // busca (viene filtrado por cliente/pedido) y prioriza tildar varios
+      // ítems rápido.
+      modo: 'lista',
       onAgregar(item) {
         const existente = ndItems.find(i => i.producto_id === item.producto_id);
         if (existente) existente.cantidad = (+existente.cantidad || 0) + (+item.cantidad || 1);
@@ -458,11 +518,14 @@ async function abrirModalNuevaDevolucion() {
   }
   await ndPicker.init(sb, empresaId);
   ndPicker.reset();
+  ndPicker.setSoloPermitidos([]); // FIX v800: arranca sin nada permitido hasta elegir cliente
 }
 
 function cerrarModalNuevaDevolucion() {
   document.getElementById('modal-backdrop-devolucion').style.display = 'none';
-  document.getElementById('modal-nueva-devolucion').style.display = 'none';
+  const modalNd = document.getElementById('modal-nueva-devolucion');
+  modalNd.classList.remove('nd-abierto');
+  modalNd.style.display = 'none';
   document.body.style.overflow = '';
 }
 
@@ -472,7 +535,12 @@ async function ndCargarPedidosCliente() {
   const clienteId = document.getElementById('nd-cliente').value;
   const sel = document.getElementById('nd-pedido');
   sel.innerHTML = '<option value="">Sin vincular a un pedido</option>';
-  if (!clienteId || !sb) return;
+
+  if (!clienteId || !sb) {
+    ndBloquearPicker();
+    return;
+  }
+
   const { data } = await sb.from('pedidos')
     .select('id, created_at, entregado_at')
     .eq('empresa_id', empresaId)
@@ -483,15 +551,133 @@ async function ndCargarPedidosCliente() {
   (data || []).forEach(p => {
     const o = document.createElement('option');
     o.value = p.id;
-    o.textContent = `Pedido ${p.id.slice(0, 8)} — entregado ${formatFecha(p.entregado_at)}`;
+    // FIX v807: acá se mostraban los primeros 8 caracteres del id
+    // (p.id.slice(0, 8)), pero la lista de /admin/pedidos muestra
+    // "#" + los ÚLTIMOS 6 caracteres (pedidos.js:532, p.id.slice(-6)).
+    // Dos recortes distintos del mismo UUID → nunca coincidían visualmente
+    // y el admin no podía saber a qué pedido de la lista correspondía cada
+    // opción de este selector. Se unifica al mismo formato que la lista.
+    o.textContent = `Pedido #${p.id.slice(-6).toUpperCase()} — entregado ${formatFecha(p.entregado_at)}`;
     sel.appendChild(o);
   });
+
+  await ndDesbloquearPickerParaCliente(clienteId);
+}
+
+// FIX v800: mientras no haya cliente elegido, el picker de productos queda
+// tapado por un aviso — evita agregar productos sin saber a quién filtrar.
+function ndBloquearPicker() {
+  const lock = document.getElementById('nd-picker-lock');
+  const cont = document.getElementById('nd-picker-container');
+  if (lock) lock.style.display = 'flex';
+  if (cont) cont.style.display = 'none';
+  ndPicker?.setSoloPermitidos([]);
+  // Los ítems ya cargados quedan (por si el cliente se tocó por error y se
+  // vuelve a elegir el mismo), pero si cambió de cliente ya no tiene
+  // sentido dejarlos — se limpian al reabrir el modal (abrirModalNuevaDevolucion).
+}
+
+// FIX v800: trae los productos que este cliente compró alguna vez
+// (mismo criterio que valida el backend) y restringe el picker a eso.
+// FIX v802: se trae la fila completa del producto (join a `productos`),
+// no solo el id — sin `activo=true` en el filtro, porque un producto
+// comprado en su momento puede haberse dado de baja después y el
+// cliente igual tiene que poder devolverlo.
+async function ndDesbloquearPickerParaCliente(clienteId) {
+  const lock = document.getElementById('nd-picker-lock');
+  const cont = document.getElementById('nd-picker-container');
+  if (lock) lock.style.display = 'none';
+  if (cont) cont.style.display = '';
+
+  let productosComprados = [];
+  try {
+    const { data } = await sb.from('pedido_items')
+      .select('producto_id, productos(id, codigo, nombre, unidad, precio_base, foto_url, categoria_id, activo), pedidos!inner(cliente_id, empresa_id)')
+      .eq('pedidos.cliente_id', clienteId)
+      .eq('pedidos.empresa_id', empresaId);
+    const porId = new Map();
+    (data || []).forEach(r => {
+      // r.productos puede venir null si el producto fue eliminado del todo
+      // (no solo dado de baja) — se descarta, no hay nada que mostrar/elegir.
+      if (r.productos) porId.set(r.productos.id, r.productos);
+    });
+    productosComprados = [...porId.values()];
+  } catch (e) {
+    console.warn('[devoluciones] no se pudo cargar el historial de compras del cliente:', e.message);
+  }
+
+  // Los ítems ya agregados que ya no correspondan a este cliente se sacan
+  // (por ejemplo, si se cambió el cliente después de agregar productos).
+  const permitidos = new Set(productosComprados.map(p => p.id));
+  const antes = ndItems.length;
+  ndItems = ndItems.filter(it => permitidos.has(it.producto_id));
+  if (ndItems.length !== antes) renderNdItems();
+
+  ndPicker?.setSoloPermitidos(productosComprados, 'cliente');
+  ndPicker?.reset();
+}
+
+// v904: si además del cliente se elige un pedido de origen puntual, el
+// picker deja de mostrar TODO el historial de compras del cliente y pasa a
+// mostrar SOLO los productos de ESE pedido — antes había que revisar la
+// lista completa igual, aunque ya se supiera exactamente qué pedido
+// originó la devolución. Si se vuelve a "Sin vincular a un pedido", cae de
+// nuevo al historial completo (ndDesbloquearPickerParaCliente).
+async function ndFiltrarPickerPorPedido() {
+  const clienteId = document.getElementById('nd-cliente').value;
+  const pedidoId  = document.getElementById('nd-pedido').value;
+  if (!clienteId || !sb) return;
+
+  if (!pedidoId) {
+    await ndDesbloquearPickerParaCliente(clienteId);
+    return;
+  }
+
+  const lock = document.getElementById('nd-picker-lock');
+  const cont = document.getElementById('nd-picker-container');
+  if (lock) lock.style.display = 'none';
+  if (cont) cont.style.display = '';
+
+  let productosPedido = [];
+  try {
+    const { data } = await sb.from('pedido_items')
+      .select('producto_id, productos(id, codigo, nombre, unidad, precio_base, foto_url, categoria_id, activo)')
+      .eq('pedido_id', pedidoId);
+    const porId = new Map();
+    (data || []).forEach(r => { if (r.productos) porId.set(r.productos.id, r.productos); });
+    productosPedido = [...porId.values()];
+  } catch (e) {
+    console.warn('[devoluciones] no se pudo cargar los ítems del pedido:', e.message);
+    // Si falla la consulta puntual del pedido, no dejamos al admin sin nada
+    // para elegir: cae al historial completo del cliente.
+    await ndDesbloquearPickerParaCliente(clienteId);
+    return;
+  }
+
+  // Los ítems ya agregados que no pertenezcan a este pedido se sacan (por
+  // ejemplo, si se eligió un pedido después de haber agregado productos
+  // desde el historial completo).
+  const permitidos = new Set(productosPedido.map(p => p.id));
+  const antes = ndItems.length;
+  ndItems = ndItems.filter(it => permitidos.has(it.producto_id));
+  if (ndItems.length !== antes) renderNdItems();
+
+  ndPicker?.setSoloPermitidos(productosPedido, 'pedido');
+  ndPicker?.reset();
 }
 
 function renderNdItems() {
-  const cont = document.getElementById('nd-items-container');
+  const cont     = document.getElementById('nd-items-container');
+  const badge    = document.getElementById('nd-seleccionados-count');
+  const resumen  = document.getElementById('nd-footer-resumen');
+  if (badge) badge.textContent = String(ndItems.length);
+
   if (!ndItems.length) {
-    cont.innerHTML = '<p style="color:var(--color-text-muted);font-size:13px">Sin ítems agregados todavía. Usá el buscador de arriba.</p>';
+    cont.innerHTML = '<p style="color:var(--color-text-muted);font-size:13px;margin:2px 0">Sin ítems agregados todavía. Usá el buscador de arriba.</p>';
+    if (resumen) {
+      resumen.textContent = 'Sin ítems agregados';
+      resumen.classList.remove('nd-footer-resumen--ok');
+    }
     return;
   }
   cont.innerHTML = `
@@ -509,11 +695,30 @@ function renderNdItems() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`).join('')}`;
+
+  // v797: resumen visible en el footer (siempre fijo, no requiere scroll)
+  // para poder confirmar cantidad y total sin ir a mirar la lista arriba.
+  if (resumen) {
+    const totalUnidades = ndItems.reduce((acc, it) => acc + (Number(it.cantidad) || 0), 0);
+    const totalMonto = ndItems.reduce((acc, it) => acc + (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0), 0);
+    const totalFmt = totalMonto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    resumen.textContent = `${ndItems.length} ítem${ndItems.length === 1 ? '' : 's'} · ${totalUnidades} u. · $${totalFmt}`;
+    resumen.classList.add('nd-footer-resumen--ok');
+  }
 }
 
 function ndActualizarItem(i, campo, valor) {
   if (!ndItems[i]) return;
   ndItems[i][campo] = parseFloat(valor) || 0;
+  // Solo refresca el resumen del footer (no toda la lista, para no perder
+  // el foco del input que el usuario está editando).
+  const resumen = document.getElementById('nd-footer-resumen');
+  if (resumen && ndItems.length) {
+    const totalUnidades = ndItems.reduce((acc, it) => acc + (Number(it.cantidad) || 0), 0);
+    const totalMonto = ndItems.reduce((acc, it) => acc + (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0), 0);
+    const totalFmt = totalMonto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    resumen.textContent = `${ndItems.length} ítem${ndItems.length === 1 ? '' : 's'} · ${totalUnidades} u. · $${totalFmt}`;
+  }
 }
 
 function ndQuitarItem(i) {
@@ -669,3 +874,4 @@ window.filtrarDevoluciones = filtrarDevoluciones;
 window.abrirDetalle        = abrirDetalle;
 window.cerrarPanel         = cerrarPanel;
 window.revisarDevolucion   = revisarDevolucion;
+window.ndFiltrarPickerPorPedido = ndFiltrarPickerPorPedido;

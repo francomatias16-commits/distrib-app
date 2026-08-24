@@ -142,7 +142,7 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 .ms-warn     { background: rgba(122,74,0,.12); color: var(--color-warning); }
 .ms-error    { background: rgba(179,38,30,.12);  color: var(--color-danger-mid); }
 .ms-idle     { background: rgba(75,74,69,.12);color: var(--color-text-muted); }
-.ms-loading  { background: rgba(184,122,0,.12); color: var(--color-primary); }
+.ms-loading  { background: rgba(106,152,115,.12); color: var(--color-primary); }
 
 /* ── Motor Body ─────────────────────────────────────────────────────────── */
 .motor-card__body {
@@ -297,7 +297,7 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 /* ── Color de iconos por motor ──────────────────────────────────────────── */
 .icon-piloto  { background: rgba(122,74,0,.12); }
 .icon-cierre  { background: rgba(31,91,74,.12);  }
-.icon-rutas   { background: rgba(184,122,0,.12); }
+.icon-rutas   { background: rgba(106,152,115,.12); }
 .icon-stock   { background: rgba(91,74,143,.12); }
 .icon-score   { background: rgba(143,58,92,.12); }
 
@@ -305,12 +305,26 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 @media (max-width: 600px) {
   .auto-grid { grid-template-columns: 1fr; padding: 12px; }
   .auto-topbar { padding: 12px 12px 0; }
+
+  /* AUDITORIA-RESPONSIVE-ETAPA4: .tabla-card (adminlte-components.css) usa
+     overflow:hidden para recortar la tabla a su border-radius. La tabla de
+     reglas (#tabla-reglas-auto) tiene 6 columnas de texto — en mobile eso
+     no entra en el ancho de pantalla y overflow:hidden la recorta en vez
+     de dejarla scrollear (a diferencia de .tabla-overflow, usado en otras
+     pantallas). Se habilita scroll horizontal sólo en esta tarjeta. */
+  #reglas-auto-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #reglas-auto-card .tabla-base { min-width: 620px; }
+  /* Mismo problema en la tabla de tareas automáticas (#tareas-auto-card,
+     5 columnas) — no tenía el fix de scroll horizontal que sí se aplicó
+     a #reglas-auto-card. */
+  #tareas-auto-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #tareas-auto-card .tabla-base { min-width: 480px; }
 }
 
 /* Toast reutilizado */
 .toast { position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
   background: var(--color-text); color: var(--color-surface); padding:.6rem 1.2rem; border-radius: var(--radius-sm);
-  font-size:14px; z-index:9999; pointer-events:none;
+  font-size:14px; z-index:var(--z-overlay-critical); pointer-events:none;
   opacity:0; transition:opacity .2s; white-space:nowrap; }
 .toast.visible { opacity:1; }
 
@@ -404,7 +418,7 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 /* Motor icons */
 .icon-piloto { background: rgba(122,74,0,.12); }
 .icon-cierre { background: rgba(31,91,74,.12); }
-.icon-rutas  { background: rgba(184,122,0,.12); }
+.icon-rutas  { background: rgba(106,152,115,.12); }
 .icon-stock  { background: rgba(91,74,143,.12); }
 .icon-score  { background: rgba(143,58,92,.12); }
 
@@ -542,7 +556,7 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
    mismo esquema de colores que clientes.css para consistencia visual. */
 .score-premium   { background: rgba(143,95,0,.2);   color: var(--color-primary-dark); }
 .score-bueno     { background: rgba(31,91,74,.15);  color: var(--color-success-mid); }
-.score-normal    { background: rgba(184,122,0,.12); color: var(--color-primary); }
+.score-normal    { background: rgba(106,152,115,.12); color: var(--color-primary); }
 .score-riesgo    { background: rgba(179,38,30,.15);  color: var(--color-danger-mid); }
 .score-bloqueado { background: rgba(75,74,69,.15);color: var(--color-text-muted); }
 .score-sin_score { background: rgba(75,74,69,.1); color: var(--color-text-muted); }
@@ -581,7 +595,7 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 .motor-realtime-badge {
   font-size: 11px;
   color: var(--color-primary);
-  background: rgba(184,122,0,.1);
+  background: rgba(106,152,115,.1);
   padding: 3px 8px;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -749,13 +763,13 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
 
 /* ── Modal de alta/edición de regla ─────────────────────────────────────── */
 .modal-backdrop {
-  position: fixed; inset: 0; z-index: 1000;
+  position: fixed; inset: 0; z-index: var(--z-modal-stack-1);
   background: rgba(0,0,0,.4);
   opacity: 0; transition: opacity .2s ease;
 }
 .modal-backdrop.visible { opacity: 1; }
 .modal {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 1001;
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: var(--z-modal-stack-2);
   width: min(520px, 100vw);
   background: var(--color-surface);
   box-shadow: -8px 0 30px rgba(0,0,0,.15);

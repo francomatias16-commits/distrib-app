@@ -1,0 +1,532 @@
+/**
+ * pos-terminal-pro.css — Reestructuración visual total del Punto de Venta
+ * ─────────────────────────────────────────────────────────────────────────
+ * Objetivo: que el mostrador se vea y se sienta como una terminal de
+ * supermercado profesional (tipo balanza/caja registradora electrónica de
+ * cadena) en vez de un formulario de admin genérico. Mantiene la identidad
+ * "Hoja de Ruta" del sistema (papel + verde + Oswald/IBM Plex) — no inventa
+ * una paleta nueva, la lleva al extremo de contraste/tamaño que exige un
+ * cajero mirando la pantalla parado, muchas veces con apuro o mala luz.
+ *
+ * Este archivo NO reordena el DOM más de lo que ya reordenó pos.html
+ * (favoritos pasó al costado del buscador, cliente/venta/cerrar-caja pasaron
+ * a la columna derecha). No toca ningún id/clase que consuma pos.js — solo
+ * reescribe layout, tipografía, tamaños y color. Se carga último a propósito
+ * para ganarle la cascada a pos.css / pos-gentelella.css / reskin-patch sin
+ * tener que pisar sus variables.
+ *
+ * Etapa 1 de la reestructuración pedida por Luc (14/08/2026). Ver
+ * CHANGELOG_v746_pos_terminal_profesional.md para el detalle y las etapas
+ * siguientes propuestas (grilla de categorías real, modo oscuro de mostrador,
+ * ticket imprimible en vivo).
+ */
+
+body.dash-pos-gentelella {
+  --pos-accent:        var(--ge-teal, #6A9873);
+  --pos-accent-dark:   var(--ge-teal-dark, #487050);
+  --pos-accent-light:  var(--ge-teal-light, rgba(106,152,115,.14));
+  --pos-ink:           var(--ge-ink, #111A17);
+  --pos-ink-soft:      var(--ge-ink-soft, #3A423E);
+  --pos-muted:         var(--ge-muted, #5B6660);
+  --pos-border:        var(--ge-border, #DDE1DC);
+  --pos-panel:         var(--ge-panel, #FFFFFF);
+  --pos-bg:            var(--ge-bg, #F6F7F5);
+  --pos-danger:        var(--ge-red, #B8402E);
+  --pos-warn:          var(--ge-orange, #8A5F13);
+  --pos-radius:        10px;
+  --pos-radius-sm:     7px;
+  --pos-shadow:        0 1px 2px rgba(17,26,23,.06), 0 8px 20px -12px rgba(17,26,23,.18);
+  --pos-shadow-sm:     0 1px 0 rgba(17,26,23,.05), 0 3px 8px -4px rgba(17,26,23,.12);
+  --pos-mono:          'IBM Plex Mono', ui-monospace, monospace;
+  --pos-display:       'Oswald', 'IBM Plex Sans', sans-serif;
+}
+
+body.dash-pos-gentelella .pos-main { background: var(--pos-bg) !important; }
+
+/* ════════════════════════════════════════════════════════════════════
+   1. TOPBAR + FRANJA DE CAJA/ADMINISTRACIÓN → ribbon de comandos
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .topbar {
+  border-bottom: 2px solid var(--pos-ink) !important;
+}
+body.dash-pos-gentelella .topbar-title {
+  font-family: var(--pos-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  font-weight: 600 !important;
+}
+body.dash-pos-gentelella .pos-turno-chip {
+  font-family: var(--pos-mono) !important;
+  font-weight: 600 !important;
+  border: 1px solid var(--pos-accent) !important;
+}
+
+body.dash-pos-gentelella .pos-quickbar {
+  background: var(--pos-ink) !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  padding: 8px 16px !important;
+  gap: 14px !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-label {
+  color: rgba(255,255,255,.45) !important;
+  font-family: var(--pos-mono) !important;
+  font-size: 10px !important;
+  letter-spacing: .08em !important;
+}
+body.dash-pos-gentelella .pos-quickbar-label::before { background: var(--pos-accent) !important; }
+body.dash-pos-gentelella .pos-quickbar-sep { background: rgba(255,255,255,.14) !important; }
+body.dash-pos-gentelella .pos-quickbar-btn {
+  color: rgba(255,255,255,.82) !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  padding: 7px 12px 7px 8px !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn-icon {
+  background: rgba(255,255,255,.08) !important;
+  border-radius: 6px !important;
+  color: var(--pos-accent) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn:hover {
+  background: var(--pos-accent) !important;
+  border-color: var(--pos-accent) !important;
+  color: var(--pos-ink) !important;
+}
+body.dash-pos-gentelella .pos-quickbar-btn:hover .pos-quickbar-btn-icon {
+  background: rgba(0,0,0,.15) !important; color: var(--pos-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   2. LAYOUT GENERAL — grilla tipo terminal: ticket a la izquierda,
+      panel de cobro fijo a la derecha, franja de atajos abajo.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-grid--facil {
+  grid-template-columns: minmax(0, 1fr) 360px !important;
+  grid-template-areas: "ticket panel" "hints hints" !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  height: calc(100vh - 168px);
+  min-height: 560px;
+}
+@media (max-width: 1100px) {
+  body.dash-pos-gentelella .pos-grid--facil {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "ticket" "panel" "hints" !important;
+    height: auto;
+  }
+}
+
+body.dash-pos-gentelella .pos-col-busqueda {
+  grid-area: ticket !important;
+  background: var(--pos-panel) !important;
+  border: 1px solid var(--pos-border) !important;
+  border-radius: var(--pos-radius) !important;
+  box-shadow: var(--pos-shadow) !important;
+  padding: 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   3. BUSCADOR / SCANNER — es la acción que más se repite: máxima
+      visibilidad, foco enorme, feedback claro de "listo para escanear".
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-ticket-toolbar {
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+}
+body.dash-pos-gentelella .pos-busqueda-wrap {
+  border: 2px solid var(--pos-ink) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  background: var(--pos-panel) !important;
+  padding: 4px 4px 4px 14px !important;
+  transition: border-color .15s, box-shadow .15s;
+}
+body.dash-pos-gentelella .pos-busqueda-wrap svg { color: var(--pos-accent) !important; }
+body.dash-pos-gentelella .pos-input-producto {
+  font-family: var(--pos-mono) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding: 12px 8px !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-busqueda-wrap:focus-within {
+  border-color: var(--pos-accent) !important;
+  box-shadow: 0 0 0 4px var(--pos-accent-light) !important;
+}
+body.dash-pos-gentelella .pos-btn-buscar-articulo {
+  border-radius: var(--pos-radius-sm) !important;
+  border: 1px solid var(--pos-border) !important;
+  font-weight: 600 !important;
+  padding: 0 14px !important;
+  height: 48px !important;
+}
+body.dash-pos-gentelella .pos-btn-buscar-articulo:hover {
+  border-color: var(--pos-accent) !important;
+  color: var(--pos-accent-dark) !important;
+  background: var(--pos-accent-light) !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-resultados {
+  border: 1px solid var(--pos-border) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  box-shadow: var(--pos-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   4. GRILLA DE PRODUCTOS FRECUENTES (favoritos) — tira de "teclas"
+      de supermercado: grandes, coloreadas, con precio visible.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-grilla-favoritos {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  gap: 8px !important;
+  padding: 2px 2px 8px !important;
+  scrollbar-width: thin;
+}
+body.dash-pos-gentelella .pos-fav-vacio {
+  color: var(--pos-muted) !important;
+  font-size: 12.5px !important;
+  padding: 6px 2px !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-btn {
+  flex: 0 0 auto !important;
+  min-width: 108px !important;
+  max-width: 132px !important;
+  min-height: 56px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  text-align: left !important;
+  padding: 8px 10px !important;
+  border: none !important;
+  border-left: 5px solid var(--fav-color, var(--pos-accent)) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  background: var(--pos-panel) !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+  transition: transform .08s ease, box-shadow .12s ease;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pos-shadow) !important;
+  border-color: var(--fav-color, var(--pos-accent)) !important;
+  background: var(--pos-panel) !important;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-btn:active { transform: translateY(0); }
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-nombre {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+body.dash-pos-gentelella .pos-grid--facil .pos-fav-precio {
+  display: block !important;
+  font-family: var(--pos-mono) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--pos-accent-dark) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   5. TABLA DEL TICKET — la pieza central: filas altas, tipografía
+      tabular para números, jerarquía clara entre código/nombre/importe.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-ticket-tabla-wrap {
+  border: 1px solid var(--pos-border) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  overflow: hidden !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-head {
+  background: var(--pos-ink) !important;
+  color: var(--pos-panel) !important;
+  font-family: var(--pos-mono) !important;
+  font-size: 10.5px !important;
+  letter-spacing: .06em !important;
+  padding: 10px 12px !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body { background: var(--pos-panel) !important; }
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila {
+  padding: 11px 12px !important;
+  font-size: 14px !important;
+  min-height: 52px !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila:nth-child(even) {
+  background: var(--pos-bg) !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-fila:hover {
+  background: var(--pos-accent-light) !important;
+}
+body.dash-pos-gentelella .pos-item-num {
+  font-family: var(--pos-mono) !important;
+  color: var(--pos-muted) !important;
+}
+body.dash-pos-gentelella .pos-item-codigo {
+  font-family: var(--pos-mono) !important;
+  font-size: 11px !important;
+}
+body.dash-pos-gentelella .pos-item-desc-col .pos-item-nombre {
+  font-weight: 600 !important;
+  color: var(--pos-ink) !important;
+}
+body.dash-pos-gentelella .pos-item-unitario,
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-subtotal {
+  font-family: var(--pos-mono) !important;
+  font-variant-numeric: tabular-nums;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-item-subtotal {
+  font-size: 14.5px !important;
+  color: var(--pos-ink) !important;
+}
+body.dash-pos-gentelella .pos-item-cant-stepper .pos-item-cant {
+  font-family: var(--pos-mono) !important;
+  font-weight: 600 !important;
+  width: 44px !important;
+}
+body.dash-pos-gentelella .pos-item-cant-btn {
+  width: 26px !important;
+  border-radius: 6px !important;
+  font-size: 15px !important;
+  border-color: var(--pos-border) !important;
+}
+body.dash-pos-gentelella .pos-item-cant-btn:hover {
+  background: var(--pos-accent) !important;
+  color: var(--pos-panel) !important;
+}
+body.dash-pos-gentelella .pos-badge-promo {
+  background: var(--pos-warn) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  font-family: var(--pos-mono) !important;
+  font-size: 10.5px !important;
+  padding: 1px 6px !important;
+  margin-left: 6px !important;
+}
+body.dash-pos-gentelella .pos-badge-peso {
+  background: var(--pos-accent-light) !important;
+  color: var(--pos-accent-dark) !important;
+  border-radius: 4px !important;
+  font-family: var(--pos-mono) !important;
+  font-size: 10.5px !important;
+  padding: 1px 6px !important;
+  margin-left: 6px !important;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-carrito-vacio {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 64px 10px !important;
+  font-family: var(--pos-display) !important;
+  font-size: 15px !important;
+  letter-spacing: .02em;
+}
+body.dash-pos-gentelella .pos-ticket-tabla-body .pos-carrito-vacio::before {
+  content: '';
+  width: 46px; height: 46px;
+  background: var(--pos-accent-light);
+  border: 2px dashed var(--pos-accent);
+  border-radius: 50%;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   6. PANEL DERECHO — cobro, cliente y datos de caja, fijo y con
+      scroll propio, siempre visible mientras se arma el ticket.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-grid--facil .pos-col-carrito {
+  grid-area: panel !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  gap: 12px !important;
+  padding-right: 2px;
+}
+
+body.dash-pos-gentelella .pos-panel-totales {
+  background: var(--pos-ink) !important;
+  border-radius: var(--pos-radius) !important;
+  padding: 16px !important;
+  box-shadow: var(--pos-shadow) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .pos-totales-fila {
+  font-family: var(--pos-mono) !important;
+  font-size: 13px !important;
+}
+body.dash-pos-gentelella .pos-total-grande {
+  padding-top: 12px !important;
+  margin-top: 10px !important;
+}
+body.dash-pos-gentelella .pos-total-grande-label {
+  font-family: var(--pos-display) !important;
+}
+body.dash-pos-gentelella .pos-total-grande-monto {
+  font-family: var(--pos-mono) !important;
+  font-size: 2.4rem !important;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+body.dash-pos-gentelella .pos-btn-cobrar {
+  border-radius: var(--pos-radius-sm) !important;
+  padding: 16px !important;
+  font-size: 16px !important;
+  font-family: var(--pos-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  margin-top: 14px !important;
+}
+body.dash-pos-gentelella .pos-btn-cobrar-hint {
+  font-family: var(--pos-mono) !important;
+}
+body.dash-pos-gentelella .pos-panel-totales .pos-acciones-rapidas {
+  margin-top: 10px !important;
+  gap: 8px !important;
+}
+body.dash-pos-gentelella .pos-btn-accion-rapida {
+  padding: 9px 4px !important;
+  border-radius: var(--pos-radius-sm) !important;
+}
+
+body.dash-pos-gentelella .pos-grid--facil .pos-info-card {
+  border-radius: var(--pos-radius) !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+body.dash-pos-gentelella .pos-info-card-tit {
+  padding: 9px 14px !important;
+  font-family: var(--pos-mono) !important;
+}
+body.dash-pos-gentelella .pos-cliente-card .pos-cliente-actual {
+  padding: 12px 14px !important;
+}
+body.dash-pos-gentelella .pos-cliente-nombre {
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+}
+body.dash-pos-gentelella .pos-cliente-cambiar {
+  font-weight: 600 !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Card "Datos de la venta", ahora combinada con Cerrar caja al pie del panel */
+body.dash-pos-gentelella .pos-info-card--footer {
+  padding: 12px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+body.dash-pos-gentelella .pos-info-card--footer .pos-info-card-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+body.dash-pos-gentelella .pos-info-card--footer .pos-info-fila {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+}
+body.dash-pos-gentelella .pos-info-card--footer .pos-info-fila strong {
+  font-family: var(--pos-mono) !important;
+}
+body.dash-pos-gentelella .pos-info-card--footer .pos-btn-cerrar-turno {
+  width: 100% !important;
+  padding: 9px !important;
+  border-radius: var(--pos-radius-sm) !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   7. FRANJA DE ATAJOS DE TECLADO — referencia siempre visible, como
+      las teclas de función rotuladas de una caja registradora física.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-hints {
+  grid-area: hints !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px 18px !important;
+  padding: 8px 16px !important;
+  background: var(--pos-ink) !important;
+  border-radius: var(--pos-radius-sm) !important;
+  color: rgba(255,255,255,.65) !important;
+}
+body.dash-pos-gentelella .pos-hint {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 11.5px !important;
+  font-family: var(--pos-display) !important;
+  letter-spacing: .02em;
+}
+body.dash-pos-gentelella .pos-hint kbd {
+  font-family: var(--pos-mono) !important;
+  background: rgba(255,255,255,.1) !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  font-size: 10.5px !important;
+  color: var(--pos-accent) !important;
+}
+@media (max-width: 700px) {
+  body.dash-pos-gentelella .pos-hints { display: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   8. MODALES — misma unidad visual (radio, sombra, header) para que
+      cobro / cierre / movimiento / admin se sientan una sola herramienta.
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-modal {
+  border-radius: var(--pos-radius) !important;
+  box-shadow: 0 24px 60px -20px rgba(17,26,23,.4) !important;
+}
+body.dash-pos-gentelella .pos-modal-head {
+  border-bottom: 2px solid var(--pos-ink) !important;
+  padding: 16px 18px !important;
+}
+body.dash-pos-gentelella .pos-modal-head h2 {
+  font-family: var(--pos-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .03em !important;
+  font-size: 15px !important;
+}
+body.dash-pos-gentelella .pos-modal-total strong,
+body.dash-pos-gentelella .pos-vuelto-monto {
+  font-family: var(--pos-mono) !important;
+}
+body.dash-pos-gentelella .pos-vuelto-wrap {
+  border-radius: var(--pos-radius-sm) !important;
+}
+body.dash-pos-gentelella .btn.btn--primary {
+  border-radius: var(--pos-radius-sm) !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   9. PANTALLA DE APERTURA DE TURNO — mismo lenguaje "terminal"
+   ════════════════════════════════════════════════════════════════════ */
+body.dash-pos-gentelella .pos-turno-card {
+  border-radius: var(--pos-radius) !important;
+  box-shadow: var(--pos-shadow) !important;
+  border: 1px solid var(--pos-border) !important;
+}
+body.dash-pos-gentelella .pos-turno-titulo {
+  font-family: var(--pos-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .03em !important;
+}
+body.dash-pos-gentelella #btn-abrir-turno {
+  border-radius: var(--pos-radius-sm) !important;
+  font-family: var(--pos-display) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .03em !important;
+  padding: 14px !important;
+}

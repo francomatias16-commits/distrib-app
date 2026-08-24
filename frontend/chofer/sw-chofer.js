@@ -18,6 +18,7 @@
 const SW_VERSION   = 'chofer-v163';
 const CACHE_STATIC = `${SW_VERSION}-static`;
 const CACHE_DATA   = `${SW_VERSION}-data`;
+let SESSION_SCOPE  = 'anonymous';
 
 const PRECACHE_URLS = [
   '/chofer',
@@ -50,6 +51,29 @@ self.addEventListener('install', (e) => {
       .catch((err) => console.warn('[SW-chofer] Precache parcial:', err))
       .then(() => self.skipWaiting())
   );
+});
+
+// El service worker no puede leer localStorage ni el JWT por sí solo. La pestaña
+// comunica el scope después del login/detalle del remito; mientras no lo haga,
+// las respuestas de datos no se mezclan con una sesión identificada.
+self.addEventListener('message', (e) => {
+  const data = e.data || {};
+  if (data.type !== 'CHOFER_SESSION_SCOPE' && data.type !== 'CHOFER_SESSION_LOGOUT') return;
+
+  if (data.type === 'CHOFER_SESSION_LOGOUT') {
+    SESSION_SCOPE = 'anonymous';
+    e.waitUntil(caches.delete(CACHE_DATA));
+    return;
+  }
+
+  const empresa = String(data.empresa_id || '').trim();
+  const usuario = String(data.usuario_id || '').trim();
+  const nextScope = empresa && usuario ? `${empresa}:${usuario}` : 'anonymous';
+  if (nextScope !== SESSION_SCOPE) {
+    SESSION_SCOPE = nextScope;
+    // No conservar datos de la sesión anterior cuando se cambia de usuario.
+    e.waitUntil(caches.delete(CACHE_DATA));
+  }
 });
 
 self.addEventListener('activate', (e) => {
@@ -125,16 +149,23 @@ async function cacheFirst(req) {
   }
 }
 
+function scopedCacheRequest(req) {
+  const url = new URL(req.url);
+  url.searchParams.set('__chofer_session_scope', SESSION_SCOPE);
+  return new Request(url.toString(), { method: 'GET' });
+}
+
 async function networkFirst(req) {
+  const cacheReq = scopedCacheRequest(req);
   try {
     const resp = await fetch(req);
-    if (resp.ok) {
+    if (resp.ok && SESSION_SCOPE !== 'anonymous') {
       const cache = await caches.open(CACHE_DATA);
-      cache.put(req, resp.clone());
+      cache.put(cacheReq, resp.clone());
     }
     return resp;
   } catch {
-    const cached = await caches.match(req);
+    const cached = SESSION_SCOPE === 'anonymous' ? null : await caches.match(cacheReq);
     if (cached) return cached;
     return new Response(
       JSON.stringify({ error: 'Sin conexión', offline: true }),

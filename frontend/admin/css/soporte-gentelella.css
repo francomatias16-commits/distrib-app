@@ -117,6 +117,32 @@ body.dash-soporte-gentelella .btn-canal.mail:hover {
   background: color-mix(in srgb, var(--ge-blue) 85%, white) !important;
 }
 
+/* FIX (pedido del dueño, ver captura): los 3 botones "Escribir/Preguntar"
+   se veían todos del mismo verde de WhatsApp porque .btn-canal.mail nunca
+   matchea (el <a> de mail en soporte.html no tiene esa clase) y la regla
+   base de arriba gana con !important sobre cualquier color por tarjeta.
+   Se distingue cada canal por su posición dentro de .canal-grid en vez de
+   depender de una clase que el HTML no trae:
+     1ª tarjeta = Asistente de IA → verde oscuro de marca (--ge-teal-dark),
+       para no confundirlo con el verde real de WhatsApp.
+     2ª tarjeta = WhatsApp → se mantiene el verde de marca de WhatsApp
+       (regla base de arriba, sin cambios).
+     3ª tarjeta = Email → tono más tenue (pill clara azul, no sólido
+       saturado), se lee como el canal "no inmediato" frente a IA/WhatsApp. */
+body.dash-soporte-gentelella .canal-grid .canal-card:nth-child(1) .btn-canal {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-soporte-gentelella .canal-grid .canal-card:nth-child(1) .btn-canal:hover {
+  background: color-mix(in srgb, var(--ge-teal-dark) 85%, black) !important;
+}
+body.dash-soporte-gentelella .canal-grid .canal-card:nth-child(3) .btn-canal {
+  background: rgba(52,152,219,.16) !important;
+  color: var(--ge-blue) !important;
+}
+body.dash-soporte-gentelella .canal-grid .canal-card:nth-child(3) .btn-canal:hover {
+  background: rgba(52,152,219,.26) !important;
+}
+
 /* ════════════════════════════════════════════════════════════
    Horario de atención (.horario-box)
    ════════════════════════════════════════════════════════════ */
@@ -137,19 +163,8 @@ body.dash-soporte-gentelella .tabla-urgencia td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-soporte-gentelella .chip-nivel {
-  border-radius: var(--ge-radius-pill) !important;
-  font-weight: 600 !important;
-}
-body.dash-soporte-gentelella .chip-critico {
-  background: rgba(231,76,60,.1) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-soporte-gentelella .chip-alto {
-  background: var(--ge-warning-bg) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-soporte-gentelella .chip-normal {
-  background: rgba(52,152,219,.13) !important;
-  color: var(--ge-blue) !important;
-}
+/* .chip-nivel/.chip-critico/.chip-alto/.chip-normal se eliminaron acá:
+   no aparecen en ningún HTML/JS del proyecto (búsqueda global, cero
+   coincidencias fuera de este archivo) — CSS muerto de una tabla de
+   clasificación de urgencia que ya no existe en soporte.html. No es
+   parte del Hallazgo #2 (no hay visual duplicado si no hay visual). */

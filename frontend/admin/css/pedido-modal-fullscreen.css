@@ -239,23 +239,33 @@
   margin-bottom: 8px;
 }
 
+/* AUDITORIA-RESPONSIVE-ETAPA2: el markup real (pedidos.html) pone acá 5
+   hijos — input.pedcart-cant, span.pedcart-x ("×"), input.pedcart-precio,
+   span.pedcart-eq ("="), span.pedcart-subtotal — no 3 campos envueltos en
+   .pedcart-num-field (esa clase no existe en ningún HTML, quedó de un
+   diseño anterior). Con 3 columnas fijas y 5 hijos, el grid auto-ubicaba
+   "=" y el subtotal en una segunda fila, y encima gastaba una columna
+   entera (1fr, ~1/3 del ancho) en cada símbolo "×"/"=". Se pasa a 5
+   columnas donde los símbolos usan solo el ancho de su contenido (auto)
+   y cantidad/precio/subtotal se reparten el resto — entra todo en una
+   sola fila también en mobile. */
 .pedcart-row-nums {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1.1fr auto 1.1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
 }
-.pedcart-num-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.pedcart-num-field span {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+.pedcart-x,
+.pedcart-eq {
   color: var(--color-text-muted);
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .pedcart-cant,
 .pedcart-precio {
   width: 100%;
-  padding: 7px 6px;
+  min-width: 0;
+  padding: 7px 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 13.5px;
@@ -265,11 +275,47 @@
 }
 .pedcart-subtotal {
   display: block;
+  min-width: 0;
   font-size: 13.5px;
   font-weight: 700;
   color: var(--color-primary);
   padding: 7px 0;
+  text-align: right;
+  overflow-wrap: break-word;
+}
+
+/* v(combos): renglón de combo — sin <select> de producto (nombre fijo +
+   insignia) y con el precio de solo lectura (el server siempre usa
+   combo.precio, editarlo acá sería engañoso). Mismo grid de 5 columnas
+   que .pedcart-row-nums para que cantidad/×/precio/=/subtotal queden
+   alineados con los renglones de producto de arriba/abajo. */
+.pedcart-row--combo { border-color: var(--color-primary); }
+.pedcart-combo-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pedcart-combo-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.pedcart-precio-fijo {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 4px;
+  font-size: 13.5px;
   text-align: center;
+  color: var(--color-text-muted);
 }
 
 /* ── Buscador de productos: tipografía y áreas más grandes solo dentro
@@ -283,12 +329,6 @@
 #pedido-picker-container .pp-card-precio { font-size: 14px; }
 #pedido-picker-container .pp-cant { height: 36px; font-size: 14px; }
 #pedido-picker-container .pp-btn-add { padding: 9px; font-size: 13px; }
-#pedido-picker-container .pp-list-row { padding: 13px 12px; }
-#pedido-picker-container .pp-list-nombre { font-size: 14.5px; }
-#pedido-picker-container .pp-list-meta { font-size: 12.5px; }
-#pedido-picker-container .pp-list-cant { width: 90px; height: 40px; font-size: 15px; }
-#pedido-picker-container .pp-lista-footer-hint { font-size: 12.5px; }
-#pedido-picker-container .pp-btn-agregar-varios { padding: 10px 20px; font-size: 13.5px; }
 
 @media (max-width: 980px) {
   .pedfs-body { flex-direction: column; }
@@ -309,19 +349,36 @@
   .pedfs-cart-list { padding: 12px 14px; }
   /* Total: que no se comprima */
   .pedfs-cart-total { padding: 14px 16px; font-size: 15px; }
-  /* Item del carrito: 2 columnas (cant | precio) + subtotal en fila propia */
-  .pedcart-item-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-  }
-  .pedcart-subtotal-cell {
-    grid-column: 1 / -1 !important;
-    text-align: right !important;
-  }
+  /* Item del carrito en pantallas muy angostas: los inputs de cantidad/
+     precio quedan bien apretados en una sola fila con los símbolos en
+     auto — se achica tipografía y padding en vez de partir en 2 filas
+     (evita el salto visual de "= $subtotal" quedando descolgado). */
+  .pedcart-row-nums { gap: 4px; }
+  .pedcart-x, .pedcart-eq { font-size: 11px; }
+  .pedcart-cant, .pedcart-precio { padding: 6px 2px; font-size: 12.5px; }
+  .pedcart-subtotal { font-size: 12.5px; }
   /* Formulario de datos del pedido */
   .pedfs-datos-grid { gap: 10px !important; }
   .pedfs-main { padding-left: 14px !important; padding-right: 14px !important; }
   /* Búsqueda de productos: picker más compacto */
   #pedido-picker-container .pp-grid { max-height: 320px; gap: 10px; }
-  #pedido-picker-container .pp-list-cant { width: 70px; height: 36px; font-size: 14px; }
+}
+
+/* ── Botón flotante "Trabajar con IA" tapa el footer del modal ──────────
+   El botón del chat-widget es position:fixed con z-index:590, por encima
+   de cualquier .pres-modal-overlay (z-index:300) y de #modal-pedido
+   (z-index:400) — se superpone al botón "Cancelar" del modal de pedido
+   (pantalla completa), al de presupuesto, y también al footer del modal
+   de DETALLE de pedido (#modal-pedido, el panel lateral con "Reintentar
+   Comprobante de Venta" / "Imprimir remito" — ver captura del hallazgo:
+   el círculo y la píldora del chat quedaban pisando esos botones).
+   Se oculta mientras cualquiera de los tres está abierto y reaparece
+   solo al cerrarlos. */
+body:has(#pedido-modal-nuevo.pres-modal-overlay:not(.hidden)) .chat-asistente-boton,
+body:has(#pedido-modal-nuevo.pres-modal-overlay:not(.hidden)) .chat-asistente-panel,
+body:has(#pres-modal-nuevo.pres-modal-overlay:not(.hidden)) .chat-asistente-boton,
+body:has(#pres-modal-nuevo.pres-modal-overlay:not(.hidden)) .chat-asistente-panel,
+body:has(#modal-pedido.modal.open) .chat-asistente-boton,
+body:has(#modal-pedido.modal.open) .chat-asistente-panel {
+  display: none !important;
 }

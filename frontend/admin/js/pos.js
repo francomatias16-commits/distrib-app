@@ -75,7 +75,18 @@ async function apiPost(url, body) {
   return data;
 }
 
-const fmt = (n) => window.formatARS ? window.formatARS(n) : `$ ${Number(n || 0).toFixed(2)}`;
+async function apiPut(url, body) {
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw Object.assign(new Error(data?.error || 'Error de red'), data, { status: resp.status });
+  return data;
+}
+
+const fmt = (n) => window.formatARS ? window.formatARS(n) : `$ ${Math.round(Number(n || 0)).toLocaleString('es-AR')}`;
 
 // ── Init ──────────────────────────────────────────────────────────────────
 window.authReady.then(async () => {
@@ -107,60 +118,322 @@ window.authReady.then(async () => {
   }
 }).catch(() => {});
 
-// ── Atajos de teclado globales (Fase 2 — ítem 7 y 8) ────────────────────
-// F2 → abrir cobro; Enter en modal cobro → confirmar si el pago cierra.
-// Se registran en document (no en el input) para que funcionen siempre
-// que el foco esté dentro del POS y no dentro de un input de texto.
+// ── Atajos de teclado profesionales de POS/caja (Fase 2 — ítem 7 y 8, + set
+// ampliado tipo caja registradora real) ─────────────────────────────────
+//   F1  / 1       Ayuda — mostrar este listado de atajos en pantalla
+//   F2  / 2       Cobrar
+//   F3  / 3       Ir al descuento global (solo si hay ítems en el carrito)
+//   F4  / 4       Nueva venta (vaciar carrito)
+//   F5  / 5       Ir al buscador de productos / código de barras
+//   F6  / 6       Elegir cliente
+//   F7  / 7       Movimiento de caja (sangría / refuerzo)
+//   F8  / 8       Cerrar caja (cierre de turno)
+//   F9  / 9       Reporte Z
+//   F10 / 0       Escanear con la cámara
+//   + / -         Sumar/restar una unidad al último producto del carrito
+//   Supr / ⌫      Quitar el último producto agregado al carrito
+//   Enter         Agregar producto (buscador) / confirmar (modal de cobro)
+//   Esc           Cerrar cualquier modal abierto
+//
+// Por qué cada acción tiene DOS teclas: en varias notebooks la fila F1-F12
+// viene mapeada de fábrica a funciones de hardware (touchpad, brillo,
+// volumen, captura de pantalla) y el navegador nunca recibe el evento de
+// tecla de función — no hay forma de detectarlo desde JS, porque el evento
+// no llega. El dígito 1-0 (mismo número que la F-key, en la fila superior,
+// sin Fn) es el respaldo de una sola tecla que sí llega siempre. Los dos
+// caminos llaman a la misma función, así que no hay lógica duplicada ni
+// riesgo de que un atajo haga algo distinto según cuál tecla se usó.
+//
+// Se registran en document (no en un input puntual) para que respondan
+// sin importar dónde esté el foco — igual que en una caja real, donde el
+// cajero no tiene por qué clickear antes de usar el atajo. Los F-keys no
+// escriben texto, así que no hace falta excluir los inputs ahí; los
+// dígitos 1-0 SÍ se excluyen cuando el foco está en un campo de texto
+// (buscador, cantidad, % de descuento, etc.) para no interrumpir lo que
+// el cajero esté tipeando — mismo criterio que ya usaban Supr/Backspace
+// y +/-.
+// Detecta si hay algún modal del POS visible. Usa getComputedStyle en vez de
+// comparar el string de overlay.style.display a mano: los modales de este
+// archivo se abren con style.display='' (vacío, cae al display:flex del CSS)
+// y cierran con 'none' — comparar contra '' como "cerrado" hacía que esta
+// función (y el check de cobroYaAbierto de más abajo) nunca detectaran un
+// modal realmente abierto, porque ninguno usa otro valor que no sea '' o
+// 'none'. getComputedStyle no depende de qué string puso el JS, lee el
+// resultado final aplicado (CSS + inline) y por eso es la forma correcta
+// de preguntar "¿esto se está mostrando en pantalla ahora mismo?".
+function hayModalAbierto() {
+  return Array.from(document.querySelectorAll('.pos-modal-overlay'))
+    .some(el => getComputedStyle(el).display !== 'none');
+}
+
+// Foco actual en un campo donde el dígito 1-0 tiene que escribirse como
+// texto en vez de disparar un atajo (buscador, cantidad, descuento, PIN,
+// alta rápida de cliente, etc.). Mismo chequeo que ya usaban +/- y
+// Supr/Backspace, factorizado acá para reutilizarlo en los atajos F1-F10.
+function enCampoDeTexto() {
+  const activo = document.activeElement;
+  return !!(activo && (activo.tagName === 'INPUT' || activo.tagName === 'TEXTAREA' || activo.isContentEditable));
+}
+
+// true si `e` corresponde a la F-key indicada o a su dígito de respaldo
+// (mismo número, 1-0, sin Fn) — pero el dígito solo cuenta como atajo si
+// el foco no está sobre un campo de texto en ese momento.
+function esAtajo(e, teclaF, digito) {
+  if (e.key === teclaF) return true;
+  return e.key === digito && !enCampoDeTexto();
+}
+
+// Intenta abrir el modal de cobro (acción de F2/2 y, si el carrito tiene
+// ítems, también del Enter "suelto" — ver más abajo). Devuelve true si lo
+// abrió, false si no correspondía (ya hay un modal abierto, el carrito
+// está vacío, etc.) — así el que llama sabe si tiene que avisar algo más
+// o no.
+function intentarAbrirCobro() {
+  if (hayModalAbierto()) return false; // no interrumpir otro modal en curso (PIN, movimiento, etc.)
+  const overlay = document.getElementById('modal-cobro-overlay');
+  const cobroYaAbierto = getComputedStyle(overlay).display !== 'none';
+  if (cobroYaAbierto) return false;
+  const btnCobrar = document.getElementById('btn-cobrar');
+  if (btnCobrar.disabled) {
+    mostrarToast('Agregá al menos un producto para cobrar', 'default', 2500);
+    return false;
+  }
+  window.abrirModalCobro();
+  return true;
+}
+
 document.addEventListener('keydown', (e) => {
-  // F2 — abrir cobro (ítem 8), solo si no hay ningún otro modal abierto
-  if (e.key === 'F2') {
+  // El modal de cobro tiene su propio mapa de teclas. Se procesa antes de
+  // F1-F10 para que las letras no se pierdan y para que Supr quite la línea
+  // activa, no el último producto del carrito.
+  if (manejarAtajoModalCobro(e)) return;
+
+  // F1 — ayuda: listado de atajos en pantalla. Va primero porque no toca
+  // nada del carrito ni de la venta en curso, así que no hace falta
+  // encadenar los mismos chequeos de modal que el resto.
+  if (esAtajo(e, 'F1', '1')) {
     e.preventDefault();
-    const otrosModalesAbiertos = ['modal-pin-overlay','modal-movimiento-overlay',
-      'modal-admin-overlay','modal-cierre-overlay','modal-z-overlay','modal-ticket-overlay']
-      .some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none' && el.style.display !== ''; });
-    const overlay = document.getElementById('modal-cobro-overlay');
-    const cobroCerrado = overlay.style.display === 'none' || !overlay.style.display;
-    if (cobroCerrado && !otrosModalesAbiertos) {
-      const btnCobrar = document.getElementById('btn-cobrar');
-      if (!btnCobrar.disabled) window.abrirModalCobro();
-    }
+    window.abrirModalAtajos?.();
     return;
   }
 
-  // Escape → cerrar cualquier modal abierto
+  // F2 / 2 — abrir cobro (ítem 8)
+  if (esAtajo(e, 'F2', '2')) {
+    e.preventDefault();
+    intentarAbrirCobro();
+    return;
+  }
+
+  // F3 — foco directo en el % de descuento global. El campo solo está
+  // visible cuando el carrito tiene ítems (lo muestra/oculta el
+  // MutationObserver de pos.html); si está oculto no hay nada que
+  // enfocar, así que avisamos en vez de fallar en silencio.
+  if (esAtajo(e, 'F3', '3')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    const inputDesc = document.getElementById('pos-input-descuento-global');
+    if (!inputDesc || inputDesc.closest('#pos-descuento-global-wrap')?.offsetParent === null) {
+      mostrarToast('Agregá al menos un producto para aplicar un descuento', 'default', 2500);
+      return;
+    }
+    inputDesc.focus();
+    inputDesc.select();
+    return;
+  }
+
+  // F4 — nueva venta (vaciar carrito). vaciarCarrito() ya pide confirmación
+  // si hay ítems y no hace nada si el carrito ya está vacío.
+  if (esAtajo(e, 'F4', '4')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    window.vaciarCarrito();
+    return;
+  }
+
+  // F5 — ir al buscador de productos (mismo destino que tenía el botón
+  // "Buscar artículo", sacado por redundante: el input ya está a la vista
+  // y con foco automático). preventDefault() acá es clave:
+  // sin esto, el navegador refresca la página entera (atajo nativo de F5).
+  if (esAtajo(e, 'F5', '5')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    inputProducto?.focus();
+    inputProducto?.select();
+    return;
+  }
+
+  // F6 — elegir cliente
+  if (esAtajo(e, 'F6', '6')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    window.abrirBuscadorCliente?.();
+    return;
+  }
+
+  // F7 — movimiento de caja (sangría / refuerzo). Solo si el botón está
+  // visible (hay un turno abierto — ver #pos-quickbar-turno).
+  if (esAtajo(e, 'F7', '7')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    const btnMov = document.getElementById('btn-movimiento-caja');
+    if (btnMov && btnMov.offsetParent !== null) window.abrirModalMovimiento?.();
+    return;
+  }
+
+  // F8 — cerrar caja (cierre de turno). abrirModalCierreTurno() ya valida
+  // que el carrito esté vacío antes de abrir el modal, así que acá solo
+  // hace falta confirmar que el botón esté en pantalla (turno abierto).
+  if (esAtajo(e, 'F8', '8')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    const btnCierre = document.getElementById('btn-abrir-cierre-turno');
+    if (btnCierre && btnCierre.offsetParent !== null) window.abrirModalCierreTurno?.();
+    return;
+  }
+
+  // F9 — reporte Z. Mismo criterio de visibilidad que F7: el botón vive en
+  // el grupo #pos-quickbar-turno, que solo se muestra con turno abierto.
+  if (esAtajo(e, 'F9', '9')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    const btnZ = document.getElementById('btn-reporte-z');
+    if (btnZ && btnZ.offsetParent !== null) window.abrirModalReporteZ?.();
+    return;
+  }
+
+  // F10 — escanear con la cámara de esta pantalla (alternativa de teclado
+  // al botón "Cámara" junto al buscador).
+  if (esAtajo(e, 'F10', '0')) {
+    e.preventDefault();
+    if (hayModalAbierto()) return;
+    const btnCamara = document.getElementById('pos-btn-camara');
+    if (btnCamara && btnCamara.offsetParent !== null) window.abrirModalScanner?.();
+    return;
+  }
+
+  // "+" / "-" (fuera de un campo de texto) — sumar/restar una unidad al
+  // último producto agregado al carrito. Mismo criterio que Supr/Backspace
+  // de acá abajo: se excluye cuando el foco está en un campo de texto para
+  // no interferir con lo que el cajero esté tipeando ahí (ej. un % de
+  // descuento). Para productos por peso ajusta de a 0.1 kg, igual que los
+  // botones +/- de cada fila del carrito.
+  if (e.key === '+' || e.key === '-') {
+    if (enCampoDeTexto() || hayModalAbierto() || !carrito.length) return;
+    e.preventDefault();
+    const idx = carrito.length - 1;
+    const item = carrito[idx];
+    const paso = item.vendido_por_peso ? 0.1 : 1;
+    const nuevaCantidad = e.key === '+' ? item.cantidad + paso : item.cantidad - paso;
+    window.cambiarCantidad(item.producto_id, nuevaCantidad.toFixed(3), idx);
+    return;
+  }
+
+  // Supr / Backspace (fuera de un campo de texto) — quitar el último
+  // producto agregado al carrito. Se excluye explícitamente cuando el
+  // foco está en un input/textarea/contenteditable: ahí esas teclas
+  // tienen que seguir borrando caracteres, no tocar el carrito. Se
+  // escuchan las dos variantes porque en teclados Mac la tecla rotulada
+  // "delete" reporta e.key === 'Backspace'.
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (enCampoDeTexto() || hayModalAbierto() || !carrito.length) return;
+    e.preventDefault();
+    const idx = carrito.length - 1;
+    const nombreQuitado = carrito[idx].nombre;
+    quitarDelCarrito(carrito[idx].producto_id, idx);
+    mostrarToast(`Se quitó "${nombreQuitado}" del carrito`, 'default', 2200);
+    return;
+  }
+
+  // Escape → cerrar cualquier modal abierto (todos, no solo un listado fijo
+  // — antes se armaba a mano y se desactualizaba cada vez que se sumaba un
+  // modal nuevo; ahora barre por clase, así ningún modal futuro se queda
+  // afuera).
   if (e.key === 'Escape') {
-    ['modal-cobro-overlay','modal-cierre-overlay','modal-admin-overlay',
-     'modal-ticket-overlay','modal-movimiento-overlay','modal-z-overlay',
-     'modal-pin-overlay'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.style.display !== 'none') el.style.display = 'none';
+    document.querySelectorAll('.pos-modal-overlay').forEach(el => {
+      if (el.style.display !== 'none') el.style.display = 'none';
     });
     return;
   }
 
-  // Enter dentro del modal de cobro → confirmar si pago cierra (ítem 7)
+  // Enter dentro del modal de cobro → confirmar si pago cierra (ítem 7).
+  // Enter dentro de "¿Emitir factura?" → "Sí, facturar ahora" (a menos que
+  // el foco esté en "No, solo ticket"). Enter dentro del modal de ticket
+  // (post-venta) → "Nueva venta", su acción primaria. En los tres casos,
+  // si el foco ya está sobre un <button>, se deja pasar sin preventDefault
+  // para que el Enter dispare el click nativo de *ese* botón puntual (así
+  // Tab + Enter para elegir la opción secundaria sigue funcionando).
+  // Enter "suelto" (ningún modal abierto, buscador vacío) → mismo destino
+  // que F2/2: abrir cobro. Así Enter deja de ser una tecla muerta en la
+  // pantalla de venta en reposo — antes solo hacía algo si el foco estaba
+  // en el buscador con texto adentro (buscar producto) o dentro del modal
+  // de cobro ya abierto; si ninguna de las dos aplicaba, no pasaba nada,
+  // aunque el cartel de atajos de abajo la mostrara como "Confirmar".
   if (e.key === 'Enter') {
-    const overlay = document.getElementById('modal-cobro-overlay');
-    if (overlay && overlay.style.display !== 'none') {
+    const activo = document.activeElement;
+    const focoEnBoton = activo?.tagName === 'BUTTON';
+
+    // "¿Emitir factura?" se abre por encima del modal de ticket, así que
+    // se chequea primero.
+    const overlayFo = document.getElementById('modal-facturar-opcional-overlay');
+    if (overlayFo && getComputedStyle(overlayFo).display !== 'none') {
+      if (focoEnBoton) return; // dejar que el botón enfocado maneje su propio Enter
+      e.preventDefault();
+      document.getElementById('btn-fo-facturar')?.click();
+      return;
+    }
+
+    const overlayCobro = document.getElementById('modal-cobro-overlay');
+    if (overlayCobro && getComputedStyle(overlayCobro).display !== 'none') {
       // Solo si el foco no está en un <select> o en el botón cancelar
-      const activo = document.activeElement;
       const esCancelar = activo?.classList.contains('btn-secundario');
       if (!esCancelar) {
         e.preventDefault();
         _intentarConfirmarCobroPorEnter();
       }
+      return;
     }
+
+    const overlayTicket = document.getElementById('modal-ticket-overlay');
+    if (overlayTicket && getComputedStyle(overlayTicket).display !== 'none') {
+      if (focoEnBoton) return;
+      e.preventDefault();
+      window.cerrarModalTicket();
+      return;
+    }
+
+    // Sin modal abierto: si el buscador tiene texto, es un código de barras
+    // o nombre en curso — ese Enter lo maneja el listener propio de
+    // inputProducto (agregar producto), no corresponde tocar el carrito acá.
+    if (inputProducto && inputProducto.value.trim()) return;
+    if (hayModalAbierto()) return; // otro modal (PIN, movimiento, etc.) en curso
+    e.preventDefault();
+    intentarAbrirCobro();
   }
 });
 
+// F1 — modal de ayuda con el listado de atajos (ver comentario más arriba
+// para la lista completa). Es un modal simple, sin datos del servidor, así
+// que no necesita estado propio más allá de mostrar/ocultar el overlay.
+window.abrirModalAtajos = function () {
+  if (hayModalAbierto()) return;
+  const overlay = document.getElementById('modal-atajos-overlay');
+  if (overlay) overlay.style.display = '';
+};
+window.cerrarModalAtajos = function () {
+  const overlay = document.getElementById('modal-atajos-overlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+// Enter dentro del modal de cobro llama exactamente al mismo camino que el
+// botón "Confirmar venta" (mismo wrapper anti-doble-click, mismos mensajes
+// de error) — antes tenía una validación propia
+// (`Math.abs(pagado - total) < 0.01`) que exigía centavo exacto y no
+// contemplaba pago de más (vuelto) ni cuenta corriente, así que un cobro
+// con centavos de diferencia el botón sí lo dejaba pasar pero Enter no
+// hacía nada, en silencio.
 function _intentarConfirmarCobroPorEnter() {
-  const { total } = calcularTotales();
-  const pagos = leerPagos();
-  const pagado = pagos.reduce((s, p) => s + p.monto, 0);
-  if (Math.abs(pagado - total) < 0.01) {
-    window.confirmarCobro();
-  }
-  // Si no cierra, no hace nada — el cajero tiene que ajustar el monto
+  const btn = document.getElementById('btn-confirmar-cobro');
+  if (btn) window.btnAsyncClick(btn, confirmarCobro);
 }
 
 // ── Cajas / turnos ───────────────────────────────────────────────────────
@@ -389,7 +662,7 @@ function renderResumenCierre(resumen) {
     html += `<div class="pos-cierre-resumen-fila" style="margin-top:6px;font-size:var(--font-size-xs);color:var(--color-text-light);font-weight:600;text-transform:uppercase;letter-spacing:.04em"><span colspan="2">Movimientos de caja</span></div>`;
     movs.forEach(m => {
       const esEgreso = m.tipo === 'sangria' || m.tipo === 'retiro_final';
-      html += `<div class="pos-cierre-resumen-fila"><span>${labelMovCaja(m.tipo)}${m.concepto ? ` — ${escapeHtml(m.concepto)}` : ''}</span><span style="color:${esEgreso ? 'var(--color-danger,#7A1E19)' : 'var(--nav-ventas,#1F5B4A)'}">${esEgreso ? '−' : '+'}${fmt(m.monto)}</span></div>`;
+      html += `<div class="pos-cierre-resumen-fila"><span>${labelMovCaja(m.tipo)}${m.concepto ? ` — ${escapeHtml(m.concepto)}` : ''}</span><span style="color:${esEgreso ? 'var(--color-danger,#7A2820)' : 'var(--nav-ventas,#487050)'}">${esEgreso ? '−' : '+'}${fmt(m.monto)}</span></div>`;
     });
   }
 
@@ -470,7 +743,7 @@ async function _cargarEstadoCaja() {
 
   try {
     const data = await apiGet(`/api/pos/reporte-z?turno_id=${turnoActual.id}`);
-    const fmt  = v => '$\u00a0' + Number(v || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmt  = v => '$\u00a0' + Math.round(Number(v || 0)).toLocaleString('es-AR');
 
     document.getElementById('caja-kpi-apertura').textContent = fmt(data.monto_inicial);
     document.getElementById('caja-kpi-efectivo').textContent = fmt(data.efectivo_esperado);
@@ -561,6 +834,39 @@ inputProducto?.addEventListener('keydown', (e) => {
     if (q) buscarProductos(q, true);
   }
 });
+
+// ── "Sacar" el cursor del buscador cuando queda ocioso y vacío ─────────────
+// El buscador se auto-enfoca (autofocus + refocus tras cada producto
+// agregado) para que un lector de código de barras físico pueda escanear
+// sin que el cajero tenga que clickear antes — eso hay que mantenerlo, si
+// no un escaneo con el foco en otro lado se pierde. El problema es que
+// mientras ese foco está puesto, los atajos de dígito (1-0, el respaldo de
+// F1-F10 en notebooks donde la fila F no llega al navegador — ver v752)
+// quedan bloqueados, porque un dígito ahí tiene que poder escribirse como
+// parte de un código, no disparar una acción.
+// Solución: si el campo queda vacío (nada escaneado ni tipeado) durante
+// más de este tiempo, se le saca el foco solo. Un escaneo real llena el
+// campo casi al instante y dispara 'input' en cada tecla, así que
+// reinicia el timer constantemente mientras está en curso — nunca llega a
+// dispararse en medio de un escaneo. Con el campo vacío y quieto (recién
+// terminó de vender, o todavía no arrancó) el cursor sale solo y los
+// dígitos quedan libres para actuar como atajo. Si el campo tiene texto
+// (el cajero está buscando por nombre y se detuvo a pensar/leer
+// resultados) no se toca — solo aplica con el campo vacío.
+const _POS_BLUR_BUSCADOR_OCIOSO_MS = 1500;
+let _blurBuscadorTimer = null;
+function _programarBlurBuscadorSiOcioso() {
+  clearTimeout(_blurBuscadorTimer);
+  if (inputProducto.value.trim()) return; // hay texto: no se toca el foco
+  _blurBuscadorTimer = setTimeout(() => {
+    if (document.activeElement === inputProducto && !inputProducto.value.trim()) {
+      inputProducto.blur();
+    }
+  }, _POS_BLUR_BUSCADOR_OCIOSO_MS);
+}
+inputProducto?.addEventListener('focus', _programarBlurBuscadorSiOcioso);
+inputProducto?.addEventListener('input', _programarBlurBuscadorSiOcioso);
+inputProducto?.addEventListener('blur', () => clearTimeout(_blurBuscadorTimer));
 
 // Red de seguridad final: si por lo que sea (lector físico levantando el QR
 // de la pantalla, pegado manual, etc.) llega acá el propio link de
@@ -706,7 +1012,7 @@ function renderGrillaFavoritos(favs) {
   }
 
   cont.innerHTML = favs.map(f => {
-    const color = f.color || 'var(--nav-ventas, #1F5B4A)';
+    const color = f.color || 'var(--nav-ventas, #487050)';
     const etiqueta = f.etiqueta || f.nombre || 'Producto';
     return `
       <button class="pos-fav-btn" data-id="${f.producto_id}" data-fav='${JSON.stringify(f)}'
@@ -756,7 +1062,7 @@ function renderFavoritosAdmin(favs) {
       <span class="pos-fav-admin-pos">${idx + 1}</span>
       <span class="pos-fav-admin-nombre">${escapeHtml(f.nombre)}</span>
       <input type="text" class="input-base pos-fav-admin-etiqueta" value="${escapeHtml(f.etiqueta || '')}" placeholder="Nombre corto (opcional)" maxlength="30" />
-      <input type="color" class="pos-fav-admin-color" value="${f.color || '#1F5B4A'}" title="Color del botón" />
+      <input type="color" class="pos-fav-admin-color" value="${f.color || '#487050'}" title="Color del botón" />
       <button class="btn btn--sm" onclick="guardarFavorito('${f.id}', '${f.producto_id}', this)" title="Guardar cambios"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg></button>
       <button class="pos-venta-btn-anular" onclick="quitarFavorito('${f.id}')">Quitar</button>
     </div>
@@ -766,7 +1072,7 @@ function renderFavoritosAdmin(favs) {
 window.guardarFavorito = async function (favId, productoId, btn) {
   const fila = btn.closest('[data-id]');
   const etiqueta = fila.querySelector('.pos-fav-admin-etiqueta')?.value?.trim() || null;
-  const color    = fila.querySelector('.pos-fav-admin-color')?.value || '#1F5B4A';
+  const color    = fila.querySelector('.pos-fav-admin-color')?.value || '#487050';
   try {
     btn.disabled = true;
     await apiPost('/api/pos/favoritos', { producto_id: productoId, etiqueta: etiqueta || null, color });
@@ -1004,7 +1310,10 @@ function calcularTotales() {
 
   const totalSinDescGlobal = subtotal + iva_total;
   const descGlobalMonto = totalSinDescGlobal * (descuentoGlobal / 100);
-  const total = Math.round((totalSinDescGlobal - descGlobalMonto) * 100) / 100;
+  // Redondeo a peso entero: hoy no circulan fracciones de peso (el billete/
+  // moneda más chico es $10), así que no tiene sentido arrastrar centavos
+  // de IVA/descuentos hasta el total. Se redondea una sola vez acá.
+  const total = Math.round(totalSinDescGlobal - descGlobalMonto);
   return { subtotal, iva_total, descGlobalMonto, total };
 }
 
@@ -1176,16 +1485,124 @@ const MEDIOS_PAGO = [
   { value: 'efectivo',         label: 'Efectivo' },
   { value: 'transferencia',    label: 'Transferencia' },
   { value: 'tarjeta',          label: 'Tarjeta' },
-  { value: 'qr',               label: 'QR' },
+  { value: 'qr',               label: 'MP QR' },
   { value: 'cuenta_corriente', label: 'Cuenta corriente' },
 ];
 
-// Los montos de pago se precargan/ingresan en pesos enteros (sin centavos),
-// mientras que el total puede traer fracciones de centavo por el cálculo de
-// IVA/descuentos. Tolerar hasta $1 de diferencia evita que un redondeo de
-// centavos bloquee el cobro (nadie opera con fracciones de peso en efectivo,
-// tarjeta ni cuenta corriente).
-const TOLERANCIA_REDONDEO_PAGO = 1;
+// Dentro del cobro se usan letras mnemotécnicas para no pisar los atajos
+// globales 1-0/F1-F10 del POS.
+const ATAJOS_MEDIO_PAGO = {
+  e: 'efectivo',
+  t: 'transferencia',
+  q: 'qr',
+  k: 'tarjeta',
+  c: 'cuenta_corriente',
+};
+
+function modalCobroVisible() {
+  const overlay = document.getElementById('modal-cobro-overlay');
+  return !!overlay && getComputedStyle(overlay).display !== 'none';
+}
+
+function filaPagoActiva() {
+  const activa = document.querySelector('#pos-pagos-lista .pos-pago-fila.pos-pago-fila--activa');
+  if (activa) return activa;
+  const enfocada = document.activeElement?.closest?.('#pos-pagos-lista .pos-pago-fila');
+  return enfocada || document.querySelector('#pos-pagos-lista .pos-pago-fila:last-child');
+}
+
+function activarFilaPago(fila, enfocar = false) {
+  if (!fila) return;
+  document.querySelectorAll('#pos-pagos-lista .pos-pago-fila').forEach((otra) => {
+    otra.classList.toggle('pos-pago-fila--activa', otra === fila);
+    otra.setAttribute('aria-current', otra === fila ? 'true' : 'false');
+  });
+  if (enfocar) fila.querySelector('.pos-pago-monto')?.focus();
+}
+
+function actualizarBotonesMedio(fila) {
+  if (!fila) return;
+  const medio = fila.querySelector('.pos-pago-medio')?.value;
+  fila.querySelectorAll('.pos-pago-metodo').forEach((boton) => {
+    const seleccionado = boton.dataset.medio === medio;
+    boton.classList.toggle('pos-pago-metodo--activo', seleccionado);
+    boton.setAttribute('aria-checked', seleccionado ? 'true' : 'false');
+  });
+}
+
+function seleccionarMedioPago(medio, fila = filaPagoActiva()) {
+  if (!fila || !MEDIOS_PAGO.some((opcion) => opcion.value === medio)) return;
+  const select = fila.querySelector('.pos-pago-medio');
+  if (select) select.value = medio;
+  activarFilaPago(fila);
+  actualizarBotonesMedio(fila);
+  recalcularPagos();
+}
+
+function quitarLineaPago(fila) {
+  if (!fila) return;
+  const filas = [...document.querySelectorAll('#pos-pagos-lista .pos-pago-fila')];
+  if (filas.length === 1) {
+    // Nunca dejamos el modal sin línea: el cajero puede vaciarla y elegir
+    // otro medio, pero la estructura sigue lista para confirmar.
+    const monto = fila.querySelector('.pos-pago-monto');
+    if (monto) monto.value = '';
+    activarFilaPago(fila, true);
+    recalcularPagos();
+    return;
+  }
+  const indice = filas.indexOf(fila);
+  const siguiente = filas[indice + 1] || filas[indice - 1];
+  fila.remove();
+  if (siguiente) activarFilaPago(siguiente, true);
+  recalcularPagos();
+}
+
+function manejarAtajoModalCobro(e) {
+  if (!modalCobroVisible() || e.ctrlKey || e.altKey || e.metaKey) return false;
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    window.cerrarModalCobro?.();
+    return true;
+  }
+
+  const medio = ATAJOS_MEDIO_PAGO[e.key.toLowerCase()];
+  if (medio) {
+    e.preventDefault();
+    seleccionarMedioPago(medio);
+    filaPagoActiva()?.querySelector('.pos-pago-monto')?.focus();
+    return true;
+  }
+
+  if (e.key.toLowerCase() === 'a') {
+    e.preventDefault();
+    window.agregarLineaPago?.();
+    return true;
+  }
+
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    quitarLineaPago(filaPagoActiva());
+    return true;
+  }
+
+  // Permite moverse entre líneas sin abandonar el modal cuando se divide un
+  // cobro en varios medios.
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
+      document.querySelectorAll('#pos-pagos-lista .pos-pago-fila').length > 1) {
+    e.preventDefault();
+    const filas = [...document.querySelectorAll('#pos-pagos-lista .pos-pago-fila')];
+    const actual = Math.max(0, filas.indexOf(filaPagoActiva()));
+    const delta = e.key === 'ArrowDown' ? 1 : -1;
+    const destino = filas[(actual + delta + filas.length) % filas.length];
+    activarFilaPago(destino, true);
+    destino.querySelector('.pos-pago-monto')?.select();
+    return true;
+  }
+
+  return false;
+}
 
 window.abrirModalCobro = function () {
   const { total } = calcularTotales();
@@ -1193,7 +1610,9 @@ window.abrirModalCobro = function () {
   document.getElementById('pos-pagos-lista').innerHTML = '';
   document.getElementById('pos-cobro-error').style.display = 'none';
   document.getElementById('pos-vuelto-wrap').style.display = 'none';
-  agregarLineaPago(total);
+  // QR queda seleccionado como en la operación actual del mostrador; el
+  // cajero puede cambiarlo con E/T/Q/K/C sin tocar el mouse.
+  agregarLineaPago(total, 'qr');
   document.getElementById('modal-cobro-overlay').style.display = '';
   // Foco al monto de la primera línea
   setTimeout(() => document.querySelector('#pos-pagos-lista .pos-pago-monto')?.select(), 60);
@@ -1203,27 +1622,62 @@ window.cerrarModalCobro = function () {
   document.getElementById('modal-cobro-overlay').style.display = 'none';
 };
 
-window.agregarLineaPago = function (montoPrecargado) {
+window.agregarLineaPago = function (montoPrecargado, medioPrecargado) {
   const cont = document.getElementById('pos-pagos-lista');
   const id = 'pago_' + Math.random().toString(36).slice(2, 9);
+  const medioInicial = medioPrecargado || (cont.children.length ? 'efectivo' : 'qr');
   const div = document.createElement('div');
   div.className = 'pos-pago-fila';
   div.dataset.id = id;
+  div.setAttribute('aria-current', 'false');
   div.innerHTML = `
-    <select class="input-base pos-pago-medio">
-      ${MEDIOS_PAGO.map(m => `<option value="${m.value}">${m.label}</option>`).join('')}
+    <div class="pos-pago-fila-top">
+      <span class="pos-pago-numero">Pago ${cont.children.length + 1}</span>
+      <button type="button" class="pos-item-quitar pos-pago-quitar" title="Quitar esta línea (Supr)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span class="sr-only">Quitar línea</span>
+      </button>
+    </div>
+    <div class="pos-pago-metodos" role="radiogroup" aria-label="Medio del pago ${cont.children.length + 1}">
+      ${MEDIOS_PAGO.map((m) => `
+        <button type="button" class="pos-pago-metodo" data-medio="${m.value}" role="radio" aria-checked="${m.value === medioInicial ? 'true' : 'false'}">
+          <kbd>${m.value === 'tarjeta' ? 'K' : m.value[0].toUpperCase()}</kbd>
+          <span>${m.label}</span>
+        </button>
+      `).join('')}
+    </div>
+    <label class="pos-pago-importe">
+      <span>Importe</span>
+      <span class="pos-pago-input-wrap">
+        <span aria-hidden="true">$</span>
+        <input type="number" class="input-base pos-pago-monto" min="0" step="1" data-money
+               value="${Number.isFinite(Number(montoPrecargado)) && Number(montoPrecargado) > 0 ? Math.round(montoPrecargado) : ''}" placeholder="0" inputmode="numeric" />
+      </span>
+    </label>
+    <select class="input-base pos-pago-medio pos-pago-medio-fallback" tabindex="-1" aria-hidden="true">
+      ${MEDIOS_PAGO.map(m => `<option value="${m.value}" ${m.value === medioInicial ? 'selected' : ''}>${m.label}</option>`).join('')}
     </select>
-    <input type="number" class="input-base pos-pago-monto" min="0" step="1" data-money
-           value="${montoPrecargado ? Math.round(montoPrecargado) : ''}" placeholder="Monto" />
-    <button class="pos-item-quitar" onclick="this.closest('.pos-pago-fila').remove(); recalcularPagos();" title="Quitar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
   `;
   cont.appendChild(div);
   const inpMonto = div.querySelector('.pos-pago-monto');
   inpMonto.addEventListener('input', recalcularPagos);
-  div.querySelector('.pos-pago-medio').addEventListener('change', recalcularPagos);
+  inpMonto.addEventListener('focus', () => activarFilaPago(div));
+  div.addEventListener('click', () => activarFilaPago(div));
+  div.querySelector('.pos-pago-quitar').addEventListener('click', () => quitarLineaPago(div));
+  div.querySelectorAll('.pos-pago-metodo').forEach((boton) => {
+    boton.addEventListener('click', () => seleccionarMedioPago(boton.dataset.medio, div));
+  });
+  div.querySelector('.pos-pago-medio').addEventListener('change', () => {
+    activarFilaPago(div);
+    actualizarBotonesMedio(div);
+    recalcularPagos();
+  });
+  activarFilaPago(div);
+  actualizarBotonesMedio(div);
   recalcularPagos();
+  if (!Number.isFinite(Number(montoPrecargado)) || Number(montoPrecargado) <= 0) {
+    setTimeout(() => inpMonto.focus(), 0);
+  }
 };
 
 function leerPagos() {
@@ -1238,17 +1692,19 @@ function recalcularPagos() {
   const { total } = calcularTotales();
   const pagos = leerPagos();
   const pagado = pagos.reduce((s, p) => s + p.monto, 0);
-  const diferencia = Math.round((total - pagado) * 100) / 100;
+  // Total y pagos son siempre pesos enteros, así que la diferencia también
+  // sale entera — no hace falta tolerancia de redondeo de centavos.
+  const diferencia = Math.round(total - pagado);
 
   document.getElementById('pos-pagado-total').textContent = fmt(pagado);
   const difEl = document.getElementById('pos-pagado-diferencia');
   difEl.textContent = fmt(Math.abs(diferencia));
-  difEl.style.color = Math.abs(diferencia) < TOLERANCIA_REDONDEO_PAGO ? 'var(--nav-ventas, #1F5B4A)' : 'var(--color-danger, #7A1E19)';
+  difEl.style.color = diferencia <= 0 ? 'var(--nav-ventas, #487050)' : 'var(--color-danger, #7A2820)';
 
   // Mostrar vuelto grande solo si hay efectivo y el cliente pagó de más
   const hayEfectivo = pagos.some(p => p.medio === 'efectivo');
   const vueltoWrap = document.getElementById('pos-vuelto-wrap');
-  if (hayEfectivo && diferencia < -0.005) {
+  if (hayEfectivo && diferencia < 0) {
     const vuelto = Math.abs(diferencia);
     document.getElementById('pos-vuelto-monto').textContent = fmt(vuelto);
     vueltoWrap.style.display = '';
@@ -1277,7 +1733,7 @@ window.confirmarCobro = async function () {
   }
 
   const pagado = pagos.reduce((s, p) => s + p.monto, 0);
-  if (!soloCuentaCorriente && Math.abs(pagado - total) > TOLERANCIA_REDONDEO_PAGO && pagado < total) {
+  if (!soloCuentaCorriente && pagado < total) {
     errEl.textContent = 'El monto pagado no alcanza el total.';
     errEl.style.display = '';
     return;
@@ -1473,9 +1929,34 @@ function mostrarTicket(venta) {
   document.getElementById('pos-ticket-numero').textContent = `N° ${venta.numero}`;
   const { subtotal, iva_total, descGlobalMonto, total } = calcularTotalesDe(venta.items, venta.descuentoGlobal || 0);
 
+  // Encabezado/pie estilo comprobante de comercio — solo se ve en la vista
+  // impresa (@media print, pos.css). Usa empresaData, ya cargado al iniciar
+  // el POS (ver init()), igual que el ticket ESC/POS de pos-printer.js.
+  const fechaTicket = new Date().toLocaleString('es-AR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+  const headerEl = document.getElementById('pos-ticket-print-header');
+  if (headerEl) {
+    headerEl.innerHTML = `
+      <div class="pos-ticket-print-empresa">${escapeHtml(empresaData?.nombre || '')}</div>
+      ${empresaData?.domicilio ? `<div>${escapeHtml(empresaData.domicilio)}</div>` : ''}
+      ${empresaData?.cuit     ? `<div>CUIT: ${escapeHtml(empresaData.cuit)}</div>`     : ''}
+      ${empresaData?.telefono ? `<div>Tel: ${escapeHtml(empresaData.telefono)}</div>`   : ''}
+      <div class="pos-ticket-print-sep"></div>
+      <div class="pos-ticket-print-meta"><span>Ticket N° ${escapeHtml(venta.numero || '')}</span><span>${fechaTicket}</span></div>
+    `;
+  }
+  const footerEl = document.getElementById('pos-ticket-print-footer');
+  if (footerEl) {
+    footerEl.innerHTML = `
+      <div class="pos-ticket-print-sep"></div>
+      <div class="pos-ticket-print-gracias">¡Gracias por su compra!</div>
+    `;
+  }
+
   const pagosEfectivo = (venta.pagos || []).filter(p => p.medio === 'efectivo');
   const pagadoEfectivo = pagosEfectivo.reduce((s, p) => s + p.monto, 0);
-  const vuelto = Math.max(0, Math.round((pagadoEfectivo - total) * 100) / 100);
+  const vuelto = Math.max(0, Math.round(pagadoEfectivo - total));
 
   document.getElementById('pos-ticket-detalle').innerHTML = `
     <div class="pos-ticket-fila"><span>Cliente</span><span>${escapeHtml(venta.cliente?.razon_social || 'Consumidor final')}</span></div>
@@ -1489,7 +1970,7 @@ function mostrarTicket(venta) {
     ${venta.pagos.map(p => `
       <div class="pos-ticket-fila"><span>Pago (${labelMedio(p.medio)})</span><span>${fmt(p.monto)}</span></div>
     `).join('')}
-    ${vuelto > 0 ? `<div class="pos-ticket-fila" style="color:var(--nav-ventas,#1F5B4A);font-weight:600"><span>Vuelto</span><span>${fmt(vuelto)}</span></div>` : ''}
+    ${vuelto > 0 ? `<div class="pos-ticket-fila" style="color:var(--nav-ventas,#487050);font-weight:600"><span>Vuelto</span><span>${fmt(vuelto)}</span></div>` : ''}
   `;
 
   const estadoEl = document.getElementById('pos-ticket-factura-estado');
@@ -1516,6 +1997,11 @@ function mostrarTicket(venta) {
   // para que el cajero vea primero el resumen de la venta.
   if (window.tieneRol?.('dueno', 'admin') && ultimaVenta?.venta_id) {
     setTimeout(() => mostrarModalFacturarOpcional(ultimaVenta.venta_id), 400);
+  } else {
+    // No hay modal de facturación opcional de por medio: el foco va
+    // directo a "Nueva venta" para poder encadenar otra venta con un
+    // segundo Enter.
+    setTimeout(() => document.getElementById('btn-ticket-nueva-venta')?.focus(), 60);
   }
 }
 
@@ -1601,7 +2087,7 @@ function calcularTotalesDe(items, descGlobalPct = 0) {
   }
   const totalSin = subtotal + iva_total;
   const descGlobalMonto = totalSin * (descGlobalPct / 100);
-  const total = Math.round((totalSin - descGlobalMonto) * 100) / 100;
+  const total = Math.round(totalSin - descGlobalMonto); // ídem calcularTotales(): sin centavos
   return { subtotal, iva_total, descGlobalMonto, total };
 }
 
@@ -1707,6 +2193,7 @@ window.cerrarModalReporteZ = function () {
 
 window.imprimirReporteZ = async function () {
   if (!window.PosPrinter || window.PosPrinter.getConfig().modo === 'browser') {
+    window.PosPrinter?.prepararPaginaNavegador?.();
     document.body.classList.add('imprimiendo-z');
     window.print();
     setTimeout(() => document.body.classList.remove('imprimiendo-z'), 1000);
@@ -1750,7 +2237,7 @@ function renderReporteZ(d) {
       <div class="pos-z-row head"><span>Movimientos de caja</span><span></span></div>
       ${movs.map(m => {
         const es = m.tipo === 'sangria' || m.tipo === 'retiro_final';
-        return `<div class="pos-z-row"><span>${labelMovCaja(m.tipo)}${m.concepto ? ' — ' + escapeHtml(m.concepto) : ''} (${fmtHora(m.hora)})</span><span style="color:${es ? 'var(--color-danger,#7A1E19)' : 'var(--nav-ventas,#1F5B4A)'}">${es ? '−' : '+'}${fmt2(m.monto)}</span></div>`;
+        return `<div class="pos-z-row"><span>${labelMovCaja(m.tipo)}${m.concepto ? ' — ' + escapeHtml(m.concepto) : ''} (${fmtHora(m.hora)})</span><span style="color:${es ? 'var(--color-danger,#7A2820)' : 'var(--nav-ventas,#487050)'}">${es ? '−' : '+'}${fmt2(m.monto)}</span></div>`;
       }).join('')}
     </div>`;
   }
@@ -1828,6 +2315,7 @@ async function cargarVentas(q) {
     params.set('limit', '500');
     const ventas = await apiGet(`/api/pos/ventas${params.toString() ? '?' + params.toString() : ''}`);
     ventasAdminCache = ventas;
+    ventasPaginaActual = 1; // nuevo filtro/búsqueda/día → siempre arranca en la página 1
     renderResumenVentas(ventas);
     renderVentas(ventas);
   } catch (e) {
@@ -1917,13 +2405,36 @@ function renderResumenVentas(ventas) {
     </div>`;
 }
 
+// FIX: la lista de ventas volcaba las hasta 500 filas que trae el backend
+// en un solo bloque scrolleable, sin paginar — con la caja abierta un rato,
+// eso son cientos de filas apiladas y sin ninguna referencia de "dónde estoy".
+// Paginamos en el cliente (ya tenemos todo el período cargado en memoria
+// para el resumen por día, así que no hace falta pegarle de nuevo al
+// backend por cada página) y dejamos el resumen intacto viendo el período
+// completo, como antes.
+const VENTAS_POR_PAGINA = 20;
+let ventasPaginaActual = 1;
+
 function renderVentas(ventas) {
   const cont = document.getElementById('pos-admin-ventas-lista');
-  if (!ventas.length) { cont.innerHTML = '<p class="pos-resultados-vacio">Sin ventas para mostrar.</p>'; return; }
-  cont.innerHTML = ventas.map(v => `
+  const contPag = document.getElementById('pos-admin-ventas-paginacion');
+  if (!ventas.length) {
+    cont.innerHTML = '<p class="pos-resultados-vacio">Sin ventas para mostrar.</p>';
+    if (contPag) contPag.innerHTML = '';
+    return;
+  }
+
+  const totalPaginas = Math.max(1, Math.ceil(ventas.length / VENTAS_POR_PAGINA));
+  if (ventasPaginaActual > totalPaginas) ventasPaginaActual = totalPaginas;
+  if (ventasPaginaActual < 1) ventasPaginaActual = 1;
+
+  const desdeIdx = (ventasPaginaActual - 1) * VENTAS_POR_PAGINA;
+  const pagina = ventas.slice(desdeIdx, desdeIdx + VENTAS_POR_PAGINA);
+
+  cont.innerHTML = pagina.map(v => `
     <div class="pos-venta-fila ${v.estado === 'anulada' ? 'anulada' : ''}">
       <div class="pos-venta-fila-info">
-        <span class="pos-venta-fila-num">N° ${escapeHtml(v.numero || '—')}${v.descuento_global_pct ? ` <span style="font-size:11px;font-weight:600;color:var(--color-warning,#7A4A00);">−${v.descuento_global_pct}%</span>` : ''}</span>
+        <span class="pos-venta-fila-num">N° ${escapeHtml(v.numero || '—')}${v.descuento_global_pct ? ` <span style="font-size:11px;font-weight:600;color:var(--color-warning,#8A5F13);">−${v.descuento_global_pct}%</span>` : ''}</span>
         <span class="pos-venta-fila-meta">${escapeHtml(v.clientes?.razon_social || 'Consumidor final')} · ${escapeHtml(v.cajas_pos?.nombre || '')} · ${window.formatHora ? window.formatHora(v.created_at) : ''}</span>
       </div>
       <span class="pos-venta-fila-total">${fmt(v.total)}</span>
@@ -1934,7 +2445,21 @@ function renderVentas(ventas) {
           : `<button class="pos-venta-btn-anular" onclick="anularVenta('${v.id}', '${escapeHtml(v.numero || '')}')">Anular</button>`}
     </div>
   `).join('');
+
+  if (contPag) {
+    contPag.innerHTML = `
+      <button type="button" class="pos-pag-btn" ${ventasPaginaActual <= 1 ? 'disabled' : ''} onclick="irAPaginaVentas(-1)">‹ Anterior</button>
+      <span class="pos-pag-info">Página ${ventasPaginaActual} de ${totalPaginas} · ${ventas.length} ventas</span>
+      <button type="button" class="pos-pag-btn" ${ventasPaginaActual >= totalPaginas ? 'disabled' : ''} onclick="irAPaginaVentas(1)">Siguiente ›</button>
+    `;
+  }
 }
+
+window.irAPaginaVentas = function (delta) {
+  ventasPaginaActual += delta;
+  renderVentas(ventasAdminCache);
+  document.getElementById('pos-admin-ventas-lista')?.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 window.anularVenta = async function (venta_pos_id, numero) {
   const venta = ventasAdminCache.find(v => v.id === venta_pos_id);
@@ -2226,6 +2751,9 @@ function mostrarModalFacturarOpcional(ventaId) {
 
 window.cerrarModalFacturarOpcional = function () {
   document.getElementById('modal-facturar-opcional-overlay').style.display = 'none';
+  // El modal de ticket queda como único activo detrás: foco a "Nueva
+  // venta" para poder encadenar otra venta con un segundo Enter.
+  setTimeout(() => document.getElementById('btn-ticket-nueva-venta')?.focus(), 60);
 };
 
 window.facturarDesdeModal = async function () {
@@ -2304,7 +2832,7 @@ window.buscarVentaDevolucion = async function () {
     resEl.innerHTML = ventas.slice(0, 5).map(v => `
       <div class="pos-cliente-resultado" onclick="seleccionarVentaDevolucion('${v.id}')">
         <strong>N° ${escapeHtml(v.numero || '—')}</strong> · ${escapeHtml(v.clientes?.razon_social || 'Consumidor final')} · ${fmt(v.total)}
-        ${v.estado === 'anulada' ? ' <span style="color:var(--color-danger,#7A1E19)">[Anulada]</span>' : ''}
+        ${v.estado === 'anulada' ? ' <span style="color:var(--color-danger,#7A2820)">[Anulada]</span>' : ''}
       </div>
     `).join('');
   } catch (e) {
@@ -2602,11 +3130,11 @@ function mostrarTicketOffline(venta) {
 
   const detalle = document.getElementById('pos-ticket-detalle');
   detalle.innerHTML = `
-    <div class="pos-ticket-offline-aviso" style="background:var(--color-warning-bg,#FBEBC7);border:1px solid var(--color-warning-mid,#B87A00);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--color-warning,#7A4A00)">
+    <div class="pos-ticket-offline-aviso" style="background:var(--color-warning-bg,#FBE8C9);border:1px solid var(--color-warning-mid,#E0A53E);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--color-warning,#8A5F13)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Venta guardada sin internet. Se sincronizará automáticamente cuando se restablezca la conexión.
     </div>
     ${itemsHtml}
-    <hr style="margin:8px 0;border:none;border-top:1px solid var(--color-border-soft,#DAD3C0)">
+    <hr style="margin:8px 0;border:none;border-top:1px solid var(--color-border-soft,#E7E9E4)">
     <div class="pos-ticket-item"><strong>Total</strong><strong>${fmt2(venta.total)}</strong></div>
     ${pagosHtml}
   `;
@@ -2621,6 +3149,29 @@ function mostrarTicketOffline(venta) {
   if (estadoEl) {
     estadoEl.textContent = 'Esta venta se facturará una vez que se sincronice con el servidor.';
     estadoEl.style.display = '';
+  }
+
+  // Encabezado/pie de impresión (mismo criterio que mostrarTicket()).
+  const fechaTicket = new Date().toLocaleString('es-AR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+  const headerEl = document.getElementById('pos-ticket-print-header');
+  if (headerEl) {
+    headerEl.innerHTML = `
+      <div class="pos-ticket-print-empresa">${escapeHtml(empresaData?.nombre || '')}</div>
+      ${empresaData?.domicilio ? `<div>${escapeHtml(empresaData.domicilio)}</div>` : ''}
+      ${empresaData?.cuit     ? `<div>CUIT: ${escapeHtml(empresaData.cuit)}</div>`     : ''}
+      ${empresaData?.telefono ? `<div>Tel: ${escapeHtml(empresaData.telefono)}</div>`   : ''}
+      <div class="pos-ticket-print-sep"></div>
+      <div class="pos-ticket-print-meta"><span>Ticket N° ${escapeHtml(venta.numero || '')}</span><span>${fechaTicket}</span></div>
+    `;
+  }
+  const footerEl = document.getElementById('pos-ticket-print-footer');
+  if (footerEl) {
+    footerEl.innerHTML = `
+      <div class="pos-ticket-print-sep"></div>
+      <div class="pos-ticket-print-gracias">¡Gracias por su compra!</div>
+    `;
   }
 
   overlay.style.display = '';
@@ -2682,7 +3233,7 @@ window.toggleHardwareImpresoraFields = function () {
 
 window.toggleHardwareTerminalFields = function () {
   const driver = document.getElementById('hw-term-driver').value;
-  ['mp_point', 'getnet', 'lapos', 'naranja'].forEach(d => {
+  ['mp_point', 'mp_qr', 'getnet', 'prisma', 'naranja'].forEach(d => {
     const el = document.getElementById(`hw-term-${d}-fields`);
     if (el) el.style.display = d === driver ? '' : 'none';
   });
@@ -2705,18 +3256,60 @@ window.cargarConfigHardware = async function () {
     document.getElementById('hw-imp-beep').checked   = !!imp.beep;
 
     document.getElementById('hw-term-driver').value        = term.driver || 'manual';
-    document.getElementById('hw-term-mp-token').value      = term.mp_access_token || '';
     document.getElementById('hw-term-mp-device').value     = term.mp_device_id || '';
     document.getElementById('hw-term-getnet-pos').value     = term.getnet_pos_id || '';
-    document.getElementById('hw-term-lapos-ip').value       = term.lapos_ip || '';
-    document.getElementById('hw-term-lapos-puerto').value   = term.lapos_puerto || 8080;
+    document.getElementById('hw-term-prisma-terminal').value = term.prisma_terminal_id || '';
     document.getElementById('hw-term-naranja-token').value  = term.naranja_token || '';
 
     toggleHardwareImpresoraFields();
     toggleHardwareTerminalFields();
+    cargarEstadoCuentaPrisma();
   } catch (e) {
     console.error(e);
     window.toast('No se pudo cargar la configuración de hardware', 'error');
+  }
+};
+
+// Estado de la cuenta Prisma conectada (CUIT/CUIL), sin exponer el token —
+// mismo criterio que _svc=config de Mercado Pago (obtenerConfigMP).
+window.cargarEstadoCuentaPrisma = async function () {
+  const statusEl = document.getElementById('hw-term-prisma-status');
+  if (!statusEl) return;
+  try {
+    const cfg = await apiGet('/api/pagos?_svc=prisma-config');
+    if (cfg.conectado) {
+      statusEl.textContent = `✓ Cuenta conectada (CUIT/CUIL ${cfg.cuit_cuil})`;
+      statusEl.style.color = 'var(--nav-ventas, #487050)';
+      document.getElementById('hw-term-prisma-cuit').value = cfg.cuit_cuil || '';
+    } else {
+      statusEl.textContent = 'Sin cuenta conectada todavía.';
+      statusEl.style.color = '';
+    }
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = '';
+  }
+};
+
+// Conecta (o reconecta) la cuenta Prisma: valida cuit_cuil + token contra el
+// sandbox y los guarda cifrados en el backend. El token de Prisma expira
+// (~1h en sandbox) — hasta que tengamos el endpoint de autenticación real
+// (client_credentials u otro) para refrescarlo solo, esto se repega a mano
+// cuando venza. Ver CHANGELOG de esta versión.
+window.conectarPrismaHardware = async function () {
+  const cuit  = document.getElementById('hw-term-prisma-cuit').value.trim();
+  const token = document.getElementById('hw-term-prisma-token').value.trim();
+  if (!cuit || !token) {
+    window.toast('Completá CUIT/CUIL y token para conectar la cuenta Prisma', 'error');
+    return;
+  }
+  try {
+    const r = await apiPut('/api/pagos?_svc=prisma-config', { cuit_cuil: cuit, bearer_token: token });
+    window.toast(r.mensaje || 'Cuenta Prisma conectada.', 'exito');
+    document.getElementById('hw-term-prisma-token').value = '';
+    cargarEstadoCuentaPrisma();
+  } catch (e) {
+    window.toast(e.message || 'No se pudo conectar la cuenta Prisma', 'error');
   }
 };
 
@@ -2766,25 +3359,23 @@ window.guardarConfigHardware = async function () {
   };
 
   const driver = document.getElementById('hw-term-driver').value;
-  if (driver === 'mp_point' && (!document.getElementById('hw-term-mp-token').value.trim() || !document.getElementById('hw-term-mp-device').value.trim())) {
-    errEl.textContent = 'Para MP Point necesitás el access token y el device ID de la terminal.';
+  if (driver === 'mp_point' && !document.getElementById('hw-term-mp-device').value.trim()) {
+    errEl.textContent = 'Para MP Point necesitás el device ID de la terminal.';
     errEl.style.display = '';
     return;
   }
-  if (driver === 'lapos' && !document.getElementById('hw-term-lapos-ip').value.trim()) {
-    errEl.textContent = 'Para Lapos necesitás la IP del agente en la red local.';
+  if (driver === 'prisma' && !document.getElementById('hw-term-prisma-terminal').value.trim()) {
+    errEl.textContent = 'Para Prisma necesitás el ID de terminal de esta caja.';
     errEl.style.display = '';
     return;
   }
 
   const terminal = {
     driver,
-    mp_access_token: document.getElementById('hw-term-mp-token').value.trim(),
-    mp_device_id:    document.getElementById('hw-term-mp-device').value.trim(),
-    getnet_pos_id:   document.getElementById('hw-term-getnet-pos').value.trim(),
-    lapos_ip:        document.getElementById('hw-term-lapos-ip').value.trim(),
-    lapos_puerto:    parseInt(document.getElementById('hw-term-lapos-puerto').value, 10) || 8080,
-    naranja_token:   document.getElementById('hw-term-naranja-token').value.trim(),
+    mp_device_id:       document.getElementById('hw-term-mp-device').value.trim(),
+    getnet_pos_id:      document.getElementById('hw-term-getnet-pos').value.trim(),
+    prisma_terminal_id: document.getElementById('hw-term-prisma-terminal').value.trim(),
+    naranja_token:      document.getElementById('hw-term-naranja-token').value.trim(),
   };
 
   const btn = document.getElementById('btn-guardar-hardware');
@@ -2826,19 +3417,19 @@ window.guardarSupervisorPin = async function () {
 
   if (!/^\d{4,8}$/.test(pin)) {
     status.textContent = 'El PIN debe tener entre 4 y 8 dígitos numéricos';
-    status.style.color = 'var(--color-danger, #7A1E19)';
+    status.style.color = 'var(--color-danger, #7A2820)';
     return;
   }
 
   try {
     await apiPost('/api/pos/config-pin', { pin });
     status.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>PIN guardado';
-    status.style.color = 'var(--color-success, #17402F)';
+    status.style.color = 'var(--color-success, #487050)';
     input.value = '';
     window.toast('PIN de supervisor guardado', 'exito');
   } catch (e) {
     status.textContent = e.message || 'No se pudo guardar el PIN';
-    status.style.color = 'var(--color-danger, #7A1E19)';
+    status.style.color = 'var(--color-danger, #7A2820)';
   }
 };
 
@@ -2855,7 +3446,7 @@ window.borrarSupervisorPin = async function () {
     window.toast('PIN de supervisor eliminado', 'exito');
   } catch (e) {
     status.textContent = e.message || 'No se pudo borrar el PIN';
-    status.style.color = 'var(--color-danger, #7A1E19)';
+    status.style.color = 'var(--color-danger, #7A2820)';
   }
 };
 
@@ -2897,18 +3488,18 @@ window.guardarUmbralCajero = async function (usuarioId) {
 
   if (umbral_pct !== null && (!Number.isFinite(umbral_pct) || umbral_pct < 0 || umbral_pct > 100)) {
     status.textContent = 'El umbral debe ser un número entre 0 y 100';
-    status.style.color = 'var(--color-danger, #7A1E19)';
+    status.style.color = 'var(--color-danger, #7A2820)';
     return;
   }
 
   try {
     await apiPost('/api/pos/umbral-cajero', { usuario_id: usuarioId, umbral_pct });
     status.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Umbral guardado';
-    status.style.color = 'var(--color-success, #17402F)';
+    status.style.color = 'var(--color-success, #487050)';
     window.toast('Umbral actualizado', 'exito');
   } catch (e) {
     status.textContent = e.message || 'No se pudo guardar el umbral';
-    status.style.color = 'var(--color-danger, #7A1E19)';
+    status.style.color = 'var(--color-danger, #7A2820)';
   }
 };
 

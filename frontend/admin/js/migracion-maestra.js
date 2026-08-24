@@ -445,7 +445,7 @@ function onCambioMapeoMaestro(select) {
 }
 
 // ─── Paso 3: ejecución secuencial (respeta ORDEN_GUIADO) ────────────────
-async function subirHojaEnChunks(entidad, nombreArchivo, filas) {
+async function subirHojaEnChunks(entidad, nombreArchivo, filas, onProgress) {
   let sesionId = null;
   let offset = 0;
   while (offset < filas.length) {
@@ -456,13 +456,20 @@ async function subirHojaEnChunks(entidad, nombreArchivo, filas) {
     const data = await migApi('/api/migracion?accion=crear', { method: 'POST', body: JSON.stringify(body) });
     sesionId = data.sesion_id;
     offset += chunk.length;
+    onProgress?.(Math.min(offset, filas.length), filas.length);
     if (!data.hay_mas) return sesionId;
   }
   return sesionId;
 }
 
-async function mapearHastaTerminar(sesionId, mapeo) {
-  let hayMas = true, vueltas = 0, ultima = {};
+// FIX: reporta progreso real (no solo hay_mas) para que la pantalla de
+// "Importando..." pueda mostrar una barra en vez de dejar a la persona
+// mirando un texto fijo sin saber si avanza. `totalFilas` es un estimado
+// (la cantidad de filas subidas) porque acá no todas necesariamente van a
+// validar OK; sirve para el % visual, no para el resumen final (ese sigue
+// saliendo de filas_validas/filas_con_error del último lote, sin cambios).
+async function mapearHastaTerminar(sesionId, mapeo, totalFilas, onProgress) {
+  let hayMas = true, vueltas = 0, ultima = {}, procesadas = 0;
   while (hayMas) {
     vueltas++;
     ultima = await migApi('/api/migracion?accion=mapear', {
@@ -470,12 +477,19 @@ async function mapearHastaTerminar(sesionId, mapeo) {
       body: JSON.stringify({ sesion_id: sesionId, mapeo_columnas: mapeo }),
     });
     hayMas = !!ultima.hay_mas;
+    procesadas = hayMas
+      ? Math.min(procesadas + (ultima.filas_mapeadas_lote || 0), totalFilas)
+      : totalFilas;
+    onProgress?.(procesadas, totalFilas);
     if (vueltas > 500) throw new Error('El mapeo no terminó luego de muchos lotes.');
   }
   return ultima;
 }
 
-async function confirmarHastaTerminar(sesionId) {
+// FIX: mismo criterio — acá el backend YA calcula el progreso acumulado real
+// en cada llamada (obtenerProgresoConfirmacion agrega sobre TODA la sesión,
+// no solo el lote actual), simplemente antes no se lo pasábamos a la UI.
+async function confirmarHastaTerminar(sesionId, totalAImportar, onProgress) {
   let hayMas = true, vueltas = 0, resultado = {};
   while (hayMas) {
     vueltas++;
@@ -485,18 +499,31 @@ async function confirmarHastaTerminar(sesionId) {
     });
     resultado = data.resultado || {};
     hayMas = !!data.hay_mas;
+    const procesadas = (resultado.creados || 0) + (resultado.actualizados || 0) + (resultado.errores || 0);
+    onProgress?.(Math.min(procesadas, totalAImportar), totalAImportar);
     if (vueltas > 500) throw new Error('La importación no terminó luego de muchos lotes.');
   }
   return resultado;
 }
 
-function agregarLineaProgreso(id, titulo, texto, clase) {
+// `pct` (0-100, o null) dibuja/actualiza una barra de progreso real dentro
+// de la línea; sin `pct` se comporta como antes (solo texto), para no tocar
+// los estados terminales (ok/error) que no necesitan barra.
+function agregarLineaProgreso(id, titulo, texto, clase, pct) {
   const cont = document.getElementById('maestra-progreso-lista');
   const existente = document.getElementById(id);
+  const conBarra = Number.isFinite(pct);
+  const pctClamp = conBarra ? Math.max(0, Math.min(100, pct)) : 0;
   const html = `
     <div class="mig-maestra-progreso-item" id="${id}">
-      <span><strong>${escapeHtml(titulo)}</strong></span>
-      <span class="detalle ${clase || ''}">${escapeHtml(texto)}</span>
+      <div class="mig-maestra-progreso-item-fila">
+        <span><strong>${escapeHtml(titulo)}</strong></span>
+        <span class="detalle ${clase || ''}">${escapeHtml(texto)}${conBarra ? ` · ${Math.round(pctClamp)}%` : ''}</span>
+      </div>
+      ${conBarra ? `
+      <div class="mig-maestra-progreso-barra" role="progressbar" aria-valuenow="${Math.round(pctClamp)}" aria-valuemin="0" aria-valuemax="100">
+        <div class="mig-maestra-progreso-barra-fill" style="width:${pctClamp}%"></div>
+      </div>` : ''}
     </div>`;
   if (existente) existente.outerHTML = html;
   else cont.insertAdjacentHTML('beforeend', html);
@@ -532,18 +559,26 @@ async function ejecutarMigracionMaestra() {
   for (const item of entidadesAEjecutar) {
     const { filas, mapeo, nombres } = porEntidad[item.entidad];
     const idLinea = `maestra-prog-${item.entidad}`;
-    agregarLineaProgreso(idLinea, item.titulo, `Subiendo ${filas.length.toLocaleString('es-AR')} filas…`);
+    const totalArchivo = filas.length;
+    agregarLineaProgreso(idLinea, item.titulo, `Subiendo ${totalArchivo.toLocaleString('es-AR')} filas…`, null, 0);
     try {
-      const sesionId = await subirHojaEnChunks(item.entidad, nombres.join(' + '), filas);
-      agregarLineaProgreso(idLinea, item.titulo, 'Mapeando y validando…');
-      const mapeado = await mapearHastaTerminar(sesionId, mapeo);
+      const sesionId = await subirHojaEnChunks(item.entidad, nombres.join(' + '), filas, (proc, total) => {
+        agregarLineaProgreso(idLinea, item.titulo, `Subiendo ${proc.toLocaleString('es-AR')} de ${total.toLocaleString('es-AR')} filas…`, null, (proc / total) * 100);
+      });
+      agregarLineaProgreso(idLinea, item.titulo, 'Mapeando y validando…', null, 0);
+      const mapeado = await mapearHastaTerminar(sesionId, mapeo, totalArchivo, (proc, total) => {
+        agregarLineaProgreso(idLinea, item.titulo, `Mapeando y validando ${proc.toLocaleString('es-AR')} de ${total.toLocaleString('es-AR')} filas…`, null, (proc / total) * 100);
+      });
       if ((mapeado.filas_validas || 0) === 0) {
         agregarLineaProgreso(idLinea, item.titulo, 'Sin filas válidas para importar', 'error');
         estadoMaestra.resultados.push({ entidad: item.entidad, titulo: item.titulo, creados: 0, actualizados: 0, errores: mapeado.filas_con_error || 0, ok: false });
         continue;
       }
-      agregarLineaProgreso(idLinea, item.titulo, `Importando ${mapeado.filas_validas.toLocaleString('es-AR')} filas válidas…`);
-      const resultado = await confirmarHastaTerminar(sesionId);
+      const totalAImportar = mapeado.filas_validas;
+      agregarLineaProgreso(idLinea, item.titulo, `Importando ${totalAImportar.toLocaleString('es-AR')} filas válidas…`, null, 0);
+      const resultado = await confirmarHastaTerminar(sesionId, totalAImportar, (proc, total) => {
+        agregarLineaProgreso(idLinea, item.titulo, `Importando ${proc.toLocaleString('es-AR')} de ${total.toLocaleString('es-AR')} filas válidas…`, null, (proc / total) * 100);
+      });
       const texto = `${resultado.creados || 0} creados, ${resultado.actualizados || 0} actualizados` + (resultado.errores ? `, ${resultado.errores} con error` : '');
       agregarLineaProgreso(idLinea, item.titulo, texto, resultado.errores ? 'error' : 'ok');
       estadoMaestra.resultados.push({

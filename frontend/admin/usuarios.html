@@ -13,12 +13,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/usuarios-gentelella.css?v=1" />
 </head>
 <body class="dash-usuarios-gentelella dash-gentelella">
@@ -73,19 +74,18 @@
     </div>
 
     <div class="tabla-wrap table-responsive-cards">
-      <table class="tabla-main">
+      <table class="tabla-admin">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Teléfono</th>
-            <th>Estado</th>
-            <th class="col-sticky-end">Acciones</th>
+            <th>Usuario</th>
+            <th class="col-fit">Rol</th>
+            <th class="col-fit">Teléfono</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-sticky-end col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tbody-usuarios">
-          <tr><td colspan="6" class="vacio">Cargando...</td></tr>
+          <tr><td colspan="5" class="vacio">Cargando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -119,7 +119,7 @@
         </div>
         <div class="form-group full" id="grupo-reset-password" style="display:none">
           <label class="form-label">Contraseña</label>
-          <button type="button" class="btn-cancelar" id="btn-reset-password" style="width:auto;" onclick="mostrarCampoNuevaPassword()">Restablecer contraseña</button>
+          <button type="button" class="btn btn--secondary" id="btn-reset-password" style="width:auto;" onclick="mostrarCampoNuevaPassword()">Restablecer contraseña</button>
           <div id="campo-nueva-password" style="display:none; margin-top:8px;">
             <input type="text" id="f-nueva-password" class="form-input" placeholder="Nueva contraseña (mínimo 8 caracteres)" aria-label="Nueva contraseña" />
             <p style="font-size:12px;color:var(--color-text-muted);margin:4px 0 0;">Se la vas a tener que pasar vos por fuera del sistema (ej. WhatsApp).</p>
@@ -143,7 +143,7 @@
       </div>
     </div>
     <div class="modal-box-footer">
-      <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn btn--secondary" onclick="cerrarModal()">Cancelar</button>
       <button type="button" class="btn btn--primary" id="btn-guardar" onclick="btnAsyncClick(this, guardarUsuario)" aria-live="polite">Crear usuario</button>
     </div>
   </div>
@@ -153,16 +153,17 @@
 <script src="/frontend/env-config.js?v1782328742714"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
 <script>
   window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin'];
 </script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/shared/componentes-admin.js?v=1"></script>
 <script src="/frontend/admin/js/usuarios.js?v1"></script>
 </body>
 </html>

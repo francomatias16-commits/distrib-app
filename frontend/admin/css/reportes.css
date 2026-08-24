@@ -230,6 +230,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
     box-shadow: var(--shadow-fluffy);
     margin-bottom: 2rem;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ranking-section h2 {
@@ -241,40 +242,21 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
     padding-bottom: 0.5rem;
 }
 
-.ranking-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
-}
-
-.ranking-table thead {
+/* .ranking-table migrada al canónico .tabla-admin (Fase 3, ver
+   PLAN_UNIFICACION_UX_ADMIN.md §24). Se retiran ancho/borde/tipografía/
+   padding/hover base (ya los cubre .tabla-admin) y se conservan solo tres
+   cosas que el canónico no trae y acá eran a propósito: el fondo del
+   thead (el canónico lo deja transparente), el zebra striping (nth-child
+   even, además del hover) y el compactado en mobile. */
+.tabla-admin thead {
     background: var(--color-bg);
 }
 
-.ranking-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: var(--color-text);
-    border-bottom: 2px solid var(--color-border);
-    white-space: nowrap;
-}
-
-.ranking-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--color-border-soft);
-    color: var(--color-text-muted);
-}
-
-.ranking-table tbody tr:hover {
+.tabla-admin tbody tr:nth-child(even) {
     background-color: var(--color-surface-2);
 }
 
-.ranking-table tbody tr:nth-child(even) {
-    background-color: var(--color-surface-2);
-}
-
-.ranking-table .loading {
+.tabla-admin .loading {
     text-align: center;
     color: var(--color-text-muted);
     padding: 2rem !important;
@@ -358,8 +340,8 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
         font-size: 1.1rem;
     }
 
-    .ranking-table th,
-    .ranking-table td {
+    .tabla-admin th,
+    .tabla-admin td {
         padding: 0.5rem;
         font-size: 0.85rem;
     }
@@ -367,6 +349,29 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
     .kpi-value {
         font-size: 1.5rem;
     }
+
+    /* AUDITORIA-RESPONSIVE-ETAPA5: .ranking-section ya tenía overflow-x:auto
+       (scroll horizontal), pero .tabla-admin es width:100% y sus <td> (generados
+       por JS, sin col-fit/nowrap) se achican para entrar en el ancho de pantalla
+       en vez de forzar el scroll — mismo tipo de bug que #reglas-auto-card en
+       automatizacion.css (ETAPA4), pero acá ninguna de las 12 tablas de
+       reportes-stock/financieros/ventas lo tenía. Se fuerza un min-width por
+       tabla (según su cantidad de columnas y contenido) para que el overflow-x
+       ya existente se active en vez de comprimir/wrapear el texto. */
+    #tabla-stock-estado      { min-width: 820px; }
+    #tabla-stock-criticos    { min-width: 680px; }
+    #tabla-stock-valorizacion{ min-width: 560px; }
+    #tabla-stock-movimientos { min-width: 600px; }
+    #tabla-stock-conteos     { min-width: 760px; }
+
+    #tabla-fin-deuda         { min-width: 640px; }
+    #tabla-fin-cobranzas     { min-width: 460px; }
+    #tabla-fin-margen        { min-width: 520px; }
+
+    #tabla-ventas-vendedores { min-width: 600px; }
+    #tabla-ventas-clientes   { min-width: 600px; }
+    #tabla-ventas-productos  { min-width: 620px; }
+    #tabla-ventas-zonas      { min-width: 520px; }
 }
 
 /* Animaciones */

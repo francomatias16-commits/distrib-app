@@ -14,12 +14,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
   <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -29,7 +29,8 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/rentabilidad-zona-gentelella.css?v=1" />
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
   <style>
@@ -38,8 +39,8 @@
     /* KPI grid */
     .kpis-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
     }
 
     /* Gráfico */
@@ -197,7 +198,7 @@
       </div>
 
       <!-- KPI Cards globales -->
-      <div class="kpis-grid" id="kpis-grid"></div>
+      <section class="kpis-grid" id="kpis-grid" aria-label="Resumen de rentabilidad" aria-live="polite"></section>
 
       <!-- Gráfico de barras: margen neto por zona -->
       <div class="chart-wrap hidden" id="chart-wrap">
@@ -241,19 +242,19 @@
 
         <!-- Vista agrupada por zona -->
         <div id="vista-zona" class="tabla-overflow">
-          <table class="tabla">
+          <table class="tabla-admin">
             <thead>
             <tr>
                 <th>Zona</th>
-                <th>Rutas</th>
-                <th class="thead-sep">Entregas</th>
-                <th>KM recorridos</th>
-                <th>Facturado</th>
-                <th>Margen bruto</th>
-                <th class="thead-sep">Costo logístico</th>
-                <th>Margen neto</th>
-                <th>Margen neto / km</th>
-                <th>Rendimiento</th>
+                <th class="col-fit">Rutas</th>
+                <th class="thead-sep col-fit">Entregas</th>
+                <th class="col-fit">KM recorridos</th>
+                <th class="col-fit">Facturado</th>
+                <th class="col-fit">Margen bruto</th>
+                <th class="thead-sep col-fit">Costo logístico</th>
+                <th class="col-fit">Margen neto</th>
+                <th class="col-fit">Margen neto / km</th>
+                <th class="col-fit">Rendimiento</th>
               </tr>
             </thead>
             <tbody id="tbody-por-zona"><tr><td colspan="10" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -262,19 +263,19 @@
 
         <!-- Vista por ruta individual -->
         <div id="vista-ruta" class="tabla-overflow hidden">
-          <table class="tabla">
+          <table class="tabla-admin">
             <thead>
             <tr>
-                <th>Fecha</th>
-                <th>Zona</th>
+                <th class="col-fit">Fecha</th>
+                <th class="col-fit">Zona</th>
                 <th>Chofer</th>
-                <th class="thead-sep">Entregas</th>
-                <th>KM</th>
-                <th>Facturado</th>
-                <th class="thead-sep">Margen bruto</th>
-                <th>Costo logístico</th>
-                <th>Margen neto</th>
-                <th>Margen neto / km</th>
+                <th class="thead-sep col-fit">Entregas</th>
+                <th class="col-fit">KM</th>
+                <th class="col-fit">Facturado</th>
+                <th class="thead-sep col-fit">Margen bruto</th>
+                <th class="col-fit">Costo logístico</th>
+                <th class="col-fit">Margen neto</th>
+                <th class="col-fit">Margen neto / km</th>
               </tr>
             </thead>
             <tbody id="tbody-por-ruta"><tr><td colspan="10" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -294,12 +295,12 @@
 <script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
 <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/rentabilidad-zona.js?v1782328742714"></script>
 <script src="/frontend/shared/tabla-agrupada.js"></script>

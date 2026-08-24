@@ -53,11 +53,6 @@ body.dash-cajas-gentelella .btn.btn--primary {
 body.dash-cajas-gentelella .btn.btn--primary:hover {
   background: var(--ge-teal-dark) !important;
 }
-body.dash-cajas-gentelella .btn-guardar {
-  background: var(--ge-teal) !important;
-  border-radius: var(--ge-radius-btn) !important;
-}
-body.dash-cajas-gentelella .btn-guardar:hover { background: var(--ge-teal-dark) !important; }
 body.dash-cajas-gentelella .btn-cancel {
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -160,24 +155,39 @@ body.dash-cajas-gentelella .form-select:focus {
 body.dash-cajas-gentelella .form-label { color: var(--ge-ink) !important; }
 body.dash-cajas-gentelella .form-hint { color: var(--ge-muted) !important; }
 
-/* Tabla de historial */
-body.dash-cajas-gentelella .tabla-historial thead {
+/* Tabla de historial — migrada de .tabla-historial (nombre propio) a
+   .tabla-admin canónico (Fase 3, cierre "cajas.html", 2026-08-19). Nota de
+   alcance: esta es la ÚNICA tabla real de esta página. El listado de cajas
+   de más arriba (.caja-card) es una grilla de tarjetas, no una tabla —
+   mismo criterio que pos.html (§4, Fase 4): no se fuerza el patrón
+   canónico (.tabla-admin/.badge-estado/.fila-acciones) donde no corresponde
+   funcionalmente. Por eso .caja-badge/.badge-activa/.badge-inactiva y
+   .btn-caja quedan tal cual, sin tocar — no son badge/acciones de fila de
+   una tabla, son parte de la tarjeta.
+   El sticky header (position:sticky en los <th>, inline en el HTML) y el
+   padding compacto (7/10px vs 14px del canónico) tampoco se tocan: son
+   necesarios porque esta tabla vive dentro de un contenedor con scroll
+   interno propio (.col-lateral/.hist-tabla-wrap, layout de 2 columnas con
+   altura recortada en desktop) — el canónico no define sticky por defecto
+   (no lo necesita en el resto de las páginas, que scrollean la página
+   entera), así que sacarlo sería una regresión funcional, no una limpieza. */
+body.dash-cajas-gentelella .tabla-admin thead {
   background: var(--ge-chip-bg) !important;
 }
-body.dash-cajas-gentelella .tabla-historial thead th {
+body.dash-cajas-gentelella .tabla-admin thead th {
   color: var(--ge-ink-soft) !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
   font-size: 10.5px !important;
   letter-spacing: .04em !important;
 }
-body.dash-cajas-gentelella .tabla-historial tbody tr {
+body.dash-cajas-gentelella .tabla-admin tbody tr {
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-cajas-gentelella .tabla-historial tbody tr:hover {
+body.dash-cajas-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
-body.dash-cajas-gentelella .tabla-historial td { color: var(--ge-ink) !important; }
+body.dash-cajas-gentelella .tabla-admin td { color: var(--ge-ink) !important; }
 
 /* ════════════════════════════════════════════════════════════
    Modal (alta/edición de caja)
@@ -210,3 +220,395 @@ body.dash-cajas-gentelella .toast-err {
    ════════════════════════════════════════════════════════════ */
 body.dash-cajas-gentelella .cajas-vacio h3 { color: var(--ge-ink) !important; }
 body.dash-cajas-gentelella .cajas-vacio p  { color: var(--ge-muted) !important; }
+
+/* ════════════════════════════════════════════════════════════
+   REESTRUCTURACIÓN VISUAL — sala de control de caja
+   Alcance deliberadamente visual: no cambia IDs, eventos, formularios,
+   visibilidad ni la estructura que consume Supabase.
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella {
+  --caja-ink: #16231f;
+  --caja-deep: #12241f;
+  --caja-paper: #eef2ed;
+  --caja-panel: #fbfcf8;
+  --caja-line: #d7e0d8;
+  --caja-lime: #c5e86c;
+  --caja-moss: #3e6954;
+  --caja-amber: #f2bd67;
+  background: var(--caja-paper) !important;
+  color: var(--caja-ink);
+}
+
+body.dash-cajas-gentelella .topbar {
+  min-height: 72px;
+  background: var(--caja-deep) !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  color: #f7fbf4;
+}
+body.dash-cajas-gentelella .topbar-title {
+  color: #f7fbf4 !important;
+  font-size: 21px !important;
+  letter-spacing: -.045em;
+}
+body.dash-cajas-gentelella .topbar-usuario { color: #c4d4c7 !important; }
+body.dash-cajas-gentelella .page-intro-row {
+  background: var(--caja-deep);
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+body.dash-cajas-gentelella .page-intro {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 12px 28px 15px !important;
+  background: transparent !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #a9c0ae !important;
+  font-size: 11px !important;
+  letter-spacing: .025em;
+}
+
+body.dash-cajas-gentelella .main { background: transparent; }
+body.dash-cajas-gentelella .cajas-page-grid {
+  max-width: 1380px;
+  padding: 30px 28px 80px;
+  grid-template-columns: minmax(0, 1.18fr) minmax(390px, .82fr);
+  gap: 26px;
+}
+body.dash-cajas-gentelella .col-principal,
+body.dash-cajas-gentelella .col-lateral { max-height: none; overflow: visible; }
+body.dash-cajas-gentelella .col-lateral { gap: 18px; }
+
+body.dash-cajas-gentelella .cajas-header-sec {
+  align-items: flex-end;
+  margin: 0 0 18px;
+  padding: 0 2px;
+}
+body.dash-cajas-gentelella .cajas-header-sec h2 {
+  color: var(--caja-ink) !important;
+  font-size: 18px !important;
+  letter-spacing: -.035em;
+}
+body.dash-cajas-gentelella .cajas-header-sec h2 svg { color: var(--caja-moss); }
+body.dash-cajas-gentelella .cajas-header-sec p {
+  margin-top: 6px;
+  color: #718078 !important;
+  font-size: 12px;
+}
+body.dash-cajas-gentelella .cajas-header-sec .btn {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 7px !important;
+  background: var(--caja-ink) !important;
+  color: var(--caja-lime) !important;
+  box-shadow: 4px 4px 0 #d2dfcd;
+  letter-spacing: .01em;
+}
+body.dash-cajas-gentelella .cajas-header-sec .btn:hover {
+  background: var(--caja-moss) !important;
+  transform: translateY(-1px);
+}
+body.dash-cajas-gentelella .cajas-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+body.dash-cajas-gentelella .caja-card {
+  min-height: 218px;
+  padding: 21px 20px 17px;
+  background: var(--caja-panel) !important;
+  border: 1px solid var(--caja-line) !important;
+  border-radius: 6px 24px 6px 24px !important;
+  box-shadow: 0 10px 0 rgba(32, 67, 50, .04) !important;
+}
+body.dash-cajas-gentelella .caja-card:not(.inactiva) {
+  border-color: #aacb91 !important;
+  background: linear-gradient(145deg, #fbfcf8 0%, #f1f7e9 100%) !important;
+}
+body.dash-cajas-gentelella .caja-card:hover {
+  border-color: var(--caja-moss) !important;
+  box-shadow: 0 13px 0 rgba(32, 67, 50, .07) !important;
+  transform: translateY(-2px);
+}
+body.dash-cajas-gentelella .caja-card-header { margin-bottom: 18px; }
+body.dash-cajas-gentelella .caja-icon {
+  width: 38px; height: 38px;
+  border-radius: 5px 13px 5px 13px !important;
+  background: var(--caja-deep) !important;
+  color: var(--caja-lime) !important;
+}
+body.dash-cajas-gentelella .caja-nombre {
+  color: var(--caja-ink) !important;
+  font-size: 15px;
+  letter-spacing: -.02em;
+}
+body.dash-cajas-gentelella .caja-deposito { color: #7b8b82 !important; }
+body.dash-cajas-gentelella .caja-badge {
+  padding: 5px 9px;
+  background: var(--caja-lime) !important;
+  color: var(--caja-ink) !important;
+  border-radius: 5px 11px 5px 11px !important;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+body.dash-cajas-gentelella .caja-acciones {
+  margin-top: 22px;
+  padding-top: 13px;
+  border-top-color: var(--caja-line);
+}
+body.dash-cajas-gentelella .btn-caja {
+  border: 0 !important;
+  color: #66766d !important;
+  justify-content: flex-start;
+  padding: 8px 4px;
+  border-radius: 4px !important;
+  font-size: 11px;
+}
+body.dash-cajas-gentelella .btn-caja:hover {
+  background: #e5efdc !important;
+  color: var(--caja-ink) !important;
+}
+body.dash-cajas-gentelella .caja-turno-abierto-aviso {
+  margin-top: 13px !important;
+  padding: 12px !important;
+  border: 1px solid #e7bd70 !important;
+  border-radius: 4px 14px 4px 14px !important;
+  background: #fff0cf !important;
+  color: #65491f !important;
+}
+
+body.dash-cajas-gentelella .col-lateral > .card {
+  border: 1px solid var(--caja-line) !important;
+  border-radius: 6px 22px 6px 22px !important;
+  background: var(--caja-panel) !important;
+  box-shadow: 0 10px 0 rgba(32, 67, 50, .04) !important;
+}
+body.dash-cajas-gentelella .col-lateral .card-header {
+  min-height: 56px;
+  padding: 15px 18px !important;
+  background: #f4f7f1;
+  border-bottom: 1px solid var(--caja-line) !important;
+}
+body.dash-cajas-gentelella .col-lateral .card-title {
+  color: var(--caja-ink) !important;
+  font-size: 13px !important;
+  letter-spacing: .01em;
+}
+body.dash-cajas-gentelella #seccion-historial .card-header {
+  align-items: center;
+}
+body.dash-cajas-gentelella #seccion-historial table { border-collapse: separate; border-spacing: 0; }
+body.dash-cajas-gentelella #seccion-historial thead th {
+  background: var(--caja-deep) !important;
+  color: #b9ceb9 !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  font-size: 9px !important;
+  letter-spacing: .1em;
+}
+body.dash-cajas-gentelella #seccion-historial tbody td {
+  padding-top: 13px !important;
+  padding-bottom: 13px !important;
+  color: var(--caja-ink) !important;
+  border-bottom-color: #e7ede7 !important;
+}
+body.dash-cajas-gentelella #seccion-historial tbody tr:hover td {
+  background: #f1f7e9 !important;
+}
+body.dash-cajas-gentelella .hist-tabla-wrap { scrollbar-color: #b9cbb7 transparent; }
+
+@media (max-width: 1050px) {
+  body.dash-cajas-gentelella .cajas-page-grid {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+@media (max-width: 560px) {
+  body.dash-cajas-gentelella .topbar { min-height: 62px; }
+  body.dash-cajas-gentelella .page-intro { padding-left: 18px !important; padding-right: 18px !important; }
+  body.dash-cajas-gentelella .cajas-page-grid { padding: 22px 14px 70px; }
+  body.dash-cajas-gentelella .cajas-header-sec { align-items: stretch; }
+  body.dash-cajas-gentelella .cajas-header-sec .btn { width: 100%; justify-content: center; }
+  body.dash-cajas-gentelella .caja-card { min-height: 190px; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   ORGANIZACIÓN FINAL — historial ancho, sin columna de altura infinita
+   ════════════════════════════════════════════════════════════
+   El historial no debe competir verticalmente con las estaciones de caja.
+   .col-lateral pasa a ser transparente para el layout: PIN ocupa el módulo
+   superior derecho e historial ocupa una fila completa debajo. No se modifica
+   ningún elemento funcional ni ningún selector usado por JS/Supabase.
+   ════════════════════════════════════════════════════════════ */
+body.dash-cajas-gentelella {
+  --caja-ink: var(--color-text);
+  --caja-deep: var(--color-primary-dark);
+  --caja-paper: var(--color-bg);
+  --caja-panel: var(--color-surface);
+  --caja-line: var(--color-border);
+  --caja-lime: var(--color-success-bg);
+  --caja-moss: var(--color-primary);
+  --caja-amber: var(--color-warning-bg);
+  background: var(--color-bg) !important;
+}
+body.dash-cajas-gentelella .topbar {
+  background: var(--color-primary-dark) !important;
+  color: #fff;
+}
+body.dash-cajas-gentelella .topbar-title { color: #fff !important; }
+body.dash-cajas-gentelella .topbar-usuario { color: rgba(255,255,255,.78) !important; }
+body.dash-cajas-gentelella .page-intro-row { background: var(--color-primary-dark); }
+body.dash-cajas-gentelella .page-intro { color: rgba(255,255,255,.74) !important; }
+
+body.dash-cajas-gentelella .cajas-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(300px, .78fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 22px;
+  row-gap: 24px;
+  padding-top: 26px;
+  padding-bottom: 72px;
+}
+body.dash-cajas-gentelella .col-principal {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+}
+body.dash-cajas-gentelella .col-lateral {
+  display: contents;
+}
+body.dash-cajas-gentelella #seccion-pin-supervisor {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  min-width: 0;
+  margin-top: 56px;
+}
+body.dash-cajas-gentelella #seccion-historial {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+  max-height: none;
+  margin: 0 !important;
+  overflow: hidden;
+}
+body.dash-cajas-gentelella .cajas-scroll {
+  overflow: visible;
+  padding-right: 0;
+}
+body.dash-cajas-gentelella .cajas-header-sec {
+  min-height: 62px;
+  margin-top: 0;
+}
+body.dash-cajas-gentelella .cajas-header-sec h2 {
+  color: var(--color-text) !important;
+}
+body.dash-cajas-gentelella .cajas-header-sec p {
+  color: var(--color-text-muted) !important;
+}
+body.dash-cajas-gentelella .cajas-header-sec .btn {
+  background: var(--color-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 0 rgba(0,0,0,.12);
+}
+body.dash-cajas-gentelella .cajas-header-sec .btn:hover {
+  background: var(--color-primary-dark) !important;
+}
+body.dash-cajas-gentelella .caja-card {
+  min-height: 204px;
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: 0 3px 12px rgba(25,55,45,.06) !important;
+}
+body.dash-cajas-gentelella .caja-card:not(.inactiva) {
+  background: linear-gradient(145deg, var(--color-surface), var(--color-success-bg)) !important;
+  border-color: var(--color-primary) !important;
+}
+body.dash-cajas-gentelella .caja-card:hover {
+  border-color: var(--color-primary-dark) !important;
+  box-shadow: 0 7px 18px rgba(25,55,45,.12) !important;
+}
+body.dash-cajas-gentelella .caja-icon {
+  background: var(--color-success-bg) !important;
+  color: var(--color-primary-dark) !important;
+}
+body.dash-cajas-gentelella .caja-badge {
+  background: var(--color-success-bg) !important;
+  color: var(--color-primary-dark) !important;
+}
+body.dash-cajas-gentelella .caja-turno-abierto-aviso {
+  background: var(--color-warning-bg) !important;
+  border-color: var(--color-warning-mid) !important;
+  color: var(--color-warning) !important;
+}
+
+body.dash-cajas-gentelella #seccion-historial {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: 0 3px 12px rgba(25,55,45,.06) !important;
+}
+body.dash-cajas-gentelella #seccion-historial .card-header {
+  min-height: 64px;
+  padding: 14px 18px !important;
+  background: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+body.dash-cajas-gentelella #seccion-historial .card-header > div {
+  flex: 1 1 auto;
+}
+body.dash-cajas-gentelella #seccion-historial .card-header > div:last-child {
+  justify-content: flex-end;
+}
+body.dash-cajas-gentelella #seccion-historial .hist-tabla-wrap {
+  max-height: 390px;
+  overflow: auto;
+}
+body.dash-cajas-gentelella #seccion-historial .tabla-admin {
+  width: 100%;
+  min-width: 720px;
+}
+body.dash-cajas-gentelella #seccion-historial thead th {
+  background: var(--color-primary-dark) !important;
+  color: rgba(255,255,255,.82) !important;
+}
+body.dash-cajas-gentelella #seccion-historial tbody tr:nth-child(even) {
+  background: var(--color-surface-2);
+}
+body.dash-cajas-gentelella #seccion-historial tbody tr:hover {
+  background: var(--color-success-bg) !important;
+}
+
+@media (max-width: 1050px) {
+  body.dash-cajas-gentelella .cajas-page-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  body.dash-cajas-gentelella .col-principal,
+  body.dash-cajas-gentelella #seccion-pin-supervisor,
+  body.dash-cajas-gentelella #seccion-historial {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  body.dash-cajas-gentelella #seccion-pin-supervisor { margin-top: 0; }
+  body.dash-cajas-gentelella .col-lateral { display: contents; }
+}
+@media (max-width: 560px) {
+  body.dash-cajas-gentelella .cajas-page-grid {
+    padding: 20px 14px 68px;
+    row-gap: 18px;
+  }
+  body.dash-cajas-gentelella #seccion-historial .card-header {
+    align-items: flex-start;
+  }
+  body.dash-cajas-gentelella #seccion-historial .card-header > div:last-child {
+    justify-content: flex-start;
+  }
+  body.dash-cajas-gentelella #seccion-historial .hist-tabla-wrap { max-height: 360px; }
+}

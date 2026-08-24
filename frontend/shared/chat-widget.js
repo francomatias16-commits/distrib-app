@@ -20,6 +20,14 @@
  *
  * Si no hay sesión activa (ej: login.html), el widget simplemente no se
  * muestra — no tiene sentido en pantallas públicas.
+ *
+ * v960 — Admin: el botón flotante (FAB) que abría el panel se sacó de la
+ * pantalla y pasó a ser la opción "Trabajar con IA" del menú principal
+ * (ver nav-data.js + el bloque que carga este script al final de nav.js).
+ * nav.js pone window.__CHAT_ASISTENTE_SIN_BOTON__ = true ANTES de cargar
+ * este script para pedir el panel sin FAB — el resto de los portales
+ * (cliente/chofer, que cargan este script directo por <script src>, sin
+ * pasar por nav.js) no tocan ese flag y siguen viendo el botón de siempre.
  */
 
 (function () {
@@ -86,16 +94,19 @@
     return window.__chatAsistenteSb;
   }
 
-  function crearDom() {
-    const boton = document.createElement('button');
-    boton.className = 'chat-asistente-boton';
-    boton.type = 'button';
-    boton.setAttribute('aria-label', 'Trabajar con el asistente de IA');
-    boton.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' +
-      '</svg>' +
-      '<span class="chat-asistente-boton-label">Trabajar con IA</span>';
+  function crearDom(sinBoton) {
+    let boton = null;
+    if (!sinBoton) {
+      boton = document.createElement('button');
+      boton.className = 'chat-asistente-boton';
+      boton.type = 'button';
+      boton.setAttribute('aria-label', 'Trabajar con el asistente de IA');
+      boton.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' +
+        '</svg>' +
+        '<span class="chat-asistente-boton-label">Trabajar con IA</span>';
+    }
 
     const panel = document.createElement('div');
     panel.className = 'chat-asistente-panel';
@@ -134,7 +145,7 @@
       '  </button>' +
       '</form>';
 
-    document.body.appendChild(boton);
+    if (boton) document.body.appendChild(boton);
     document.body.appendChild(panel);
     return { boton, panel };
   }
@@ -305,7 +316,8 @@
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return; // páginas de login/públicas: no mostrar el widget
 
-    const { boton, panel } = crearDom();
+    const sinBoton = !!window.__CHAT_ASISTENTE_SIN_BOTON__;
+    const { boton, panel } = crearDom(sinBoton);
     const cont = panel.querySelector('.chat-asistente-mensajes');
     const form = panel.querySelector('.chat-asistente-form');
     const input = panel.querySelector('.chat-asistente-input');
@@ -375,10 +387,180 @@
     // 24hs de inactividad, ver CONVERSACION_MAX_INACTIVIDAD_MS en el handler).
     let conversacionId = null;
 
+    // ── Posicionamiento del panel relativo al botón ─────────────────────
+    // Antes el panel tenía right/bottom fijos en el CSS, calculados a partir
+    // de un botón que siempre vivía en la esquina inferior derecha. Ahora que
+    // el botón es arrastrable (ver habilitarArrastreBoton() más abajo), el
+    // panel tiene que reubicarse dinámicamente pegado a donde esté el botón
+    // en ese momento, sin salirse de la pantalla.
+    function posicionarPanel() {
+      if (!boton) return; // sin FAB (ver sinBoton más arriba): el panel usa la posición fija del CSS
+      const rectBoton = boton.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const margen = 12;
+
+      // Vertical: abre hacia el lado (arriba/abajo del botón) que tenga más
+      // espacio libre, priorizando arriba si entra completo. Se usa en ambos
+      // layouts (mobile y desktop).
+      function calcularTop(altoPanel) {
+        const espacioArriba = rectBoton.top;
+        const espacioAbajo = vh - rectBoton.bottom;
+        let top = (espacioArriba >= altoPanel + margen || espacioArriba >= espacioAbajo)
+          ? rectBoton.top - altoPanel - margen
+          : rectBoton.bottom + margen;
+        return Math.min(Math.max(margen, top), Math.max(margen, vh - altoPanel - margen));
+      }
+
+      if (vw <= 480) {
+        // Bajo 480px el panel ya ocupa el ancho completo (menos márgenes) por
+        // la media query de chat-widget.css (.chat-asistente-panel { left:
+        // 12px; right: 12px; width: auto }) — no lo pisamos horizontalmente,
+        // solo decidimos si abre arriba o abajo del botón.
+        panel.style.left = '';
+        panel.style.right = '';
+        panel.style.top = calcularTop(panel.offsetHeight || 480) + 'px';
+        panel.style.bottom = 'auto';
+        return;
+      }
+
+      const anchoPanel = panel.offsetWidth || 420;
+      const altoPanel = panel.offsetHeight || 560;
+
+      // Horizontal: intenta alinear el borde derecho del panel con el borde
+      // derecho del botón (como antes); si no entra, prueba alinear a la
+      // izquierda del botón; en último caso, lo pega al borde de la pantalla.
+      let left = rectBoton.right - anchoPanel;
+      if (left < margen) left = rectBoton.left;
+      left = Math.min(Math.max(margen, left), Math.max(margen, vw - anchoPanel - margen));
+
+      panel.style.left = left + 'px';
+      panel.style.top = calcularTop(altoPanel) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    }
+
+    // ── Botón arrastrable ────────────────────────────────────────────────
+    // Solución al bug real: el botón flotante tapaba formularios/controles
+    // en la esquina inferior derecha de varias pantallas (el padding-bottom
+    // de .main de más abajo en el CSS no alcanzaba porque no todas las
+    // páginas usan esa clase como contenedor scrolleable). En vez de perseguir
+    // caso por caso, dejamos que el usuario lo reubique donde le convenga:
+    // se arrastra con mouse o touch, la posición elegida se guarda en
+    // localStorage (como fracción del viewport, para que se adapte si
+    // después abre el sistema en una pantalla de otro tamaño) y se restaura
+    // en cada página — es el mismo <script> compartido en todo el panel.
+    function habilitarArrastreBoton() {
+      const CLAVE_POS = 'chatAsistenteBotonPosFrac';
+      const UMBRAL_DRAG_PX = 6;
+      let arrastrando = false;
+      let cruzoUmbral = false;
+      let inicioPunteroX = 0;
+      let inicioPunteroY = 0;
+      let inicioBotonLeft = 0;
+      let inicioBotonTop = 0;
+
+      function aplicarPosicion(left, top) {
+        const margen = 8;
+        const anchoBoton = boton.offsetWidth;
+        const altoBoton = boton.offsetHeight;
+        const maxLeft = Math.max(margen, window.innerWidth - anchoBoton - margen);
+        const maxTop = Math.max(margen, window.innerHeight - altoBoton - margen);
+        left = Math.min(Math.max(margen, left), maxLeft);
+        top = Math.min(Math.max(margen, top), maxTop);
+        boton.style.left = left + 'px';
+        boton.style.top = top + 'px';
+        boton.style.right = 'auto';
+        boton.style.bottom = 'auto';
+        return { left, top };
+      }
+
+      function guardarPosicion(left, top) {
+        try {
+          const fracX = (left + boton.offsetWidth / 2) / window.innerWidth;
+          const fracY = (top + boton.offsetHeight / 2) / window.innerHeight;
+          localStorage.setItem(CLAVE_POS, JSON.stringify({ fracX, fracY }));
+        } catch (e) { /* localStorage puede fallar en modo privado/incógnito — no es crítico */ }
+      }
+
+      function restaurarPosicion() {
+        let guardada = null;
+        try { guardada = JSON.parse(localStorage.getItem(CLAVE_POS) || 'null'); } catch (e) { /* ignorar */ }
+        if (!guardada || typeof guardada.fracX !== 'number' || typeof guardada.fracY !== 'number') return;
+        const anchoBoton = boton.offsetWidth || 56;
+        const altoBoton = boton.offsetHeight || 56;
+        const left = guardada.fracX * window.innerWidth - anchoBoton / 2;
+        const top = guardada.fracY * window.innerHeight - altoBoton / 2;
+        aplicarPosicion(left, top);
+      }
+
+      boton.addEventListener('pointerdown', (ev) => {
+        if (ev.button !== undefined && ev.button !== 0) return; // solo click izquierdo o touch
+        arrastrando = true;
+        cruzoUmbral = false;
+        const rect = boton.getBoundingClientRect();
+        inicioPunteroX = ev.clientX;
+        inicioPunteroY = ev.clientY;
+        inicioBotonLeft = rect.left;
+        inicioBotonTop = rect.top;
+        try { boton.setPointerCapture(ev.pointerId); } catch (e) { /* ignorar */ }
+      });
+
+      boton.addEventListener('pointermove', (ev) => {
+        if (!arrastrando) return;
+        const dx = ev.clientX - inicioPunteroX;
+        const dy = ev.clientY - inicioPunteroY;
+        if (!cruzoUmbral) {
+          if (Math.hypot(dx, dy) < UMBRAL_DRAG_PX) return;
+          cruzoUmbral = true;
+          boton.classList.add('chat-asistente-boton--arrastrando');
+        }
+        aplicarPosicion(inicioBotonLeft + dx, inicioBotonTop + dy);
+        if (abierto) posicionarPanel();
+      });
+
+      function finalizarArrastre(ev) {
+        if (!arrastrando) return;
+        arrastrando = false;
+        boton.classList.remove('chat-asistente-boton--arrastrando');
+        if (cruzoUmbral) {
+          const rect = boton.getBoundingClientRect();
+          const final = aplicarPosicion(rect.left, rect.top);
+          guardarPosicion(final.left, final.top);
+          if (abierto) posicionarPanel();
+          suprimirProximoClick = true; // evita que el "click" que dispara el navegador tras soltar reabra/cierre el panel
+        }
+        cruzoUmbral = false;
+      }
+
+      boton.addEventListener('pointerup', finalizarArrastre);
+      boton.addEventListener('pointercancel', finalizarArrastre);
+
+      // Si cambia el tamaño de ventana (o gira el celular) con el botón ya
+      // reposicionado, lo re-clampeamos para que no quede fuera de pantalla.
+      window.addEventListener('resize', () => {
+        if (!boton.style.left) return; // nunca se movió: sigue con right/bottom del CSS, no hace falta tocarlo
+        const rect = boton.getBoundingClientRect();
+        aplicarPosicion(rect.left, rect.top);
+        if (abierto) posicionarPanel();
+      });
+
+      restaurarPosicion();
+    }
+
+    let suprimirProximoClick = false;
+    if (boton) habilitarArrastreBoton();
+
+    // Reubica el panel abierto ante cualquier resize/rotación (no solo
+    // cuando el botón fue arrastrado — ver el resize adentro de
+    // habilitarArrastreBoton(), que sólo re-clampea el botón).
+    window.addEventListener('resize', () => { if (abierto) posicionarPanel(); });
+
     function abrirPanel(textoPrefill) {
       abierto = true;
+      posicionarPanel();
       panel.classList.add('chat-asistente-panel--abierto');
-      boton.classList.add('chat-asistente-boton--activo');
+      if (boton) boton.classList.add('chat-asistente-boton--activo');
       if (!saludoMostrado) {
         saludoMostrado = true;
         agregarMensaje(cont, { texto: '¡Hola! Preguntame lo que necesites sobre el sistema — POS, pedidos, cobranzas, stock, lo que sea.', propio: false });
@@ -410,7 +592,7 @@
     function cerrarPanel() {
       abierto = false;
       panel.classList.remove('chat-asistente-panel--abierto');
-      boton.classList.remove('chat-asistente-boton--activo');
+      if (boton) boton.classList.remove('chat-asistente-boton--activo');
       detenerDictado();
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       confirmacionPendienteVoz = null;
@@ -701,7 +883,21 @@
       });
     }
 
-    boton.addEventListener('click', () => (abierto ? cerrarPanel() : abrirPanel()));
+    if (boton) {
+      boton.addEventListener('click', () => {
+        // Tras soltar un arrastre real, el navegador igual dispara un evento
+        // "click" — sin este guard, cada vez que el usuario reubica el botón
+        // el panel se abriría o cerraría solo, además de moverse.
+        if (suprimirProximoClick) { suprimirProximoClick = false; return; }
+        abierto ? cerrarPanel() : abrirPanel();
+      });
+    } else {
+      // Sin FAB que togglee el panel (ver sinBoton), Escape queda como la
+      // forma rápida de cerrarlo además del botón "×" del header.
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && abierto) cerrarPanel();
+      });
+    }
     btnCerrar.addEventListener('click', cerrarPanel);
 
     // ── Adjuntar imagen: botón (abre el selector de archivos) ──────────

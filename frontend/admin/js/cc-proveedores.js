@@ -39,12 +39,16 @@ function avatarProveedor(nombre) {
 
 function badgeEstado(f) {
   const hoy = new Date().toISOString().slice(0, 10);
-  if (f.estado === 'pagada')  return `<span class="badge-fx badge-pagada">Pagada</span>`;
-  if (f.estado === 'anulada') return `<span class="badge-fx badge-anulada">Anulada</span>`;
-  if (f.estado === 'parcial'  && f.fecha_vencimiento < hoy) return `<span class="badge-fx badge-vencida">Vencida (parcial)</span>`;
-  if (f.estado === 'pendiente'&& f.fecha_vencimiento < hoy) return `<span class="badge-fx badge-vencida">Vencida</span>`;
-  if (f.estado === 'parcial') return `<span class="badge-fx badge-parcial">Parcial</span>`;
-  return `<span class="badge-fx badge-pendiente">Pendiente</span>`;
+  // Migrado al badge-estado canónico (frontend/shared/componentes-admin.css,
+  // Fase 0 del plan de unificación) — antes usaba .badge-fx propio de esta
+  // página, con colores redefinidos dos veces (acá y en
+  // css/cc-proveedores-gentelella.css) y sin badge-dot.
+  if (f.estado === 'pagada')  return ComponentesAdmin.renderBadgeEstado('Pagada', 'ok');
+  if (f.estado === 'anulada') return ComponentesAdmin.renderBadgeEstado('Anulada', 'inactivo');
+  if (f.estado === 'parcial'  && f.fecha_vencimiento < hoy) return ComponentesAdmin.renderBadgeEstado('Vencida (parcial)', 'critico');
+  if (f.estado === 'pendiente'&& f.fecha_vencimiento < hoy) return ComponentesAdmin.renderBadgeEstado('Vencida', 'critico');
+  if (f.estado === 'parcial') return ComponentesAdmin.renderBadgeEstado('Parcial', 'info');
+  return ComponentesAdmin.renderBadgeEstado('Pendiente', 'pendiente');
 }
 function badge(txt, cls) { return `<span style="font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600" class="${cls}">${txt}</span>`; }
 
@@ -206,15 +210,15 @@ function renderTabla(lista) {
     const hoy        = new Date().toISOString().slice(0, 10);
     const vencida    = f.fecha_vencimiento && f.fecha_vencimiento < hoy && f.estado !== 'pagada';
     const venceCell  = f.fecha_vencimiento
-      ? `<span style="${vencida ? 'color:var(--color-danger,#7A1E19);font-weight:600' : ''}">${fmtFecha(f.fecha_vencimiento)}</span>`
+      ? `<span style="${vencida ? 'color:var(--color-danger,#7A2820);font-weight:600' : ''}">${fmtFecha(f.fecha_vencimiento)}</span>`
       : '<span style="color:var(--color-text-muted)">—</span>';
 
     const badgeDif = f.tiene_diferencias
-      ? `<span title="Tiene diferencias vs. la OC" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:10px;background:var(--color-danger-bg,#F3DAD8);color:var(--color-danger,#7A1E19);font-size:10px;font-weight:700;vertical-align:middle">⚠ Dif.</span>`
+      ? `<span title="Tiene diferencias vs. la OC" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:10px;background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);font-size:10px;font-weight:700;vertical-align:middle">⚠ Dif.</span>`
       : '';
 
-    return `<tr>
-      <td style="font-weight:600">${window.sanitize(f.numero_factura)}${badgeDif}<br><span style="font-size:11px;color:var(--color-text-muted)">${window.sanitize(f.tipo)}</span></td>
+    return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirFacturaExistente(facturasPorId['${f.id}'])">
+      <td style="font-weight:600;line-height:1.25">${window.sanitize(f.numero_factura)}${badgeDif}<div style="margin-top:2px;font-size:11px;font-weight:400;line-height:1;color:var(--color-text-muted)">${window.sanitize(f.tipo)}</div></td>
       <td>${avatarProveedor(nomProv)}</td>
       <td>${f.orden_id
         ? `<a href="/admin/compras?orden=${f.orden_id}" style="color:var(--color-primary);text-decoration:none">${numOC}</a>`
@@ -222,8 +226,8 @@ function renderTabla(lista) {
       <td>${fmtFecha(f.fecha_factura)}</td>
       <td>${venceCell}</td>
       <td style="text-align:left;font-weight:600">${moneda(f.total)}</td>
-      <td style="text-align:left;color:var(--color-success,#17402F)">${moneda(f.total_pagado)}</td>
-      <td style="text-align:left;font-weight:600;color:${saldo > 0 ? 'var(--color-warning,#7A4A00)' : 'var(--color-text-muted)'}">${saldo > 0 ? moneda(saldo) : '—'}</td>
+      <td style="text-align:left;color:var(--color-success,#487050)">${moneda(f.total_pagado)}</td>
+      <td style="text-align:left;font-weight:600;color:${saldo > 0 ? 'var(--color-warning,#8A5F13)' : 'var(--color-text-muted)'}">${saldo > 0 ? moneda(saldo) : '—'}</td>
       <td>${badgeEstado(f)}</td>
       <td class="col-sticky-end">
         <div style="display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end">
@@ -656,31 +660,37 @@ window.verCruce = async function (facturaId) {
 
   const items = data.items || [];
   const disc  = data.discrepancias || [];
+  const sinItemsFactura = !!data.resumen?.sin_items_factura;
 
   // Banner resumen
-  const resumen = disc.length === 0
-    ? `<div style="background:var(--color-success-bg,#DCEDE3);color:var(--color-success,#17402F);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin diferencias — OC y factura coinciden</div>`
-    : `<div style="background:var(--color-warning-bg,#FBEBC7);color:var(--color-warning,#7A4A00);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600">⚠ ${disc.length} ítem${disc.length > 1 ? 's' : ''} con diferencias respecto a la OC</div>`;
+  const resumen = sinItemsFactura
+    ? `<div style="background:var(--color-info-bg,#DCEAF7);color:var(--color-info,#2C5F8A);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Esta factura no tiene ítems cargados — no se puede comparar contra la OC. Cargá los ítems (o usá "Importar desde OC") para ver el cruce real.</div>`
+    : disc.length === 0
+    ? `<div style="background:var(--color-success-bg,#E2F0E5);color:var(--color-success,#487050);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin diferencias — OC y factura coinciden</div>`
+    : `<div style="background:var(--color-warning-bg,#FBE8C9);color:var(--color-warning,#8A5F13);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:600">⚠ ${disc.length} ítem${disc.length > 1 ? 's' : ''} con diferencias respecto a la OC</div>`;
 
   const filas = items.map(it => {
-    const difCant  = it.diff_cant_pct  > 0;
-    const difPrecio= it.diff_precio_pct > 0;
+    const difCant  = !sinItemsFactura && it.diff_cant_pct  > 0;
+    const difPrecio= !sinItemsFactura && it.diff_precio_pct > 0;
     const noMatch  = !it.match;
+    const estiloAtenuado = sinItemsFactura ? 'color:var(--color-text-muted)' : '';
 
     return `<tr>
       <td style="padding:8px 10px">${window.sanitize(it.nombre || it.descripcion || '—')}</td>
       <td style="padding:8px 10px;text-align:left">${it.cant_oc}</td>
       <td style="padding:8px 10px;text-align:left;${noMatch?'color:var(--color-text-muted)':''}">${it.cant_fac ?? '—'}</td>
-      <td style="padding:8px 10px;text-align:left;${difCant?'color:var(--color-danger,#7A1E19);font-weight:600':''}">${it.diff_cant_pct}%</td>
+      <td style="padding:8px 10px;text-align:left;${difCant?'color:var(--color-danger,#7A2820);font-weight:600':estiloAtenuado}">${sinItemsFactura ? '—' : it.diff_cant_pct + '%'}</td>
       <td style="padding:8px 10px;text-align:left">${moneda(it.precio_oc)}</td>
       <td style="padding:8px 10px;text-align:left;${noMatch?'color:var(--color-text-muted)':''}">${it.precio_fac ? moneda(it.precio_fac) : '—'}</td>
-      <td style="padding:8px 10px;text-align:left;${difPrecio?'color:var(--color-danger,#7A1E19);font-weight:600':''}">${it.diff_precio_pct}%</td>
+      <td style="padding:8px 10px;text-align:left;${difPrecio?'color:var(--color-danger,#7A2820);font-weight:600':estiloAtenuado}">${sinItemsFactura ? '—' : it.diff_precio_pct + '%'}</td>
       <td style="padding:8px 10px;text-align:center">
-        ${noMatch
-          ? '<span style="color:var(--color-danger,#7A1E19)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>No encontrado</span>'
+        ${sinItemsFactura
+          ? '<span style="color:var(--color-text-muted)">Sin datos de factura</span>'
+          : noMatch
+          ? '<span style="color:var(--color-danger,#7A2820)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>No encontrado</span>'
           : it.alerta
-            ? '<span style="color:var(--color-warning,#7A4A00);font-weight:600">⚠ Dif.</span>'
-            : '<span style="color:var(--color-success,#17402F)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg></span>'}
+            ? '<span style="color:var(--color-warning,#8A5F13);font-weight:600">⚠ Dif.</span>'
+            : '<span style="color:var(--color-success,#487050)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg></span>'}
       </td>
     </tr>`;
   }).join('');
@@ -730,7 +740,7 @@ async function cargarPagosTab(facturaId) {
   } else {
     cont.innerHTML = `
       <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead><tr style="background:var(--color-surface-2,#EAE4D6);font-size:11px;text-transform:uppercase;color:var(--color-text-muted)">
+        <thead><tr style="background:var(--color-surface-2,#ECEEEA);font-size:11px;text-transform:uppercase;color:var(--color-text-muted)">
           <th style="padding:7px 10px;text-align:left">Fecha</th>
           <th style="padding:7px 10px;text-align:left">Medio</th>
           <th style="padding:7px 10px;text-align:left">Referencia</th>
@@ -742,14 +752,14 @@ async function cargarPagosTab(facturaId) {
             <td style="padding:7px 10px">${fmtFecha(p.fecha_pago)}</td>
             <td style="padding:7px 10px;text-transform:capitalize">${p.medio_pago}</td>
             <td style="padding:7px 10px;color:var(--color-text-muted)">${window.sanitize(p.referencia || '—')}</td>
-            <td style="padding:7px 10px;text-align:left;font-weight:600;color:var(--color-success,#17402F)">${moneda(p.monto)}</td>
+            <td style="padding:7px 10px;text-align:left;font-weight:600;color:var(--color-success,#487050)">${moneda(p.monto)}</td>
             <td style="padding:7px 10px;font-size:12px">${window.sanitize(p.usuarios?.nombre || '—')}</td>
           </tr>`).join('')}
         </tbody>
       </table>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;font-size:13px">
         <span>Saldo pendiente:</span>
-        <span style="font-weight:700;color:${(f.total - f.total_pagado) > 0 ? 'var(--color-warning,#7A4A00)' : 'var(--color-success,#17402F)'}">${moneda(f.total - f.total_pagado)}</span>
+        <span style="font-weight:700;color:${(f.total - f.total_pagado) > 0 ? 'var(--color-warning,#8A5F13)' : 'var(--color-success,#487050)'}">${moneda(f.total - f.total_pagado)}</span>
       </div>`;
   }
 
@@ -888,17 +898,17 @@ function renderCruceEnContenedor(data, containerId) {
   const cont  = document.getElementById(containerId);
 
   const banner = disc.length === 0
-    ? `<div style="background:var(--color-success-bg,#DCEDE3);color:var(--color-success,#17402F);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin diferencias</div>`
-    : `<div style="background:var(--color-warning-bg,#FBEBC7);color:var(--color-warning,#7A4A00);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600">⚠ ${disc.length} diferencia(s)</div>`;
+    ? `<div style="background:var(--color-success-bg,#E2F0E5);color:var(--color-success,#487050);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin diferencias</div>`
+    : `<div style="background:var(--color-warning-bg,#FBE8C9);color:var(--color-warning,#8A5F13);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600">⚠ ${disc.length} diferencia(s)</div>`;
 
   const filas = items.map(it => `<tr>
     <td style="padding:7px 10px">${sanitize(it.nombre || '—')}</td>
     <td style="padding:7px 10px;text-align:left">${it.cant_oc}</td>
     <td style="padding:7px 10px;text-align:left">${it.cant_fac ?? '—'}</td>
-    <td style="padding:7px 10px;text-align:left;${it.diff_cant_pct > 0 ? 'color:var(--color-danger,#7A1E19);font-weight:600' : ''}">${it.diff_cant_pct}%</td>
+    <td style="padding:7px 10px;text-align:left;${it.diff_cant_pct > 0 ? 'color:var(--color-danger,#7A2820);font-weight:600' : ''}">${it.diff_cant_pct}%</td>
     <td style="padding:7px 10px;text-align:left">${moneda(it.precio_oc)}</td>
     <td style="padding:7px 10px;text-align:left">${it.precio_fac ? moneda(it.precio_fac) : '—'}</td>
-    <td style="padding:7px 10px;text-align:left;${it.diff_precio_pct > 0 ? 'color:var(--color-danger,#7A1E19);font-weight:600' : ''}">${it.diff_precio_pct}%</td>
+    <td style="padding:7px 10px;text-align:left;${it.diff_precio_pct > 0 ? 'color:var(--color-danger,#7A2820);font-weight:600' : ''}">${it.diff_precio_pct}%</td>
     <td style="padding:7px 10px;text-align:center">${it.alerta ? '⚠' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>'}</td>
   </tr>`).join('');
 

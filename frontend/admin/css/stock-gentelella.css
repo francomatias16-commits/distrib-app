@@ -53,13 +53,13 @@ body.dash-stock-gentelella .topbar-contador {
 }
 body.dash-stock-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; }
 
-body.dash-stock-gentelella .btn-exportar {
+body.dash-stock-gentelella .btn.btn--secondary {
   background: var(--ge-panel) !important;
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-ink-soft) !important;
 }
-body.dash-stock-gentelella .btn-exportar:hover {
+body.dash-stock-gentelella .btn.btn--secondary:hover {
   background: var(--ge-teal-light) !important;
   border-color: var(--ge-teal) !important;
   color: var(--ge-teal-dark) !important;
@@ -97,7 +97,7 @@ body.dash-stock-gentelella .stock-ov-kpi:has(.stock-ov-kpi__icon--warn) {
 /* ícono por defecto (teal) → fondo verde pastel */
 body.dash-stock-gentelella .stock-ov-kpi:not(:has([class*="stock-ov-kpi__icon--"])) {
   background: var(--ge-teal-light)   !important;
-  border-color: rgba(184,122,0,.3)  !important;
+  border-color: rgba(106,152,115,.3)  !important;
 }
 body.dash-stock-gentelella .stock-ov-kpi__label { color: var(--ge-ink-soft) !important; }
 /* Ícono KPI por defecto → teal */
@@ -154,7 +154,7 @@ body.dash-stock-gentelella .stock-ov-mini__badge {
   color: #fdb072 !important;
 }
 body.dash-stock-gentelella .stock-ov-mini__badge.ok {
-  background: rgba(184,122,0,.2) !important;
+  background: rgba(106,152,115,.2) !important;
   color: #6fe3b4 !important;
 }
 
@@ -177,6 +177,7 @@ body.dash-stock-gentelella .stockauto-head__icon {
 }
 body.dash-stock-gentelella .stockauto-head h3 { color: var(--ge-ink) !important; }
 body.dash-stock-gentelella .stockauto-head__sub { color: var(--ge-muted) !important; }
+body.dash-stock-gentelella .stockauto-head__desglose { color: var(--ge-muted) !important; }
 body.dash-stock-gentelella .stockauto-head__count {
   background: rgba(231,76,60,.1) !important;
   color: var(--ge-red) !important;
@@ -205,6 +206,7 @@ body.dash-stock-gentelella .stockauto-row__dias { color: var(--ge-muted) !import
 body.dash-stock-gentelella .stockauto-row__dias strong { color: var(--ge-ink) !important; }
 body.dash-stock-gentelella .stockauto-foot { border-top: 1px solid var(--ge-border) !important; }
 body.dash-stock-gentelella .stockauto-toggle { color: var(--ge-teal) !important; }
+body.dash-stock-gentelella .stockauto-toggle--ghost { color: var(--ge-muted) !important; }
 body.dash-stock-gentelella .stockauto-row__ver { border-color: var(--ge-teal) !important; color: var(--ge-teal) !important; }
 body.dash-stock-gentelella .stockauto-row__ver:hover { background: var(--ge-teal) !important; color: var(--ge-panel) !important; }
 body.dash-stock-gentelella .stockauto-empty { color: var(--ge-muted) !important; }
@@ -264,7 +266,7 @@ body.dash-stock-gentelella #vista-stock .filtros-bar {
 body.dash-stock-gentelella .search-wrap,
 body.dash-stock-gentelella #vista-stock .search-wrap {
   background: var(--ge-bg) !important;
-  border: 1.5px solid var(--ge-border) !important;
+  border: 1.5px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-muted) !important;
 }
@@ -337,13 +339,13 @@ body.dash-stock-gentelella #vista-stock .tabla-wrap {
   border-radius: var(--ge-radius-card) !important;
   box-shadow: var(--ge-shadow) !important;
 }
-body.dash-stock-gentelella .tabla-stock thead,
-body.dash-stock-gentelella #vista-stock .tabla-stock thead {
+body.dash-stock-gentelella .tabla-admin thead,
+body.dash-stock-gentelella #vista-stock .tabla-admin thead {
   background: var(--ge-bg) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-stock-gentelella .tabla-stock th,
-body.dash-stock-gentelella #vista-stock .tabla-stock th {
+body.dash-stock-gentelella .tabla-admin th,
+body.dash-stock-gentelella #vista-stock .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
 }
@@ -405,6 +407,23 @@ body.dash-stock-gentelella .badge-critico {
   color: var(--ge-red) !important;
 }
 body.dash-stock-gentelella .badge-critico .badge-dot { background: var(--ge-red) !important; }
+body.dash-stock-gentelella .badge-inactivo {
+  background: var(--ge-bg-soft, #f2f3f4) !important;
+  color: var(--ge-muted) !important;
+  border-color: var(--ge-border, #e5e6e9) !important;
+}
+body.dash-stock-gentelella .badge-inactivo .badge-dot { background: var(--ge-muted) !important; }
+body.dash-stock-gentelella .tag-producto-inactivo {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--ge-radius-pill, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--ge-bg-soft, #f2f3f4) !important;
+  color: var(--ge-muted) !important;
+  vertical-align: middle;
+}
 
 /* Botón ajustar */
 body.dash-stock-gentelella .btn-ajustar {
@@ -464,7 +483,7 @@ body.dash-stock-gentelella .mov-row--transferencia {
 body.dash-stock-gentelella .mov-tipo-transferencia {
   background: var(--ge-teal-light) !important;
   color: var(--ge-teal-dark) !important;
-  border: 1px solid rgba(184,122,0,.3) !important;
+  border: 1px solid rgba(106,152,115,.3) !important;
 }
 body.dash-stock-gentelella .mov-transferencia-cant { color: var(--ge-teal-dark) !important; }
 body.dash-stock-gentelella .sa-costo { color: var(--ge-muted) !important; }
@@ -485,7 +504,7 @@ body.dash-stock-gentelella .mbt-titulo  { color: var(--ge-ink) !important; }
 body.dash-stock-gentelella .mbt-subtitulo { color: var(--ge-muted) !important; }
 body.dash-stock-gentelella .mbt-input {
   background: var(--ge-bg) !important;
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-ink) !important;
 }

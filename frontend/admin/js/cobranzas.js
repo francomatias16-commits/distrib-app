@@ -30,8 +30,8 @@ window.authReady.then(async () => {
     hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   (document.getElementById('topbar-usuario') || {}).textContent = perfil.nombre || perfil.email;
-  const _elEmp = document.getElementById('sidebar-empresa');
-  if (_elEmp) _elEmp.textContent = perfil.empresa_nombre || 'Distribuidora';
+  // v903: sidebar-empresa/sidebar-logo los pinta nav.js (pintarEmpresaSidebar,
+  // corre en cada renderConRol) — no duplicar acá, pisaba el valor bueno.
 
   await cargarDatos();
 }).catch(err => {
@@ -65,7 +65,6 @@ async function cargarDatos() {
     ultimosKpisCob = kpis;
 
     actualizarKPIs(kpis);
-    renderMediosPago();
     await renderFacturas(tabActiva);
   } catch(e) {
     console.error(e);
@@ -86,46 +85,6 @@ function actualizarKPIs(kpis) {
   setTabAmt('tabamt-hoy',      kpis.pendiente_hoy || 0);
   setTabAmt('tabamt-semana',   kpis.pendiente_semana || 0);
   setTabAmt('tabamt-vencidas', kpis.total_vencido || 0);
-}
-
-function renderMediosPago() {
-  const totales = {};
-  for (const c of cobrosHoy) {
-    const medio = c.medio_pago || 'otro';
-    totales[medio] = (totales[medio] || 0) + (c.monto || 0);
-  }
-
-  const el = document.getElementById('medios-pago-grid');
-  const entradas = Object.entries(totales);
-  if (!entradas.length) {
-    el.innerHTML = '<div class="mp-vacio">No hay cobros registrados hoy</div>';
-    return;
-  }
-
-  const iconos = {
-    efectivo:       '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    transferencia:  '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-    cheque:         '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
-    tarjeta:        '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
-  };
-
-  const totalGeneral = entradas.reduce((s, [, m]) => s + m, 0);
-  const nombreMedio = (medio) => medio
-    .replace(/_/g, ' ')
-    .replace(/^\w/, (c) => c.toUpperCase());
-
-  el.innerHTML = entradas
-    .sort((a, b) => b[1] - a[1])
-    .map(([medio, monto]) => {
-      const ic  = iconos[medio] || '<circle cx="12" cy="12" r="10"/>';
-      const pct = totalGeneral > 0 ? (monto / totalGeneral * 100) : 0;
-      return `<div class="mp-fila">
-        <span class="mp-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></span>
-        <span class="mp-label">${nombreMedio(medio)}</span>
-        <span class="mp-barra"><span class="mp-barra-fill" style="width:${pct.toFixed(1)}%"></span></span>
-        <span class="mp-monto">${formatPeso(monto)}</span>
-      </div>`;
-    }).join('');
 }
 
 async function cargarCobranzaPriorizada() {
@@ -208,12 +167,12 @@ async function renderFacturas(tab) {
 
   tbody.innerHTML = lista.map((f, idx) => {
     return `<tr data-testid="cobranza-fila" data-id="${f.id}">
-      <td style="font-family:monospace">${f.numero || '—'}</td>
-      <td>${window.sanitize(f.cliente_nombre || '—')}</td>
-      <td class="monto">${formatPeso(f.total)}</td>
-      <td class="monto monto-rojo">${formatPeso(f.pendiente)}</td>
-      <td>${formatFecha(f.vencimiento)}</td>
-      <td class="col-sticky-end">
+      <td data-label="N° Factura" style="font-family:monospace">${f.numero || '—'}</td>
+      <td data-label="Cliente">${window.sanitize(f.cliente_nombre || '—')}</td>
+      <td class="monto" data-label="Total">${formatPeso(f.total)}</td>
+      <td class="monto monto-rojo" data-label="Pendiente">${formatPeso(f.pendiente)}</td>
+      <td data-label="Vencimiento">${formatFecha(f.vencimiento)}</td>
+      <td class="col-sticky-end" data-label="Acciones">
         <button class="btn btn-sm btn-primary" onclick="abrirCobroFacturaIdx(${idx})">Cobrar</button>
       </td>
     </tr>`;
@@ -276,12 +235,12 @@ function renderPriorizada() {
   tbody.innerHTML = lista.map((f, idx) => {
     const chip = PRIORIDAD_CHIP[f.prioridad] || { cls: 'chip-gris', label: f.prioridad || '—' };
     return `<tr data-testid="cobranza-priorizada-fila" data-cliente-id="${f.cliente_id}">
-      <td style="font-family:monospace">${f.numero_factura || '—'}</td>
-      <td>${f.cliente_nombre || '—'}</td>
-      <td class="monto monto-rojo">${formatPeso(f.saldo_pendiente)}</td>
-      <td>${f.dias_vencida > 0 ? f.dias_vencida + ' días' : '—'}</td>
-      <td><span class="chip ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${chip.label}</span></td>
-      <td class="col-sticky-end">
+      <td data-label="N° Factura" style="font-family:monospace">${f.numero_factura || '—'}</td>
+      <td data-label="Cliente">${f.cliente_nombre || '—'}</td>
+      <td class="monto monto-rojo" data-label="Pendiente">${formatPeso(f.saldo_pendiente)}</td>
+      <td data-label="Días vencida">${f.dias_vencida > 0 ? f.dias_vencida + ' días' : '—'}</td>
+      <td data-label="Prioridad"><span class="chip ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${chip.label}</span></td>
+      <td class="col-sticky-end" data-label="Acciones">
         <button class="btn btn-sm btn-primary" onclick="abrirCobroPriorizadaIdx(${idx})">Cobrar</button>
       </td>
     </tr>`;
@@ -398,7 +357,6 @@ async function refrescarKPIsCobranzas() {
     ultimosKpisCob = kpis;
 
     actualizarKPIs(kpis);
-    renderMediosPago();
     // Si la pestaña activa es "priorizada", la forzamos a recargar en el próximo cambio
     // (cobranzaPriorizada ya fue invalidado por invalidarCobranzaPriorizada() llamado antes)
   } catch (e) {

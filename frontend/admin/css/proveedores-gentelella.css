@@ -2,8 +2,33 @@
  * proveedores-gentelella.css — Reskin "Gentelella v4" de la pantalla Proveedores
  * ───────────────────────────────────────────────────────────────────────────────
  * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
- * Compras/Cta.Cte.Proveedores) y de /frontend/shared/gentelella-tokens.css
- * (debe estar linkeado antes en el <head>).
+ * Compras/Cta.Cte.Proveedores/Vencimientos), de /frontend/shared/componentes-admin.css
+ * (componente canónico admin — ver PLAN_UNIFICACION_UX_ADMIN.md) y de
+ * /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en el <head>).
+ *
+ * (2026-08-19, migración Fase 3) `.tabla-main` → `.tabla-admin` en las dos
+ * tablas de esta pantalla (listado principal y links activos del portal).
+ * `.badge`/`.badge-activo`/`.badge-inactivo` y `.acciones-td`/`.btn-tabla`
+ * quedaron sin tocar en esa pasada — alias compartidos con `compras.html`
+ * (mismo `compras.css`), no exclusivos de esta pantalla (Hallazgo #6, §14).
+ *
+ * (2026-08-19, cierre del Hallazgo #6, §17) El badge de Estado y la fila de
+ * acciones ya migraron al componente canónico: `ComponentesAdmin.renderBadgeEstado`
+ * (`.badge-estado.badge-ok`/`.badge-inactivo`) y `ComponentesAdmin.renderFilaAcciones`
+ * (`.fila-acciones`/`.btn-tabla`/`.btn-kebab`, con Compras/Portal movidos a un
+ * menú flotante — mismo patrón que Cheques/Notas de crédito). Por eso el
+ * bloque local de `.badge`/`.badge-activo`/`.badge-inactivo` se borró de este
+ * archivo (mismo criterio de "diferencia de paleta menor y a propósito" ya
+ * aceptado en `usuarios-gentelella.css`, §13 del plan — el badge canónico usa
+ * tokens genéricos, no los `--ge-teal`/`--ge-chip-bg` de acá). `.btn-tabla` SÍ
+ * se conserva con su reskin teal (no cambió de nombre). `.btn-kebab` y el
+ * `.dropdown-menu`/`.dropdown-item` del menú de Compras/Portal no tienen
+ * override acá — el estilo neutro de `adminlte-components.css`/
+ * `componentes-admin.css` alcanza, mismo criterio que Cheques (ver comentario
+ * en `cheques-gentelella.css`). `.acciones-td` ya no la usa ningún elemento
+ * de esta pantalla (la tabla de links activos del portal usaba `.btn-tabla`
+ * suelto, sin wrapper) — sigue definida en `compras.css` solo porque
+ * `compras.html` todavía la necesita.
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * No se agrega ningún token nuevo en este archivo.
@@ -89,7 +114,7 @@ body.dash-proveedores-gentelella .filtros-bar {
   border-bottom: 1px solid var(--ge-border) !important;
 }
 body.dash-proveedores-gentelella .search-wrap input {
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -128,7 +153,7 @@ body.dash-proveedores-gentelella .tabla-wrap {
   box-shadow: var(--ge-shadow) !important;
   overflow: hidden !important;
 }
-body.dash-proveedores-gentelella .tabla-main th {
+body.dash-proveedores-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -137,41 +162,32 @@ body.dash-proveedores-gentelella .tabla-main th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-proveedores-gentelella .tabla-main td {
+body.dash-proveedores-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-proveedores-gentelella .tabla-main td.vacio {
+body.dash-proveedores-gentelella .tabla-admin td.vacio {
   color: var(--ge-muted) !important;
 }
-body.dash-proveedores-gentelella .tabla-main tbody tr:hover {
+body.dash-proveedores-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
 body.dash-proveedores-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-proveedores-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+body.dash-proveedores-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 body.dash-proveedores-gentelella #tabla-links-activos {
   margin-top: 4px !important;
 }
 
-/* Badges Activo/Inactivo */
-body.dash-proveedores-gentelella .badge {
-  display: inline-flex !important;
-  align-items: center !important;
-}
-body.dash-proveedores-gentelella .badge-activo {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-proveedores-gentelella .badge-inactivo {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
+/* Badge de Estado: migrado a .badge-estado canónico (componentes-admin.css),
+   sin override local — ver nota del cierre del Hallazgo #6 al principio del
+   archivo. El bloque .badge/.badge-activo/.badge-inactivo que vivía acá se
+   borró (huérfano, ya no matchea nada en esta pantalla). */
 
-/* Botones de acción en tabla (Editar / Compras / Portal / Dar de baja / Activar / Revocar) */
+/* Botones de acción en tabla (Editar / Dar de baja / Activar / Revocar) */
 body.dash-proveedores-gentelella .btn-tabla {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
@@ -277,17 +293,6 @@ body.dash-proveedores-gentelella .ayuda-contextual:hover {
 body.dash-proveedores-gentelella .ayuda-contextual::after {
   background: var(--ge-ink) !important;
 }
-body.dash-proveedores-gentelella .btn-cancelar {
-  border: 1px solid var(--ge-border) !important;
-  background: var(--ge-panel) !important;
-  color: var(--ge-ink-soft) !important;
-  border-radius: var(--ge-radius-btn) !important;
-}
-body.dash-proveedores-gentelella .btn-cancelar:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-ink) !important;
-}
-
 /* ════════════════════════════════════════════════════════════
    Modal: portal de autogestión del proveedor
    ════════════════════════════════════════════════════════════ */

@@ -228,12 +228,30 @@ function aplicarFiltros() {
   cargarFacturas();
 }
 
+// FIX (bug real, no solo de UX): las tarjetas de estado (Pendientes/
+// Emitidas/Con error/Anuladas) cuentan sobre TODO el historial de la
+// empresa (fn_facturas_contadores no tiene filtro de fecha), pero la
+// tabla de abajo seguía respetando el período elegido en el otro filtro
+// ("Este mes" por defecto). Resultado: el botón "Con error" podía decir
+// "1" y la tabla mostrar "Sin facturas" si esa factura era de un mes
+// anterior — los dos filtros se combinan con Y, no reemplazan uno al
+// otro. Al elegir un estado específico, se pasa a "Todo el historial"
+// para que la tabla siempre pueda mostrar lo que el número promete.
 function selFiltroEstado(estado, btn) {
   filtroEstado = estado;
   document.querySelectorAll('.e-pill').forEach(b => b.classList.remove('activa'));
 
   const pillCorrespondiente = document.querySelector(`.e-pill[data-f="${estado}"]`);
   if (pillCorrespondiente) pillCorrespondiente.classList.add('activa');
+
+  if (estado) {
+    const selPeriodo = document.getElementById('filtro-periodo');
+    if (selPeriodo && selPeriodo.value !== 'todos') {
+      selPeriodo.value = 'todos';
+      const wrap = document.getElementById('filtro-rango-wrap');
+      if (wrap) wrap.style.display = 'none';
+    }
+  }
 
   aplicarFiltros();
 }
@@ -289,55 +307,102 @@ function renderTabla() {
     const total    = formatPeso(f.total);
     const est      = estadoInfo(f.estado);
 
-    let acciones = `
-      <button class="btn-icon icon-primary" title="Ver detalle" onclick="abrirModal('${f.id}'); event.stopPropagation();">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>`;
-
-    if (f.estado === 'pendiente' || f.estado === 'error_afip') {
-      acciones += `
-        <button class="btn-reintentar" id="btn-reintentar-${f.id}" title="Reintentar emisión" onclick="reintentar('${f.id}'); event.stopPropagation();">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          Reintentar emisión
-        </button>`;
-    }
-
-    if (f.estado === 'emitida' || f.estado === 'anulada') {
-      acciones += `
-        <button class="btn-icon" id="btn-pdf-${f.id}" title="Ver / descargar PDF" onclick="verPdf('${f.id}', event)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>`;
-    }
+    // Fila de acciones canónica (texto + kebab, patrón Productos/Stock/
+    // cc-proveedores): "Ver" siempre visible como botón de texto; las
+    // acciones secundarias (Reintentar emisión / Ver PDF, mutuamente
+    // excluyentes según el estado) van en el menú "⋮" flotante compartido
+    // — ver iniciarMenuAccionesFactura() más abajo.
+    const tieneSecundaria = f.estado === 'pendiente' || f.estado === 'error_afip' || f.estado === 'emitida' || f.estado === 'anulada';
+    const acciones = `
+      <span class="fila-acciones">
+        <button type="button" class="btn-tabla" onclick="abrirModal('${f.id}'); event.stopPropagation();">Ver</button>
+        ${tieneSecundaria ? `<button type="button" class="btn-kebab btn-kebab-factura" data-factura-id="${f.id}" data-estado="${f.estado}" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>` : ''}
+      </span>`;
 
     return `
-      <tr class="fila-factura" data-testid="factura-fila" data-id="${f.id}" onclick="abrirModal('${f.id}')">
-        <td class="td-comprobante">
+      <tr class="fila-factura" data-testid="factura-fila" data-id="${f.id}" onclick="if (!event.target.closest('.fila-acciones')) abrirModal('${f.id}')">
+        <td class="td-comprobante" data-label="Comprobante">
           <span class="factura-numero">${numero}</span>
           <span class="factura-pedido">${pedidoRef}</span>
         </td>
-        <td class="td-cliente">${escHtml(cliente)}</td>
-        <td class="td-text">${fecha}</td>
-        <td class="td-cae">${cae}${caeVto ? `<br><span class="factura-pedido">CAE vto ${caeVto}</span>` : ''}</td>
-        <td class="td-text" style="${vencido ? 'color:var(--color-danger,#7A1E19);font-weight:600;' : ''}">${vencimiento}</td>
-        <td class="td-total">${total}</td>
-        <td>
-          <span class="badge-estado badge-${f.estado}">
-            <span class="badge-dot"></span>${est.label}
-          </span>
-        </td>
-        <td class="td-acciones col-sticky-end">${acciones}</td>
+        <td class="td-cliente" data-label="Cliente">${escHtml(cliente)}</td>
+        <td class="td-text" data-label="Fecha emisión">${fecha}</td>
+        <td class="td-cae" data-label="CAE">${cae}${caeVto ? `<br><span class="factura-pedido">CAE vto ${caeVto}</span>` : ''}</td>
+        <td class="td-text" data-label="Vencimiento" style="${vencido ? 'color:var(--color-danger,#7A2820);font-weight:600;' : ''}">${vencimiento}</td>
+        <td class="td-total" data-label="Total">${total}</td>
+        <td data-label="Estado">${ComponentesAdmin.renderBadgeEstado(est.label, est.variante)}</td>
+        <td class="col-sticky-end" data-label="Acciones">${acciones}</td>
       </tr>`;
   }, 8, 'No se encontraron facturas con esos filtros. Las facturas se generan automáticamente al confirmar un pedido o cerrar una venta en el POS.'); // 8 es el colspan para la tabla de facturas (agregado: columna Vencimiento)
 }
 
+// ── Menú "⋮" de acciones secundarias por fila (Reintentar emisión / Ver PDF) ──
+// Un solo menú flotante compartido, reposicionado por JS — mismo patrón que
+// el piloto cc-proveedores (ver PLAN_UNIFICACION_UX_ADMIN.md §2 y §5).
+(function iniciarMenuAccionesFactura() {
+  const menu = document.getElementById('menu-acciones-factura');
+  if (!menu) return;
+
+  const cerrar = () => {
+    menu.hidden = true;
+    document.querySelectorAll('.btn-kebab-factura[aria-expanded="true"]')
+      .forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.btn-kebab-factura');
+    if (!btn) { if (!ev.target.closest('#menu-acciones-factura')) cerrar(); return; }
+    ev.stopPropagation();
+
+    const yaAbiertoParaEsteBtn = !menu.hidden && menu.dataset.facturaId === btn.dataset.facturaId;
+    cerrar();
+    if (yaAbiertoParaEsteBtn) return;
+
+    const facturaId = btn.dataset.facturaId;
+    const estado = btn.dataset.estado;
+    const items = [];
+    if (estado === 'pendiente' || estado === 'error_afip') {
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" id="btn-reintentar-${facturaId}" onclick="reintentar('${facturaId}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Reintentar emisión
+      </button>`);
+    }
+    if (estado === 'emitida' || estado === 'anulada') {
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" id="btn-pdf-${facturaId}" onclick="verPdf('${facturaId}', event)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ver / descargar PDF
+      </button>`);
+    }
+    if (!items.length) return;
+
+    menu.innerHTML = items.join('');
+    menu.dataset.facturaId = facturaId;
+
+    const r = btn.getBoundingClientRect();
+    menu.style.top   = `${r.bottom + 4}px`;
+    menu.style.left  = 'auto';
+    menu.style.right = `${window.innerWidth - r.right}px`;
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  });
+
+  menu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (ev.target.closest('.dropdown-item')) cerrar();
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
+  window.addEventListener('resize', cerrar);
+  document.getElementById('tabla-body')?.addEventListener('scroll', cerrar);
+})();
+
 function estadoInfo(estado) {
   const map = {
-    pendiente:  { label: 'Pendiente' },
-    emitida:    { label: 'Emitida' },
-    error_afip: { label: 'Error ARCA' },
-    anulada:    { label: 'Anulada' },
+    pendiente:  { label: 'Pendiente',   variante: 'pendiente' },
+    emitida:    { label: 'Emitida',     variante: 'ok' },
+    error_afip: { label: 'Error ARCA',  variante: 'critico' },
+    anulada:    { label: 'Anulada',     variante: 'inactivo' },
   };
-  return map[estado] || { label: estado };
+  return map[estado] || { label: estado, variante: 'inactivo' };
 }
 
 // ── Modal de detalle ──────────────────────────────────────────────────────
@@ -351,10 +416,12 @@ function abrirModal(facturaId) {
   document.getElementById('modal-titulo').textContent    = numero;
   document.getElementById('modal-subtitulo').textContent = f.clientes?.razon_social || '';
 
-  // Estado
+  // Estado (usa la variante canónica, no el estado crudo: badge-pendiente/
+  // badge-emitida/badge-error_afip/badge-anulada no existen en el componente
+  // canónico, las variantes válidas son ok/critico/inactivo/pendiente)
   const est = estadoInfo(f.estado);
   document.getElementById('modal-estado-box').innerHTML = `
-    <span class="badge-estado badge-${f.estado}" style="font-size:13px;padding:5px 14px">
+    <span class="badge-estado badge-${est.variante}" style="font-size:13px;padding:5px 14px">
       <span class="badge-dot"></span>${est.label}
     </span>`;
 
@@ -393,7 +460,7 @@ function abrirModal(facturaId) {
   document.getElementById('md-cobrado').textContent = formatPeso(cobrado);
   const saldoEl = document.getElementById('md-saldo');
   saldoEl.textContent = formatPeso(saldo);
-  saldoEl.style.color = saldo <= 0 ? 'var(--color-success, #17402F)' : saldo < Number(f.total) ? 'var(--color-warning, #7A4A00)' : 'var(--color-danger, #7A1E19)';
+  saldoEl.style.color = saldo <= 0 ? 'var(--color-success, #487050)' : saldo < Number(f.total) ? 'var(--color-warning, #8A5F13)' : 'var(--color-danger, #7A2820)';
 
   // Ítems del pedido
   cargarItemsFactura(f);
@@ -436,7 +503,7 @@ async function cargarItemsFactura(f) {
     <tr style="border-bottom:1px solid var(--color-border)">
       <td style="padding:6px 8px;font-size:12px">${escHtml(it.productos?.nombre || '—')}</td>
       <td style="padding:6px 8px;font-size:12px;text-align:left">${Number(it.cantidad).toLocaleString('es-AR')} ${escHtml(it.productos?.unidad || '')}</td>
-      <td style="padding:6px 8px;font-size:12px;text-align:left">${formatPeso(it.precio_unitario)}${Number(it.descuento_pct) > 0 ? ` <span style="color:var(--color-success,#17402F);font-size:10px">-${it.descuento_pct}%</span>` : ''}</td>
+      <td style="padding:6px 8px;font-size:12px;text-align:left">${formatPeso(it.precio_unitario)}${Number(it.descuento_pct) > 0 ? ` <span style="color:var(--color-success,#487050);font-size:10px">-${it.descuento_pct}%</span>` : ''}</td>
       <td style="padding:6px 8px;font-size:12px;text-align:left;font-weight:600">${formatPeso(it.subtotal)}</td>
     </tr>`).join('');
 }

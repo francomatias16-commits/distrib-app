@@ -1,7 +1,8 @@
 {
-  "name": "Distrib Admin",
-  "short_name": "Admin",
+  "name": "Fluxo Admin",
+  "short_name": "Fluxo Admin",
   "start_url": "/admin/dashboard",
+  "scope": "/admin/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",

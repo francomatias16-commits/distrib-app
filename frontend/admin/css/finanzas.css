@@ -21,7 +21,7 @@ body { background: var(--color-bg); font-family: var(--font-family); }
 /* Tablas con fondo alternado */
 table th { background: var(--color-bg) !important; }
 tbody tr:nth-child(even) td { background: rgba(0,0,0,.02); }
-tbody tr:hover td { background: rgba(184,122,0,.035) !important; }
+tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 
 /* [Etapa 4 · Media] .topbar-contador se removio de este archivo: estaba duplicado en 9 hojas de pagina con formas inconsistentes (radius-md vs radius-lg). Definicion canonica unica en shared/adminlte-components.css. */
 
@@ -235,7 +235,7 @@ table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
   max-width: 95vw; /* evita overflow horizontal en mobile (< 480px) */
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  z-index: 300;
+  z-index: var(--z-modal-backdrop);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -347,7 +347,7 @@ table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,.35);
-  z-index: 500;
+  z-index: var(--z-flyout);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
 }
@@ -431,7 +431,7 @@ table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
-  z-index: 50;
+  z-index: var(--z-panel);
   box-shadow: var(--shadow-fluffy);
 }
 .ayuda-contextual:hover::after,
@@ -521,6 +521,32 @@ table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
 .alerta-inline.warning { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning-mid); }
 .alerta-inline.danger  { background: var(--color-danger-bg);  color: var(--color-danger);  border: 1px solid var(--color-danger-mid); }
 
+/* Variante clickeable: banner renderizado como <button>, reseteo de estilos
+   nativos + affordance de que lleva a otra sección (hover/focus + chevron). */
+.alerta-inline--clickable {
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: filter .15s, transform .1s;
+}
+.alerta-inline--clickable span { flex: 1; }
+.alerta-inline--clickable .alerta-inline-chevron { flex-shrink: 0; opacity: .6; transition: transform .15s; }
+.alerta-inline--clickable:hover { filter: brightness(0.97); }
+.alerta-inline--clickable:hover .alerta-inline-chevron { transform: translateX(2px); opacity: 1; }
+.alerta-inline--clickable:active { transform: scale(0.997); }
+.alerta-inline--clickable:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Destello en la tabla destino al llegar desde el banner de alertas */
+@keyframes tablaRiesgoFlash {
+  0%   { box-shadow: 0 0 0 3px var(--color-warning-mid, rgba(240,173,78,.5)); }
+  100% { box-shadow: 0 0 0 0 rgba(240,173,78,0); }
+}
+.tabla-wrap--flash { animation: tablaRiesgoFlash 1.5s ease-out; }
+
 /* ── Nota tipo selector ──────────────────────────────────────────── */
 .nota-tipo-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .nota-tipo-btn {
@@ -559,6 +585,19 @@ table.tabla .monto-verde { color: var(--color-success); font-weight: 700; }
   .tabla-header { padding: 12px 14px; }
   table.tabla th, table.tabla td { padding: 9px 12px; font-size: 12.5px; }
   .detalle-panel-header, .detalle-panel-body, .detalle-panel-footer { padding-left: 14px; padding-right: 14px; }
+
+  /* AUDITORIA-RESPONSIVE-ETAPA3: .btn-sm (ej. el botón "Cobrar" de cada
+     fila de factura, la acción más repetida de esta pantalla) mide
+     ~26-28px de alto — bien debajo del mínimo táctil de 44px (WCAG) que
+     ya se respeta en otros botones del sistema vía responsive-mobile.css,
+     pero esa regla solo cubre .btn-primario/.btn-secundario/.btn-peligro
+     (convención admin), no .btn-primary/.btn-sm (convención Bootstrap-ish
+     que usa este archivo, compartido por 13 páginas: cheques, cobranzas,
+     riesgo-cheques, notas, auditoría, avisos, anomalías, devoluciones,
+     notif-log, observabilidad, puntos, vencimientos, whatsapp-conversaciones). */
+  .btn-sm { padding: 10px 14px; min-height: 40px; }
+  .btn { min-height: 40px; }
+  .btn-icon { min-width: 40px; min-height: 40px; justify-content: center; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

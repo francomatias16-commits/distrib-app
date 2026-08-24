@@ -1,7 +1,10 @@
 # Etapa 9 — Backups y disaster recovery
 
-**Estado:** 🟡 Mitigado parcialmente — decisión de negocio tomada (Free +
-backup casero), backup automatizado implementado en `09b_backup_automatizado_setup.md`.
+**Estado:** 🟢 Mitigado — decisión de negocio tomada (Free + backup casero),
+backup automatizado corriendo en verde desde 2026-08-16 (ver
+`09b_backup_automatizado_setup.md` para los 3 bugs encontrados y resueltos).
+Único pendiente real: probar una restauración completa contra un proyecto
+de prueba.
 
 ## BACKUP-01 (crítico) — El proyecto está en plan Free de Supabase: cero backups, sin PITR, sin SLA
 

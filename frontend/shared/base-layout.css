@@ -11,9 +11,9 @@ body {
   background-color: var(--color-bg);
   /* replay: radial gradients en esquinas con el color de acento */
   background-image:
-    radial-gradient(ellipse at 0% 0%,   rgba(184,122,0,.09) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(184,122,0,.06) 0%, transparent 45%),
-    radial-gradient(ellipse at 100% 0%,  rgba(184,122,0,.04) 0%, transparent 40%);
+    radial-gradient(ellipse at 0% 0%,   rgba(106,152,115,.09) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(106,152,115,.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 0%,  rgba(106,152,115,.04) 0%, transparent 40%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }

@@ -14,11 +14,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=281" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
   <style>
     .hidden { display: none !important; }
@@ -46,26 +46,100 @@
     .badge-err { color: #b91c1c; font-weight: 600; font-size: 13px; }
 
     /* ── Tabla ── */
-    .tabla td { font-size: 13px; }
-    .tabla tr.fila-notif { cursor: pointer; }
-    .tabla tr.fila-notif:hover td { background: var(--color-hover); }
+    /* .tabla td (font-size) y .tabla tr.fila-notif:hover td se quitaron acá:
+       ya los cubre .tabla-admin (componentes-admin.css) + el !important de
+       notif-log-gentelella.css. Se conserva solo cursor:pointer, que no es
+       parte del componente canónico. */
+    .tabla-admin tr.fila-notif { cursor: pointer; }
     .destino-cell { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* Columna de acciones: Ver + Reintentar (Hallazgo 2, auditoría notif.) */
     .celda-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
 
-    /* ── Stats ── */
-    .stats-bar {
-      display: flex; gap: 12px; flex-wrap: wrap;
-      margin-bottom: 16px;
+    /* ── Stats: bento grid ──────────────────────────────────────────────
+       Reemplaza las 6 .stat-chip idénticas por un bento asimétrico:
+       la tarjeta Total es 2x2 y suma una mini barra de mezcla de canales
+       (derivada de los mismos datos que ya trae actualizarStats(), sin
+       pedir nada nuevo al backend); WhatsApp/Email/Push/Enviados son
+       1x1 con ícono en badge sólido (mismos SVG que ya usa badgeCanal()
+       en la tabla, para no inventar un lenguaje de íconos nuevo); "Sin
+       ID" pasa de chip mudo a un banner de atención aparte, con el
+       mismo patrón visual que .push-activar-card (ícono + texto + esa
+       fila ancha), porque es el único número de los seis que pide una
+       acción del admin, no solo informa. Colores 100% de tokens --ge-*
+       existentes, cero hex nuevo. */
+    .stats-bento {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 106px;
+      gap: 14px;
+      margin-bottom: 14px;
     }
-    .stat-chip {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 10px 18px; border-radius: var(--radius);
-      background: #fff; border: 1px solid var(--color-border);
-      min-width: 90px;
+    .bento-card {
+      position: relative;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 16px 18px; border-radius: 16px;
+      overflow: hidden;
+      transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s cubic-bezier(.22,1,.36,1);
+      animation: bentoIn .4s cubic-bezier(.22,1,.36,1) both;
     }
-    .stat-chip .val { font-size: 22px; font-weight: 700; color: var(--color-primary); }
-    .stat-chip .lbl { font-size: 11px; color: var(--color-text-light); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+    .bento-card:hover { transform: translateY(-2px); }
+    .stats-bento .bento-card:nth-child(1) { animation-delay: .02s; }
+    .stats-bento .bento-card:nth-child(2) { animation-delay: .07s; }
+    .stats-bento .bento-card:nth-child(3) { animation-delay: .12s; }
+    .stats-bento .bento-card:nth-child(4) { animation-delay: .17s; }
+    .stats-bento .bento-card:nth-child(5) { animation-delay: .22s; }
+    @keyframes bentoIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .bento-card { animation: none; } }
+
+    .bento-icon {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .bento-icon svg { width: 17px; height: 17px; }
+    .bento-val { font-size: 25px; font-weight: 800; line-height: 1.1; }
+    .bento-lbl { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+    .bento-sub { font-size: 11px; font-weight: 700; margin-top: 5px; }
+
+    .bento-total {
+      grid-column: 1 / 3; grid-row: 1 / 3;
+      justify-content: flex-end; padding-bottom: 18px;
+    }
+    .bento-total .bento-val { font-size: 42px; }
+    .bento-mix { display: flex; width: 100%; height: 8px; border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .bento-mix-seg { height: 100%; width: 0; transition: width .6s cubic-bezier(.22,1,.36,1); }
+    .bento-mix-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; font-weight: 600; }
+    .bento-mix-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+    .bento-alert {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; border-radius: 12px; margin-bottom: 16px;
+    }
+    .bento-alert-icon {
+      flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .bento-alert-icon svg { width: 19px; height: 19px; }
+    .bento-alert-body { display: flex; flex-direction: column; gap: 2px; }
+    .bento-alert-body strong { font-size: 13.5px; }
+    .bento-alert-body span { font-size: 12.5px; }
+
+    @media (max-width: 900px) {
+      .stats-bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 100px; }
+      .bento-total { grid-column: 1 / 3; grid-row: 1 / 2; }
+    }
+    @media (max-width: 560px) {
+      .stats-bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+      .bento-total, .bento-canal, .bento-enviados { grid-column: 1; grid-row: auto; }
+      .bento-alert { flex-direction: column; align-items: flex-start; text-align: left; }
+
+      /* AUDITORIA-RESPONSIVE-ETAPA4: mismo patrón de .btn-sm/.btn-pag/
+         .btn-revisar — .btn-export mide ~24-26px y .btn-push-activar
+         ~29-30px, ambos debajo del mínimo táctil. */
+      .btn-export { min-height: 40px; padding: 8px 14px; }
+      .btn-push-activar { min-height: 40px; }
+    }
 
     /* ── Payload modal: vista legible ── */
     .payload-lista {
@@ -137,7 +211,7 @@
       .btn-push-activar { width: 100%; }
     }
   </style>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -147,6 +221,7 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/notif-log-gentelella.css" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -183,36 +258,75 @@
       <button type="button" class="btn-push-activar" id="btnActivarPushAdmin">Activar notificaciones</button>
     </div>
 
-    <!-- ── Stats ── -->
-    <div class="stats-bar" id="stats-bar">
-      <div class="stat-chip">
-        <span class="val" id="stat-total">—</span>
-        <span class="lbl">Total</span>
+    <!-- ── Stats: bento grid ── -->
+    <div class="stats-bento" id="stats-bar">
+      <div class="bento-card bento-total">
+        <div class="bento-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </div>
+        <span class="bento-val" id="stat-total">—</span>
+        <span class="bento-lbl">Notificaciones</span>
+        <div class="bento-mix" aria-hidden="true">
+          <span class="bento-mix-seg mix-wa" id="mix-wa"></span>
+          <span class="bento-mix-seg mix-email" id="mix-email"></span>
+          <span class="bento-mix-seg mix-push" id="mix-push"></span>
+        </div>
+        <div class="bento-mix-legend">
+          <span><i class="dot dot-wa"></i>WhatsApp</span>
+          <span><i class="dot dot-email"></i>Email</span>
+          <span><i class="dot dot-push"></i>Push</span>
+        </div>
       </div>
-      <div class="stat-chip">
-        <span class="val" id="stat-whatsapp">—</span>
-        <span class="lbl">WhatsApp</span>
+
+      <div class="bento-card bento-canal canal-wa">
+        <div class="bento-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <span class="bento-val" id="stat-whatsapp">—</span>
+        <span class="bento-lbl">WhatsApp</span>
       </div>
-      <div class="stat-chip">
-        <span class="val" id="stat-email">—</span>
-        <span class="lbl">Email</span>
+
+      <div class="bento-card bento-canal canal-email">
+        <div class="bento-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
+        </div>
+        <span class="bento-val" id="stat-email">—</span>
+        <span class="bento-lbl">Email</span>
       </div>
-      <div class="stat-chip">
-        <span class="val" id="stat-push">—</span>
-        <span class="lbl">Push</span>
+
+      <div class="bento-card bento-canal canal-push">
+        <div class="bento-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <span class="bento-val" id="stat-push">—</span>
+        <span class="bento-lbl">Push</span>
       </div>
-      <div class="stat-chip">
-        <span class="val" id="stat-enviados">—</span>
-        <span class="lbl">Enviados</span>
+
+      <div class="bento-card bento-enviados">
+        <div class="bento-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="bento-val" id="stat-enviados">—</span>
+        <span class="bento-lbl">Enviados</span>
+        <span class="bento-sub" id="bento-tasa">— % de entrega</span>
       </div>
-      <div class="stat-chip">
-        <span class="val" id="stat-fallidos">—</span>
-        <span class="lbl">Sin ID</span>
+    </div>
+
+    <!-- "Sin ID" es el único de los seis números que pide una acción del
+         admin (no solo informa) → banner aparte, mismo lenguaje visual
+         que .push-activar-card, en vez de una 7ma tarjeta genérica. -->
+    <div class="bento-alert" id="bento-alert-sinid">
+      <div class="bento-alert-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="bento-alert-body">
+        <strong><span id="stat-fallidos">—</span> envíos sin ID de confirmación</strong>
+        <span>No recibieron message_id del proveedor — revisá el detalle antes de reintentar.</span>
       </div>
     </div>
 
     <!-- ── Tabla principal ── -->
-    <div class="tabla-wrap">
+    <div class="tabla-wrap table-responsive-cards">
       <div class="tabla-header">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h2>Registro de envíos</h2>
@@ -254,16 +368,16 @@
       </div>
 
       <div class="tabla-overflow">
-        <table class="tabla">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Fecha y hora</th>
-              <th>Canal</th>
-              <th class="thead-sep">Tipo</th>
+              <th class="col-fit">Fecha y hora</th>
+              <th class="col-fit">Canal</th>
+              <th class="thead-sep col-fit">Tipo</th>
               <th>Destinatario</th>
-              <th class="thead-sep">Pedido</th>
-              <th>Estado</th>
-              <th class="col-sticky-end">Detalle</th>
+              <th class="thead-sep col-fit">Pedido</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-sticky-end col-fit">Detalle</th>
             </tr>
           </thead>
           <tbody id="tbody-notif"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -307,11 +421,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/notif-log.js?v1782328742714"></script>

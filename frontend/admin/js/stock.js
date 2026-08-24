@@ -134,59 +134,42 @@ async function init() {
   }
 }
 
-// ── Overview: KPIs (reutiliza el mismo RPC que Reportes de Stock) ──────────
+// ── Overview: contador de "Sin stock" para el pill del filtro de tabla ─────
+// Antes esta función también traía y pintaba la franja de KPIs de solo
+// lectura (Valorización de stock / Productos en stock / Rotación promedio)
+// que estaba arriba de la tabla — se sacó de la UI (no aportaba valor
+// operativo para el día a día) y como nada más los usaba, se saca también
+// el RPC fn_reportes_stock_kpis de acá para no pedir datos que ya no se
+// muestran. Lo único que sigue haciendo falta es el conteo real de "Sin
+// stock" (disponible <= 0), que alimenta el pill rojo del filtro de la
+// tabla más abajo.
 async function cargarOverviewKPIs() {
   // Antes esto siempre calculaba sobre TODA la empresa (p_deposito_id: null),
   // ignorando el filtro de depósito de la tabla principal (#filtro-deposito).
   // Efecto: un producto con stock en cero en el depósito que el dueño está
   // mirando no aparecía como "Stock crítico" si tenía stock en OTRO depósito,
   // porque el RPC suma el disponible entre depósitos antes de comparar contra
-  // el mínimo. Ahora las tarjetas reflejan el mismo depósito que la tabla.
+  // el mínimo. Ahora la tarjeta refleja el mismo depósito que la tabla.
   const depFiltro = document.getElementById('filtro-deposito')?.value || null;
 
-  const [kpisRes, sinStockRes] = await Promise.all([
-    sb.rpc('fn_reportes_stock_kpis', { p_deposito_id: depFiltro, p_categoria_id: null }),
-    // Conteo real de "Sin stock" (disponible <= 0), con el MISMO criterio que
-    // usa el filtro de la tabla al hacer clic en el pill (fn_stock_lista_agrupada
-    // con p_estado='critico', ver migración 396: v_umbral_critico = 0).
-    // Antes este número salía de fn_reportes_stock_kpis.productos_criticos,
-    // que en realidad cuenta "disponible <= stock_minimo (o 5)" — un criterio
-    // más amplio que "sin stock" — por eso el pill mostraba un número distinto
-    // (mayor) al del resumen "En esta página: N sin stock", que sí compara
-    // contra 0. Ver fn_stock_lista_agrupada / mostrarAlertasResumen.
-    sb.rpc('fn_stock_lista_agrupada', {
-      p_estado: 'critico',
-      p_deposito_id: depFiltro,
-      p_limit: 1,
-      p_offset: 0,
-    }),
-  ]);
-  if (kpisRes.error) throw kpisRes.error;
+  // Conteo real de "Sin stock" (disponible <= 0), con el MISMO criterio que
+  // usa el filtro de la tabla al hacer clic en el pill (fn_stock_lista_agrupada
+  // con p_estado='critico', ver migración 396: v_umbral_critico = 0).
+  // Antes este número salía de fn_reportes_stock_kpis.productos_criticos,
+  // que en realidad cuenta "disponible <= stock_minimo (o 5)" — un criterio
+  // más amplio que "sin stock" — por eso el pill mostraba un número distinto
+  // (mayor) al del resumen "En esta página: N sin stock", que sí compara
+  // contra 0. Ver fn_stock_lista_agrupada / mostrarAlertasResumen.
+  const sinStockRes = await sb.rpc('fn_stock_lista_agrupada', {
+    p_estado: 'critico',
+    p_deposito_id: depFiltro,
+    p_limit: 1,
+    p_offset: 0,
+  });
   if (sinStockRes.error) throw sinStockRes.error;
 
-  const k = (kpisRes.data && kpisRes.data[0]) || {
-    valor_total: 0, productos_en_stock: 0, productos_criticos: 0,
-    valor_total_global: 0, productos_en_stock_global: 0, rotacion_promedio: 0
-  };
-
-  const valorTotal   = Number(k.valor_total) || 0;
-  const enStock       = Number(k.productos_en_stock) || 0;
-  const valorGlobal    = Number(k.valor_total_global) || 0;
-  const enStockGlobal  = Number(k.productos_en_stock_global) || 0;
-  const rotacion       = Number(k.rotacion_promedio) || 0;
-  const sinStock       = Number(sinStockRes.data?.[0]?.total_count) || 0;
-
-  const cambioValor     = valorGlobal > 0 ? (((valorTotal - valorGlobal) / valorGlobal) * 100).toFixed(1) : 0;
-  const cambioProductos = enStock - enStockGlobal;
-
-  setTxt('ov-kpi-valor', `$${valorTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`);
-  setDelta('ov-kpi-valor-delta', cambioValor, '%');
-
-  setTxt('ov-kpi-productos', enStock.toLocaleString('es-AR'));
-  setDelta('ov-kpi-productos-delta', cambioProductos, '');
-
+  const sinStock = Number(sinStockRes.data?.[0]?.total_count) || 0;
   setTxt('pill-count-critico', sinStock.toLocaleString('es-AR'));
-  setTxt('ov-kpi-rotacion', rotacion.toLocaleString('es-AR'));
 }
 
 function setTxt(id, txt) {
@@ -433,7 +416,7 @@ function renderTablaDepositosAdmin() {
   }
 
   tbody.innerHTML = depositosAdminData.map(d => `
-    <tr>
+    <tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalDepositoEditar('${d.id}')">
       <td style="font-weight:600;color:var(--color-text)">${escHtml(d.nombre)}</td>
       <td class="td-text">${escHtml(d.direccion || '—')}</td>
       <td class="td-text">${escHtml(d.responsable || '—')}</td>
@@ -619,7 +602,7 @@ async function cargarStock() {
       // vía API y se pasa como filtro de IDs a la RPC agrupada.
       const ids = await obtenerIdsBajoMinimo();
       if (!ids.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="tabla-empty">Ningún producto está por debajo de su stock mínimo. 🎉</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="tabla-empty">Ningún producto está por debajo de su stock mínimo.</td></tr>';
         actualizarContador(0);
         actualizarPaginacion(0);
         _cargando = false;
@@ -707,6 +690,17 @@ function aplicarFiltros() {
 function selFiltroEstado(estado, btn) {
   document.querySelectorAll('.e-pill').forEach(b => b.classList.remove('activa'));
   btn.classList.add('activa');
+  // "Todos" tiene que devolver la lista completa. Sin este reset, si se
+  // llegó acá con el buscador precargado (ej. clic en un ítem de "Productos
+  // modificados", que completa input-busqueda con el nombre del producto —
+  // ver el listener de #modif-lista), tocar "Todos" solo sacaba el filtro
+  // de estado y la tabla seguía acotada a ese único producto.
+  if (estado === '') {
+    document.getElementById('input-busqueda').value   = '';
+    document.getElementById('filtro-deposito').value  = '';
+    document.getElementById('filtro-categoria').value = '';
+    cargarOverviewKPIs().catch(err => console.error('[stock] overview KPIs:', err));
+  }
   _page = 1;
   cargarStock();
 }
@@ -769,6 +763,64 @@ function colorDe(nombre) {
   return _AVATAR_COLORES[hash % _AVATAR_COLORES.length];
 }
 
+// v461: si el producto tiene foto real (foto_url, agregado a
+// fn_stock_lista_agrupada) la muestra en vez de las iniciales — mismo
+// patrón que renderAvatarFoto en productos.js. Si falla la carga de la
+// imagen (URL rota, bucket borrado), cae de nuevo a las iniciales via
+// onerror. Click para hacer zoom a la imagen en grande, vía abrirZoomFoto().
+function renderAvatarFoto(fotoUrl, nombre, avatarBg, iniciales) {
+  if (!fotoUrl) {
+    return `<span class="prod-avatar" style="background:${avatarBg}">${escHtml(iniciales)}</span>`;
+  }
+  const iniEsc = escHtml(iniciales);
+  const urlEsc = escHtml(fotoUrl);
+  return `
+    <span class="prod-avatar-wrap">
+      <img class="prod-avatar prod-avatar--foto" src="${urlEsc}" alt="Foto de ${escHtml(nombre)}"
+           loading="lazy" tabindex="0" role="button"
+           title="Ver imagen en grande"
+           aria-label="Ver imagen en grande de ${escHtml(nombre)}"
+           onclick="event.stopPropagation(); abrirZoomFoto('${urlEsc}')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();abrirZoomFoto('${urlEsc}');}"
+           onerror="this.outerHTML='<span class=&quot;prod-avatar&quot; style=&quot;background:${avatarBg}&quot;>${iniEsc}</span>'">
+    </span>`;
+}
+
+// v461: lightbox simple para ver en grande la foto de un producto — mismo
+// componente que usa Productos.html (ver productos.js / productos.html).
+function abrirZoomFoto(url) {
+  if (!url) return;
+  const backdrop = document.getElementById('foto-zoom-backdrop');
+  const modal    = document.getElementById('foto-zoom-modal');
+  const img      = document.getElementById('foto-zoom-img');
+  if (!backdrop || !modal || !img) return;
+  img.src = url;
+  backdrop.classList.add('activo');
+  modal.classList.add('activo');
+  document.addEventListener('keydown', _escCerrarZoomFoto);
+}
+
+function cerrarZoomFoto() {
+  const backdrop = document.getElementById('foto-zoom-backdrop');
+  const modal    = document.getElementById('foto-zoom-modal');
+  const img      = document.getElementById('foto-zoom-img');
+  if (backdrop) backdrop.classList.remove('activo');
+  if (modal) modal.classList.remove('activo');
+  if (img) img.src = '';
+  document.removeEventListener('keydown', _escCerrarZoomFoto);
+}
+
+function _escCerrarZoomFoto(ev) {
+  if (ev.key === 'Escape') cerrarZoomFoto();
+}
+
+// stock.js es un módulo (type="module"): sus funciones no son globales por
+// default, pero el HTML del modal usa onclick="cerrarZoomFoto()" y el
+// onclick/onerror inline generado arriba usa abrirZoomFoto(...) — hay que
+// colgarlas explícitamente de window para que esos atributos las encuentren.
+window.abrirZoomFoto = abrirZoomFoto;
+window.cerrarZoomFoto = cerrarZoomFoto;
+
 // Devuelve un depósito de arranque razonable para el modal de ajuste cuando
 // la fila es agrupada (varios depósitos) y no hay uno puntual ya resuelto:
 // el principal si existe, si no el primero de la lista. El selector del modal
@@ -797,6 +849,7 @@ function renderTabla(rows) {
   rows.forEach(s => {
     const disponible = disp(s);
     const est        = estadoStock(disponible);
+    const esInactivo = s.activo === false;
     const nombre     = s.nombre || '—';
     const codigo     = s.codigo
       ? `<span class="cod-producto">${escHtml(s.codigo)}</span>` : '';
@@ -809,6 +862,7 @@ function renderTabla(rows) {
 
     const iniciales = inicialesDe(nombre);
     const avatarBg  = colorDe(nombre);
+    const avatarHtml = renderAvatarFoto(s.foto_url, nombre, avatarBg, iniciales);
 
     const celdaDeposito = agrupada
       ? `<button type="button" class="btn-expandir-dep" data-prod-id="${prodId}"
@@ -822,9 +876,9 @@ function renderTabla(rows) {
       <tr class="fila-stock" data-prod-id="${prodId}" data-dep-id="${s.deposito_id || ''}">
         <td class="td-producto" data-label="Producto">
           <div class="prod-row">
-            <span class="prod-avatar" style="background:${avatarBg}">${iniciales}</span>
+            ${avatarHtml}
             <div class="prod-info">
-              <div class="prod-nombre">${escHtml(nombre)}</div>${codigo}
+              <div class="prod-nombre">${escHtml(nombre)}${esInactivo ? ' <span class="tag-producto-inactivo" title="Producto desactivado con stock pendiente de reconciliar">Producto inactivo</span>' : ''}</div>${codigo}
             </div>
           </div>
         </td>
@@ -835,9 +889,13 @@ function renderTabla(rows) {
         <td class="td-num" data-label="Total">${fmt(s.cantidad)} <span class="unidad">${escHtml(unidad)}</span></td>
         <td class="td-num td-muted" data-label="Costo prom.">${window.formatARS(s.costo_promedio)}</td>
         <td data-label="Estado">
-          <span class="badge-estado badge-${est.key}">
-            <span class="badge-dot"></span>${est.label}
-          </span>
+          ${esInactivo
+            ? `<span class="badge-estado badge-inactivo" title="Producto inactivo — todavía tiene stock sin reconciliar">
+                 <span class="badge-dot"></span>Inactivo · ${est.label}
+               </span>`
+            : `<span class="badge-estado badge-${est.key}">
+                 <span class="badge-dot"></span>${est.label}
+               </span>`}
         </td>
         <td class="td-acciones" data-label="Acciones">
           <button class="btn-ajustar btn-fila-accion"
@@ -846,13 +904,6 @@ function renderTabla(rows) {
             data-nombre="${escHtml(nombre)}" data-unidad="${escHtml(unidad)}" data-costo="${Number(s.costo_promedio||0)}"
             data-codigo="${escHtml(s.codigo || '')}">
             Ajustar stock
-          </button>
-          <button type="button" class="btn-kebab btn-fila-accion" title="Ver historial de movimientos"
-            data-prod-id="${prodId}" data-dep-id="${depIdAccion}" data-disp="${disponible}"
-            data-total="${Number(s.cantidad)||0}" data-reservado="${Number(s.cantidad_reservada)||0}"
-            data-nombre="${escHtml(nombre)}" data-unidad="${escHtml(unidad)}" data-costo="${Number(s.costo_promedio||0)}"
-            aria-label="Más acciones para ${escHtml(nombre)}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
           </button>
         </td>
       </tr>${agrupada ? `
@@ -918,10 +969,10 @@ function renderDetalleDepositos(prodId, nombre, unidad, filas) {
     return `
       <div class="detalle-dep-fila">
         <span class="detalle-dep-nombre">${escHtml(d.deposito_nombre || '—')}${d.es_principal ? ' <span class="tag-principal">principal</span>' : ''}</span>
-        <span class="td-num ${est.cls}">${fmt(disponible)} <span class="unidad">${escHtml(unidad)}</span></span>
-        <span class="td-num td-muted">${fmt(d.cantidad_reservada)} <span class="unidad">${escHtml(unidad)}</span></span>
-        <span class="td-num">${fmt(d.cantidad)} <span class="unidad">${escHtml(unidad)}</span></span>
-        <span class="td-num td-muted">${window.formatARS(d.costo_promedio)}</span>
+        <span class="td-num ${est.cls}" data-label="Disponible">${fmt(disponible)} <span class="unidad">${escHtml(unidad)}</span></span>
+        <span class="td-num td-muted" data-label="Reservado">${fmt(d.cantidad_reservada)} <span class="unidad">${escHtml(unidad)}</span></span>
+        <span class="td-num" data-label="Total">${fmt(d.cantidad)} <span class="unidad">${escHtml(unidad)}</span></span>
+        <span class="td-num td-muted" data-label="Costo prom.">${window.formatARS(d.costo_promedio)}</span>
         <button type="button" class="btn-ajustar-mini btn-fila-accion"
           data-prod-id="${prodId}" data-dep-id="${d.deposito_id}" data-disp="${disponible}"
           data-total="${Number(d.cantidad)||0}" data-reservado="${Number(d.cantidad_reservada)||0}"
@@ -1152,6 +1203,32 @@ function cerrarModal() {
   if (_modalAC) { _modalAC.abort(); _modalAC = null; }
 }
 
+// v343: el motivo tiene que ser coherente con el tipo de movimiento elegido
+// (ej. no se puede registrar un "Ingreso" con motivo "Merma / vencimiento",
+// que es un egreso) — antes el <select> mostraba las 4 categorías siempre,
+// sin importar el tipo activo, y solo se validaba que hubiera ALGÚN motivo
+// elegido. Este mapa es la única fuente de verdad para filtrar el <select>
+// y para la validación defensiva en guardarAjuste().
+const MOTIVOS_POR_TIPO = {
+  ingreso:       ['compra', 'devolucion_cliente', 'produccion'],
+  egreso:        ['venta_manual', 'merma', 'rotura', 'muestra'],
+  ajuste:        ['inventario', 'conteo_fisico'],
+  transferencia: ['entre_depositos'],
+};
+
+// Oculta del <select id="select-motivo"> las opciones que no correspondan
+// al tipo de movimiento activo (y su <optgroup>, si queda sin opciones
+// visibles), para que sea imposible elegir un motivo de otra categoría.
+function filtrarMotivosPorTipo(tipo) {
+  const permitidos = MOTIVOS_POR_TIPO[tipo] || [];
+  document.querySelectorAll('#select-motivo option[data-tipo]').forEach(opt => {
+    opt.hidden = !permitidos.includes(opt.value);
+  });
+  document.querySelectorAll('#select-motivo optgroup').forEach(og => {
+    og.hidden = ![...og.children].some(opt => !opt.hidden);
+  });
+}
+
 function selTipo(tipo, btn) {
   tipoActivo = tipo;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('activo'));
@@ -1161,6 +1238,7 @@ function selTipo(tipo, btn) {
   document.getElementById('deposito-origen-wrap').style.display  = tipo === 'ajuste' ? 'none' : 'flex';
   const labels = { ingreso:'Cantidad a ingresar', egreso:'Cantidad a egresar', transferencia:'Cantidad a transferir' };
   document.getElementById('label-cantidad').textContent = labels[tipo] || 'Cantidad';
+  filtrarMotivosPorTipo(tipo);
   document.getElementById('select-motivo').value = '';
   actualizarAvisoMotivo();
   actualizarPreview();
@@ -1182,6 +1260,11 @@ function actualizarAvisoMotivo() {
     compra: {
       clase: 'aviso--bloqueante',
       html: 'La compra a proveedor se registra <strong>recepcionando la Orden de Compra</strong> — así queda vinculada a lote, costo y proveedor. <a href="compras.html" target="_blank" rel="noopener">Ir a Compras →</a>',
+      bloquea: true,
+    },
+    devolucion_cliente: {
+      clase: 'aviso--bloqueante',
+      html: 'La devolución de un cliente se registra desde <strong>Devoluciones</strong> — así queda vinculada al cliente/pedido, y desde ahí podés generar la nota de crédito y reponer el stock con trazabilidad. <a href="devoluciones.html" target="_blank" rel="noopener">Ir a Devoluciones →</a>',
       bloquea: true,
     },
     venta_manual: {
@@ -1276,6 +1359,13 @@ async function guardarAjuste() {
 
   if (!motivo) { toast('Seleccioná un motivo'); return; }
   if (motivo === 'compra') { toast('Para compra a proveedor, recepcioná la Orden de Compra desde Compras'); return; }
+  if (motivo === 'devolucion_cliente') { toast('Para devolución de cliente, registrala desde Devoluciones'); return; }
+  // Defensivo: el <select> ya filtra por tipoActivo (ver filtrarMotivosPorTipo),
+  // pero se valida de nuevo acá para no depender únicamente de que el DOM
+  // haya quedado sincronizado (ej. value seteado por código externo).
+  if (!(MOTIVOS_POR_TIPO[tipoActivo] || []).includes(motivo)) {
+    toast('Ese motivo no corresponde al tipo de movimiento elegido'); return;
+  }
 
   let cantidad;
   if (tipoActivo === 'ajuste') {
@@ -1513,6 +1603,9 @@ async function cargarHistorial(productoId) {
 
 // ── Exportar Excel ─────────────────────────────────────────────────────────
 async function exportarExcel() {
+  const btn = document.getElementById('btn-exportar-excel-stock');
+  const btnHtmlOriginal = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Generando…'; }
   toast('Preparando exportación…');
   try {
     const busq     = document.getElementById('input-busqueda').value.trim();
@@ -1576,6 +1669,8 @@ async function exportarExcel() {
   } catch (err) {
     console.error(err);
     toast('No se pudo exportar. Probá de nuevo.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = btnHtmlOriginal; }
   }
 }
 
@@ -1636,10 +1731,28 @@ const STOCKAUTO_TIPOS = {
   // motor automático no puede generarle una OC (no sabe a quién enviarla).
   // Requiere acción manual: asignar proveedor por defecto en la ficha del
   // producto. Sin esta entrada, caía en el fallback genérico (label = 'sin_proveedor').
-  sin_proveedor: { label: 'Sin proveedor asignado', max: 15 }
+  sin_proveedor: { label: 'Sin proveedor asignado', max: 15 },
+  // Fix 460: necesita reponerse pero sin historial de ventas ni stock
+  // objetivo cargado — no hay base para sugerir una cantidad, así que no
+  // se generó orden automática. Requiere acción manual: cargar stock
+  // mínimo/objetivo en la ficha del producto, o revisar y pedir a mano.
+  sin_historial: { label: 'Sin historial de ventas', max: 15 }
 };
 const STOCKAUTO_MOSTRAR_INICIAL = 6;
-let _stockAutoExpandido = false;
+const STOCKAUTO_PAGINA = 30;
+let _stockAutoVisibles = STOCKAUTO_MOSTRAR_INICIAL;
+
+// Orden de prioridad para el desglose del header: lo más urgente primero.
+const STOCKAUTO_ORDEN_DESGLOSE = ['quiebre', 'critico', 'stock_bajo', 'sin_proveedor', 'sin_historial'];
+
+function desgloseStockAuto(alertas) {
+  const conteos = {};
+  for (const a of alertas) conteos[a.tipo] = (conteos[a.tipo] || 0) + 1;
+  return STOCKAUTO_ORDEN_DESGLOSE
+    .filter(tipo => conteos[tipo] > 0)
+    .map(tipo => `${conteos[tipo]} ${(STOCKAUTO_TIPOS[tipo]?.label || tipo).toLowerCase()}`)
+    .join(' · ');
+}
 
 function renderAlertasStockAuto() {
   const contenedor = document.getElementById('alertas-stock-auto');
@@ -1654,7 +1767,7 @@ function renderAlertasStockAuto() {
   }
 
   const total    = _alertasStockAuto.length;
-  const visibles = _stockAutoExpandido ? _alertasStockAuto : _alertasStockAuto.slice(0, STOCKAUTO_MOSTRAR_INICIAL);
+  const visibles = _alertasStockAuto.slice(0, _stockAutoVisibles);
 
   const filas = visibles.map(a => {
     const tipoInfo = STOCKAUTO_TIPOS[a.tipo] || { label: a.tipo, max: 30 };
@@ -1672,13 +1785,22 @@ function renderAlertasStockAuto() {
     </div>`;
   }).join('');
 
-  const puedeColapsar = total > STOCKAUTO_MOSTRAR_INICIAL;
-  const pie = puedeColapsar ? `
+  const hayMas       = total > _stockAutoVisibles;
+  const puedeColapsar = _stockAutoVisibles > STOCKAUTO_MOSTRAR_INICIAL;
+  const restantes     = total - _stockAutoVisibles;
+  const pie = (hayMas || puedeColapsar) ? `
     <div class="stockauto-foot">
-      <button type="button" class="stockauto-toggle" onclick="toggleStockAutoExpandido()">
-        ${_stockAutoExpandido ? 'Ver menos' : `Ver las ${total} alertas`}
-      </button>
+      ${hayMas ? `
+        <button type="button" class="stockauto-toggle" onclick="cargarMasStockAuto()">
+          Cargar ${Math.min(STOCKAUTO_PAGINA, restantes)} más (quedan ${restantes})
+        </button>` : ''}
+      ${puedeColapsar ? `
+        <button type="button" class="stockauto-toggle stockauto-toggle--ghost" onclick="colapsarStockAuto()">
+          Ver menos
+        </button>` : ''}
     </div>` : '';
+
+  const desglose = desgloseStockAuto(_alertasStockAuto);
 
   contenedor.innerHTML = `
     <div class="stockauto-panel">
@@ -1690,6 +1812,7 @@ function renderAlertasStockAuto() {
           <div>
             <h3>Reposición sugerida</h3>
             <div class="stockauto-head__sub">Productos que se van a quedar sin stock, ordenados por urgencia</div>
+            ${desglose ? `<div class="stockauto-head__desglose">${desglose}</div>` : ''}
           </div>
         </div>
         <span class="stockauto-head__count">${total}</span>
@@ -1699,11 +1822,18 @@ function renderAlertasStockAuto() {
     </div>`;
 }
 
-function toggleStockAutoExpandido() {
-  _stockAutoExpandido = !_stockAutoExpandido;
+function cargarMasStockAuto() {
+  _stockAutoVisibles = Math.min(_alertasStockAuto.length, _stockAutoVisibles + STOCKAUTO_PAGINA);
   renderAlertasStockAuto();
 }
-window.toggleStockAutoExpandido = toggleStockAutoExpandido;
+window.cargarMasStockAuto = cargarMasStockAuto;
+
+function colapsarStockAuto() {
+  _stockAutoVisibles = STOCKAUTO_MOSTRAR_INICIAL;
+  renderAlertasStockAuto();
+  document.getElementById('alertas-stock-auto')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.colapsarStockAuto = colapsarStockAuto;
 
 async function verProyeccionStock(productoId) {
   const modal = document.getElementById('modal-proyeccion-stock');
@@ -1802,19 +1932,19 @@ function renderMiniGraficoEcharts(item) {
       type: 'line',
       data: datos,
       showSymbol: false,
-      lineStyle: { color: '#B87A00', width: 1.5 },
+      lineStyle: { color: '#6A9873', width: 1.5 },
       markLine: {
         symbol: 'none',
         silent: true,
         data: [
           ...(agotaEn < dias ? [{
             xAxis: agotaEn,
-            lineStyle: { color: '#B3261E', type: 'dashed', width: 1 },
-            label: { formatter: 'Se acaba', color: '#B3261E', fontSize: 9, position: 'insideEndTop' },
+            lineStyle: { color: '#D1594A', type: 'dashed', width: 1 },
+            label: { formatter: 'Se acaba', color: '#D1594A', fontSize: 9, position: 'insideEndTop' },
           }] : []),
           {
             xAxis: Math.min(item.lead_time, dias),
-            lineStyle: { color: '#1F5B4A', type: 'dashed', width: 1 },
+            lineStyle: { color: '#487050', type: 'dashed', width: 1 },
             label: { show: false },
           },
         ],

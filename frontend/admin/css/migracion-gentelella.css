@@ -333,11 +333,40 @@ body.dash-migracion-gentelella .mig-tabla-wrap td {
   border-bottom: 1px solid var(--ge-border) !important;
 }
 body.dash-migracion-gentelella .mig-tabla-wrap tr.fila-error {
-  background: rgba(231,76,60,.06) !important;
+  background: rgba(231,76,60,.10) !important;
+  box-shadow: inset 3px 0 0 var(--ge-red) !important;
+}
+body.dash-migracion-gentelella .mig-tabla-wrap tr.fila-error td { opacity: .75; }
+body.dash-migracion-gentelella .mig-tabla-wrap tr.fila-error .mig-celda-errores { opacity: 1; }
+body.dash-migracion-gentelella .mig-tabla-wrap tr.fila-error select:disabled { opacity: .55; }
+body.dash-migracion-gentelella .mig-fila-num-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--ge-red) !important;
+  opacity: 1 !important;
 }
 body.dash-migracion-gentelella .mig-celda-errores { color: var(--ge-red) !important; }
 body.dash-migracion-gentelella .mig-vacio-celda { color: var(--ge-muted) !important; }
 body.dash-migracion-gentelella .mig-aviso-confirmar { color: var(--ge-ink-soft) !important; }
+
+body.dash-migracion-gentelella .mig-paginacion-info { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-paginacion-num {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-migracion-gentelella .mig-paginacion-num:hover { background: var(--ge-chip-bg) !important; }
+body.dash-migracion-gentelella .mig-paginacion-num.activa {
+  background: var(--ge-teal-light) !important;
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal), var(--ge-shadow) !important;
+}
+body.dash-migracion-gentelella .mig-paginacion-elipsis { color: var(--ge-muted) !important; }
 
 /* ════════════════════════════════════════════════════════════
    Paso 4: resultado
@@ -403,6 +432,12 @@ body.dash-migracion-gentelella .mig-maestra-progreso-item {
   border-radius: var(--ge-radius-card) !important;
 }
 body.dash-migracion-gentelella .mig-maestra-progreso-item .detalle { color: var(--ge-ink-soft) !important; }
+body.dash-migracion-gentelella .mig-maestra-progreso-item .detalle.ok { color: var(--ge-green) !important; }
+body.dash-migracion-gentelella .mig-maestra-progreso-item .detalle.error { color: var(--ge-red) !important; }
+
+body.dash-migracion-gentelella .mig-maestra-progreso-barra { background: var(--ge-border) !important; }
+body.dash-migracion-gentelella .mig-maestra-progreso-barra-fill { background: var(--ge-blue) !important; }
+body.dash-migracion-gentelella .mig-progreso-wizard p { color: var(--ge-ink-soft) !important; }
 
 body.dash-migracion-gentelella .mig-maestra-resultado-tabla th {
   color: var(--ge-ink-soft) !important;

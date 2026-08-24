@@ -20,7 +20,7 @@ describe('calcularTotalesPedido', () => {
     expect(r.iva_total).toBeCloseTo(42, 5);
     expect(r.total).toBe(242);
     expect(r.itemsParaRpc).toEqual([
-      { producto_id: 'p1', cantidad: 2, precio_unitario: 100, descuento_pct: 0, subtotal: 200 },
+      { producto_id: 'p1', combo_id: null, cantidad: 2, precio_unitario: 100, descuento_pct: 0, subtotal: 200 },
     ]);
   });
 

@@ -1,0 +1,22 @@
+{
+  "name": "Fluxo — Entrá a la operación real",
+  "short_name": "Fluxo",
+  "description": "Fluxo es el centro operativo para distribuidoras que conectan pedidos, stock, rutas y cobranzas.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0540AD",
+  "icons": [
+    {
+      "src": "/frontend/admin/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/frontend/admin/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

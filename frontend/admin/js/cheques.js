@@ -10,12 +10,20 @@ let paginaActualCheques = 1;
 const ITEMS_POR_PAGINA_CHEQUES = 100;
 let totalChequesFiltrados = 0;
 
+// v908 — Pedido directo: "N cheques vencen en los próximos 3 días" (alerta
+// + sello "$X — Vencen en 3 días") era de solo lectura, sin forma de ver
+// esos cheques puntuales. Filtro nuevo, aparte de "Solo vencidos" (que es
+// otra cosa: cheques YA vencidos). Ver fn_cheques_lista, migración 513.
+let filtroProximosActivo = false;
+
 const ESTADO_CHIP = {
+  pendiente:   { cls: 'chip-gris',     label: 'Pendiente' },
   en_cartera:  { cls: 'chip-azul',     label: 'En cartera' },
   depositado:  { cls: 'chip-amarillo', label: 'Depositado' },
   cobrado:     { cls: 'chip-verde',    label: 'Cobrado' },
   rechazado:   { cls: 'chip-rojo',     label: 'Rechazado' },
   entregado_proveedor: { cls: 'chip-gris', label: 'Endosado' }, // FIX: la key debe ser el valor real del constraint (cheques_estado_check), no el sinónimo "endosado"
+  anulado:     { cls: 'chip-rojo',     label: 'Anulado' },
 };
 
 window.authReady.then(async () => {
@@ -28,7 +36,6 @@ window.authReady.then(async () => {
   if (elFecha) elFecha.textContent = hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
   document.getElementById('cheque-recepcion').value = window.hoyLocalISO ? window.hoyLocalISO() : hoy.toISOString().split('T')[0];
   (document.getElementById('topbar-usuario') || {}).textContent = user.nombre || user.email;
-  const _elEmp = document.getElementById('sidebar-empresa'); if (_elEmp) _elEmp.textContent = user.empresa_nombre || 'Distribuidora';
 
   try { inyectarControlesPaginacionCheques(); } catch(e) { console.warn('[cheques] paginacion init:', e.message); }
 
@@ -56,10 +63,14 @@ window.authReady.then(async () => {
   }
 
   // Prefiltro desde la alerta del dashboard: /admin/cheques.html?filtro=vencidos
+  // o /admin/cheques.html?filtro=proximos (ver activarFiltroProximos, v908).
   const filtroParam = new URLSearchParams(window.location.search).get('filtro');
   if (filtroParam === 'vencidos') {
     const chk = document.getElementById('filtro-vencidos-cheque');
     if (chk) chk.checked = true;
+  } else if (filtroParam === 'proximos') {
+    filtroProximosActivo = true;
+    marcarSelloProximosActivo(true);
   }
 
   await filtrarCheques();
@@ -97,6 +108,7 @@ async function cargarCheques() {
       p_solo_vencidos: soloVencidos,
       p_limit: ITEMS_POR_PAGINA_CHEQUES,
       p_offset: desde,
+      p_solo_proximos: filtroProximosActivo,
     });
     if (error) throw error;
 
@@ -135,8 +147,10 @@ function actualizarKPIs(contadores) {
   const c = contadores || {};
   FiltroTabs.actualizarContadores(document.getElementById('filtro-tabs-cheques'), {
     en_cartera: c.cant_cartera || 0,
+    depositado: c.cant_depositado || 0,
     cobrado:    c.cant_cobrado_mes || 0,
     rechazado:  c.cant_rechazados || 0,
+    anulado:    c.cant_anulado || 0,
   });
   document.getElementById('kpi-proximos').textContent = formatPeso(c.monto_proximos);
   document.getElementById('kpi-proximos-sub').textContent = `(${c.cant_proximos || 0} cheques)`;
@@ -146,6 +160,11 @@ function initFiltroTabsCheques() {
   FiltroTabs.crear(document.getElementById('filtro-tabs-cheques'), [
     { key: '',           label: 'Todos' },
     { key: 'en_cartera', label: 'En cartera' },
+    // "Depositado" es un estado intermedio propio (cheque ya en el banco,
+    // pendiente de acreditación) — antes no tenía tab ni contador, así que
+    // un cheque en ese estado quedaba en la tabla pero invisible en los
+    // chips de arriba y la suma de contadores no cerraba contra "Todos".
+    { key: 'depositado', label: 'Depositados' },
     // El contador de "Cobrado" es del mes (fn_cheques_contadores), pero el
     // filtro real que dispara el tab trae TODOS los cobrados históricos
     // (fn_cheques_lista no tiene corte por mes) — mismo trade-off que ya
@@ -153,10 +172,64 @@ function initFiltroTabsCheques() {
     // 1:1 con lo que muestra la tabla al hacer clic.
     { key: 'cobrado',    label: 'Cobrado (mes)' },
     { key: 'rechazado',  label: 'Rechazados' },
+    { key: 'anulado',    label: 'Anulados' },
   ], '', (key) => {
     document.getElementById('filtro-estado-cheque').value = key;
+    // v908: cambiar de pestaña es una elección explícita de otra categoría
+    // — si el filtro "Vencen en 3 días" seguía activo, se desactiva para
+    // que la tabla no quede combinando dos filtros sin indicarlo.
+    filtroProximosActivo = false;
+    marcarSelloProximosActivo(false);
     filtrarCheques();
   });
+}
+
+// ── "Vencen en 3 días": alerta + sello, ahora clickeables ──────────────
+// v908 — Pedido directo: antes eran de solo lectura (ver comentario en
+// cheques.html). Al hacer clic en cualquiera de los dos, se filtra la
+// tabla a esos cheques puntuales (mismo criterio SQL que ya usa
+// fn_cheques_contadores() para el número que muestran: en_cartera +
+// vencimiento entre hoy y hoy+3 — ver fn_cheques_lista, migración 513).
+function activarFiltroProximos() {
+  filtroProximosActivo = true;
+  marcarSelloProximosActivo(true);
+
+  // Es un subconjunto de "en_cartera" por fecha, no un estado propio — se
+  // limpian los otros filtros que podrían pisarlo o dejar la combinación
+  // confusa (ej. quedar en la pestaña "Rechazados" con el sello marcado
+  // como activo no tendría sentido: la tabla mostraría 0 resultados sin
+  // que se entienda por qué).
+  document.getElementById('filtro-estado-cheque').value = '';
+  const chkVencidos = document.getElementById('filtro-vencidos-cheque');
+  if (chkVencidos) chkVencidos.checked = false;
+  const tabs = document.getElementById('filtro-tabs-cheques');
+  if (tabs) {
+    tabs.querySelectorAll('.filtro-tab').forEach((b) => {
+      const esTodos = b.dataset.key === '';
+      b.classList.toggle('activa', esTodos);
+      b.setAttribute('aria-selected', esTodos ? 'true' : 'false');
+    });
+  }
+
+  filtrarCheques();
+
+  // Mismo patrón que irAClientesConAlerta() en riesgo-cheques.js: scroll a
+  // la tabla + destello visual, para que quede claro que el filtro se
+  // aplicó y dónde mirar (la tabla puede quedar fuera de la pantalla
+  // arriba de la alerta en resoluciones chicas).
+  const wrap = document.querySelector('.tabla-wrap');
+  if (!wrap) return;
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  wrap.classList.remove('tabla-wrap--flash');
+  void wrap.offsetWidth; // forzar reflow, reinicia la animación si se clickea 2 veces seguidas
+  wrap.classList.add('tabla-wrap--flash');
+  setTimeout(() => wrap.classList.remove('tabla-wrap--flash'), 1600);
+}
+window.activarFiltroProximos = activarFiltroProximos;
+
+function marcarSelloProximosActivo(activo) {
+  const sello = document.getElementById('sello-proximos');
+  if (sello) sello.classList.toggle('sello-proximos-activo', activo);
 }
 
 function mostrarAlertasVencimiento(contadores) {
@@ -165,10 +238,16 @@ function mostrarAlertasVencimiento(contadores) {
   if (!cant) { el.style.display = 'none'; return; }
 
   el.style.display = 'block';
-  el.innerHTML = `<div class="alerta-inline warning">
+  // v908: la alerta ahora es un botón real (antes era un <div> de solo
+  // lectura) — al hacer clic filtra la tabla a esos mismos cheques vía
+  // activarFiltroProximos(). Mismo patrón visual/de interacción que ya usa
+  // el banner de "caída de score" en riesgo-cheques.js (renderAlertasPanel):
+  // <button> + chevron + scroll y destello sobre la tabla destino.
+  el.innerHTML = `<button type="button" class="alerta-inline warning alerta-inline--clickable" onclick="activarFiltroProximos()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    <strong>${cant} cheque${cant>1?'s':''} vence${cant>1?'n':''} en los próximos 3 días</strong> — Total: ${formatPeso(contadores.monto_proximos)}. Recordá depositar a tiempo.
-  </div>`;
+    <span><strong>${cant} cheque${cant>1?'s':''} vence${cant>1?'n':''} en los próximos 3 días</strong> — Total: ${formatPeso(contadores.monto_proximos)}. Recordá depositar a tiempo.</span>
+    <svg class="alerta-inline-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>`;
 }
 
 // ── Paginación ──────────────────────────────────────────────────────
@@ -224,36 +303,27 @@ function renderTabla(cheques) {
     const vencido = esVencido(c);
     const vtoStr = vto ? `<span ${vencido ? 'style="color:var(--color-danger);font-weight:600"' : ''}>${formatFecha(c.vencimiento)}${vencido ? ' <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : ''}</span>` : '—';
 
-    return `<tr data-testid="cheque-fila" data-id="${c.id}">
-      <td style="font-family:monospace;font-size:12px">${c.numero || '—'}</td>
-      <td>${window.sanitize(nombre)}</td>
-      <td style="font-size:12px">${c.banco || '—'}</td>
-      <td class="monto">${formatPeso(c.monto)}</td>
-      <td>${vtoStr}</td>
-      <td><span class="chip ${chip.cls}">${chip.label}</span></td>
-      <td class="col-sticky-end">
-        <div style="display:flex;gap:4px">
-          <button class="btn-icon" title="Editar" onclick="editarCheque('${c.id}')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="btn-icon" title="Verificar denuncia en BCRA" onclick="abrirModalBcraDenuncia('${c.id}')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </button>
-          <select class="btn btn-sm btn-secondary" style="padding:4px 6px;font-size:11px" onchange="cambiarEstado('${c.id}', this.value)" title="Cambiar estado">
+    return `<tr data-testid="cheque-fila" data-id="${c.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) editarCheque('${c.id}')">
+      <td data-label="N° Cheque" style="font-family:monospace;font-size:12px">${c.numero || '—'}</td>
+      <td data-label="Cliente">${window.sanitize(nombre)}</td>
+      <td data-label="Banco" style="font-size:12px">${c.banco || '—'}</td>
+      <td class="monto" data-label="Monto">${formatPeso(c.monto)}</td>
+      <td data-label="Vencimiento">${vtoStr}</td>
+      <td data-label="Estado"><span class="chip ${chip.cls}">${chip.label}</span></td>
+      <td class="col-sticky-end td-acciones-cheque" data-label="Acciones">
+        <span class="fila-acciones">
+          <button type="button" class="btn-tabla" onclick="editarCheque('${c.id}')">Editar</button>
+          <button type="button" class="btn-tabla btn-verificar-bcra" onclick="abrirModalBcraDenuncia('${c.id}')">Verificar BCRA</button>
+          <select class="select-estado-cheque" onchange="cambiarEstado('${c.id}', this.value, '${c.estado}')" title="Cambiar estado">
             <option value="">Estado...</option>
             <option value="en_cartera">En cartera</option>
             <option value="depositado">Depositado</option>
             <option value="cobrado">Cobrado</option>
             <option value="rechazado">Rechazado</option>
             <option value="entregado_proveedor">Endosado</option>
+            <option value="anulado">Anulado</option>
           </select>
-          ${['pendiente', 'en_cartera'].includes(c.estado)
-            ? `<button class="btn-icon" title="Eliminar" style="color:var(--color-danger)" onclick="eliminarCheque('${c.id}')">
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-               </button>`
-            : ''
-          }
-        </div>
+        </span>
       </td>
     </tr>`;
   }).join('');
@@ -276,6 +346,17 @@ async function filtrarCheques() {
   paginaActualCheques = 1;
   await cargarCheques();
 }
+
+// Wrapper del checkbox "Solo vencidos": son dos filtros mutuamente
+// excluyentes (cheques YA vencidos vs. cheques que vencen en los
+// próximos 3 días) — activar uno desactiva el otro para no dejar la
+// combinación sin sentido (ver activarFiltroProximos, v908).
+function onFiltroVencidosChange() {
+  filtroProximosActivo = false;
+  marcarSelloProximosActivo(false);
+  filtrarCheques();
+}
+window.onFiltroVencidosChange = onFiltroVencidosChange;
 
 // ── Modal ────────────────────────────────────────────────────────────
 function abrirModalNuevoCheque() {
@@ -376,37 +457,99 @@ async function guardarCheque() {
   }
 }
 
-// ── Eliminar (solo cheques que todavía no se movieron: pendiente/en_cartera) ──
+// ── Anular (solo cheques que todavía no se movieron: pendiente/en_cartera) ──
+// FIX (hallazgo 3, auditoría CRUD 2026): antes hacía DELETE real contra la
+// REST de Supabase, perdiendo el registro para siempre y sin poder
+// deshacerlo — a diferencia de facturas/notas de crédito, que se anulan
+// conservando el comprobante. Ahora hace PATCH a estado='anulado' (valor ya
+// soportado por cheques_estado_check desde la migración 077); el cheque
+// sigue existiendo, solo deja de contar como activo, y se puede reactivar
+// (volver a "En cartera") desde el mismo botón si fue un error.
 async function eliminarCheque(id) {
   const c = todosCheques.find(x => x.id === id);
-  const ok = await (window.confirmar
-    ? window.confirmar(`¿Eliminar el cheque${c?.numero ? ' N° ' + c.numero : ''}? Esta acción no se puede deshacer.`, { labelOk: 'Eliminar', labelCancel: 'Cancelar', tipo: 'danger' })
-    : Promise.resolve(confirm('¿Eliminar este cheque?')));
-  if (!ok) return;
+  const mensaje = `¿Anular el cheque${c?.numero ? ' N° ' + c.numero : ''}? Podés reactivarlo después si fue un error.`;
+
+  let motivo = null;
+  let confirmado = false;
+  if (window.confirmarConTexto) {
+    const resultado = await window.confirmarConTexto(mensaje, {
+      labelOk: 'Anular', labelCancel: 'Cancelar', placeholder: 'Motivo (opcional)', requerido: false,
+    });
+    confirmado = resultado !== null;
+    motivo = resultado || null;
+  } else if (window.confirmar) {
+    confirmado = await window.confirmar(mensaje, { labelOk: 'Anular', labelCancel: 'Cancelar', tipo: 'danger' });
+  } else {
+    confirmado = confirm('¿Anular este cheque?');
+  }
+  if (!confirmado) return;
 
   try {
     const { data: { session } } = await _sb.auth.getSession();
     const r = await fetch(`${window.ENV.SUPABASE_URL}/rest/v1/cheques?id=eq.${id}`, {
-      method: 'DELETE',
+      method: 'PATCH',
       headers: {
         apikey: window.ENV.SUPABASE_ANON_KEY,
         Authorization: `Bearer ${session?.access_token}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
+      body: JSON.stringify({ estado: 'anulado', motivo_anulacion: motivo }),
     });
     if (!r.ok) throw new Error(await r.text());
-    mostrarToast('Cheque eliminado', 'ok');
+    mostrarToast('Cheque anulado', 'ok');
     await Promise.all([cargarCheques(), cargarContadoresCheques()]);
   } catch (e) {
     console.error('[CHEQUES] eliminarCheque:', e);
-    mostrarToast('No se pudo eliminar el cheque.', 'err');
+    mostrarToast('No se pudo anular el cheque.', 'err');
   }
 }
 window.eliminarCheque = eliminarCheque;
 
-async function cambiarEstado(id, nuevoEstado) {
+// ── Reactivar un cheque anulado por error (deshacer la anulación) ───────
+async function reactivarCheque(id) {
+  const c = todosCheques.find(x => x.id === id);
+  const ok = await (window.confirmar
+    ? window.confirmar(`¿Reactivar el cheque${c?.numero ? ' N° ' + c.numero : ''}? Vuelve a "En cartera".`, { labelOk: 'Reactivar' })
+    : Promise.resolve(confirm('¿Reactivar este cheque?')));
+  if (!ok) return;
+
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    const r = await fetch(`${window.ENV.SUPABASE_URL}/rest/v1/cheques?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: window.ENV.SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${session?.access_token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ estado: 'en_cartera', motivo_anulacion: null }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    mostrarToast('Cheque reactivado', 'ok');
+    await Promise.all([cargarCheques(), cargarContadoresCheques()]);
+  } catch (e) {
+    console.error('[CHEQUES] reactivarCheque:', e);
+    mostrarToast('No se pudo reactivar el cheque.', 'err');
+  }
+}
+window.reactivarCheque = reactivarCheque;
+
+async function cambiarEstado(id, nuevoEstado, estadoActual) {
   if (!nuevoEstado) return;
+
+  // "Anulado" y la reactivación desde "Anulado" piden confirmación + motivo
+  // (mismo flujo que antes vivía en el menú "⋮" — ver eliminarCheque/reactivarCheque).
+  if (nuevoEstado === 'anulado') {
+    await eliminarCheque(id);
+    return;
+  }
+  if (estadoActual === 'anulado' && nuevoEstado === 'en_cartera') {
+    await reactivarCheque(id);
+    return;
+  }
+
   try {
     const _h3 = await (async()=>{const{data:{session}}=await _sb.auth.getSession();return{"apikey":window.ENV.SUPABASE_ANON_KEY,"Authorization":`Bearer ${session?.access_token}`,"Content-Type":"application/json"};})();
     const r = await fetch(`${window.ENV.SUPABASE_URL}/rest/v1/cheques?id=eq.${id}`, {
@@ -522,7 +665,7 @@ async function consultarDenunciaBcra() {
     const estaDenunciado = json.encontrado && r.denunciado === true;
 
     if (!estaDenunciado) {
-      resultado.innerHTML = `<div class="alerta-inline" style="background:var(--color-success-bg,#DCEDE3);color:var(--color-success,#17402F)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin denuncia registrada para este cheque.</div>`;
+      resultado.innerHTML = `<div class="alerta-inline" style="background:var(--color-success-bg,#E2F0E5);color:var(--color-success,#487050)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Sin denuncia registrada para este cheque.</div>`;
     } else {
       // `detalles` viene de BCRA como un array (puede haber más de una
       // denuncia sobre el mismo número de cheque, en distintas cuentas) con

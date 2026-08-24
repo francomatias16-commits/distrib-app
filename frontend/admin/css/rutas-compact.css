@@ -94,7 +94,7 @@
     overflow-y: auto !important;
   }
   body.dash-rutas-gentelella .rutas-table thead th,
-  body.dash-rutas-gentelella .tabla-main thead th {
+  body.dash-rutas-gentelella .tabla-admin thead th {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -103,8 +103,8 @@
   body.dash-rutas-gentelella .rutas-table td {
     padding: 7px 12px !important;
   }
-  body.dash-rutas-gentelella .tabla-main th,
-  body.dash-rutas-gentelella .tabla-main td {
+  body.dash-rutas-gentelella .tabla-admin th,
+  body.dash-rutas-gentelella .tabla-admin td {
     padding: 7px 10px !important;
   }
   body.dash-rutas-gentelella .panel-header {
@@ -154,8 +154,6 @@
   body.dash-rutas-gentelella .resumen-minibar-wrap { height: 54px !important; padding-top: 2px !important; }
   body.dash-rutas-gentelella .resumen-gauge-wrap { gap: 10px !important; }
   body.dash-rutas-gentelella .resumen-gauge { width: 62px !important; height: 62px !important; }
-  body.dash-rutas-gentelella .resumen-cap-row { margin-bottom: 6px !important; }
-  body.dash-rutas-gentelella .resumen-cap-legend { margin-top: 6px !important; }
 
   body.dash-rutas-gentelella .resumen-card:has(.resumen-chofer-list) { overflow: visible; }
   body.dash-rutas-gentelella .resumen-choferes-card { gap: 10px !important; }
@@ -200,9 +198,9 @@
      TAB: Armar ruta
      ══════════════════════════════════════════════════════════════════ */
   /* Red de seguridad: el reparto proporcional de alto de más abajo
-     (rutas-grid flex:1 1 auto + rutas-del-dia flex:0 1 170px) asume
+     (rutas-grid flex:1 1 auto + rutas-del-dia-section flex:0 0 200px) asume
      que panel-pendientes/panel-ruta pueden encogerse sin límite, pero
-     tienen contenido con un alto mínimo real (drop-zone, tarjetas de
+     tienen contenido con un alto mínimo real (panel de selección, tarjetas de
      pedidos, botones de acción del chofer en 2 filas, etc.). En
      viewports en el borde del breakpoint (~1200×650, notebooks con
      barra de marcadores/extensiones visible) ese mínimo puede superar
@@ -223,20 +221,20 @@
   body.dash-rutas-gentelella #tab-armar-content .ruta-form-card > div:first-child {
     margin-bottom: 8px !important;
   }
-  body.dash-rutas-gentelella #tab-armar-content .ruta-chofer-acciones {
-    margin-top: 8px !important;
-  }
   body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
     /* La lista de pendientes es la información más importante de la
-       pantalla: absorbe TODO el espacio que quede libre una vez
-       reservado el alto fijo de "Rutas del día" (ver abajo). Con
-       flex-basis "auto" (no 0) el navegador puede repartir/quitarle
-       espacio correctamente incluso cuando el contenido no entra
-       entero en el viewport. */
+       pantalla: absorbe el espacio libre, pero nunca se achica tanto
+       como para dejar visible sólo una fila de pedidos. El mínimo
+       reserva espacio para el encabezado, el buscador y al menos tres
+       filas de tarjetas; si la ventana es más baja, scrollea el tab
+       completo en vez de ocultar las filas. */
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 348px;
     gap: 12px !important;
     align-items: stretch !important;
+  }
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
   }
   body.dash-rutas-gentelella #tab-armar-content .panel-pendientes,
   body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
@@ -250,38 +248,31 @@
     flex-direction: column;
     gap: 8px !important;
   }
-  body.dash-rutas-gentelella #tab-armar-content .drop-zone {
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
   }
+  body.dash-rutas-gentelella #tab-armar-content .ruta-panel-heading {
+    padding: 10px 14px !important;
+  }
   body.dash-rutas-gentelella #tab-armar-content .ruta-footer {
     flex-shrink: 0;
   }
-  body.dash-rutas-gentelella #tab-armar-content > div[style*="margin-top"] {
-    flex-shrink: 0;
-    margin-top: 0 !important;
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section {
+    /* La tabla se muestra arriba en una franja compacta: el título más
+       el alto reservado alcanzan para el encabezado y tres filas de
+       rutas. Desde la cuarta fila sólo scrollea la tabla, no el resto
+       de la pantalla. */
+    flex: 0 0 200px;
+    min-height: 200px;
+    max-height: 200px;
+    overflow: hidden;
   }
   body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia {
-    /* Tabla de menor relevancia (vacía la mayor parte del tiempo):
-       alto FIJO y predecible en vez de repartir proporciones de
-       flex-grow con el grid de arriba — ese esquema (flex-basis: 0
-       en ambos lados) no reparte bien el espacio cuando el contenido
-       no entra entero en el viewport, y terminaba empujando la tabla
-       fuera de la pantalla sin que su scroll interno llegara a
-       activarse. Con flex-basis 170px el algoritmo de shrink SÍ sabe
-       encogerla correctamente si hace falta, y su overflow-y:auto
-       (heredado de .table-responsive-cards) se activa siempre que su
-       contenido no entre en ese alto.
-
-       min-height: 130px asegura que, aunque el espacio esté muy
-       ajustado, la sección nunca se encoja por debajo de una altura
-       legible (~2 filas + header) — si eso no alcanza para que todo
-       entre en el viewport, el overflow-y:auto del tab (ver arriba)
-       permite scrollear para llegar a verla igual. */
-    flex: 0 1 170px;
-    min-height: 130px;
-    max-height: 170px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -306,6 +297,11 @@
     padding: 8px 14px !important;
     flex-wrap: wrap;
     gap: 10px 16px !important;
+  }
+  body.dash-rutas-gentelella .mapa-sin-ubicar {
+    flex-shrink: 0;
+    padding: 6px 14px !important;
+    max-height: 60px;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -378,5 +374,379 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ARMA DE RUTA — cola dominante
+   La cola de pedidos es el espacio de trabajo principal. Configuración,
+   rutas existentes y selección viven en la columna lateral para que la lista
+   conserve todo el alto útil del viewport y su propio scroll.
+   ═════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) {
+  body.dash-rutas-gentelella #tab-armar-content {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 390px);
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .panel-pendientes {
+    height: auto;
+    min-height: 0;
+    max-height: none !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    height: 100%;
+    min-height: 0;
+    gap: 8px !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    align-items: stretch;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section {
+    flex: 0 0 128px;
+    min-height: 96px;
+    max-height: 128px;
+    overflow: hidden;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-title {
+    margin-bottom: 4px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia {
+    height: calc(100% - 18px);
+    overflow-y: auto;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia .rutas-table th,
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia .rutas-table td {
+    padding: 6px 8px !important;
+    font-size: 10px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    flex: 0 0 auto;
+    padding: 12px 14px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card > div:first-child {
+    margin-bottom: 8px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid input,
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid select {
+    min-height: 32px;
+    padding: 6px 8px;
+  }
+
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion {
+    flex: 1 1 180px;
+    min-height: 112px;
+    overflow-y: auto;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer > div:last-child {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 559px) {
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    padding-right: 2px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section {
+    flex-basis: 112px;
+    min-height: 112px;
+    max-height: 112px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    padding: 9px 12px !important;
+  }
+
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion {
+    flex-basis: 140px;
+    min-height: 96px;
+  }
+}
+
+@media (max-width: 900px) {
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    display: grid;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section {
+    order: 0;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    order: 1;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion {
+    order: 2;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   v869 — Armar ruta: rutas del día arriba y paneles sin aire muerto
+   La cola conserva sus acciones, pero se elimina el encabezado redundante
+   de la captura 2. El título y sus contadores viven en la barra de la lista.
+   ═════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) {
+  body.dash-rutas-gentelella #tab-armar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section--top {
+    flex: 0 0 142px;
+    width: 100%;
+    min-height: 0;
+    max-height: 142px;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section--top .rutas-del-dia-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 20px;
+    margin: 0;
+    color: var(--rutas-ink);
+    font-size: 12px;
+    letter-spacing: .08em;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-caption {
+    color: var(--rutas-subtle);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section--top .rutas-del-dia {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .rutas-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+    gap: 10px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .panel-pendientes,
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    min-height: 0;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .panel-ruta {
+    gap: 6px !important;
+    overflow: hidden;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    flex: 0 0 auto;
+    padding: 9px 12px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card > div:first-child {
+    margin-bottom: 6px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px 8px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid label:nth-of-type(3) {
+    grid-column: 1 / -1;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid > button {
+    grid-column: 1 / -1;
+    justify-self: end;
+    min-height: 28px;
+    padding: 5px 12px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid input,
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-grid select {
+    min-height: 30px;
+    padding: 5px 8px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-panel-heading {
+    padding: 7px 10px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion-vacio {
+    gap: 4px;
+    padding: 14px 12px;
+    font-size: 12px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion-vacio svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer {
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 7px 8px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer > div:last-child {
+    gap: 6px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-footer .btn {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-controls {
+    gap: 7px;
+    padding: 7px 10px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-controls .panel-search input {
+    min-height: 32px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-tool-btn {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-toolbar {
+    gap: 8px;
+    padding: 7px 10px 6px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-toolbar > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 7px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-title-row {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    width: 100%;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-title-row strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-inline-total {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    overflow: visible;
+    color: var(--rutas-subtle);
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-inline-total b {
+    color: var(--rutas-ink);
+    font-size: 12px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-inline-total--selected b {
+    color: var(--rutas-blue);
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-toolbar > div > span:not(.pedidos-inline-total) {
+    width: 100%;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-columns {
+    padding: 6px 10px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 650px) {
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-section--top {
+    flex-basis: 116px;
+    max-height: 116px;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-form-card {
+    padding: 7px 10px !important;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .ruta-seleccion-vacio {
+    padding: 9px 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  body.dash-rutas-gentelella #tab-armar-content .rutas-del-dia-caption {
+    display: none;
+  }
+
+  body.dash-rutas-gentelella #tab-armar-content .pedidos-list-title-row {
+    gap: 4px 7px;
   }
 }

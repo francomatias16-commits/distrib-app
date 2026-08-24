@@ -56,33 +56,33 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        background: var(--color-surface, #FCFAF5);
-        border: 1px solid var(--color-border, #C7BFA9);
-        border-radius: var(--radius-md, 6px);
+        background: var(--color-surface, #FFFFFF);
+        border: 1px solid var(--color-border, #DDE1DC);
+        border-radius: var(--radius-md, 4px);
         padding: 5px 10px;
         transition: border-color .15s, background .15s;
       }
-      .busq-global-inner svg { flex-shrink: 0; color: var(--color-text-muted, #4B4A45); }
+      .busq-global-inner svg { flex-shrink: 0; color: var(--color-text-muted, #5B6660); }
       .busq-global-inner:focus-within {
-        border-color: var(--color-primary, #B87A00);
-        background: var(--color-bg, #F5F2EA);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary,#B87A00) 12%, transparent);
+        border-color: var(--color-primary, #6A9873);
+        background: var(--color-bg, #F6F7F5);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary,#6A9873) 12%, transparent);
       }
       #busq-global-input {
         flex: 1;
         border: none;
         background: transparent;
         font-size: 13px;
-        color: var(--color-text, #16181D);
+        color: var(--color-text, #111A17);
         outline: none;
         min-width: 0;
       }
-      #busq-global-input::placeholder { color: var(--color-text-muted, #4B4A45); }
+      #busq-global-input::placeholder { color: var(--color-text-muted, #5B6660); }
       .busq-atajo {
         font-size: 11px;
-        color: var(--color-text-muted, #4B4A45);
-        background: var(--color-bg, #F5F2EA);
-        border: 1px solid var(--color-border, #C7BFA9);
+        color: var(--color-text-muted, #5B6660);
+        background: var(--color-bg, #F6F7F5);
+        border: 1px solid var(--color-border, #DDE1DC);
         border-radius: 4px;
         padding: 1px 5px;
         white-space: nowrap;
@@ -97,10 +97,10 @@
         left: 0;
         right: 0;
         min-width: 320px;
-        background: var(--color-bg, #F5F2EA);
-        border: 1px solid var(--color-border, #C7BFA9);
-        border-radius: var(--radius-md, 6px);
-        box-shadow: 0 8px 32px rgba(0,0,0,.14);
+        background: var(--color-bg, #F6F7F5);
+        border: 1px solid var(--color-border, #DDE1DC);
+        border-radius: var(--radius-md, 4px);
+        box-shadow: 0 8px 32px rgba(22,24,29,.14);
         z-index: 9999;
         max-height: 440px;
         overflow-y: auto;
@@ -108,7 +108,7 @@
       .busq-section-title {
         font-size: 11px;
         font-weight: 600;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         text-transform: uppercase;
         letter-spacing: .06em;
         padding: 10px 14px 4px;
@@ -120,12 +120,12 @@
         padding: 8px 14px;
         cursor: pointer;
         text-decoration: none;
-        color: var(--color-text, #16181D);
+        color: var(--color-text, #111A17);
         font-size: 13px;
         transition: background .1s;
       }
       .busq-item:hover, .busq-item.busq-focused {
-        background: var(--color-surface, #FCFAF5);
+        background: var(--color-surface, #FFFFFF);
       }
       .busq-item-icon {
         width: 28px;
@@ -138,12 +138,12 @@
         font-size: 12px;
         font-weight: 700;
       }
-      .busq-icon-cliente  { background: var(--color-info-bg,#DCE6EC); color: var(--color-info,#1E3A52); }
-      .busq-icon-producto { background: var(--color-success-bg,#DCEDE3); color: var(--color-success,#17402F); }
-      .busq-icon-pedido   { background: var(--color-warning-bg,#FBEBC7); color: var(--color-warning,#7A4A00); }
+      .busq-icon-cliente  { background: var(--color-info-bg,#DDE6EE); color: var(--color-info,#1F3555); }
+      .busq-icon-producto { background: var(--color-success-bg,#E2F0E5); color: var(--color-success,#487050); }
+      .busq-icon-pedido   { background: var(--color-warning-bg,#FBE8C9); color: var(--color-warning,#8A5F13); }
       .busq-icon-presup   { background: var(--pill-purple-bg,#EDE4F5); color: var(--pill-purple-text,#5B4A8F); }
       .busq-icon-factura  { background: var(--pill-pink-bg,#F5E4EC); color: var(--pill-pink-text,#8F3A5C); }
-      .busq-icon-cheque   { background: var(--pill-orange-bg,#F0DCC0); color: var(--pill-orange-text,#8F5F00); }
+      .busq-icon-cheque   { background: var(--pill-orange-bg,#FBE8C9); color: var(--pill-orange-text,#8A5F13); }
       .busq-item-main { flex: 1; min-width: 0; }
       .busq-item-nombre {
         font-weight: 500;
@@ -153,7 +153,7 @@
       }
       .busq-item-sub {
         font-size: 11px;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -165,29 +165,29 @@
         flex-shrink: 0;
         font-weight: 600;
       }
-      .busq-badge-verde   { background: var(--color-success-bg,#DCEDE3); color: var(--color-success,#17402F); }
-      .busq-badge-amarillo{ background: var(--color-warning-bg,#FBEBC7); color: var(--color-warning,#7A4A00); }
-      .busq-badge-rojo    { background: var(--color-danger-bg,#F3DAD8); color: var(--color-danger,#7A1E19); }
+      .busq-badge-verde   { background: var(--color-success-bg,#E2F0E5); color: var(--color-success,#487050); }
+      .busq-badge-amarillo{ background: var(--color-warning-bg,#FBE8C9); color: var(--color-warning,#8A5F13); }
+      .busq-badge-rojo    { background: var(--color-danger-bg,#F5DDD8); color: var(--color-danger,#7A2820); }
       .busq-badge-gris    { background: var(--pill-neutral-bg,#EAE4D6); color: var(--pill-neutral-text,#4B4A45); }
       .busq-vacio {
         padding: 24px 14px;
         text-align: center;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         font-size: 13px;
       }
-      .busq-sep { border-top: 1px solid var(--color-border, #C7BFA9); margin: 4px 0; }
-      .busq-highlight { background: var(--color-warning-bg,#FBEBC7); border-radius: 2px; padding: 0 1px; }
+      .busq-sep { border-top: 1px solid var(--color-border, #DDE1DC); margin: 4px 0; }
+      .busq-highlight { background: var(--color-warning-bg,#FBE8C9); border-radius: 2px; padding: 0 1px; }
       .busq-footer {
         padding: 8px 14px;
-        border-top: 1px solid var(--color-border, #C7BFA9);
+        border-top: 1px solid var(--color-border, #DDE1DC);
         font-size: 11px;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         display: flex;
         gap: 12px;
       }
       .busq-footer kbd {
-        background: var(--color-surface, #FCFAF5);
-        border: 1px solid var(--color-border, #C7BFA9);
+        background: var(--color-surface, #FFFFFF);
+        border: 1px solid var(--color-border, #DDE1DC);
         border-radius: 3px;
         padding: 1px 4px;
         font-size: 10px;

@@ -173,17 +173,12 @@ function renderKpis() {
 
   cont.className = 'franja-resumen-sololectura';
   cont.innerHTML = `
-    <span title="Con al menos una venta en el período">Productos con ventas: <strong>${productos.length}</strong></span>
-    <span class="sep">·</span>
-    <span title="Suma de ventas del período">Facturado total: <strong>${fmtPeso(totalFacturado)}</strong></span>
-    <span class="sep">·</span>
-    <span title="Facturado menos costo de mercadería">Margen${pctMargen != null ? ` (${pctMargen}%)` : ''}: <strong>${fmtPeso(totalMargen)}</strong></span>
-    <span class="sep">·</span>
-    <span title="Con al menos un pedido asignado">Vendedores con ventas: <strong>${vendedores.length}</strong></span>
-    <span class="sep">·</span>
-    <span title="Producto con mayor margen acumulado">Producto top: <strong>${mejorProducto ? esc(mejorProducto.producto_nombre) : '—'}</strong></span>
-    <span class="sep">·</span>
-    <span title="Vendedor con mayor margen acumulado">Vendedor top: <strong>${mejorVendedor ? esc(mejorVendedor.vendedor_nombre || 'Sin vendedor asignado') : '—'}</strong></span>
+    <div class="dato-sello" title="Con al menos una venta en el período"><div class="dato-sello-valor">${productos.length}</div><div class="dato-sello-etiqueta">Productos con ventas</div></div>
+    <div class="dato-sello" title="Suma de ventas del período"><div class="dato-sello-valor">${fmtPeso(totalFacturado)}</div><div class="dato-sello-etiqueta">Facturado total</div></div>
+    <div class="dato-sello" data-tono="verde" title="Facturado menos costo de mercadería"><div class="dato-sello-valor">${fmtPeso(totalMargen)}</div><div class="dato-sello-etiqueta">Margen${pctMargen != null ? ` (${pctMargen}%)` : ''}</div></div>
+    <div class="dato-sello" title="Con al menos un pedido asignado"><div class="dato-sello-valor">${vendedores.length}</div><div class="dato-sello-etiqueta">Vendedores con ventas</div></div>
+    <div class="dato-sello" title="Producto con mayor margen acumulado"><div class="dato-sello-valor">${mejorProducto ? esc(mejorProducto.producto_nombre) : '—'}</div><div class="dato-sello-etiqueta">Producto top</div></div>
+    <div class="dato-sello" title="Vendedor con mayor margen acumulado"><div class="dato-sello-valor">${mejorVendedor ? esc(mejorVendedor.vendedor_nombre || 'Sin vendedor asignado') : '—'}</div><div class="dato-sello-etiqueta">Vendedor top</div></div>
   `;
 }
 
@@ -202,8 +197,8 @@ function renderChart() {
   const valores = top.map(d => Math.round(d.margen));
 
   const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-  const colorPositivo = tokens.teal || '#B87A00';
-  const colorNegativo = tokens.red  || '#B3261E';
+  const colorPositivo = tokens.teal || '#6A9873';
+  const colorNegativo = tokens.red  || '#B8402E';
 
   _chart = crearGraficoECharts(_chart, 'chart-rentabilidad', {
     tooltip: {
@@ -223,7 +218,7 @@ function renderChart() {
     yAxis: {
       type: 'value',
       axisLabel: { formatter: (v) => fmtPeso(v), fontSize: 11 },
-      splitLine: { lineStyle: { color: 'rgba(0,0,0,.05)' } },
+      splitLine: { lineStyle: { color: 'rgba(22,24,29,.05)' } },
     },
     series: [{
       name: 'Margen ($)',

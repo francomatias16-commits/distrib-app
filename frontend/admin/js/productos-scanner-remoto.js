@@ -135,7 +135,7 @@
     btn.type = 'button';
     btn.id   = 'btn-imagen-incorrecta';
     btn.style.cssText = [
-      'margin-top:2px', 'font-size:11px', 'color:#d97706', 'background:none',
+      'margin-top:2px', 'font-size:11px', 'color:var(--color-warning, #8A5F13)', 'background:none',
       'border:none', 'cursor:pointer', 'padding:0', 'text-decoration:underline',
       'display:block', 'text-align:left',
     ].join(';');

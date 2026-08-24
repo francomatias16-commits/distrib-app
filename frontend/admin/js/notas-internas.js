@@ -115,11 +115,50 @@ const NotasInternas = (() => {
   //   editable {boolean}  — muestra botón archivar (solo roles admin/dueno/vendedor)
   //   onArchivar {fn}     — callback(notaId) al archivar
 
+  // ── Paginación cliente ("Cargar más") ─────────────────────────────────
+  // Por containerId, porque el módulo puede tener varias instancias
+  // renderizadas a la vez (ej. clientes.js y pedidos.js en la misma sesión).
+  const NI_MOSTRAR_INICIAL = 10;
+  const NI_PAGINA          = 20;
+  const _visibles = {};   // containerId -> cantidad visible
+  const _listaActual = {}; // containerId -> última lista de notas renderizada
+  const _opcionesActuales = {}; // containerId -> options usadas en el último renderLista
+
+  function piePaginacionHTML(total, visibles, containerId) {
+    const hayMas        = total > visibles;
+    const puedeColapsar = visibles > NI_MOSTRAR_INICIAL;
+    if (!hayMas && !puedeColapsar) return '';
+    const restantes = total - visibles;
+    return `<div class="paginar-foot">
+      ${hayMas ? `<button type="button" class="paginar-btn" onclick="NotasInternas._cargarMas('${containerId}')">Cargar ${Math.min(NI_PAGINA, restantes)} más (quedan ${restantes})</button>` : ''}
+      ${puedeColapsar ? `<button type="button" class="paginar-btn paginar-btn--ghost" onclick="NotasInternas._colapsar('${containerId}')">Ver menos</button>` : ''}
+    </div>`;
+  }
+
+  function _cargarMas(containerId) {
+    const total = (_listaActual[containerId] || []).length;
+    _visibles[containerId] = Math.min(total, (_visibles[containerId] || NI_MOSTRAR_INICIAL) + NI_PAGINA);
+    renderLista(_listaActual[containerId] || [], containerId, _opcionesActuales[containerId] || {});
+  }
+  function _colapsar(containerId) {
+    _visibles[containerId] = NI_MOSTRAR_INICIAL;
+    renderLista(_listaActual[containerId] || [], containerId, _opcionesActuales[containerId] || {});
+  }
+  // Público: llamar antes de mostrar notas de una entidad distinta en el
+  // mismo containerId (ej. al abrir el tab de historial de OTRO cliente),
+  // para no arrastrar el "Cargar más" ya expandido de la entidad anterior.
+  function resetPaginacion(containerId) {
+    _visibles[containerId] = NI_MOSTRAR_INICIAL;
+  }
+
   function renderLista(notas, containerId, options = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
     const { editable = true, onArchivar } = options;
+    _listaActual[containerId] = notas;
+    _opcionesActuales[containerId] = options;
+    if (_visibles[containerId] == null) _visibles[containerId] = NI_MOSTRAR_INICIAL;
 
     if (!notas.length) {
       container.innerHTML = `
@@ -135,7 +174,10 @@ const NotasInternas = (() => {
       return;
     }
 
-    container.innerHTML = notas.map(n => {
+    const total    = notas.length;
+    const visibles = notas.slice(0, _visibles[containerId]);
+
+    const notasHtml = visibles.map(n => {
       const color = avatarColor(n.usuario_nombre);
       const ini   = iniciales(n.usuario_nombre);
 
@@ -159,6 +201,9 @@ const NotasInternas = (() => {
           </div>
         </div>`;
     }).join('');
+
+    const pie = piePaginacionHTML(total, _visibles[containerId], containerId);
+    container.innerHTML = notasHtml + pie;
 
     // Guardar callback para el onclick inline
     if (onArchivar) NotasInternas._callbacks[containerId] = onArchivar;
@@ -268,7 +313,7 @@ const NotasInternas = (() => {
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .06em;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         margin: 0 0 10px;
       }
 
@@ -301,8 +346,8 @@ const NotasInternas = (() => {
 
       .ni-body {
         flex: 1;
-        background: var(--color-bg, #F5F2EA);
-        border: 1px solid var(--color-border, #C7BFA9);
+        background: var(--color-bg, #F6F7F5);
+        border: 1px solid var(--color-border, #DDE1DC);
         border-radius: 8px;
         padding: 9px 12px;
       }
@@ -317,12 +362,12 @@ const NotasInternas = (() => {
       .ni-autor {
         font-size: 12px;
         font-weight: 600;
-        color: var(--color-text, #16181D);
+        color: var(--color-text, #111A17);
       }
 
       .ni-ts {
         font-size: 11px;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         flex: 1;
       }
 
@@ -330,7 +375,7 @@ const NotasInternas = (() => {
         background: none;
         border: none;
         cursor: pointer;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         padding: 2px 4px;
         border-radius: 4px;
         display: flex;
@@ -344,12 +389,12 @@ const NotasInternas = (() => {
       }
 
       .ni-archivar:hover {
-        color: var(--color-danger, #7A1E19);
+        color: var(--color-danger, #7A2820);
       }
 
       .ni-contenido {
         font-size: 13px;
-        color: var(--color-text, #16181D);
+        color: var(--color-text, #111A17);
         line-height: 1.5;
         white-space: pre-wrap;
         word-break: break-word;
@@ -361,7 +406,7 @@ const NotasInternas = (() => {
         align-items: center;
         gap: 8px;
         padding: 24px 0;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
         font-size: 13px;
       }
 
@@ -373,13 +418,13 @@ const NotasInternas = (() => {
       .ni-textarea {
         width: 100%;
         box-sizing: border-box;
-        border: 1px solid var(--color-border, #C7BFA9);
+        border: 1px solid var(--color-border, #DDE1DC);
         border-radius: 8px;
         padding: 10px 12px;
         font-size: 13px;
         font-family: inherit;
-        color: var(--color-text, #16181D);
-        background: var(--color-surface, #FCFAF5);
+        color: var(--color-text, #111A17);
+        background: var(--color-surface, #FFFFFF);
         resize: vertical;
         min-height: 72px;
         transition: border-color .15s;
@@ -387,8 +432,8 @@ const NotasInternas = (() => {
       }
 
       .ni-textarea:focus {
-        border-color: var(--color-primary, #B87A00);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #B87A00) 12%, transparent);
+        border-color: var(--color-primary, #6A9873);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6A9873) 12%, transparent);
       }
 
       .ni-form-footer {
@@ -400,7 +445,7 @@ const NotasInternas = (() => {
 
       .ni-charcount {
         font-size: 11px;
-        color: var(--color-text-muted, #4B4A45);
+        color: var(--color-text-muted, #5B6660);
       }
 
       .ni-btn-guardar {
@@ -419,7 +464,7 @@ const NotasInternas = (() => {
       /* Separador de sección */
       .ni-divider {
         border: none;
-        border-top: 1px solid var(--color-border, #C7BFA9);
+        border-top: 1px solid var(--color-border, #DDE1DC);
         margin: 16px 0;
       }
     `;
@@ -440,12 +485,15 @@ const NotasInternas = (() => {
     archivar,
     renderLista,
     renderForm,
+    resetPaginacion,
     // Internos accesibles desde onclick inline
     _onArchivar,
     _onGuardar,
     _onInput,
     _callbacks,
     _guardarCallbacks,
+    _cargarMas,
+    _colapsar,
   };
 
 })();

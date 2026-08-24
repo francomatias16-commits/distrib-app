@@ -13,6 +13,8 @@ let pedidosFilt = [];       // filtrados en panel izquierdo
 let rutaItems   = [];       // pedidos en la ruta en construcción
 let choferes    = [];
 let agruparZona = true;     // agrupar "Pedidos para despachar" por zona (default: on)
+const RUTA_BORRADOR_KEY = 'distrib:ruta-borrador';
+let restaurandoBorrador = false;
 
 // ── Avatar circular con iniciales del chofer (estilo TravelBox) ────────────
 const CHOFER_PALETTE = ['#8B5CF6', '#F59E0B', '#3B82F6', '#0D9488', '#EF4444'];
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await cargarDatos();
+  restaurarRutaBorrador();
 
   // Deep-link desde la alerta "Entrega con cobro parcial" del dashboard (ver
   // handleAlertas en admin.js, sección 8): en vez de que el dueño tenga que
@@ -94,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (entregaDifParam && rutaDifParam) {
     if (fechaDifParam && fechaDifParam !== document.getElementById('filtro-fecha').value) {
       document.getElementById('filtro-fecha').value = fechaDifParam;
+      document.getElementById('ruta-fecha').value = fechaDifParam;
       await cargarRutasDelDia();
     }
     mostrarTab('seguimiento');
@@ -111,13 +115,127 @@ async function cargarDatos() {
   await Promise.all([cargarChoferes(), cargarPedidosDespachables(), cargarRutasDelDia()]);
 }
 
+// ── Sincronización de fecha y borrador local ───────────────────────────────
+// La cola de pedidos y la cabecera de la ruta tienen que mirar siempre el
+// mismo día. El borrador se guarda por empresa y fecha para no mezclar
+// pedidos de jornadas distintas si el operador cambia el filtro.
+function claveBorradorRuta(fecha) {
+  return `${RUTA_BORRADOR_KEY}:${empresaId || 'sin-empresa'}:${fecha || 'sin-fecha'}`;
+}
+
+function leerBorradorRuta(fecha = document.getElementById('ruta-fecha')?.value) {
+  if (!fecha) return null;
+  try {
+    const raw = localStorage.getItem(claveBorradorRuta(fecha));
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    console.warn('[RUTAS] No se pudo leer el borrador local:', err);
+    return null;
+  }
+}
+
+function escribirBorradorRuta() {
+  if (restaurandoBorrador) return;
+  const fecha = document.getElementById('ruta-fecha')?.value;
+  if (!fecha || !empresaId) return;
+
+  const choferId = document.getElementById('ruta-chofer')?.value || '';
+  const notas = document.getElementById('ruta-notas')?.value?.trim() || '';
+  const key = claveBorradorRuta(fecha);
+
+  if (!rutaItems.length && !choferId && !notas) {
+    eliminarBorradorRuta(fecha);
+    actualizarEstadoBorrador('');
+    return;
+  }
+
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      fecha,
+      choferId,
+      notas,
+      pedidoIds: rutaItems.map(p => p.id),
+      guardadoEn: new Date().toISOString(),
+    }));
+    actualizarEstadoBorrador('Borrador guardado en este dispositivo');
+  } catch (err) {
+    console.warn('[RUTAS] No se pudo guardar el borrador local:', err);
+  }
+}
+
+function eliminarBorradorRuta(fecha = document.getElementById('ruta-fecha')?.value) {
+  if (!fecha) return;
+  try {
+    localStorage.removeItem(claveBorradorRuta(fecha));
+  } catch (err) {
+    console.warn('[RUTAS] No se pudo eliminar el borrador local:', err);
+  }
+}
+
+function guardarBorradorSilencioso() {
+  escribirBorradorRuta();
+}
+window.guardarBorradorSilencioso = guardarBorradorSilencioso;
+
+function actualizarEstadoBorrador(texto) {
+  const el = document.getElementById('ruta-borrador-status');
+  if (el) el.textContent = texto || '';
+}
+
+function restaurarRutaBorrador() {
+  const fecha = document.getElementById('ruta-fecha')?.value;
+  const borrador = leerBorradorRuta(fecha);
+  if (!borrador) {
+    actualizarEstadoBorrador('');
+    return;
+  }
+
+  restaurandoBorrador = true;
+  const pedidosPorId = new Map(pedidos.map(p => [p.id, p]));
+  rutaItems = (borrador.pedidoIds || [])
+    .map(id => pedidosPorId.get(id))
+    .filter(Boolean);
+
+  const chofer = document.getElementById('ruta-chofer');
+  if (chofer && borrador.choferId && [...chofer.options].some(o => o.value === borrador.choferId)) {
+    chofer.value = borrador.choferId;
+  }
+  const notas = document.getElementById('ruta-notas');
+  if (notas) notas.value = borrador.notas || '';
+  restaurandoBorrador = false;
+
+  renderRuta();
+  renderPendientes();
+  actualizarEstadoBorrador('Borrador restaurado');
+}
+
+async function cambiarFechaOperativa(fecha) {
+  if (!fecha) return;
+  escribirBorradorRuta();
+  const filtro = document.getElementById('filtro-fecha');
+  const ruta = document.getElementById('ruta-fecha');
+  if (filtro) filtro.value = fecha;
+  if (ruta) ruta.value = fecha;
+  rutaItems = [];
+  renderRuta();
+  await cargarDatos();
+  restaurarRutaBorrador();
+}
+window.cambiarFechaOperativa = cambiarFechaOperativa;
+
+async function cambiarFechaRuta(fecha) {
+  if (!fecha) return;
+  await cambiarFechaOperativa(fecha);
+}
+window.cambiarFechaRuta = cambiarFechaRuta;
+
 // ── Ingresar como chofer (impersonar) ───────────────────────────────────────
 // Abre el panel del chofer seleccionado en una pestaña nueva, ya logueado,
 // vía un link de un solo uso que genera el backend (ver ?accion=impersonar
 // en lib/handlers/chofer_invitacion.js). Pensado para demos comerciales o
 // soporte, sin tener que pedirle al chofer su contraseña.
-async function ingresarComoChofer() {
-  const choferId = document.getElementById('ruta-chofer').value;
+async function ingresarComoChofer(selectId = 'resumen-chofer-select') {
+  const choferId = document.getElementById(selectId)?.value;
   if (!choferId) { window.toast('Seleccioná primero un chofer de la lista'); return; }
 
   try {
@@ -152,14 +270,17 @@ async function cargarChoferes() {
     .order('nombre');
 
   choferes = data || [];
+  const opciones = '<option value="">Seleccionar chofer...</option>' +
+    choferes.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('');
+
+  // El select de la ruta en construcción (pestaña "Armar ruta") y el de
+  // "Acciones de chofer" (pestaña "Resumen") comparten el mismo listado —
+  // se completan los dos si están presentes en el DOM en este momento.
   const sel = document.getElementById('ruta-chofer');
-  sel.innerHTML = '<option value="">Seleccionar chofer...</option>';
-  choferes.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.id;
-    o.textContent = c.nombre;
-    sel.appendChild(o);
-  });
+  if (sel) sel.innerHTML = opciones;
+
+  const selResumen = document.getElementById('resumen-chofer-select');
+  if (selResumen) selResumen.innerHTML = opciones;
 }
 
 // ── Cargar pedidos despachables ───────────────────────────────────────────
@@ -185,18 +306,35 @@ async function cargarPedidosDespachables() {
   // despachada) volvía a aparecer acá como disponible, y se podía asignar
   // dos veces. Ahora se excluyen los que ya tienen una entrega activa
   // (pendiente/en_camino) en cualquier ruta.
+  // FIX (bug reportado por Luc — pedidos "para despachar" vacíos con
+  // órdenes reales pendientes): el filtro de abajo solo miraba
+  // entregas.estado, sin chequear si la RUTA a la que pertenece esa
+  // entrega seguía activa. Datos históricos (rutas completadas hace
+  // meses cuyas entregas nunca se cerraron a 'entregado'/'no_entregado')
+  // dejaban esos pedidos bloqueados para siempre como "ya en ruta",
+  // aunque en la práctica ya se habían entregado. Ahora solo se
+  // considera "activa" una entrega si, además de pendiente/en_camino,
+  // su ruta NO está completada ni cancelada.
   const { data: entregasActivas } = await sb
     .from('entregas')
-    .select('pedido_id')
-    .in('estado', ['pendiente', 'en_camino']);
+    .select('pedido_id, rutas!inner(estado)')
+    .in('estado', ['pendiente', 'en_camino'])
+    .not('rutas.estado', 'in', '(completada,cancelada)');
   const pedidosYaEnRuta = new Set((entregasActivas || []).map(e => e.pedido_id));
 
   pedidos = (data || [])
     .filter(p => !pedidosYaEnRuta.has(p.id))
     .filter(p => {
-      // Incluir si no tiene fecha de entrega, o si la fecha coincide con el filtro
+      // FIX (bug reportado por Luc): antes solo entraban los pedidos con
+      // fecha_entrega EXACTAMENTE igual a la fecha seleccionada. Un pedido
+      // confirmado hace dos semanas que nunca se despachó (por el bug de
+      // entregas huérfanas de arriba, o simplemente porque se pasó por
+      // alto) quedaba invisible para siempre salvo que alguien fuera a
+      // buscar manualmente esa fecha vieja en el selector. Ahora entra
+      // cualquier pedido sin fecha, o con fecha_entrega <= la seleccionada
+      // (incluye atrasados + los del día elegido).
       if (!p.fecha_entrega) return true;
-      return p.fecha_entrega === fecha;
+      return p.fecha_entrega <= fecha;
     });
 
   pedidosFilt = [...pedidos];
@@ -220,29 +358,60 @@ function toggleAgruparZona() {
   const btn = document.getElementById('btn-toggle-agrupar');
   const label = document.getElementById('btn-toggle-agrupar-label');
   if (btn) btn.setAttribute('aria-pressed', String(agruparZona));
-  if (label) label.textContent = agruparZona ? 'Por zona' : 'Sin agrupar';
+  if (label) label.textContent = agruparZona ? 'Agrupado por zona' : 'Lista completa';
   renderPendientes();
 }
 window.toggleAgruparZona = toggleAgruparZona;
 
-function cardPedidoHtml(p, { mostrarZona = true } = {}) {
+function seleccionarVisibles() {
+  const idsEnRuta = new Set(rutaItems.map(r => r.id));
+  pedidosFilt.forEach(p => {
+    if (!idsEnRuta.has(p.id)) rutaItems.push(p);
+  });
+  renderRuta();
+  renderPendientes();
+  escribirBorradorRuta();
+}
+window.seleccionarVisibles = seleccionarVisibles;
+
+function cardPedidoHtml(p) {
+  const seleccionado = rutaItems.some(r => r.id === p.id);
+  const zona = p.clientes?.zonas?.nombre || 'Sin zona asignada';
+  const direccion = p.clientes?.domicilio || p.clientes?.localidad || 'Sin dirección';
+  const hoyISO = new Date().toISOString().slice(0, 10);
+  // FIX: ahora la lista puede incluir pedidos atrasados (fecha_entrega <
+  // hoy) — se marcan en rojo para no confundirlos con los del día.
+  const vencido = p.fecha_entrega && p.fecha_entrega < hoyISO;
+  const fecha = p.fecha_entrega ? window.formatFecha(p.fecha_entrega) + (vencido ? ' · Atrasado' : '') : 'Sin fecha';
   return `
-    <div class="pedido-card"
-      draggable="true"
+    <div class="pedido-row ${seleccionado ? 'is-selected' : ''}"
       data-id="${p.id}"
-      ondragstart="onDragStart(event, '${p.id}')"
       onclick="agregarALaRuta('${p.id}')"
-      title="Click para agregar a la ruta"
+      role="button"
+      tabindex="0"
+      aria-pressed="${seleccionado ? 'true' : 'false'}"
+      onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();agregarALaRuta('${p.id}')}"
+      title="${seleccionado ? 'Hacé click para quitar de la ruta' : 'Hacé click para agregar a la ruta'}"
     >
-      <div class="pedido-card-top">
-        <span class="pedido-card-cliente">${esc(p.clientes?.razon_social)}</span>
-        <span class="pedido-card-monto">${window.formatARS(p.total)}</span>
+      <span class="pedido-row-check" aria-hidden="true">
+        ${seleccionado ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </span>
+      <div class="pedido-row-main">
+        <span class="pedido-row-client">${esc(p.clientes?.razon_social || 'Cliente sin nombre')}</span>
+        <span class="pedido-row-address">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${esc(direccion)}
+        </span>
       </div>
-      <div class="pedido-card-meta">
-        <span>${esc(p.clientes?.localidad || p.clientes?.domicilio || 'Sin dirección')}</span>
-        ${p.fecha_entrega ? `<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${window.formatFecha(p.fecha_entrega)}</span>` : ''}
+      <div class="pedido-row-zone">
+        <span class="pedido-row-zone-name">${esc(zona)}</span>
+        <span class="pedido-row-date"${vencido ? ' style="color:var(--color-danger, #d33);font-weight:600;"' : ''}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${esc(fecha)}
+        </span>
       </div>
-      ${mostrarZona && p.clientes?.zonas?.nombre ? `<span class="pedido-card-zona">${esc(p.clientes.zonas.nombre)}</span>` : ''}
+      <span class="pedido-row-total">${window.formatARS(p.total)}</span>
+      <span class="pedido-row-action">${seleccionado ? 'En ruta' : 'Agregar'}</span>
     </div>
   `;
 }
@@ -251,31 +420,41 @@ function renderPendientes() {
   const lista = document.getElementById('lista-pendientes');
   const label = document.getElementById('label-pendientes');
 
+  lista.classList.toggle('lista-pendientes--grid', !agruparZona);
+
   const enRuta = new Set(rutaItems.map(r => r.id));
-  const libres = pedidosFilt.filter(p => !enRuta.has(p.id));
+  const visibles = pedidosFilt;
+  const disponiblesTotal = pedidos.filter(p => !enRuta.has(p.id)).length;
 
-  const totalMonto = libres.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
-  label.textContent = libres.length === 0
-    ? '0 pedidos disponibles'
-    : `${libres.length} pedido${libres.length === 1 ? '' : 's'} disponible${libres.length === 1 ? '' : 's'} · ${window.formatARS(totalMonto)}`;
+  const filtroActivo = pedidosFilt.length !== pedidos.length;
+  label.textContent = `${disponiblesTotal} disponible${disponiblesTotal === 1 ? '' : 's'} · ${rutaItems.length} seleccionado${rutaItems.length === 1 ? '' : 's'}${filtroActivo ? ` · ${visibles.length} visible${visibles.length === 1 ? '' : 's'}` : ''}`;
+  const disponiblesEl = document.getElementById('pedidos-disponibles-total');
+  const seleccionadosEl = document.getElementById('pedidos-seleccionados-total');
+  if (disponiblesEl) disponiblesEl.textContent = disponiblesTotal;
+  if (seleccionadosEl) seleccionadosEl.textContent = rutaItems.length;
+  const seleccionarBtn = document.getElementById('btn-seleccionar-visibles');
+  const limpiarBtn = document.getElementById('btn-limpiar-seleccion');
+  if (seleccionarBtn) seleccionarBtn.disabled = !visibles.some(p => !enRuta.has(p.id));
+  if (limpiarBtn) limpiarBtn.disabled = rutaItems.length === 0;
 
-  if (libres.length === 0) {
+  if (visibles.length === 0) {
+    lista.classList.remove('lista-pendientes--grid');
     window.mostrarEstadoVacio('lista-pendientes', {
       icono: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
-      titulo: 'Sin pedidos para despachar hoy',
-      descripcion: 'Todos los pedidos han sido asignados o no hay pedidos pendientes.',
+      titulo: pedidos.length ? 'No hay resultados para este filtro' : 'Sin pedidos para despachar hoy',
+      descripcion: pedidos.length ? 'Probá con otro cliente, zona o localidad.' : 'Todos los pedidos han sido asignados o no hay pedidos pendientes.',
     });
     return;
   }
 
   if (!agruparZona) {
-    window.renderTbody(lista, libres, (p) => cardPedidoHtml(p, { mostrarZona: true }));
+    window.renderTbody(lista, visibles, cardPedidoHtml);
     return;
   }
 
   // ── Agrupado por zona ──────────────────────────────────────────────
   const grupos = new Map(); // nombre de zona -> { pedidos: [], monto: 0 }
-  libres.forEach(p => {
+  visibles.forEach(p => {
     const zona = p.clientes?.zonas?.nombre || 'Sin zona asignada';
     if (!grupos.has(zona)) grupos.set(zona, { pedidos: [], monto: 0 });
     const g = grupos.get(zona);
@@ -293,63 +472,52 @@ function renderPendientes() {
   lista.innerHTML = zonasOrdenadas.map(([zona, g]) => `
     <div class="grupo-zona">
       <div class="grupo-zona-header">
-        <span class="grupo-zona-nombre"><span class="grupo-zona-dot"></span>${esc(zona)}</span>
-        <span class="grupo-zona-meta">${g.pedidos.length} · ${window.formatARS(g.monto)}</span>
+        <div class="grupo-zona-title">
+          <span class="grupo-zona-dot"></span>
+          <span class="grupo-zona-nombre">${esc(zona)}</span>
+        </div>
+        <span class="grupo-zona-meta">${g.pedidos.length} pedido${g.pedidos.length !== 1 ? 's' : ''} · ${window.formatARS(g.monto)}</span>
       </div>
-      ${g.pedidos.map(p => cardPedidoHtml(p, { mostrarZona: false })).join('')}
+      ${g.pedidos.map(cardPedidoHtml).join('')}
     </div>
   `).join('');
 }
 
-// ── Drag & drop ───────────────────────────────────────────────────────────
-let dragId = null;
-
-function onDragStart(e, id) {
-  dragId = id;
-  e.dataTransfer.effectAllowed = 'move';
-  e.currentTarget.classList.add('dragging');
-  setTimeout(() => e.currentTarget?.classList.remove('dragging'), 300);
-}
-
-function onDragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.add('over');
-}
-
-function onDragLeave() {
-  document.getElementById('drop-zone').classList.remove('over');
-}
-
-function onDrop(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.remove('over');
-  if (dragId) { agregarALaRuta(dragId); dragId = null; }
-}
-
 function agregarALaRuta(id) {
-  if (rutaItems.find(r => r.id === id)) return; // ya está
+  if (rutaItems.find(r => r.id === id)) {
+    quitarDeRuta(id);
+    return;
+  }
   const p = pedidos.find(p => p.id === id);
   if (!p) return;
   rutaItems.push(p);
   renderRuta();
   renderPendientes();
+  escribirBorradorRuta();
 }
 
 function quitarDeRuta(id) {
   rutaItems = rutaItems.filter(r => r.id !== id);
   renderRuta();
   renderPendientes();
+  escribirBorradorRuta();
 }
 
 function renderRuta() {
   const listaEl   = document.getElementById('lista-ruta');
-  const emptyEl   = document.getElementById('drop-empty');
+  const emptyEl   = document.getElementById('ruta-seleccion-vacio');
   const statPed   = document.getElementById('stat-pedidos');
   const statTotal = document.getElementById('stat-total');
+  const seleccionCount = document.getElementById('ruta-seleccion-count');
+  const confirmarBtn = document.getElementById('btn-confirmar-ruta');
+  const panel = document.querySelector('.ruta-seleccion');
 
   const total = rutaItems.reduce((s, p) => s + (p.total || 0), 0);
   statPed.textContent   = rutaItems.length;
   statTotal.textContent = window.formatARS(total);
+  if (seleccionCount) seleccionCount.textContent = rutaItems.length;
+  if (confirmarBtn) confirmarBtn.disabled = rutaItems.length === 0;
+  if (panel) panel.classList.toggle('tiene-seleccion', rutaItems.length > 0);
 
   if (rutaItems.length === 0) {
     emptyEl.style.display = '';
@@ -377,6 +545,9 @@ function limpiarRuta() {
   rutaItems = [];
   renderRuta();
   renderPendientes();
+  const fecha = document.getElementById('ruta-fecha')?.value;
+  eliminarBorradorRuta(fecha);
+  actualizarEstadoBorrador('');
 }
 
 // ── Cargar rutas del día ──────────────────────────────────────────────────
@@ -416,7 +587,7 @@ function celdaTotalRuta(entregas) {
   const diferencia = total - cobrado;
 
   if (hayCobroRegistrado && diferencia > 0.5) {
-    return `${window.formatARS(total)}<br><span style="color:var(--color-danger);font-size:11px;font-weight:600;white-space:nowrap;" title="Cobrado ${window.formatARS(cobrado)} de ${window.formatARS(total)} — faltan ${window.formatARS(diferencia)}">⚠ falta ${window.formatARS(diferencia)}</span>`;
+    return `${window.formatARS(total)}<br><span style="color:var(--color-danger);font-size:11px;font-weight:600;white-space:nowrap;" title="Cobrado ${window.formatARS(cobrado)} de ${window.formatARS(total)} — faltan ${window.formatARS(diferencia)}">Falta ${window.formatARS(diferencia)}</span>`;
   }
   return window.formatARS(total);
 }
@@ -445,7 +616,7 @@ function renderRutasDelDia() {
       <td data-label="Estado">${chip}</td>
       <td data-label="Creada" style="color:var(--color-text-light);font-size:12px;">${hora}</td>
       <td data-label="" style="display:flex;gap:6px;">
-        <button class="btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="mostrarTab('seguimiento');document.getElementById('sel-ruta-seguimiento').value='${r.id}';cargarSeguimiento()">Ver</button>
+        <button class="btn--secondary" style="padding:5px 10px;font-size:12px;" onclick="mostrarTab('seguimiento');document.getElementById('sel-ruta-seguimiento').value='${r.id}';cargarSeguimiento()">Ver</button>
         ${r.estado === 'pendiente' ? `<button class="btn-danger" style="padding:5px 10px;font-size:12px;" onclick="cancelarRuta('${r.id}')">Cancelar</button>` : ''}
       </td>
     </tr>`;
@@ -510,11 +681,16 @@ async function confirmarRuta() {
       .eq('empresa_id', empresaId);
     if (prepErr) throw prepErr;
 
-    // 4. Notificar al chofer por WhatsApp
+     // 4. Notificar al chofer por WhatsApp y push, distinguiendo
+     // "ruta creada" de "chofer efectivamente notificado".
     const chofer = choferes.find(c => c.id === choferId);
-    await notificarChofer(ruta.id, chofer, fecha, rutaItems.length);
+     const notificacion = await notificarChofer(ruta.id, chofer, fecha, rutaItems.length);
 
-    window.toast(`Ruta creada y ${chofer?.nombre || 'chofer'} notificado`);
+     if (notificacion.waOk || notificacion.pushOk) {
+       window.toast(`Ruta creada y ${chofer?.nombre || 'chofer'} notificado`);
+     } else {
+       window.toast('Ruta creada. No se pudo enviar la notificación al chofer.', 'warning');
+     }
     limpiarRuta();
     document.getElementById('ruta-notas').value = '';
     await cargarDatos();
@@ -529,45 +705,87 @@ async function confirmarRuta() {
 }
 
 async function guardarRutaBorrador() {
-  window.toast('Borrador guardado (próximamente)');
+  const fecha = document.getElementById('ruta-fecha')?.value;
+  if (!fecha) {
+    window.toast('Indicá la fecha de entrega antes de guardar el borrador');
+    return;
+  }
+  escribirBorradorRuta();
+  const cantidad = rutaItems.length;
+  window.toast(`Borrador guardado en este dispositivo${cantidad ? ` con ${cantidad} pedido${cantidad === 1 ? '' : 's'}` : ''}`);
 }
 
 async function cancelarRuta(id) {
+  // BUG-07: antes ninguno de los pasos de abajo revisaba `error` — siempre
+  // terminaba en el toast "Ruta cancelada" aunque ruta/pedidos/entregas
+  // hubieran quedado parcialmente actualizados. Ahora cada escritura se
+  // chequea y, si algo falla a mitad de camino, se informa el estado
+  // parcial real en vez de un éxito falso.
   if (!(await confirmar('¿Cancelar esta ruta? Los pedidos volverán a "confirmado".', { labelOk: 'Cancelar ruta', tipo: 'danger' }))) return;
-  await sb.from('rutas').update({ estado: 'cancelada' }).eq('id', id);
+
+  const { error: rutaErr } = await sb.from('rutas').update({ estado: 'cancelada' }).eq('id', id);
+  if (rutaErr) {
+    console.error('[RUTAS] Error al cancelar ruta:', rutaErr);
+    window.toast('No se pudo cancelar la ruta — revisá la consola');
+    return;
+  }
+
   // Revertir pedidos a 'confirmado' (reserva de stock sigue vigente, solo estado logístico)
-  const { data: entregas } = await sb.from('entregas').select('pedido_id').eq('ruta_id', id);
+  const { data: entregas, error: entregasSelectErr } = await sb.from('entregas').select('pedido_id').eq('ruta_id', id);
+  if (entregasSelectErr) {
+    console.error('[RUTAS] Ruta cancelada pero no se pudieron leer sus entregas:', entregasSelectErr);
+    window.toast('Ruta cancelada, pero no se pudieron revertir los pedidos — revisalos a mano');
+    await cargarDatos();
+    return;
+  }
+
+  let pedidosConError = 0;
   if (entregas?.length) {
     const ids = entregas.map(e => e.pedido_id);
     const perfil = window.authCtx?.perfil;
     // Revertir cada pedido individualmente usando RPC para que quede en audit_log
     for (const pedidoId of ids) {
-      await sb.from('pedidos')
+      const { error: pedErr } = await sb.from('pedidos')
         .update({ estado: 'confirmado' })
         .eq('id', pedidoId)
         .eq('empresa_id', perfil?.empresa_id);
+      if (pedErr) {
+        console.error(`[RUTAS] No se pudo revertir el pedido ${pedidoId}:`, pedErr);
+        pedidosConError++;
+      }
     }
   }
+
   // FIX (auditoría etapa 6 — Hallazgo 2c): esto revertía los pedidos pero
   // nunca cerraba las filas de `entregas` de la ruta cancelada, que
   // quedaban huérfanas en 'pendiente' para siempre — y como el pedido
   // volvía a estar disponible, terminaba en una ruta nueva mientras la
   // fila vieja seguía "pendiente", generando entregas duplicadas para el
   // mismo pedido (encontrado en producción durante esta auditoría).
-  await sb.from('entregas')
+  const { error: entregasUpdateErr } = await sb.from('entregas')
     .update({ estado: 'no_entregado', motivo_no_entrega: 'otro', notas_entrega: 'Ruta cancelada' })
     .eq('ruta_id', id)
     .in('estado', ['pendiente', 'en_camino']);
-  window.toast('Ruta cancelada');
+
+  if (pedidosConError > 0 || entregasUpdateErr) {
+    if (entregasUpdateErr) console.error('[RUTAS] No se pudieron cerrar las entregas de la ruta cancelada:', entregasUpdateErr);
+    window.toast(`Ruta cancelada con errores parciales${pedidosConError ? ` (${pedidosConError} pedido(s) sin revertir)` : ''} — revisá la consola`);
+  } else {
+    window.toast('Ruta cancelada');
+  }
   await cargarDatos();
 }
 
 // ── Notificar chofer (WA + Push) ──────────────────────────────────────────
+// BUG-08: devuelve { waOk, pushOk } para que el caller pueda distinguir
+// "ruta creada" de "chofer efectivamente notificado" en vez de asumir
+// siempre lo segundo.
 async function notificarChofer(rutaId, chofer, fecha, cantPedidos) {
+  let waOk = false;
   // 1. WhatsApp (si tiene teléfono)
   if (chofer?.telefono) {
     try {
-      await fetch('/api/notif/whatsapp', {
+      const resp = await fetch('/api/notif/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -581,12 +799,22 @@ async function notificarChofer(rutaId, chofer, fecha, cantPedidos) {
           },
         }),
       });
+      // BUG-08: antes no se chequeaba resp.ok — un 4xx/5xx del backend de
+      // WhatsApp no lanza excepción de fetch, así que quedaba mudo y el
+      // caller siempre mostraba "... notificado" igual.
+      if (!resp.ok) {
+        const body = await resp.text();
+        console.warn('[NOTIF] whatsapp error:', resp.status, body);
+      } else {
+        waOk = true;
+      }
     } catch (err) {
       console.warn('[NOTIF] Error WA chofer:', err.message);
     }
   }
 
   // 2. Push notification (si el chofer tiene dispositivos registrados)
+  let pushOk = false;
   if (chofer?.id) {
     try {
       const { data: { session } } = await sb.auth.getSession();
@@ -610,12 +838,15 @@ async function notificarChofer(rutaId, chofer, fecha, cantPedidos) {
         console.warn('[NOTIF] push-chofer error:', resp.status, body);
       } else {
         const result = await resp.json();
+        pushOk = (result.enviadas ?? 0) > 0;
         console.log(`[NOTIF] Push enviado a ${result.enviadas ?? 0} dispositivo(s) del chofer ${sanitize(chofer.nombre)}`);
       }
     } catch (err) {
       console.warn('[NOTIF] Error push chofer:', err.message);
     }
   }
+
+  return { waOk, pushOk };
 }
 
 // ── Seguimiento ───────────────────────────────────────────────────────────
@@ -642,6 +873,25 @@ async function cargarSeguimiento() {
   seguimientoTimer = setInterval(() => actualizarSeguimiento(rutaId), 30000);
 }
 
+// FIX (mapa en blanco al entrar directo a "Seguimiento en vivo"): si el tab
+// todavía no terminó su reflow (display:none → grid) en el momento exacto en
+// que Leaflet mide el contenedor #mapa, cachea un tamaño 0x0 y el mapa queda
+// invisible o a medio dibujar. Al entrar desde "Armar ruta" (botón "Ver") el
+// timing solía dar tiempo de sobra y no se notaba; entrando directo al tab no
+// siempre. Forzamos invalidateSize() en el próximo frame, que es la forma
+// correcta de decirle a Leaflet "recién ahora el contenedor tiene su tamaño
+// real", y sólo entonces recalculamos el encuadre.
+function refrescarTamanioMapa(bounds) {
+  if (!_mapaLeaflet) return;
+  requestAnimationFrame(() => {
+    if (!_mapaLeaflet) return;
+    _mapaLeaflet.invalidateSize();
+    if (bounds && bounds.length > 0) {
+      _mapaLeaflet.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    }
+  });
+}
+
 // ── Mapa de entregas con Leaflet ──────────────────────────────────────────
 let _mapaLeaflet = null;
 let _mapaMarkers = [];
@@ -659,6 +909,16 @@ function inicializarMapa(entregas) {
     const esEstimada = !(ub?.lat && ub?.lng) && !!(cl?.lat && cl?.lng);
     return { ...e, _lat: lat, _lng: lng, _estimada: esEstimada, _i: i };
   }).filter(p => p._lat && p._lng);
+
+  // Entregas que quedaron afuera del filtro anterior por no tener ninguna
+  // coordenada (ni GPS del chofer ni domicilio geocodificado del cliente):
+  // antes desaparecían del mapa sin ningún aviso. Se listan aparte.
+  const sinUbicar = entregas.filter(e => {
+    const ub = e.pedidos?.ubicacion_entrega;
+    const cl = e.pedidos?.clientes;
+    return !(ub?.lat && ub?.lng) && !(cl?.lat && cl?.lng);
+  });
+  pintarSinUbicar(sinUbicar);
 
   if (puntos.length === 0) {
     // Sin coordenadas de ningún tipo: mostrar placeholder
@@ -686,10 +946,10 @@ function inicializarMapa(entregas) {
   _mapaMarkers = [];
 
   const colores = {
-    entregado:    '#1F5B4A',
-    no_entregado: '#B3261E',
-    pendiente:    '#8F5F00',
-    en_camino:    '#2E6088',
+    entregado:    'var(--color-box-success, #487050)',
+    no_entregado: 'var(--color-box-danger, #B8402E)',
+    pendiente:    'var(--color-box-warning, #8A5F13)',
+    en_camino:    'var(--color-box-info, #33507A)',
   };
 
   const bounds = [];
@@ -703,12 +963,12 @@ function inicializarMapa(entregas) {
 
     // Ubicación estimada (domicilio del cliente, aún no confirmada por el chofer):
     // se dibuja más tenue y con borde punteado para diferenciarla de una entrega real.
-    const estiloBorde = e._estimada ? '2px dashed #fff' : '2px solid #fff';
+    const estiloBorde = e._estimada ? '2px dashed var(--color-surface, #fff)' : '2px solid var(--color-surface, #fff)';
     const opacidad = e._estimada ? '0.65' : '1';
 
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};opacity:${opacidad};border:${estiloBorde};box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${e.orden || e._i + 1}</div>`,
+      html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};opacity:${opacidad};border:${estiloBorde};box-shadow:0 2px 6px rgba(22,24,29,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--color-surface, #fff);">${e.orden || e._i + 1}</div>`,
       iconSize: [28, 28],
       iconAnchor: [14, 14],
     });
@@ -724,7 +984,7 @@ function inicializarMapa(entregas) {
         Estado: <b>${capEstado(e.estado)}</b>
         ${hora ? `<br>Confirmado: ${hora}` : ''}
         ${e.receptor ? `<br>Recibió: ${e.receptor}` : ''}
-        ${e._estimada ? `<br><span style="color:var(--color-text-light,#6B695F);font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Ubicación estimada (domicilio registrado, aún sin confirmar por el chofer)</span>` : ''}
+        ${e._estimada ? `<br><span style="color:var(--color-text-light,#7A857E);font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Ubicación estimada (domicilio registrado, aún sin confirmar por el chofer)</span>` : ''}
       `)
       .addTo(_mapaLeaflet);
 
@@ -735,6 +995,37 @@ function inicializarMapa(entregas) {
   if (bounds.length > 0) {
     _mapaLeaflet.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
   }
+
+  // Ver refrescarTamanioMapa(): re-mide el contenedor una vez que el
+  // navegador terminó el reflow, por si el tab recién se hizo visible.
+  refrescarTamanioMapa(bounds);
+}
+
+/** Lista, debajo del mapa, las entregas sin ninguna coordenada (no tienen
+ *  marcador). Oculta el bloque si no hay ninguna. */
+function pintarSinUbicar(entregas) {
+  const cont = document.getElementById('mapa-sin-ubicar');
+  if (!cont) return;
+
+  if (!entregas || entregas.length === 0) {
+    cont.style.display = 'none';
+    cont.innerHTML = '';
+    return;
+  }
+
+  const items = entregas
+    .map(e => e.pedidos?.clientes?.razon_social || 'Cliente sin nombre')
+    .map(nombre => `<span class="mapa-sin-ubicar-item">${esc(nombre)}</span>`)
+    .join('');
+
+  cont.innerHTML = `
+    <div class="mapa-sin-ubicar-titulo">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      Sin ubicar (${entregas.length}): sin GPS del chofer ni domicilio geocodificado
+    </div>
+    <div class="mapa-sin-ubicar-lista">${items}</div>
+  `;
+  cont.style.display = 'block';
 }
 
 async function actualizarSeguimiento(rutaId) {
@@ -818,7 +1109,7 @@ async function abrirModalEntrega(e) {
   if (cobrado != null) {
     cobroHtml = `<div><strong>Cobrado:</strong> ${window.formatARS(cobrado)}${e.medio_cobro ? ` (${esc(medioLabel[e.medio_cobro] || e.medio_cobro)})` : ''}</div>`;
     if (hayDiferencia) {
-      cobroHtml += `<div style="color:var(--color-danger);font-weight:600;">⚠ Faltan ${window.formatARS(diferencia)} respecto al total del pedido</div>`;
+      cobroHtml += `<div style="color:var(--color-danger);font-weight:600;">Faltan ${window.formatARS(diferencia)} respecto al total del pedido</div>`;
     }
   }
 
@@ -841,12 +1132,12 @@ async function abrirModalEntrega(e) {
   const resolverHtml = hayDiferencia ? `
     <div id="resolver-cobro-parcial-wrap" style="padding-top:8px;border-top:1px solid var(--color-border);display:flex;justify-content:flex-end;">
       ${yaResuelta ? `
-        <span style="display:inline-flex;align-items:center;gap:4px;color:var(--color-success,#17402F);font-size:13px;font-weight:600;">
+        <span style="display:inline-flex;align-items:center;gap:4px;color:var(--color-success,#487050);font-size:13px;font-weight:600;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           Marcada como resuelta
         </span>
       ` : `
-        <button type="button" class="btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="marcarCobroParcialResuelto('${e.id}')">
+        <button type="button" class="btn--secondary" style="padding:5px 10px;font-size:12px;" onclick="marcarCobroParcialResuelto('${e.id}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
           Marcar como resuelto
         </button>
@@ -885,7 +1176,7 @@ async function marcarCobroParcialResuelto(entregaId) {
     });
     if (wrap) {
       wrap.innerHTML = `
-        <span style="display:inline-flex;align-items:center;gap:4px;color:var(--color-success,#17402F);font-size:13px;font-weight:600;">
+        <span style="display:inline-flex;align-items:center;gap:4px;color:var(--color-success,#487050);font-size:13px;font-weight:600;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           Marcada como resuelta
         </span>`;
@@ -950,10 +1241,21 @@ function mostrarTab(tab) {
     const content = document.getElementById(`tab-${t}-content`);
     const btn     = document.getElementById(`tab-${t}`);
     if (content) content.classList.toggle('hidden', t !== tab);
-    if (btn)     btn.classList.toggle('active', t === tab);
+    if (content) content.setAttribute('aria-hidden', t === tab ? 'false' : 'true');
+    if (btn) {
+      btn.classList.toggle('active', t === tab);
+      btn.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      btn.tabIndex = t === tab ? 0 : -1;
+    }
   });
   if (tab === 'historial')   cargarHistorial();
-  if (tab === 'seguimiento') poblarSelectorSeguimiento();
+  if (tab === 'seguimiento') {
+    poblarSelectorSeguimiento();
+    // Si ya había un mapa creado (ruta seleccionada previamente) y volvemos
+    // a este tab, Leaflet puede tener cacheado el tamaño de cuando estaba
+    // oculto. Re-medimos apenas el navegador hace el reflow.
+    if (_mapaLeaflet) refrescarTamanioMapa(_mapaMarkers.map(m => m.getLatLng()));
+  }
   if (tab === 'reporte')     cargarReporteRuta();
   if (tab === 'zonas' && window.cargarZonas) window.cargarZonas();
   if (tab === 'resumen' && window.cargarResumenRepartos) window.cargarResumenRepartos();
@@ -1261,6 +1563,14 @@ async function cargarReporteRuta() {
   _reportesCache = data || [];
   renderTablaReportes(_reportesCache);
   poblarSelectorReporte(_reportesCache);
+
+  // Siempre debe haber una ruta seleccionada al entrar a la pestaña (o al
+  // refiltrar), para que el mapa y los KPIs nunca queden vacíos habiendo
+  // reportes disponibles. Si el selector quedó con una ruta válida (la
+  // recién elegida por el usuario o la auto-seleccionada más abajo en
+  // poblarSelectorReporte), se carga su detalle.
+  const selRuta = document.getElementById('sel-ruta-reporte');
+  if (selRuta?.value) cargarDetalleReporte();
 }
 
 function poblarSelectorReporte(reportes) {
@@ -1278,7 +1588,23 @@ function poblarSelectorReporte(reportes) {
     o.textContent = `${fecha} — ${chofer}${pct ? ` (${pct})` : ''}`;
     sel.appendChild(o);
   });
-  if (valPrev) sel.value = valPrev;
+
+  // Restaurar la selección previa si sigue existiendo en el listado
+  // (p.ej. tras un refiltro por fecha); si no, autoseleccionar el primer
+  // reporte CON DATOS REALES (paradas > 0), no simplemente el más reciente:
+  // el reporte más nuevo puede corresponder a una ruta en cero (sin paradas
+  // asignadas todavía) y ahí no hay nada que mostrar en el mapa/KPIs, aunque
+  // exista el registro. Se recorre en orden (más reciente → más viejo) y se
+  // toma el primero que tenga al menos una parada; si absolutamente todos
+  // están en cero, se cae al primero de la lista igual, para no dejar el
+  // selector vacío.
+  const sigueExistiendo = valPrev && reportes.some(r => (r.rutas?.id || '') === valPrev);
+  if (sigueExistiendo) {
+    sel.value = valPrev;
+  } else if (reportes.length) {
+    const conDatos = reportes.find(r => (r.total_paradas ?? 0) > 0);
+    sel.value = (conDatos || reportes[0]).rutas?.id || '';
+  }
 }
 
 function renderTablaReportes(reportes) {
@@ -1490,7 +1816,7 @@ function inicializarMapaReporte(entregas, rutaData) {
   _reporteMapaMarkers.forEach(m => m.remove());
   _reporteMapaMarkers = [];
 
-  const colores = { entregado: '#1F5B4A', no_entregado: '#B3261E', pendiente: '#8F5F00', en_camino: '#2E6088' };
+  const colores = { entregado: 'var(--color-box-success, #487050)', no_entregado: 'var(--color-box-danger, #B8402E)', pendiente: 'var(--color-box-warning, #8A5F13)', en_camino: 'var(--color-box-info, #33507A)' };
   const bounds  = [];
 
   // Marcadores de entregas
@@ -1504,7 +1830,7 @@ function inicializarMapaReporte(entregas, rutaData) {
 
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:30px;height:30px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${e.orden ?? '•'}</div>`,
+      html: `<div style="width:30px;height:30px;border-radius:50%;background:${color};border:2.5px solid var(--color-surface, #fff);box-shadow:0 2px 8px rgba(22,24,29,.35);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--color-surface, #fff);">${e.orden ?? '•'}</div>`,
       iconSize:   [30, 30],
       iconAnchor: [15, 15],
     });
@@ -1529,7 +1855,7 @@ function inicializarMapaReporte(entregas, rutaData) {
   if (tieneChofer) {
     const choferIcon = L.divIcon({
       className: '',
-      html: `<div style="width:34px;height:34px;border-radius:50%;background:var(--color-info-mid,#2E6088);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;">
+      html: `<div style="width:34px;height:34px;border-radius:50%;background:var(--color-info-mid,#33507A);border:3px solid var(--color-surface, #fff);box-shadow:0 3px 10px rgba(22,24,29,.4);display:flex;align-items:center;justify-content:center;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/></svg>
              </div>`,
       iconSize:   [34, 34],
@@ -1570,9 +1896,4 @@ window.cargarDatos         = cargarDatos;
 window.cargarReporteRuta   = cargarReporteRuta;
 window.cargarDetalleReporte = cargarDetalleReporte;
 window.verDetalleReportePorId = verDetalleReportePorId;
-// Drag & drop
-window.onDragOver          = onDragOver;
-window.onDragLeave         = onDragLeave;
-window.onDrop              = onDrop;
-window.onDragStart         = onDragStart;
 

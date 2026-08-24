@@ -70,6 +70,17 @@
   // queda como variable mutable seteada después vía setEmpresaId(), en vez
   // de leerse directo de authCtx.
   let _empresaId = null;
+  let _usuarioId = null;
+
+  function notificarScopeServiceWorker() {
+    const controller = navigator.serviceWorker?.controller;
+    if (!controller) return;
+    controller.postMessage({
+      type: 'CHOFER_SESSION_SCOPE',
+      empresa_id: _empresaId,
+      usuario_id: _usuarioId,
+    });
+  }
 
   // ─── Envío por tipo (misma secuencia que seguiría el flujo online) ───────
 
@@ -256,8 +267,22 @@
   // lo encolado ANTES de este punto en la misma sesión queda sin
   // empresa_id (null) — se sigue mostrando/sincronizando igual, ver nota
   // de getEmpresaId en offline-core.js.
-  function setEmpresaId(empresaId) {
+  function setEmpresaId(empresaId, usuarioId = _usuarioId) {
     _empresaId = empresaId ?? null;
+    _usuarioId = usuarioId ?? _usuarioId ?? null;
+    notificarScopeServiceWorker();
+  }
+
+  function setUsuarioId(usuarioId) {
+    _usuarioId = usuarioId ?? null;
+    notificarScopeServiceWorker();
+  }
+
+  function limpiarScopeSesion() {
+    _empresaId = null;
+    _usuarioId = null;
+    const controller = navigator.serviceWorker?.controller;
+    controller?.postMessage({ type: 'CHOFER_SESSION_LOGOUT' });
   }
 
   // ─── API pública ──────────────────────────────────────────────────────────
@@ -267,6 +292,8 @@
   window.ChoferOffline = {
     init,
     setEmpresaId,
+    setUsuarioId,
+    limpiarScopeSesion,
     encolarAccion:         outbox.encolarAccion,
     sincronizarPendientes: outbox.sincronizarPendientes,
     getPendientes:         outbox.getPendientes,

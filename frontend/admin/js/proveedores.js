@@ -118,36 +118,80 @@ function renderTabla() {
   }
 
   tbody.innerHTML = filtrados.map(p => `
-    <tr data-testid="proveedores-fila" data-id="${p.id}">
+    <tr data-testid="proveedores-fila" data-id="${p.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${p.id}')">
       <td data-label="Proveedor">
         <div style="font-weight:600;color:var(--color-text)">${sanitize(p.razon_social)}</div>
         ${p.nombre_fantasia ? `<div style="font-size:11px;color:var(--color-text-muted)">${sanitize(p.nombre_fantasia)}</div>` : ''}
       </td>
-      <td style="font-size:12px;color:var(--color-text-muted)" data-label="CUIT">${p.cuit || '—'}</td>
-      <td style="font-size:12px" data-label="Contacto">${sanitize(p.contacto || '—')}</td>
-      <td style="font-size:12px" data-label="Teléfono">${sanitize(p.telefono || '—')}</td>
-      <td style="text-align:center;font-size:12px" data-label="Pago">${p.dias_pago > 0 ? p.dias_pago + ' días' : 'Contado'}</td>
-      <td data-label="Estado"><span class="badge ${p.activo ? 'badge-activo' : 'badge-inactivo'}">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
-      <td class="col-sticky-end" data-label="Acciones">
-        <div class="acciones-td">
-          <button class="btn-tabla" onclick="abrirModalEditar('${p.id}')">Editar</button>
-          <button class="btn-tabla" onclick="verCompras('${p.id}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-            Compras
-          </button>
-          <button class="btn-tabla" onclick="abrirPortal('${p.id}')" title="Generar link de autogestión para que el proveedor vea sus OCs sin login">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Portal
-          </button>
+      <td class="col-fit" style="font-size:12px;color:var(--color-text-muted)" data-label="CUIT">${p.cuit || '—'}</td>
+      <td class="col-fit" style="font-size:12px" data-label="Contacto">${sanitize(p.contacto || '—')}</td>
+      <td class="col-fit" style="font-size:12px" data-label="Teléfono">${sanitize(p.telefono || '—')}</td>
+      <td class="col-fit" style="text-align:center;font-size:12px" data-label="Pago">${p.dias_pago > 0 ? p.dias_pago + ' días' : 'Contado'}</td>
+      <td class="col-fit" data-label="Estado">${ComponentesAdmin.renderBadgeEstado(p.activo ? 'Activo' : 'Inactivo', p.activo ? 'ok' : 'inactivo')}</td>
+      <td class="col-sticky-end col-fit" data-label="Acciones">
+        <span class="fila-acciones">
+          <button type="button" class="btn-tabla" onclick="abrirModalEditar('${p.id}')">Editar</button>
           ${p.activo
-            ? `<button class="btn-tabla peligro" onclick="desactivar('${p.id}')">Dar de baja</button>`
-            : `<button class="btn-tabla primario" onclick="activar('${p.id}')">Activar</button>`
+            ? `<button type="button" class="btn-tabla peligro" onclick="desactivar('${p.id}')">Dar de baja</button>`
+            : `<button type="button" class="btn-tabla primario" onclick="activar('${p.id}')">Activar</button>`
           }
-        </div>
+          <button type="button" class="btn-kebab btn-kebab-proveedor" data-proveedor-id="${p.id}" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+        </span>
       </td>
     </tr>
   `).join('');
 }
+
+// ── Menú "⋮" de acciones secundarias por fila (Compras / Portal) ──────────
+// Mismo patrón de menú flotante compartido que Cheques/Notas de crédito
+// (ver PLAN_UNIFICACION_UX_ADMIN.md §2/§5, cierre del Hallazgo #6 acá).
+(function iniciarMenuAccionesProveedor() {
+  const menu = document.getElementById('menu-acciones-proveedor');
+  if (!menu) return;
+
+  const cerrar = () => {
+    menu.hidden = true;
+    document.querySelectorAll('.btn-kebab-proveedor[aria-expanded="true"]')
+      .forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.btn-kebab-proveedor');
+    if (!btn) { if (!ev.target.closest('#menu-acciones-proveedor')) cerrar(); return; }
+    ev.stopPropagation();
+
+    const yaAbiertoParaEsteBtn = !menu.hidden && menu.dataset.proveedorId === btn.dataset.proveedorId;
+    cerrar();
+    if (yaAbiertoParaEsteBtn) return;
+
+    const proveedorId = btn.dataset.proveedorId;
+    menu.innerHTML = `
+      <button type="button" class="dropdown-item" role="menuitem" onclick="verCompras('${proveedorId}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Compras
+      </button>
+      <button type="button" class="dropdown-item" role="menuitem" onclick="abrirPortal('${proveedorId}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Portal
+      </button>`;
+    menu.dataset.proveedorId = proveedorId;
+
+    const r = btn.getBoundingClientRect();
+    menu.style.top   = `${r.bottom + 4}px`;
+    menu.style.left  = 'auto';
+    menu.style.right = `${window.innerWidth - r.right}px`;
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  });
+
+  menu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (ev.target.closest('.dropdown-item')) cerrar();
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
+  window.addEventListener('resize', cerrar);
+  document.getElementById('tbody-proveedores')?.addEventListener('scroll', cerrar);
+})();
 
 // ── Modal nuevo/editar ────────────────────────────────────────────────
 function abrirModalNuevo() {
@@ -485,14 +529,14 @@ async function cargarLinksActivos() {
       return `
         <tr id="link-row-${l.id}">
           <td>${nombre}</td>
-          <td style="font-size:12px;color:var(--color-text-muted,#4B4A45);">${creadoPor}</td>
-          <td style="font-size:12px;">${creadoEl}</td>
-          <td style="font-size:12px;">${expiraEl}</td>
-          <td style="text-align:center;font-weight:600;">${l.usos || 0}</td>
-          <td style="font-size:12px;">${ultimoUso}</td>
-          <td><span style="color:var(--color-success,#17402F);font-weight:600;font-size:12px;">● Activo</span></td>
-          <td class="col-sticky-end">
-            <button class="btn-tabla" style="color:var(--color-danger,#7A1E19);"
+          <td class="col-fit" style="font-size:12px;color:var(--color-text-muted,#5B6660);">${creadoPor}</td>
+          <td class="col-fit" style="font-size:12px;">${creadoEl}</td>
+          <td class="col-fit" style="font-size:12px;">${expiraEl}</td>
+          <td class="col-fit" style="text-align:center;font-weight:600;">${l.usos || 0}</td>
+          <td class="col-fit" style="font-size:12px;">${ultimoUso}</td>
+          <td class="col-fit"><span style="color:var(--color-success,#487050);font-weight:600;font-size:12px;">● Activo</span></td>
+          <td class="col-sticky-end col-fit">
+            <button class="btn-tabla" style="color:var(--color-danger,#7A2820);"
               onclick="revocarLinkPortal('${l.id}','${l._proveedor_id}')">Revocar</button>
           </td>
         </tr>`;

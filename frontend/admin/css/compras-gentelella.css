@@ -99,7 +99,7 @@ body.dash-compras-gentelella .tabla-wrap {
   box-shadow: var(--ge-shadow) !important;
   overflow: hidden !important;
 }
-body.dash-compras-gentelella .tabla-main th {
+body.dash-compras-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -108,24 +108,27 @@ body.dash-compras-gentelella .tabla-main th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-compras-gentelella .tabla-main td {
+body.dash-compras-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-compras-gentelella .tabla-main td.vacio {
+body.dash-compras-gentelella .tabla-admin td.vacio {
   color: var(--ge-muted) !important;
 }
-body.dash-compras-gentelella .tabla-main tbody tr:hover {
+body.dash-compras-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
 body.dash-compras-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-compras-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+body.dash-compras-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
-/* Botones de acción en tabla (Ver / Recepcionar / Factura) */
+/* Botones de acción en tabla (Ver / Recepcionar / Aprobar / Factura).
+   .btn-kebab / .dropdown-menu / .dropdown-item (Eliminar/Cancelar, cierre
+   del Hallazgo #6, §18) no tienen override acá — el estilo neutro de
+   componentes-admin.css alcanza, mismo criterio que Cheques/Proveedores. */
 body.dash-compras-gentelella .btn-tabla {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
@@ -316,13 +319,13 @@ body.dash-compras-gentelella .barra-progreso-fill {
 }
 
 /* Botones de footer de modal */
-body.dash-compras-gentelella .btn-cancelar {
+body.dash-compras-gentelella .btn--secondary {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
   color: var(--ge-ink-soft) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-compras-gentelella .btn-cancelar:hover {
+body.dash-compras-gentelella .btn--secondary:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
 }

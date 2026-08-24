@@ -118,13 +118,14 @@ var OfflineCore = (function () {
     return badge;
   }
 
-  async function _actualizarBadge(portal, cfg, estado, contarPendientes, contarConflictos) {
+  async function _actualizarBadge(portal, cfg, estado, contarPendientes, contarConflictos, contarCuarentena) {
     if (!cfg) return;
     const badge = _crearBadgeEl(portal, cfg);
     if (!badge) return;
 
-    const pendientes = await contarPendientes().catch(() => 0);
-    const conflictos = contarConflictos ? await contarConflictos().catch(() => 0) : 0;
+    const pendientes  = await contarPendientes().catch(() => 0);
+    const conflictos  = contarConflictos ? await contarConflictos().catch(() => 0) : 0;
+    const cuarentena  = contarCuarentena ? await contarCuarentena().catch(() => 0) : 0;
     const singular = cfg.singular || 'acción';
     const plural   = cfg.plural   || 'acciones';
 
@@ -132,43 +133,59 @@ var OfflineCore = (function () {
     // cualquier otro estado (online/offline/syncing): necesita una decisión
     // del usuario, no se va a resolver solo con que vuelva la conexión.
     if (conflictos > 0) {
-      badge.style.background = 'var(--color-danger-bg,#F3DAD8)';
-      badge.style.color      = 'var(--color-danger,#7A1E19)';
-      badge.style.border     = '1px solid var(--color-danger-mid,#B3261E)';
+      badge.style.background = 'var(--color-danger-bg,#F5DDD8)';
+      badge.style.color      = 'var(--color-danger,#7A2820)';
+      badge.style.border     = '1px solid var(--color-danger-mid,#D1594A)';
       badge.innerHTML = `⚠ ${conflictos} conflicto${conflictos === 1 ? '' : 's'} por resolver`;
       badge.style.display = 'inline-flex';
       badge.style.cursor = cfg.onClickConflictos ? 'pointer' : 'default';
       badge.onclick = cfg.onClickConflictos || null;
       return;
     }
+
+    // SYNC-04 — un registro en cuarentena tampoco se resuelve solo (no se
+    // auto-sincroniza, ver encolarLegacySinTenant): segunda prioridad visual,
+    // debajo de conflictos activos pero por encima de online/offline/syncing.
+    // Naranja (warning) en vez de rojo (danger) porque no bloquea nada del
+    // flujo normal de venta — es revisión pendiente, no un rechazo del server.
+    if (cuarentena > 0) {
+      badge.style.background = 'var(--color-warning-bg,#FBE8C9)';
+      badge.style.color      = 'var(--color-warning,#8A5F13)';
+      badge.style.border     = '1px solid var(--color-warning-mid,#E0A53E)';
+      badge.innerHTML = `◑ ${cuarentena} registro${cuarentena === 1 ? '' : 's'} antiguo${cuarentena === 1 ? '' : 's'} sin revisar`;
+      badge.style.display = 'inline-flex';
+      badge.style.cursor = cfg.onClickCuarentena ? 'pointer' : 'default';
+      badge.onclick = cfg.onClickCuarentena || null;
+      return;
+    }
     badge.onclick = null;
 
     if (estado.syncEnCurso) {
-      badge.style.background = 'var(--color-warning-bg,#FBEBC7)';
-      badge.style.color      = 'var(--color-warning,#7A4A00)';
-      badge.style.border     = '1px solid var(--color-warning-mid,#B87A00)';
+      badge.style.background = 'var(--color-warning-bg,#FBE8C9)';
+      badge.style.color      = 'var(--color-warning,#8A5F13)';
+      badge.style.border     = '1px solid var(--color-warning-mid,#E0A53E)';
       badge.innerHTML = `<span style="animation:offline-core-spin 1s linear infinite;display:inline-block">⟳</span> Sincronizando…`;
       badge.style.display = 'inline-flex';
     } else if (!estado.online) {
-      badge.style.background = 'var(--color-danger-bg,#F3DAD8)';
-      badge.style.color      = 'var(--color-danger,#7A1E19)';
-      badge.style.border     = '1px solid var(--color-danger-mid,#B3261E)';
+      badge.style.background = 'var(--color-danger-bg,#F5DDD8)';
+      badge.style.color      = 'var(--color-danger,#7A2820)';
+      badge.style.border     = '1px solid var(--color-danger-mid,#D1594A)';
       badge.innerHTML = pendientes > 0
         ? `● Sin internet — ${pendientes} ${pendientes === 1 ? singular : plural} en cola`
         : '● Sin internet';
       badge.style.display = 'inline-flex';
     } else if (pendientes > 0) {
-      badge.style.background = 'var(--color-warning-bg,#FBEBC7)';
-      badge.style.color      = 'var(--color-warning,#7A4A00)';
-      badge.style.border     = '1px solid var(--color-warning-mid,#B87A00)';
+      badge.style.background = 'var(--color-warning-bg,#FBE8C9)';
+      badge.style.color      = 'var(--color-warning,#8A5F13)';
+      badge.style.border     = '1px solid var(--color-warning-mid,#E0A53E)';
       badge.innerHTML = `◑ ${pendientes} ${pendientes === 1 ? singular : plural}…`;
       badge.style.display = 'inline-flex';
     } else if (cfg.ocultarSiInactivo) {
       badge.style.display = 'none';
     } else {
-      badge.style.background = 'var(--color-success-bg,#DCEDE3)';
-      badge.style.color      = 'var(--color-success,#17402F)';
-      badge.style.border     = '1px solid var(--color-success-mid,#1F5B4A)';
+      badge.style.background = 'var(--color-success-bg,#E2F0E5)';
+      badge.style.color      = 'var(--color-success,#487050)';
+      badge.style.border     = '1px solid var(--color-success-mid,#75A37D)';
       badge.innerHTML        = '● En línea';
       badge.style.display    = 'inline-flex';
     }
@@ -187,22 +204,22 @@ var OfflineCore = (function () {
     style.id = 'offline-core-conflictos-styles';
     style.textContent = `
       .offline-core-conflictos-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        position: fixed; inset: 0; background: rgba(22,24,29,0.5);
         display: flex; align-items: center; justify-content: center;
         z-index: 10000; padding: 16px;
       }
       .offline-core-conflictos-modal {
-        background: var(--color-bg-elevated, #fff); border-radius: 12px;
+        background: var(--color-surface, #FFFFFF); border-radius: 12px;
         padding: 20px; max-width: 480px; width: 100%; max-height: 82vh;
-        overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        overflow-y: auto; box-shadow: 0 10px 40px rgba(22,24,29,0.3);
         font-family: inherit;
       }
       .offline-core-conflictos-modal h3 { margin: 0 0 4px; font-size: 16px; }
       .offline-core-conflictos-modal > p.offline-core-conflictos-subt {
-        margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted,#666);
+        margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted,#5B6660);
       }
       .offline-core-conflicto-item {
-        border: 1px solid var(--color-border, #ddd); border-radius: 8px;
+        border: 1px solid var(--color-border, #DDE1DC); border-radius: 8px;
         padding: 12px; margin-bottom: 10px;
       }
       .offline-core-conflicto-item p { margin: 4px 0; font-size: 13px; }
@@ -213,16 +230,16 @@ var OfflineCore = (function () {
         cursor: pointer; border: 1px solid transparent;
       }
       .offline-core-btn-reintentar {
-        background: var(--color-success-bg,#DCEDE3); color: var(--color-success,#17402F);
-        border-color: var(--color-success-mid,#1F5B4A);
+        background: var(--color-success-bg,#E2F0E5); color: var(--color-success,#487050);
+        border-color: var(--color-success-mid,#75A37D);
       }
       .offline-core-btn-descartar {
-        background: var(--color-danger-bg,#F3DAD8); color: var(--color-danger,#7A1E19);
-        border-color: var(--color-danger-mid,#B3261E);
+        background: var(--color-danger-bg,#F5DDD8); color: var(--color-danger,#7A2820);
+        border-color: var(--color-danger-mid,#D1594A);
       }
       .offline-core-conflictos-cerrar {
         margin-top: 8px; width: 100%; padding: 8px; border-radius: 6px;
-        border: 1px solid var(--color-border,#ccc); background: transparent;
+        border: 1px solid var(--color-border,#DDE1DC); background: transparent;
         cursor: pointer; font-size: 13px;
       }
     `;
@@ -333,6 +350,116 @@ var OfflineCore = (function () {
     document.body.appendChild(overlay);
   }
 
+  // ─── Modal genérico de revisión de cuarentena legacy (SYNC-04) ───────────
+  //
+  // Mismo componente visual que el modal de conflictos (misma hoja de
+  // estilos, offline-core-conflictos-*) — acá cada item es un registro
+  // legacy sin empresa_id verificable (ver encolarLegacySinTenant). Solo
+  // dos decisiones posibles: confirmarlo como propio de ESTA sesión
+  // (empresaIdActual) o descartarlo sin sincronizar.
+  //
+  // cfg.formatoCuarentena(reg) -> {titulo, detalle}  (opcional, mismo
+  //   criterio que cfg.formatoConflicto en el modal de conflictos)
+  async function _abrirModalCuarentena(portal, cfg, api, empresaIdActual) {
+    _asegurarEstilosModalConflictos();
+    const overlayId = `${portal}-offline-cuarentena-overlay`;
+    document.getElementById(overlayId)?.remove();
+
+    let restantes = await api.getCuarentena();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'offline-core-conflictos-overlay';
+    overlay.id = overlayId;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+    const modal = document.createElement('div');
+    modal.className = 'offline-core-conflictos-modal';
+    overlay.appendChild(modal);
+
+    function render() {
+      modal.innerHTML = '';
+
+      const h = document.createElement('h3');
+      h.textContent = restantes.length
+        ? `${restantes.length} registro${restantes.length === 1 ? '' : 's'} antiguo${restantes.length === 1 ? '' : 's'} sin revisar`
+        : 'Sin pendientes de revisión';
+      modal.appendChild(h);
+
+      const sub = document.createElement('p');
+      sub.className = 'offline-core-conflictos-subt';
+      sub.textContent = restantes.length
+        ? 'Quedaron encolados en este dispositivo antes del aislamiento por empresa y no se pueden atribuir automáticamente. Confirmalos solo si son de tu empresa — si no, descartalos.'
+        : '';
+      if (restantes.length) modal.appendChild(sub);
+
+      restantes.forEach((reg) => {
+        const info = (typeof cfg.formatoCuarentena === 'function')
+          ? (cfg.formatoCuarentena(reg) || _formatoCuarentenaDefault(reg))
+          : _formatoCuarentenaDefault(reg);
+
+        const item = document.createElement('div');
+        item.className = 'offline-core-conflicto-item';
+
+        const pTitulo = document.createElement('p');
+        pTitulo.className = 'titulo';
+        pTitulo.textContent = info.titulo || 'Registro sin revisar';
+        item.appendChild(pTitulo);
+
+        const pDetalle = document.createElement('p');
+        pDetalle.textContent = info.detalle || '';
+        item.appendChild(pDetalle);
+
+        const acciones = document.createElement('div');
+        acciones.className = 'offline-core-conflicto-acciones';
+
+        const btnConfirmar = document.createElement('button');
+        btnConfirmar.className = 'offline-core-btn-reintentar';
+        btnConfirmar.textContent = 'Confirmar como mía y sincronizar';
+        btnConfirmar.onclick = async () => {
+          if (!empresaIdActual) { alert('No se pudo determinar tu empresa — recargá la página e intentá de nuevo.'); return; }
+          if (!confirm('¿Confirmás que este registro es de tu empresa? Se va a sincronizar con el servidor.')) return;
+          btnConfirmar.disabled = true;
+          await api.confirmarCuarentena(reg.local_id, empresaIdActual);
+          restantes = restantes.filter((r) => r.local_id !== reg.local_id);
+          render();
+        };
+
+        const btnDescartar = document.createElement('button');
+        btnDescartar.className = 'offline-core-btn-descartar';
+        btnDescartar.textContent = 'No es mío — descartar';
+        btnDescartar.onclick = async () => {
+          if (!confirm('¿Descartar este registro? No se va a enviar al servidor ni se puede deshacer.')) return;
+          btnDescartar.disabled = true;
+          await api.descartarCuarentena(reg.local_id);
+          restantes = restantes.filter((r) => r.local_id !== reg.local_id);
+          render();
+        };
+
+        acciones.appendChild(btnConfirmar);
+        acciones.appendChild(btnDescartar);
+        item.appendChild(acciones);
+        modal.appendChild(item);
+      });
+
+      const cerrar = document.createElement('button');
+      cerrar.className = 'offline-core-conflictos-cerrar';
+      cerrar.textContent = restantes.length ? 'Revisar más tarde' : 'Cerrar';
+      cerrar.onclick = () => overlay.remove();
+      modal.appendChild(cerrar);
+    }
+
+    render();
+    document.body.appendChild(overlay);
+  }
+
+  function _formatoCuarentenaDefault(reg) {
+    const fecha = reg.created_at ? new Date(reg.created_at).toLocaleString('es-AR') : 'fecha desconocida';
+    return {
+      titulo:  `${reg.tipo || 'Acción'} — ${fecha}`,
+      detalle: reg.origen_legacy ? `Origen: ${reg.origen_legacy}` : '',
+    };
+  }
+
   // ─── Background Sync (best-effort) ────────────────────────────────────────
   async function _registrarBackgroundSync(syncTag) {
     if (!syncTag) return;
@@ -399,7 +526,7 @@ var OfflineCore = (function () {
     const _estado = { online: navigator.onLine, syncEnCurso: false };
 
     function _actualizar() {
-      return _actualizarBadge(opts.portal, opts.badge, _estado, getContadorPendientes, getContadorConflictos);
+      return _actualizarBadge(opts.portal, opts.badge, _estado, getContadorPendientes, getContadorConflictos, getContadorCuarentena);
     }
 
     async function _empresaActual() {
@@ -465,6 +592,68 @@ var OfflineCore = (function () {
       if (typeof opts.getEmpresaId !== 'function') return todos;
       const empresaId = await _empresaActual();
       return todos.filter((r) => !r.empresa_id || r.empresa_id === empresaId);
+    }
+
+    // ─── Cuarentena de registros legacy sin tenant verificable (SYNC-04) ──
+    // Un registro legacy (encolado antes de que existiera el aislamiento
+    // multi-tenant, o migrado desde una cola pre-OfflineCore como la v1 del
+    // POS) no tiene forma de saber a qué empresa pertenece. Si se lo
+    // encola directo con encolarAccion(), _empresaActual() le pone el
+    // empresa_id de la SESIÓN ACTUAL — en un dispositivo compartido entre
+    // usuarios de dos empresas, una venta/movimiento vieja de la Empresa A
+    // podía terminar sincronizada y ejecutada bajo la Empresa B si B es
+    // quien abre la app y dispara la migración. encolarLegacySinTenant()
+    // guarda el registro en estado 'cuarentena_v1': NO entra en
+    // getPendientes()/sincronizarPendientes() (no se auto-sincroniza con
+    // nadie) hasta que alguien lo revise explícitamente con
+    // confirmarCuarentena(local_id, empresaIdConfirmado).
+    async function encolarLegacySinTenant(tipo, payload, origen) {
+      const registro = {
+        tipo,
+        payload,
+        empresa_id: null, // deliberadamente sin tenant — ver nota arriba
+        offline_local_id: crypto.randomUUID(),
+        estado:     'cuarentena_v1',
+        origen_legacy: origen || null,
+        intentos:   0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        error_msg:  null,
+        resultado:  null,
+      };
+      return db.outbox.add(registro);
+    }
+
+    async function getCuarentena() {
+      return db.outbox.where('estado').equals('cuarentena_v1').sortBy('local_id');
+    }
+
+    async function getContadorCuarentena() {
+      return (await getCuarentena()).length;
+    }
+
+    // Revisión explícita: recién acá el registro pasa a 'pendiente' y
+    // queda sujeto al mismo ciclo de sincronización normal, con el
+    // empresa_id que quien revisa confirme (no necesariamente el de la
+    // sesión que disparó la migración).
+    async function confirmarCuarentena(local_id, empresaIdConfirmado) {
+      const reg = await db.outbox.get(local_id);
+      if (!reg || reg.estado !== 'cuarentena_v1') return false;
+      await db.outbox.update(local_id, {
+        estado:     'pendiente',
+        empresa_id: empresaIdConfirmado ?? null,
+        updated_at: new Date().toISOString(),
+      });
+      await _actualizar();
+      if (_estado.online) sincronizarPendientes();
+      return true;
+    }
+
+    async function descartarCuarentena(local_id) {
+      const reg = await db.outbox.get(local_id);
+      if (!reg || reg.estado !== 'cuarentena_v1') return false;
+      await db.outbox.update(local_id, { estado: 'descartado', updated_at: new Date().toISOString() });
+      return true;
     }
 
     async function getContadorConflictos() {
@@ -676,6 +865,19 @@ var OfflineCore = (function () {
       });
     }
 
+    // SYNC-04 — mismo criterio que arriba: si el módulo no pisó
+    // onClickCuarentena a mano, el click default abre el modal genérico de
+    // cuarentena. empresaIdActual se resuelve en el momento del click (no acá
+    // arriba, arrancando la app), porque authCtx puede no estar listo todavía
+    // en el momento en que se llama crearOutbox().
+    if (opts.badge && !opts.badge.onClickCuarentena) {
+      opts.badge.onClickCuarentena = () => _abrirModalCuarentena(opts.portal, opts.badge, {
+        getCuarentena,
+        confirmarCuarentena,
+        descartarCuarentena,
+      }, opts.getEmpresaId ? opts.getEmpresaId() : undefined);
+    }
+
     return {
       init,
       encolarAccion,
@@ -688,6 +890,12 @@ var OfflineCore = (function () {
       getConflictos,
       getContadorConflictos,
       resolverConflicto,
+      // SYNC-04 — cuarentena de registros legacy sin tenant verificable.
+      encolarLegacySinTenant,
+      getCuarentena,
+      getContadorCuarentena,
+      confirmarCuarentena,
+      descartarCuarentena,
       estaOnline: () => _estado.online,
     };
   }

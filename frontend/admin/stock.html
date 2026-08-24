@@ -14,19 +14,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/stock.css?v=197" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock.css?v=198" />
   <link rel="stylesheet" href="/frontend/admin/css/stock-gentelella.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=3" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -185,7 +186,7 @@
 
 <!-- ── PRELOADER ── -->
 <div id="app-preloader" class="preloader">
-  <div class="preloader-logo">D</div>
+  <div class="preloader-logo"><img src="/frontend/admin/img/logo-fluxo-mark.png" alt="Fluxo" width="56" height="56"></div>
   <span class="preloader-text">Cargando stock…</span>
   <div class="preloader-bar"></div>
 </div>
@@ -212,29 +213,6 @@
   </div>
 
   <main class="main" id="vista-stock">
-
-    <!-- ── Overview de Stock — réplica de estructura de referencia ── -->
-    <section class="stock-ov" aria-label="Resumen de stock">
-
-      <!-- Resumen de solo lectura: montos/promedios, no son categorías filtrables.
-           "Stock crítico" (única categoría real) pasó a contador dentro del pill
-           "Sin stock" del filtro de tabla, más abajo — mismo criterio (UMBRAL_CRITICO). -->
-      <div class="franja-resumen-sololectura">
-        <span>Valorización de stock: <strong id="ov-kpi-valor">—</strong> <span class="stock-ov-kpi__delta" id="ov-kpi-valor-delta"></span></span>
-        <span class="sep">·</span>
-        <span>Productos en stock: <strong id="ov-kpi-productos">—</strong> <span class="stock-ov-kpi__delta" id="ov-kpi-productos-delta"></span></span>
-        <span class="sep">·</span>
-        <span>Rotación promedio: <strong id="ov-kpi-rotacion">—</strong> u/30d</span>
-      </div>
-
-      <!-- El gráfico de "Movimientos de stock" y el recuadro de "Cobertura de
-           catálogo con stock" se trasladaron a /admin/reportes-stock, donde
-           ya conviven con el resto de gráficos analíticos (Distribución,
-           Rotación). Esta página se enfoca en la operatoria (ajustes,
-           transferencias, alertas), no en analítica — ver reportes-stock.html
-           y reportes-stock.js. -->
-
-    </section>
 
     <!-- ── Alertas de stock crítico ── -->
     <div class="alertas-stock" id="alertas-stock" style="display:none">
@@ -304,11 +282,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/></svg>
           Depósitos
         </button>
-        <button type="button" class="btn-exportar" id="btn-transferir-stock" onclick="abrirBuscadorTransferencia()">
+        <button type="button" class="btn btn--secondary" id="btn-transferir-stock" onclick="abrirBuscadorTransferencia()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
           Transferir stock
         </button>
-        <button type="button" class="btn-exportar" onclick="exportarExcel()">
+        <button type="button" class="btn btn--secondary" id="btn-exportar-excel-stock" onclick="exportarExcel()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Exportar Excel
         </button>
@@ -331,18 +309,18 @@
 
     <!-- ── Tabla de stock ── -->
     <div class="tabla-wrap table-responsive-cards">
-      <table class="tabla-stock table-compact">
+      <table class="tabla-admin table-compact">
         <thead>
             <tr>
             <th>Producto</th>
-            <th>Categoría</th>
-            <th class="thead-sep">Depósito</th>
-            <th class="th-num">Disponible</th>
-            <th class="th-num">Reservado</th>
-            <th class="th-num">Total</th>
-            <th class="th-num thead-sep">Costo prom.</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th class="col-fit">Categoría</th>
+            <th class="thead-sep col-fit">Depósito</th>
+            <th class="th-num col-fit">Disponible</th>
+            <th class="th-num col-fit">Reservado</th>
+            <th class="th-num col-fit">Total</th>
+            <th class="th-num thead-sep col-fit">Costo prom.</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-body">
@@ -468,23 +446,23 @@
       </label>
       <select id="select-motivo" class="form-select">
         <option value="">Seleccionar motivo...</option>
-        <optgroup label="Ingresos">
-          <option value="compra">Compra a proveedor</option>
-          <option value="devolucion_cliente">Devolución de cliente</option>
-          <option value="produccion">Producción propia</option>
+        <optgroup label="Ingresos" data-tipo="ingreso">
+          <option value="compra" data-tipo="ingreso">Compra a proveedor</option>
+          <option value="devolucion_cliente" data-tipo="ingreso">Devolución de cliente</option>
+          <option value="produccion" data-tipo="ingreso">Producción propia</option>
         </optgroup>
-        <optgroup label="Egresos">
-          <option value="venta_manual">Salida por venta no facturada</option>
-          <option value="merma">Merma / vencimiento</option>
-          <option value="rotura">Rotura / daño</option>
-          <option value="muestra">Muestra / regalo</option>
+        <optgroup label="Egresos" data-tipo="egreso">
+          <option value="venta_manual" data-tipo="egreso">Salida por venta no facturada</option>
+          <option value="merma" data-tipo="egreso">Merma / vencimiento</option>
+          <option value="rotura" data-tipo="egreso">Rotura / daño</option>
+          <option value="muestra" data-tipo="egreso">Muestra / regalo</option>
         </optgroup>
-        <optgroup label="Ajustes">
-          <option value="inventario">Corrección de inventario</option>
-          <option value="conteo_fisico">Conteo físico</option>
+        <optgroup label="Ajustes" data-tipo="ajuste">
+          <option value="inventario" data-tipo="ajuste">Corrección de inventario</option>
+          <option value="conteo_fisico" data-tipo="ajuste">Conteo físico</option>
         </optgroup>
-        <optgroup label="Transferencias">
-          <option value="entre_depositos">Entre depósitos</option>
+        <optgroup label="Transferencias" data-tipo="transferencia">
+          <option value="entre_depositos" data-tipo="transferencia">Entre depósitos</option>
         </optgroup>
       </select>
       <!-- v341: algunos motivos ya tienen un flujo dedicado (recepción de OC,
@@ -538,21 +516,21 @@
 <script>inicializarTemaECharts();</script>
 
   <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/api-client.js?v279" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
   <script src="/shared/offline-core.js?v1"></script>
   <script src="/frontend/admin/js/stock-offline.js?v3"></script>
-  <script type="module" src="/frontend/admin/js/stock.js?v282"></script>
+  <script type="module" src="/frontend/admin/js/stock.js?v283"></script>
 
   <!-- v617: "Vincular celular" para buscar producto por código escaneado
        y abrir directo su ajuste de stock. Mismo circuito que el POS, ver
@@ -603,15 +581,15 @@
     </div>
 
     <div class="tabla-wrap">
-      <table class="tabla-stock">
+      <table class="tabla-admin">
         <thead>
           <tr>
-            <th>Depósito</th>
+            <th class="col-fit">Depósito</th>
             <th>Dirección</th>
-            <th>Responsable</th>
-            <th style="text-align:center">Principal</th>
-            <th>Estado</th>
-            <th class="td-acciones">Acciones</th>
+            <th class="col-fit">Responsable</th>
+            <th style="text-align:center" class="col-fit">Principal</th>
+            <th class="col-fit">Estado</th>
+            <th class="td-acciones col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tbody-depositos-admin">
@@ -658,6 +636,17 @@
       <button type="button" class="btn-primario" id="btn-guardar-deposito" onclick="btnAsyncClick(this, guardarDeposito)" aria-live="polite">Guardar depósito</button>
     </div>
   </div>
+</div>
+
+<!-- Zoom de imagen de producto — mismo patrón que productos.html (ver
+     renderAvatarFoto/abrirZoomFoto en stock.js), para mostrar la foto real
+     en vez de solo iniciales en la tabla de Stock. -->
+<div class="foto-zoom-backdrop" id="foto-zoom-backdrop" onclick="cerrarZoomFoto()" aria-hidden="true"></div>
+<div class="foto-zoom-modal" id="foto-zoom-modal" role="dialog" aria-modal="true" aria-label="Imagen ampliada del producto">
+  <button type="button" class="foto-zoom-close" onclick="cerrarZoomFoto()" aria-label="Cerrar imagen ampliada">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <img id="foto-zoom-img" src="" alt="Imagen ampliada del producto">
 </div>
 
 <script>

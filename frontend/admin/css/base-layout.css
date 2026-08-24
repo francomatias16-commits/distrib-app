@@ -19,9 +19,9 @@ body {
   background-color: var(--color-bg);
   /* replay: radial gradients en esquinas con el color de acento */
   background-image:
-    radial-gradient(ellipse at 0% 0%,   rgba(184,122,0,.09) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(184,122,0,.06) 0%, transparent 45%),
-    radial-gradient(ellipse at 100% 0%,  rgba(184,122,0,.04) 0%, transparent 40%);
+    radial-gradient(ellipse at 0% 0%,   rgba(106,152,115,.09) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(106,152,115,.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 0%,  rgba(106,152,115,.04) 0%, transparent 40%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
@@ -44,3 +44,39 @@ body {
   .main { padding: 10px 10px; gap: 12px; }
   body { font-size: 15px; }
 }
+
+/* ── Paginación cliente "Cargar más" ──────────────────────────────────────
+   Genérica, reutilizable en cualquier lista/tabla/grid del admin que se
+   corte en el cliente para no renderizar todo de una. Uso: agregar un
+   <tr class="paginar-fila"><td colspan="N"><div class="paginar-foot">…
+   </div></td></tr> al final de un <tbody>, o un <div class="paginar-foot">
+   como último hijo de un grid. Ver fidelizacion.js / stock.js / anomalias.js
+   / conciliacion-bancaria.js para el patrón de JS (contador de visibles +
+   slice + botones "Cargar más (quedan N)" / "Ver menos"). */
+.paginar-fila td { border-bottom: none !important; padding: 0 !important; }
+.paginar-foot {
+  padding: 10px 18px;
+  border-top: 1px solid rgba(0,0,0,.06);
+  text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.paginar-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 12.5px; font-weight: 600; color: var(--color-primary);
+  padding: 4px 10px;
+}
+.paginar-btn:hover { text-decoration: underline; }
+.paginar-btn--ghost { color: var(--color-text-muted); font-weight: 500; }
+
+/* ── Fila de tabla clickeable ─────────────────────────────────────────────
+   Convención: clic en cualquier parte de la fila dispara la acción primaria
+   (mismo criterio "Ver/Editar siempre primaria" documentado en compras.js),
+   salvo que el clic haya sido sobre un elemento con su propio handler
+   (botón, link, select, input — ver el guard en el onclick del <tr>: sólo
+   dispara si event.target.closest('[onclick],a,select,input,textarea')
+   resuelve al propio <tr>). Antes solo unas pocas pantallas (facturacion,
+   pedidos, notif-log, puntos, cta-cte, devoluciones, whatsapp-conversaciones,
+   comparador-precios) tenían este comportamiento; el resto obligaba a
+   apuntar al botón "⋮"/"Editar" exacto. Unificado 2026-08-20. */
+tbody tr.fila-clickeable { cursor: pointer; }
+tbody tr.fila-clickeable:hover { background: var(--color-surface-hover, rgba(0,0,0,.025)); }

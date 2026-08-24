@@ -13,12 +13,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
   <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/export-contable-gentelella.css?v=1" />
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
   <style>
@@ -65,26 +66,32 @@
 
     .plan-cuentas-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px 14px; }
     @media (max-width: 720px) { .plan-cuentas-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+      /* AUDITORIA-RESPONSIVE-ETAPA4: .btn--primary/.btn-secundario (nombres
+         propios de esta pantalla, no coinciden con la convención admin
+         .btn-primario/.btn-secundario/.btn-peligro que cubre
+         responsive-mobile.css) miden ~34px de alto. */
+      .btn--primary, .btn-secundario { min-height: 40px; }
+    }
     .plan-cuentas-grid .form-group label { font-weight:500; font-size:12.5px; }
     .plan-cuentas-grid .form-group label code {
       display:block; font-size:10.5px; color:var(--color-text-muted); font-weight:400; margin-top:1px;
     }
 
-    .btn-primary {
+    .btn--primary {
       background:var(--color-primary); color:#fff; border:none; padding:9px 18px; border-radius:var(--radius-sm);
       font-size:13px; font-weight:600; cursor:pointer;
     }
-    .btn-primary:hover { filter:brightness(1.05); }
-    .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+    .btn--primary:hover { filter:brightness(1.05); }
+    .btn--primary:disabled { opacity:.55; cursor:not-allowed; }
     .btn-secundario {
       background:var(--color-bg); color:var(--color-text); border:1px solid var(--color-border); padding:9px 18px;
       border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer;
     }
     .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
 
-    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius: var(--radius-full); font-size:12px; font-weight:600; }
-    .chip-ok  { background:rgba(34,197,94,.12); color:#15803d; }
-    .chip-no  { background:rgba(217,119,6,.12); color:#b45309; }
+    /* .chip/.chip-ok/.chip-no movidos al componente canónico
+       (frontend/shared/componentes-admin.css, Hallazgo #2 del plan). */
 
     .alerta { padding:11px 15px; border-radius:var(--radius-sm); font-size:13px; margin-bottom:16px; display:none; }
     .alerta-ok  { background:rgba(34,197,94,.08); color:#15803d; border:1px solid rgba(34,197,94,.3); }
@@ -101,14 +108,11 @@
     }
     .tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
     .tabla-overflow { overflow-x: auto; }
-    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .tabla th {
-      padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .04em; color: var(--color-text-muted); background: var(--color-bg);
-      border-bottom: 1px solid var(--color-border); white-space: nowrap;
-    }
-    .tabla td { padding: 10px 14px; border-bottom: 1px solid rgba(0,0,0,.04); vertical-align: middle; }
-    .tabla tbody tr:last-child td { border-bottom: none; }
+    /* .tabla/.tabla th/td (pre-reskin) se quitó acá: componentes-admin.css
+       (.tabla-admin) es ahora la fuente única de estos estilos. padding,
+       font-size, letter-spacing y white-space del thead (que el gentelella
+       de esta página no pisaba) se preservaron explícitamente en
+       export-contable-gentelella.css. */
     .empty-state { padding: 40px 20px; text-align: center; color: var(--color-text-light); }
 
     .seccion-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:20px; }
@@ -209,7 +213,7 @@
         </div>
 
         <div class="acciones">
-          <button type="button" class="btn-primary" id="btn-guardar-config">Guardar configuración</button>
+          <button type="button" class="btn--primary" id="btn-guardar-config">Guardar configuración</button>
         </div>
       </div>
 
@@ -238,7 +242,7 @@
         </div>
 
         <div class="acciones">
-          <button type="button" class="btn-primary" id="btn-generar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Generar y descargar</button>
+          <button type="button" class="btn--primary" id="btn-generar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Generar y descargar</button>
         </div>
       </div>
 
@@ -249,15 +253,15 @@
           <span style="font-size:12px;color:var(--color-text-light);">Últimas 50</span>
         </div>
         <div class="tabla-overflow">
-          <table class="tabla">
+          <table class="tabla-admin">
             <thead>
               <tr>
-                <th>Fecha</th>
+                <th class="col-fit">Fecha</th>
                 <th>Proveedor</th>
-                <th>Tipo</th>
-                <th>Rango</th>
-                <th>Registros</th>
-                <th>Archivo</th>
+                <th class="col-fit">Tipo</th>
+                <th class="col-fit">Rango</th>
+                <th class="col-fit">Registros</th>
+                <th class="col-fit">Archivo</th>
               </tr>
             </thead>
             <tbody id="tbody-historial"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -277,15 +281,15 @@
 <script src="/frontend/env-config.js?v1782328742714"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
 <script>
   window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
 </script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/export-contable.js?v245"></script>
 </body>

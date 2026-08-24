@@ -87,10 +87,18 @@
     // arma el bloque HTML de cada grupo y estima su altura para repartir columnas
     const grupos = conSecciones.map(ws => {
       const links = ws.secciones.map(sec => {
+        // `accion` (en vez de `href`): ítem que dispara un comportamiento
+        // JS en vez de navegar (hoy solo "Trabajar con IA", ver nav-data.js
+        // y el listener delegado en inicializarMenuNavegacion()). Nunca
+        // puede quedar marcado "activo" (no es una pantalla propia) y su
+        // href es "#" solo para que siga siendo un <a> tabulable/accesible.
+        if (sec.accion) {
+          return `<a class="nav-ws-link" href="#" data-menu-accion="${sec.accion}"><span>${sec.label}</span></a>`;
+        }
         const activo = esActivo(sec.href);
         return `<a class="nav-ws-link${activo ? ' is-current' : ''}" href="${sec.href}"><span>${sec.label}</span></a>`;
       }).join('');
-      const html = `<div class="nav-ws">
+      const html = `<div class="nav-ws${ws.destacado ? ' nav-ws--destacado' : ''}">
         <div class="nav-ws-label" style="--nav-ws-color:${ws.textColor}">${ws.icon}${ws.label}</div>
         <div class="nav-ws-links">${links}</div>
       </div>`;
@@ -125,16 +133,21 @@
     window._NAV_WS_VISIBLES = workspaces;
   }
 
-  /* ── Markup del disparador: logo + separador + botón ──────────────────
+  /* ── Markup del disparador: separador + botón ──────────────────────────
    * Se inyecta al inicio de .topbar-left de cada pantalla, en el flujo
    * normal del documento — igual patrón que ya usaba dashboard.html a
-   * mano. Ya no es un FAB fixed en la esquina (ver comentario en nav.css). */
+   * mano. Ya no es un FAB fixed en la esquina (ver comentario en nav.css).
+   *
+   * v744 había agregado acá un #topbar-logo (logo de empresa junto al
+   * botón "Menú principal"). v907 — Pedido directo: se saca de esta zona
+   * por quedar redundante con el logo que ya se ve en el chip de usuario
+   * (#topbar-avatar-ini, ver v906/topbar-widgets.js) — dos logos en la
+   * misma barra superior de cada pantalla. */
   function buildMenuTrigger() {
     return `
       <button class="nav-back-btn" id="nav-back-btn" aria-label="Volver a la pantalla anterior" title="Volver" hidden>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <a class="logo" href="/admin/dashboard" id="nav-logo-home" title="Panel principal"><img src="/frontend/admin/img/logo-fluxo.png" alt="Fluxo" height="26"></a>
       <span class="topbar-divider"></span>
       <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Menú principal" aria-expanded="false" title="Menú principal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -181,7 +194,6 @@
       <nav class="nav-menu-panel" id="nav-menu-panel" role="dialog" aria-modal="true" aria-labelledby="nav-menu-title" tabindex="-1">
         <div class="nav-menu-header">
           <div class="nav-menu-header-left">
-            <img src="/frontend/admin/img/logo-fluxo-icon.png" alt="" class="nav-menu-logo">
             <div>
               <div class="nav-menu-title" id="nav-menu-title">Menú principal</div>
               <div class="nav-menu-subtitle">Todas las secciones de tu panel, por área</div>
@@ -247,13 +259,20 @@
     btn.addEventListener('click', () => panel.classList.contains('open') ? cerrar() : abrir());
     closeBtn.addEventListener('click', cerrar);
 
-    // Logo: va al panel principal; si ya está ahí, refresca en vez de no hacer nada.
-    const logoHome = document.getElementById('nav-logo-home');
-    if (logoHome) {
-      logoHome.addEventListener('click', e => {
-        if (esActivo('/admin/dashboard')) { e.preventDefault(); window.location.reload(); }
-      });
-    }
+    // Ítems con `accion` (ver renderMenuNavegacion): no navegan, disparan
+    // un comportamiento propio. Hoy solo "asistente-ia" — abre el panel de
+    // chat-widget.js (ver window.abrirAsistenteIA, definida ahí) y cierra
+    // este mega-menú para no dejar dos overlays superpuestos.
+    panel.addEventListener('click', e => {
+      const link = e.target.closest('[data-menu-accion]');
+      if (!link) return;
+      e.preventDefault();
+      cerrar();
+      if (link.dataset.menuAccion === 'asistente-ia' && typeof window.abrirAsistenteIA === 'function') {
+        window.abrirAsistenteIA();
+      }
+    });
+
     backdrop.addEventListener('click', cerrar);
     document.addEventListener('keydown', e => {
       if (!panel.classList.contains('open')) return;
@@ -277,6 +296,45 @@
         if (n !== ultimasColumnas) { ultimasColumnas = n; renderMenuNavegacion(panel, rolActual); }
       }, 150);
     });
+  }
+
+  /* ── Datos de empresa en el pie del menú (logo + nombre) ─────────────
+   * v903 — FIX: antes esto lo pintaba únicamente auth.js (ver auth.js,
+   * pintarLogoEn), apuntando a #sidebar-logo/#sidebar-empresa por id. El
+   * problema es de orden de carga, no de datos: cuando el primer render
+   * de este menú es el "provisional sin rol" (auth todavía no resolvió,
+   * ver comentario de renderConRol más abajo), auth.js corre su pintado
+   * ANTES de que exista ese primer render, y la 2ª vez que renderConRol
+   * corre (ya con el rol real, vía el evento authListo) cae en la rama
+   * "else" que solo actualiza el grid — nunca vuelve a tocar el pie. El
+   * nombre/logo por default ("Empresa"/"D") quedaba pegado para siempre
+   * en ese caso, aunque perfil.empresas sí tuviera los datos correctos.
+   * Fix: nav.js pasa a pintarlo él mismo, siempre que renderConRol corre
+   * (las dos ramas, ver el final de esa función), leyendo directo de
+   * window.authCtx en ese momento — no depende de que auth.js le haya
+   * ganado o perdido la carrera al primer render del menú. */
+  function pintarEmpresaSidebar() {
+    const empresa = window.authCtx?.perfil?.empresas;
+    if (!empresa) return;
+
+    const empresaEl = document.getElementById('sidebar-empresa');
+    if (empresaEl) empresaEl.textContent = empresa.nombre || '';
+
+    const logoEl = document.getElementById('sidebar-logo');
+    if (!logoEl) return;
+    if (empresa.logo_url) {
+      logoEl.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = empresa.logo_url;
+      img.alt = empresa.nombre || 'Logo';
+      img.onerror = () => {
+        logoEl.innerHTML = '';
+        logoEl.textContent = empresa.nombre?.charAt(0)?.toUpperCase() || 'D';
+      };
+      logoEl.appendChild(img);
+    } else {
+      logoEl.textContent = empresa.nombre?.charAt(0)?.toUpperCase() || 'D';
+    }
   }
 
   /* ── Render con rol ya resuelto ───────────────────────────────────── */
@@ -311,6 +369,12 @@
       const panel = document.getElementById('nav-menu-panel');
       if (panel) renderMenuNavegacion(panel, rol);
     }
+
+    // Se llama siempre (las dos ramas), no solo en el primer build: es la
+    // única forma de garantizar que quede pintado sin importar en qué
+    // momento exacto llegaron los datos de la empresa (ver comentario de
+    // pintarEmpresaSidebar arriba).
+    pintarEmpresaSidebar();
   }
 
   /* ── Esperar authCtx y renderizar ────────────────────────────────── */
@@ -358,12 +422,23 @@
     initConAuth();
   }
 
-  /* ── Asistente de ayuda (chat flotante) ─────────────────────────────
+  /* ── Asistente de ayuda (panel de chat) ───────────────────────────────
    * Se inyecta acá para aparecer en las ~27 pantallas del admin de una
    * sola vez, sin tocar cada .html — ver Checklist de implementación,
    * punto 19. Requiere sesión activa (chat-widget.js se auto-oculta si
    * no la hay, ej. login.html no carga nav.js de todas formas).
+   *
+   * v960 — Ya no monta el botón flotante (FAB): se abre desde el ítem
+   * "Trabajar con IA" del mega-menú (ver nav-data.js + el listener
+   * data-menu-accion en inicializarMenuNavegacion()). El flag se pone
+   * ANTES de cargar el script porque chat-widget.js lo lee recién dentro
+   * de su iniciar() async, que corre después — el orden de estas dos
+   * líneas no es crítico, pero mantenerlo así deja la intención clara.
+   * Los portales cliente/chofer cargan chat-widget.js directo desde su
+   * propio HTML (sin pasar por acá) y no tocan este flag, así que siguen
+   * viendo el botón de siempre — sin cambios para ellos.
    */
+  window.__CHAT_ASISTENTE_SIN_BOTON__ = true;
   if (!document.getElementById('chat-asistente-css')) {
     const link = document.createElement('link');
     link.id = 'chat-asistente-css';

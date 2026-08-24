@@ -7,16 +7,19 @@
  * (debe estar linkeado antes en el <head>).
  *
  * Reusa los patrones ya establecidos en cobranzas-gentelella.css (.fkpi/.tabla-wrap/.tab-btn)
- * y cc-proveedores-gentelella.css (.paginacion-container/.btn-pag) y stock-gentelella.css
- * (.badge-ok/.badge-bajo/.badge-critico) para mantener consistencia entre pantallas
- * que comparten estos componentes.
+ * y cc-proveedores-gentelella.css (.paginacion-container/.btn-pag) para mantener
+ * consistencia entre pantallas que comparten estos componentes.
  *
- * Nota: `.badge-ok`/`.badge-warn`/`.badge-danger`/`.badge-muted` (generadas por lotes.js
- * en badgeEstado()), `.cod-badge`, `.btn-acc`/`.btn-acc.btn-danger`, `.alerta-banner`/
- * `.alerta-rojo`/`.alerta-naranja` y `em.muted` no tienen ninguna definición base (ni de
- * forma ni de color) en compras.css/finanzas.css ni en ningún CSS cargado por esta
- * pantalla — sin reskin, renderizan sin forma de pastilla/botón. Se les da estructura
- * completa acá (mismo criterio ya usado en usuarios-gentelella.css para `.badge-estado`).
+ * Nota: `.cod-badge`, `.alerta-banner`/`.alerta-rojo`/`.alerta-naranja` y `em.muted`
+ * no tienen ninguna definición base (ni de forma ni de color) en compras.css/finanzas.css
+ * ni en ningún CSS cargado por esta pantalla — sin reskin, renderizan sin forma de
+ * pastilla/botón. Se les da estructura completa acá (mismo criterio ya usado en
+ * usuarios-gentelella.css para `.badge-estado`).
+ *
+ * (2026-08-19, cierre del Hallazgo #6, §17 del plan) El badge de Estado del lote
+ * (antes `.badge-ok`/`.badge-warn`/`.badge-danger`/`.badge-muted`, locales de acá) y
+ * las acciones de fila (antes `.btn-acc`/`.btn-acc.btn-danger`) migraron al componente
+ * canónico — ver el comentario puntual más abajo, junto a donde vivía cada bloque.
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * No se agrega ningún token nuevo en este archivo.
@@ -131,9 +134,14 @@ body.dash-vencimientos-gentelella .filtros-bar {
   background: var(--ge-panel) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-vencimientos-gentelella .search-wrap input,
 body.dash-vencimientos-gentelella .filtros-bar input {
   border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-vencimientos-gentelella .search-wrap input {
+  border: 1px solid transparent !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -170,7 +178,17 @@ body.dash-vencimientos-gentelella .tabla-wrap {
   box-shadow: var(--ge-shadow) !important;
   overflow: hidden !important;
 }
-body.dash-vencimientos-gentelella .tabla-main th {
+/* Scopeado a #panel-lotes (y no solo a .tabla-admin) a propósito: esta
+   misma página ya tenía otra tabla — Ofertas activas, panel-liquidacion —
+   usando la clase .tabla-admin desde una pasada anterior (ver bloque
+   "Liquidación: tabla de ofertas activas" más abajo), con su propio look
+   (padding 14/16, nowrap). Al migrar acá Lotes de .tabla-main a
+   .tabla-admin (cierre del Hallazgo #6 del plan de unificación, grupo
+   tabla-main: proveedores/rutas/vencimientos), un selector genérico
+   ".tabla-admin th" hubiera pisado/mezclado ambas tablas dentro del mismo
+   archivo. Se scopea por panel para que cada tabla mantenga su estilo
+   propio sin que compita con la otra. */
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -179,20 +197,20 @@ body.dash-vencimientos-gentelella .tabla-main th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-vencimientos-gentelella .tabla-main td {
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-vencimientos-gentelella .tabla-main td.vacio {
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin td.vacio {
   color: var(--ge-muted) !important;
 }
-body.dash-vencimientos-gentelella .tabla-main tbody tr:hover {
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
 body.dash-vencimientos-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-vencimientos-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 body.dash-vencimientos-gentelella em.muted {
@@ -212,49 +230,23 @@ body.dash-vencimientos-gentelella .cod-badge {
   font-family: monospace !important;
 }
 
-/* Pastillas de estado del lote (Activo / Por vencer / Vencido / Agotado) */
-body.dash-vencimientos-gentelella .badge-ok {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-vencimientos-gentelella .badge-warn {
-  background: var(--ge-warning-bg) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-vencimientos-gentelella .badge-danger {
-  background: rgba(231,76,60,.1) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-vencimientos-gentelella .badge-muted {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
-
-/* Botones de acción en fila (Editar / Eliminar) */
-body.dash-vencimientos-gentelella .btn-acc {
-  display: inline-flex !important;
-  align-items: center !important;
-  border: 1px solid var(--ge-border) !important;
-  background: var(--ge-panel) !important;
-  color: var(--ge-ink-soft) !important;
-  border-radius: var(--ge-radius-btn) !important;
-  font-size: 12px !important;
-  padding: 4px 10px !important;
-  cursor: pointer !important;
-}
-body.dash-vencimientos-gentelella .btn-acc:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-teal-dark) !important;
-  border-color: var(--ge-teal) !important;
-}
-body.dash-vencimientos-gentelella .btn-acc.btn-danger {
-  color: var(--ge-red) !important;
-}
-body.dash-vencimientos-gentelella .btn-acc.btn-danger:hover {
-  background: rgba(231,76,60,.08) !important;
-  border-color: var(--ge-red) !important;
-  color: var(--ge-red) !important;
-}
+/* Pastillas de estado del lote (Activo / Por vencer / Vencido / Agotado) y
+   botones de acción en fila (Editar / Dar de baja / Eliminar): migrados al
+   componente canónico (ComponentesAdmin.renderBadgeEstado/renderFilaAcciones
+   en lotes.js — cierre del Hallazgo #6, PLAN_UNIFICACION_UX_ADMIN.md §17).
+   El bloque local .badge-ok/.badge-warn/.badge-danger/.badge-muted/.btn-acc
+   que vivía acá se borró — mismo criterio de "diferencia de paleta menor y
+   a propósito" ya aceptado en usuarios-gentelella.css (§13): el badge/botón
+   canónico usa tokens genéricos, no los --ge-teal/--ge-warning-text de acá.
+   IMPORTANTE — no era un simple rename: la variante canónica "ok" se llama
+   justo `.badge-ok`, mismo nombre de clase que la vieja regla local de acá;
+   si no se borraba, el `!important` local iba a seguir pisando el color del
+   badge-estado canónico por coincidencia de nombre (mismo tipo de colisión
+   que `.tabla-admin` en el cierre del Hallazgo #3 para esta misma página,
+   §16 — acá entre dos *sistemas* de badge en vez de entre dos tablas). Las
+   otras tres (badge-warn/badge-danger/badge-muted) no colisionaban, pero
+   igual quedaban huérfanas (la variante canónica usa badge-warning/
+   badge-critico/badge-inactivo, nombres distintos) — se borraron por prolijidad. */
 
 /* Paginación */
 body.dash-vencimientos-gentelella .paginacion-container {
@@ -352,25 +344,39 @@ body.dash-vencimientos-gentelella .card-footer {
 body.dash-vencimientos-gentelella .tabla-header h2 {
   color: var(--ge-ink) !important;
 }
-body.dash-vencimientos-gentelella table.tabla th {
+/* Scopeado a #panel-liquidacion (ver nota simétrica en el bloque de
+   #panel-lotes .tabla-admin más arriba) desde que Lotes también pasó a
+   usar .tabla-admin — antes esta era la única tabla de la página con esa
+   clase y el selector genérico no generaba ambigüedad; ahora sí, así que
+   se scopea acá también para que no compita con el estilo de Lotes. */
+body.dash-vencimientos-gentelella #panel-liquidacion .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  /* Esta tabla vive dentro de <main id="vista-vencimientos">, que en
+     finanzas.css tenía un override con ID (#vista-vencimientos table.tabla)
+     ganando por especificidad sobre la regla base (table.tabla th/td):
+     padding 14px/16px en vez de 10px/16px, y 15px/16px en td en vez de
+     11px/16px. Al migrar a .tabla-admin ese selector con ID deja de
+     aplicar (ya no hay ningún table.tabla ahí) — se preserva el valor
+     que efectivamente se veía, explícito acá. */
+  padding: 14px 16px !important;
+  white-space: nowrap !important; /* venía de la regla base table.tabla th de finanzas.css, no pisada por el scope de ID */
 }
-body.dash-vencimientos-gentelella table.tabla td {
+body.dash-vencimientos-gentelella #panel-liquidacion .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  padding: 15px 16px !important;
 }
-body.dash-vencimientos-gentelella table.tabla tr:hover td {
+body.dash-vencimientos-gentelella #panel-liquidacion .tabla-admin tr:hover td {
   background: var(--ge-teal-light) !important;
 }
 body.dash-vencimientos-gentelella .monto-verde {
   color: var(--ge-teal-dark) !important;
 }
-body.dash-vencimientos-gentelella .chip-rojo {
-  background: rgba(231,76,60,.1) !important;
-  color: var(--ge-red) !important;
-}
+/* .chip-rojo movido al componente canónico (frontend/shared/componentes-admin.css,
+   Hallazgo #2 del plan). Nota: acá usaba alpha .10 en vez de .12 — normalizado
+   en el canónico, diferencia imperceptible, documentada allá. */
 body.dash-vencimientos-gentelella .empty-state {
   color: var(--ge-muted) !important;
 }
@@ -431,43 +437,18 @@ body.dash-vencimientos-gentelella .sugerencias-drop {
   box-shadow: var(--ge-shadow) !important;
 }
 
-/* Botones de footer de modal */
-body.dash-vencimientos-gentelella .btn-cancelar {
-  border: 1px solid var(--ge-border) !important;
-  background: var(--ge-panel) !important;
-  color: var(--ge-ink-soft) !important;
-  border-radius: var(--ge-radius-btn) !important;
-}
-body.dash-vencimientos-gentelella .btn-cancelar:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-ink) !important;
-}
-body.dash-vencimientos-gentelella .btn-guardar {
-  background: var(--ge-teal) !important;
-  border: none !important;
-  border-radius: var(--ge-radius-btn) !important;
-  color: var(--ge-panel) !important;
-  font-weight: 600 !important;
-}
-body.dash-vencimientos-gentelella .btn-guardar:hover {
-  background: var(--ge-teal-dark) !important;
-}
-
-/* ── Z-INDEX ESCALADO: confirm por encima de #modal-lote ────────────
-   BUG REAL (no solo de los tests): #modal-lote usa la clase
-   .modal-overlay — vencimientos.html carga compras.css (z-index:200)
-   Y finanzas.css (z-index:500) para esa misma clase; por orden de
-   cascada gana finanzas.css, z-index:500. window.confirmar() usa
-   --z-modal (default 400, shared/tokens.css). Con #modal-lote abierto
-   y --z-modal en 400, el diálogo de confirmación de "¿Confirmás crear
-   este lote?" / "Dar de baja" queda VISUALMENTE DETRÁS del modal — su
-   botón "ok" es inclickeable con mouse para cualquier usuario real, no
-   solo para Playwright ("<label>Costo unitario</label> ... subtree
-   intercepts pointer events"). Confirmado corriendo vencimientos.spec.js
-   contra Chromium real. Mismo hallazgo y mismo fix ya aplicado para los
-   casos análogos de #modal-cobro (cobranzas-gentelella.css) y
-   #modal-producto (productos-modal-fix.css) — acá se replica scopeado
-   a vencimientos.html. --z-toast ya estaba bien (600 > 500). */
-:root {
-  --z-modal: 10100;
-}
+/* ── Z-INDEX: confirm por encima de #modal-lote ───────────────────────
+   #modal-lote usa la clase .modal-overlay — vencimientos.html carga
+   compras.css (--z-panel:50... na, 200) Y finanzas.css (--z-flyout:500)
+   para esa misma clase; por orden de cascada gana finanzas.css, 500.
+   window.confirmar() usaba --z-modal (400), así que el diálogo de
+   "¿Confirmás crear este lote?" / "Dar de baja" quedaba VISUALMENTE
+   DETRÁS del modal — su botón "ok" era inclickeable con mouse para
+   cualquier usuario real, no solo para Playwright.
+   FIX (2026-08-22): window.confirmar() ahora usa un token propio,
+   --z-confirm-dialog (750, shared/tokens.css), en vez de reutilizar
+   --z-modal (que también hereda el backdrop del "Menú principal" global
+   de admin/nav.css — subirlo acá tapaba ese menú en toda la página).
+   Ver el mismo fix en notas-gentelella.css, cheques-gentelella.css,
+   cobranzas-gentelella.css y productos-modal-fix.css. Esta
+   sobreescritura ya no hace falta. */

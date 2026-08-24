@@ -10,50 +10,28 @@
 // (ej: /api/auth/login), sino algo como /api/index?_mod=auth&_ruta=login.
 // El sub-ruteo dentro de cada handler se hace exclusivamente vía req.query
 // (_mod, _ruta, _svc, accion, recurso, tipo, etc.), nunca vía req.url.
+//
+// FIX v861 (504 en /api/admin/kpis y /api/admin/stock/bajo): antes este
+// archivo importaba los 40 handlers de forma ESTÁTICA (import ... from) al
+// tope del archivo. Node tenía que inicializar los 40 —incluyendo módulos
+// pesados como AFIP/ARCA, WhatsApp, el wizard de migración y el asistente
+// RAG— en CADA cold start del lambda, aunque la request fuera solo para
+// kpis. Eso, sumado al límite de memoria/tiempo del plan Hobby, producía
+// cold starts tan lentos que terminaban en 504 antes de llegar a ejecutar
+// ninguna query (las queries a la base tardan milisegundos — no es un
+// problema de Supabase).
+//
+// Ahora HANDLERS pasó a ser LOADERS: cada entrada es una función
+// `() => import('../lib/handlers/archivo.js')` que solo se ejecuta cuando
+// llega una request para ESE módulo puntual. El resultado se cachea en
+// memoria del lambda (moduleCache) para que las invocaciones "warm" —el
+// mismo lambda atendiendo otra request después de la primera— no vuelvan a
+// pagar el costo de import().
 
 import '../lib/ws-polyfill.js'; // FIX v339: debe ir primero (ver comentario en el archivo)
 
 import * as Sentry from '@sentry/node'; // Fase 4.1 (plan de acción) — error tracking
-
-import auth           from '../lib/handlers/auth.js';
-import admin          from '../lib/handlers/admin.js';
-import auditoria      from '../lib/handlers/auditoria.js';
-import automatizacion from '../lib/handlers/automatizacion.js';
-import reglasAutomatizacion from '../lib/handlers/reglas-automatizacion.js'; // Fase 6 (plan ERP de sincronización)
-import bcra           from '../lib/handlers/bcra.js';       // Integración APIs públicas BCRA (cheques/situación)
-import busqueda       from '../lib/handlers/busqueda.js';
-import cierre         from '../lib/handlers/cierre.js';
-import ciclos         from '../lib/handlers/ciclos.js';
-import clientes       from '../lib/handlers/clientes.js';
-import empresa        from '../lib/handlers/empresa.js';
-import facturas       from '../lib/handlers/facturas.js';
-import importar       from '../lib/handlers/importar.js';
-import autoImagenes   from '../lib/handlers/auto-imagenes.js'; // Auto-carga de fotos de productos (barcode → banco de fotos → ícono fallback en frontend)
-import notif          from '../lib/handlers/notif.js';
-import pagos          from '../lib/handlers/pagos.js';
-import pedidos        from '../lib/handlers/pedidos.js';
-import piloto         from '../lib/handlers/piloto.js';
-import pos            from '../lib/handlers/pos.js';
-import posScanner     from '../lib/handlers/pos-scanner.js'; // v612 — vincular celular como lector remoto
-import proveedores    from '../lib/handlers/proveedores.js';
-import rutasLive      from '../lib/handlers/rutas-live.js';
-import score          from '../lib/handlers/score.js';
-import stockAuto      from '../lib/handlers/stock-auto.js';
-import stock          from '../lib/handlers/stock.js';
-import setup          from '../lib/handlers/setup.js';
-import migracion      from '../lib/handlers/migracion.js'; // Wizard de migración de clientes/productos
-import registro       from '../lib/handlers/registro.js';  // §2.1 Registro público SaaS
-import registroSocial from '../lib/handlers/registro-social.js'; // Registro público SaaS vía Google/Microsoft/Facebook
-import usuarios       from '../lib/handlers/usuarios.js';  // Etapa 14 (auditoría UX) — alta/gestión de usuarios internos
-import choferInvitacion from '../lib/handlers/chofer_invitacion.js'; // Repartos — invitación de choferes por link/WhatsApp
-import saas           from '../lib/handlers/saas.js';      // §3 Panel superadmin SaaS
-import asistente      from '../lib/handlers/asistente.js'; // Asistente de ayuda interno (RAG, ver docs/ayuda)
-import exportContable from '../lib/handlers/export-contable.js'; // Etapa 6 — export contable (Tango/Bejerman/Contabilium)
-import reglasPrecio   from '../lib/handlers/reglas-precio.js'; // Etapa 2: CRUD de reglas_precio (243)
-import conciliacionBancaria from '../lib/handlers/conciliacion-bancaria.js'; // Etapa 3: conciliación bancaria (248)
-import fidelizacion   from '../lib/handlers/fidelizacion.js'; // Etapa 13 (auditoría UX) H1 — canje de recompensas desde el portal cliente
-import maestros       from '../lib/handlers/maestros.js';  // ABM de zonas, depósitos, listas de precio y categorías
-import bancoCodigos   from '../lib/handlers/banco-codigos.js'; // 440 — banco de códigos de barras compartido entre empresas
+import { bloquearSiSoloLectura } from '../lib/solo-lectura.js'; // 456 — corta mutaciones del usuario demo (Marina Torres) antes del handler
 
 // ── Sentry (Fase 4.1, plan de acción) ────────────────────────────────────
 // Se activa solo si SENTRY_DSN está seteada (Vercel → env vars del proyecto).
@@ -93,51 +71,75 @@ async function leerRawBody(req) {
   });
 }
 
-const HANDLERS = {
-  auth,
-  admin,
-  asistente,
-  auditoria,
-  automatizacion,
-  bcra,
-  busqueda,
-  cierre,
-  ciclos,
-  clientes,
-  empresa,
-  facturas,
-  importar,
-  'auto-imagenes': autoImagenes,
-  notif,
-  pagos,
-  pedidos,
-  piloto,
-  pos,
-  'pos-scanner': posScanner, // v612 — vincular celular como lector remoto
-  proveedores,
-  'rutas-live': rutasLive,
-  score,
-  'stock-auto': stockAuto,
-  stock,
-  setup,
-  migracion,
-  registro,  // POST /api/registro — registro público de nuevas empresas
-  'registro-social': registroSocial, // POST /api/registro-social — completa el registro para altas por Google/Microsoft/Facebook
-  usuarios,  // /api/usuarios — alta/gestión de usuarios internos
-  'chofer-invitacion': choferInvitacion, // /api/chofer-invitacion — admin (invitar/listar/revocar) + público (ver/activar)
-  saas,      // /api/saas/* — panel superadmin SaaS
-  'export-contable': exportContable, // Etapa 6 — export contable
-  'reglas-precio': reglasPrecio,
-  'reglas-automatizacion': reglasAutomatizacion, // Fase 6 (plan ERP de sincronización)
-  'conciliacion-bancaria': conciliacionBancaria, // Etapa 3 — conciliación bancaria (248)
-  fidelizacion, // Etapa 13 (auditoría UX) H1 — catálogo de recompensas canjeable desde el portal cliente
-  maestros, // ABM de zonas, depósitos, listas de precio y categorías
-  'banco-codigos': bancoCodigos, // 440 — banco de códigos de barras compartido entre empresas
+// LOADERS — mapa mod → () => import('../lib/handlers/archivo.js')
+// Clave y archivo viven en la misma línea (a diferencia del HANDLERS
+// original, que separaba el import arriba de la referencia acá abajo).
+// Mismas 40 claves que el HANDLERS anterior, verificado byte a byte.
+const LOADERS = {
+  auth:                    () => import('../lib/handlers/auth.js'),
+  admin:                   () => import('../lib/handlers/admin.js'),
+  asistente:               () => import('../lib/handlers/asistente.js'), // Asistente de ayuda interno (RAG, ver docs/ayuda)
+  auditoria:               () => import('../lib/handlers/auditoria.js'),
+  automatizacion:          () => import('../lib/handlers/automatizacion.js'),
+  bcra:                    () => import('../lib/handlers/bcra.js'), // Integración APIs públicas BCRA (cheques/situación)
+  busqueda:                () => import('../lib/handlers/busqueda.js'),
+  cierre:                  () => import('../lib/handlers/cierre.js'),
+  ciclos:                  () => import('../lib/handlers/ciclos.js'),
+  clientes:                () => import('../lib/handlers/clientes.js'),
+  empresa:                 () => import('../lib/handlers/empresa.js'),
+  facturas:                () => import('../lib/handlers/facturas.js'),
+  importar:                () => import('../lib/handlers/importar.js'),
+  'auto-imagenes':         () => import('../lib/handlers/auto-imagenes.js'), // Auto-carga de fotos de productos (barcode → banco de fotos → ícono fallback en frontend)
+  notif:                   () => import('../lib/handlers/notif.js'),
+  pagos:                   () => import('../lib/handlers/pagos.js'),
+  pedidos:                 () => import('../lib/handlers/pedidos.js'),
+  piloto:                  () => import('../lib/handlers/piloto.js'),
+  pos:                     () => import('../lib/handlers/pos.js'),
+  'pos-scanner':           () => import('../lib/handlers/pos-scanner.js'), // v612 — vincular celular como lector remoto
+  proveedores:             () => import('../lib/handlers/proveedores.js'),
+  'rutas-live':            () => import('../lib/handlers/rutas-live.js'),
+  score:                   () => import('../lib/handlers/score.js'),
+  'stock-auto':            () => import('../lib/handlers/stock-auto.js'),
+  stock:                   () => import('../lib/handlers/stock.js'),
+  setup:                   () => import('../lib/handlers/setup.js'),
+  migracion:               () => import('../lib/handlers/migracion.js'), // Wizard de migración de clientes/productos
+  registro:                () => import('../lib/handlers/registro.js'), // §2.1 Registro público SaaS
+  'registro-social':       () => import('../lib/handlers/registro-social.js'), // Registro público SaaS vía Google/Microsoft/Facebook
+  usuarios:                () => import('../lib/handlers/usuarios.js'), // Etapa 14 (auditoría UX) — alta/gestión de usuarios internos
+  'chofer-invitacion':     () => import('../lib/handlers/chofer_invitacion.js'), // Repartos — invitación de choferes por link/WhatsApp
+  saas:                    () => import('../lib/handlers/saas.js'), // §3 Panel superadmin SaaS
+  'export-contable':       () => import('../lib/handlers/export-contable.js'), // Etapa 6 — export contable (Tango/Bejerman/Contabilium)
+  'reglas-precio':         () => import('../lib/handlers/reglas-precio.js'), // Etapa 2: CRUD de reglas_precio (243)
+  'gastos-generales':      () => import('../lib/handlers/gastos-generales.js'), // CRUD de gastos_generales (479) — Ganancia Neta
+  'reglas-automatizacion': () => import('../lib/handlers/reglas-automatizacion.js'), // Fase 6 (plan ERP de sincronización)
+  'conciliacion-bancaria': () => import('../lib/handlers/conciliacion-bancaria.js'), // Etapa 3 — conciliación bancaria (248)
+  fidelizacion:            () => import('../lib/handlers/fidelizacion.js'), // Etapa 13 (auditoría UX) H1 — canje de recompensas desde el portal cliente
+  maestros:                () => import('../lib/handlers/maestros.js'), // ABM de zonas, depósitos, listas de precio y categorías
+  'banco-codigos':         () => import('../lib/handlers/banco-codigos.js'), // 440 — banco de códigos de barras compartido entre empresas
 };
+
+// Cache de módulos ya cargados en ESTE lambda (sobrevive entre invocaciones
+// "warm" del mismo contenedor, se pierde en cold start — que es exactamente
+// lo que queremos: pagar el import() una sola vez por contenedor, no una
+// vez por request).
+const moduleCache = new Map();
+
+async function cargarHandler(mod) {
+  if (moduleCache.has(mod)) return moduleCache.get(mod);
+
+  const loader = LOADERS[mod];
+  if (!loader) return null;
+
+  const imported = await loader();
+  const fn = imported.default;
+  moduleCache.set(mod, fn);
+  return fn;
+}
 
 export default async function handler(req, res) {
   const mod = req.query._mod;
-  const fn  = HANDLERS[mod];
+
+  const fn = await cargarHandler(mod);
 
   if (!fn) {
     // Sin CORS wildcard — applyCorsHeaders ya aplicó el origen correcto arriba
@@ -156,6 +158,12 @@ export default async function handler(req, res) {
     } catch (err) {
       return res.status(400).json({ error: 'Body inválido: se esperaba JSON' });
     }
+
+    // 456 — Usuario demo (solo_lectura=true, ver migración 456): corta acá
+    // cualquier mutación ANTES de llegar al handler, sin tener que tocar
+    // los ~35 handlers uno por uno. bloquearSiSoloLectura ya responde el
+    // 403 por su cuenta cuando corresponde.
+    if (await bloquearSiSoloLectura(req, res)) return;
   }
 
   try {

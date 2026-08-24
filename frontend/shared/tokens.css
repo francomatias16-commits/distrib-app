@@ -11,26 +11,29 @@
 
 :root {
 
-  /* ─── Paleta — "Hoja de Ruta": papel de depósito, no SaaS ─── */
-  --color-bg:           #F5F2EA; /* --paper: papel crudo cálido */
-  --color-surface:      #FCFAF5;
-  --color-surface-2:    #EAE4D6; /* --paper-2: superficie secundaria/hover */
-  --color-border:       #C7BFA9; /* línea de tinta sobre papel, WCAG ~2.3:1 dec., ver border-soft para texto */
-  --color-border-soft:  #DAD3C0;
+  /* ─── Paleta — alineada a la landing (frontend/index.html): papel +
+     verde/navy, en vez del amarillo señalética "Hoja de Ruta" anterior.
+     Ver /DESIGN_SYSTEM_HOJA_DE_RUTA.md — la dirección tipográfica/de
+     radios/sombras de ese documento se mantiene, solo cambia el color. */
+  --color-bg:           #F6F7F5; /* --paper de la landing */
+  --color-surface:      #FFFFFF;
+  --color-surface-2:    #ECEEEA; /* --paper-deep de la landing */
+  --color-border:       #DDE1DC; /* --line de la landing */
+  --color-border-soft:  #E7E9E4;
 
-  --color-text:         #16181D; /* --ink: grafito casi negro, no azul-negro corporativo */
-  --color-text-muted:   #4B4A45;
-  --color-text-light:   #6B695F; /* WCAG AA sobre --color-bg y --color-surface */
+  --color-text:         #111A17; /* --ink de la landing */
+  --color-text-muted:   #5B6660; /* --muted de la landing */
+  --color-text-light:   #7A857E;
 
-  /* Acento: amarillo señalética de depósito (reemplaza el Electric Blue heredado de SaaS) */
-  --color-primary:      #B87A00; /* --accent-deep: texto/ícono sobre papel, AA sobre claro */
-  --color-primary-bg:   rgba(232,160,0,.14);
-  --color-primary-dark: #8F5F00;
+  /* Acento: verde de la landing (reemplaza el amarillo señalética de depósito) */
+  --color-primary:      #6A9873; /* --green de la landing */
+  --color-primary-bg:   rgba(106,152,115,.14);
+  --color-primary-dark: #487050; /* --green-deep de la landing */
 
-  --color-success:      #17402F;  --color-success-bg: #DCEDE3;  --color-success-mid: #1F5B4A; /* --route: verde ruta/mapa */
-  --color-warning:      #7A4A00;  --color-warning-bg: #FBEBC7;  --color-warning-mid: #B87A00;
-  --color-danger:       #7A1E19;  --color-danger-bg:  #F3DAD8;  --color-danger-mid:  #B3261E; /* --alert: sello anulado/vencido */
-  --color-info:         #1E3A52;  --color-info-bg:    #DCE6EC;  --color-info-mid:    #2E6088;
+  --color-success:      #487050;  --color-success-bg: #E2F0E5;  --color-success-mid: #75A37D; /* --green-deep / --green-light */
+  --color-warning:      #8A5F13;  --color-warning-bg: #FBE8C9;  --color-warning-mid: #E0A53E; /* --amber de la landing */
+  --color-danger:       #7A2820;  --color-danger-bg:  #F5DDD8;  --color-danger-mid:  #D1594A; /* --red de la landing */
+  --color-info:         #1F3555;  --color-info-bg:    #DDE6EE;  --color-info-mid:    #33507A; /* --navy / --navy-light de la landing */
 
   /* Pills/badges categóricos — para etiquetas de tipo/categoría (ej. tipo de
      entidad en búsqueda global, tipo de movimiento) que no encajan en el set
@@ -39,7 +42,7 @@
   --pill-neutral-bg: #EAE4D6;  --pill-neutral-text: #4B4A45;
   --pill-purple-bg:  #EDE4F5;  --pill-purple-text:  #5B4A8F;
   --pill-pink-bg:    #F5E4EC;  --pill-pink-text:    #8F3A5C;
-  --pill-orange-bg:  #F0DCC0;  --pill-orange-text:  #8F5F00;
+  --pill-orange-bg:  #FBE8C9;  --pill-orange-text:  #8A5F13;
 
   /* Violeta de migración — 3 tonos para el badge/sección de "origen de
      migración" (migracion-badge.js), que traía un violeta Tailwind crudo
@@ -56,30 +59,36 @@
   --violeta-rgb:   91,74,143;
 
   /* Tonos de fondo sólido con texto blanco encima (botones/sellos), AA 4.5:1+ */
-  --color-box-primary:  #B87A00;
-  --color-box-success:  #1F5B4A;
-  --color-box-warning:  #8F5F00;
-  --color-box-danger:   #B3261E;
-  --color-box-info:     #2E6088;
+  --color-box-primary:  #6A9873;
+  --color-box-success:  #487050;
+  --color-box-warning:  #8A5F13;
+  --color-box-danger:   #B8402E;
+  --color-box-info:     #33507A;
 
-  /* ─── Nav — riel oscuro tipo tablero de despacho ─── */
-  --nav-dark-bg:        #16181D;
-  --nav-dark-rail:      #1E2128;
-  --nav-dark-text:      #C9C6BA;
-  --nav-dark-text-sub:  #8E8C82;
-  --nav-dark-border:    #2C2F37;
-  --nav-dark-hover:     rgba(232,160,0,.10);
-  --nav-dark-active:    rgba(232,160,0,.16);
+  /* ─── Nav — riel oscuro, paleta dark de la landing (--bg-900/850/800) ─── */
+  --nav-dark-bg:        #0A1119;
+  --nav-dark-rail:      #0E1826;
+  --nav-dark-text:      #C9CCD3;
+  --nav-dark-text-sub:  #8890A0;
+  --nav-dark-border:    #122132;
+  --nav-dark-hover:     rgba(106,152,115,.10);
+  --nav-dark-active:    rgba(106,152,115,.16);
 
-  /* Workspaces — colores de acento por sección, redefinidos fuera de la paleta "SaaS blue" */
-  --nav-hoy:          #B87A00;   --nav-hoy-bg:          rgba(232,160,0,.14);
-  --nav-ventas:       #1F5B4A;   --nav-ventas-bg:       rgba(31,91,74,.12);
-  --nav-deposito:     #8F5F00;   --nav-deposito-bg:     rgba(143,95,0,.12);
-  --nav-cobros:       #8F5F00;   --nav-cobros-bg:       rgba(143,95,0,.12);
+  /* Workspaces — colores de acento por sección, tomados de la landing */
+  --nav-hoy:          #6A9873;   --nav-hoy-bg:          rgba(106,152,115,.14);
+  --nav-ventas:       #487050;   --nav-ventas-bg:       rgba(72,112,80,.12);
+  --nav-deposito:     #1F3555;   --nav-deposito-bg:     rgba(31,53,85,.12);
+  --nav-cobros:       #3A9C96;   --nav-cobros-bg:       rgba(58,156,150,.12);
   --nav-facturacion:  #5B4A8F;   --nav-facturacion-bg:  rgba(91,74,143,.12);
   --nav-fidelizacion: #8F3A5C;   --nav-fidelizacion-bg: rgba(143,58,92,.12);
-  --nav-reportes:     #2E6088;   --nav-reportes-bg:     rgba(46,96,136,.12);
-  --nav-config:       #6B695F;   --nav-config-bg:       rgba(107,105,95,.12);
+  --nav-reportes:     #33507A;   --nav-reportes-bg:     rgba(51,80,122,.12);
+  --nav-config:       #5B6660;   --nav-config-bg:       rgba(91,102,96,.12);
+  /* v961 — "Asistente IA": único grupo del menú que no es una sección más
+     (ver destacado:true en nav-data.js) — dorado/ámbar, el único tono
+     cálido de la rueda de acentos (el resto son verdes/navy/teal/violeta/
+     rosa), elegido justamente para no confundirse con ningún workspace
+     existente y saltar a la vista dentro del panel. */
+  --nav-ia:           #8A5F13;   --nav-ia-bg:           rgba(138,95,19,.16);
 
   /* ─── Tipografía — condensada industrial + utilitaria + mono para datos ─── */
   --font-family-display:  'Oswald', 'Arial Narrow', sans-serif; /* títulos, KPIs — estarcido de depósito */
@@ -119,7 +128,7 @@
 
   /* ─── Sombras — planas, casi sin difuminado: hoja apoyada sobre hoja, no elevación SaaS ─── */
   --shadow-outline:       0 0 0 1px var(--color-border-soft);
-  --shadow-outline-dark:  0 0 0 1px rgba(184,122,0,.20);
+  --shadow-outline-dark:  0 0 0 1px rgba(106,152,115,.20);
   --shadow-fluffy:
     0 1px 0 rgba(22,24,29,.06),
     2px 3px 0 rgba(22,24,29,.05);
@@ -141,12 +150,12 @@
   --glass-border: 1px solid var(--color-border-soft);
   --glass-blur:  none;
   --glass-modal: var(--color-surface);
-  --shadow-glow: 0 0 0 4px rgba(232,160,0,.20);
+  --shadow-glow: 0 0 0 4px rgba(106,152,115,.20);
   --shadow-big-dark: 0 1px 0 rgba(22,24,29,.05), 3px 5px 0 rgba(22,24,29,.07);
 
   /* ─── Gradientes — acento amarillo/ink, ya no azul corporativo ─── */
-  --gradient-primary: linear-gradient(135deg, #B87A00 0%, #8F5F00 100%);
-  --gradient-primary-text: linear-gradient(180deg, #B87A00 0%, #8F5F00 100%);
+  --gradient-primary: linear-gradient(135deg, #6A9873 0%, #487050 100%);
+  --gradient-primary-text: linear-gradient(180deg, #6A9873 0%, #487050 100%);
 
   /* ─── Transiciones ─── */
   --transition-fast: 120ms ease;
@@ -154,13 +163,81 @@
   --transition-slow: 350ms ease;
   --marquee-duration: 25s;
 
-  /* ─── Z-index ─── */
+  /* ─── Z-index ───
+     AUDITORIA-RESPONSIVE FASE1 (2026-08-22): la escala original se
+     cortaba en --z-tooltip:800, pero en producción hay overlays reales
+     que necesitan estar por encima de TODO (modal de producto con
+     sub-modales anidados: vincular-celular, Receta/BOM; chat widget;
+     toasts inyectados por JS en runtime). Al no existir un nivel para
+     eso, cada archivo nuevo inventaba su propio número grande (9999,
+     10000, 10001...) sin coordinarse entre sí — de ahí la fragmentación
+     del hallazgo 1.9. Se agregan acá los niveles que ya existen hoy en
+     el código como números sueltos, para que el próximo componente use
+     una var() en vez de otro número mágico más. Los valores hardcodeados
+     que ya existían (productos-modal-fix.css, skeletons.css, etc.) SÍ
+     fueron migrados a estas variables — ver el segundo bloque de abajo
+     y el CHANGELOG de la auditoría responsive Fase 1 (2026-08-22). */
   --z-base:0; --z-raised:10; --z-dropdown:100;
   --z-sticky:200; --z-modal:400; --z-toast:600; --z-tooltip:800;
+  --z-overlay-critical:9000;   /* "por encima de todo lo normal" (reemplaza al 9999 usado a mano) */
+  --z-modal-anidado-1:9100;    /* 1er nivel de modal dentro de otro modal */
+  --z-modal-anidado-2:9200;    /* 2do nivel anidado */
+  --z-modal-anidado-3:9300;    /* 3er nivel anidado (caso productos.css) */
+
+  /* ─── Z-index — migración hallazgo 1.9 (2026-08-22) ───
+     Cada valor de acá es EXACTAMENTE el número que ya estaba hardcodeado
+     en el archivo indicado — no se re-numeró nada. El objetivo es solo
+     centralizar los números mágicos en variables con nombre, sin tocar
+     el orden de stacking real (cero riesgo visual). Migración hecha
+     archivo por archivo con verificación de que ningún valor compartido
+     tapara a otro dentro de la misma página. */
+  --z-popover:40;              /* dropdowns/tooltips locales (compras, productos, catalogo) */
+  --z-panel:50;                /* panel/FAB local elevado (clientes, compras, finanzas, productos,
+                                   stock, remito, carrito, catalogo, login) */
+  --z-panel-2:60;               /* mismo rol que --z-panel, un escalón por encima (cliente/pedidos) */
+  --z-modal-backdrop:300;      /* fondo oscuro de modal, por debajo de --z-modal (clientes, facturacion,
+                                   gastos-generales, login, pedidos, productos, reglas-precio, stock) */
+  --z-nav-panel:401;           /* panel del menú de usuario, admin/nav.css (justo sobre --z-modal) */
+  --z-flyout:500;              /* modal-overlay "legacy" de finanzas.css/rutas.css/pedidos.css */
+  --z-chat-widget:590;         /* burbuja + panel del asistente de chat (shared/chat-widget.css) */
+  --z-mnav-overlay:690;        /* fondo del drawer de navegación mobile (admin/nav.css) */
+  --z-mnav-panel:691;          /* panel del drawer de navegación mobile (admin/nav.css) */
+  --z-mnav-toggle:700;         /* botón que abre/cierra el drawer mobile (admin/nav.css) */
+  --z-confirm-dialog:750;      /* diálogo global window.confirmar()/confirmarConTexto() (ui-utils.js).
+                                   Dedicado y fijo: antes reutilizaba --z-modal (400) y algunas páginas
+                                   (notas, cheques, cobranzas, productos) subían --z-modal a 10100 a nivel
+                                   :root para que este diálogo superara a su modal local (--z-flyout:500) —
+                                   pero --z-modal también lo usa el backdrop del "Menú principal" global
+                                   (admin/nav.css), así que esa página entera quedaba tapada por el fondo
+                                   oscuro del menú por encima de su propio panel. Con un token propio, ya
+                                   por encima de --z-flyout sin tocar --z-modal, esas cuatro sobreescrituras
+                                   dejan de hacer falta. */
+  --z-cobranzas-overlay:999;   /* overlay fullscreen puntual de cobranzas-gentelella.css */
+  --z-modal-stack-1:1000;      /* backdrop de modal en cascada (automatizacion, devoluciones) */
+  --z-modal-stack-2:1001;      /* contenido de modal en cascada, sobre --z-modal-stack-1 */
+  --z-modal-stack-3:1002;      /* feedback/confirm por encima del stack anterior (devoluciones) */
+  --z-rutas-toggle:10000;      /* botón flotante compacto de rutas-professional.css */
+  --z-super-overlay:10500;     /* overlay crítico puntual (productos.css / stock-overview.css) */
+  --z-super-overlay-content:10501; /* contenido sobre --z-super-overlay */
 }
 
 /* ─── Reset ─── */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Neutraliza el resaltado celeste/amarillo nativo que pone el navegador
+   en inputs autocompletados (usuario/contraseña guardados), para que se
+   vean iguales al resto — sin este override, Chrome fuerza su propio
+   fondo y no hay forma de anularlo solo con `background`. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+  caret-color: var(--color-text);
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 body {
   font-family:    var(--font-family);
@@ -186,21 +263,48 @@ h1, h2, h3, .titulo-seccion, .kpi-valor, .display {
 }
 
 /* ─── Toast ─── */
+/* [Fix — recuadro vacío que quedaba pegado abajo en TODAS las páginas]
+   El estado "oculto" dependía solo de `translateY(120%)`, un porcentaje
+   relativo a la altura PROPIA del toast (~40px para un mensaje de una
+   línea). Eso lo corre apenas ~48px hacia abajo — muy por debajo de los
+   96px (+ su propia altura) que haría falta para sacarlo del viewport
+   dado el `bottom: 96px`. En la práctica el toast "oculto" NUNCA salía
+   de la pantalla: solo bajaba un poco y quedaba flotando como un
+   recuadro vacío pegado al borde inferior, en cualquier página que
+   dispare al menos un toast (o sea, casi todas).
+   Ahora "oculto" también apaga opacity/visibility, así queda realmente
+   invisible sin importar cuánto mida el mensaje. El transform se deja
+   solo como detalle visual (un leve deslizamiento), ya no como el
+   mecanismo que decide si se ve o no. */
 .toast {
   position: fixed; bottom: 96px; left: 50%;
-  transform: translateX(-50%) translateY(120%);
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0; visibility: hidden;
   background: var(--color-surface);
-  color: var(--color-text);
+  /* [Fix — aviso "Seleccioná un chofer" pasaba desapercibido] El tono neutro
+     (--color-text) + font-size-sm hacía que los avisos de validación (falta
+     elegir chofer, falta un dato obligatorio, etc.) quedaran casi ilegibles.
+     El tipo "default" es el que usan ~90% de esos avisos en toda la app
+     (rutas.js, clientes.js, facturacion.js, etc.), así que se sube acá,
+     en el componente global, para que impacte en todas las páginas y
+     secciones sin tener que tocar cada llamado a toast() una por una. */
+  color: var(--color-danger);
   border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-primary);
+  border-left: 4px solid var(--color-danger-mid);
   padding: 10px 18px; border-radius: var(--radius-md);
-  font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md); font-weight: var(--font-weight-bold);
   box-shadow: var(--shadow-big); z-index: var(--z-toast);
-  transition: transform var(--transition-slow), opacity var(--transition-slow);
+  transition: transform var(--transition-slow), opacity var(--transition-slow),
+              visibility 0s linear var(--transition-slow);
   pointer-events: none; max-width: min(90vw,380px);
   text-align: center; letter-spacing: .01em;
+  overflow: hidden; /* recorta la barra de progreso a las esquinas redondeadas */
 }
-.toast--visible, .toast.show, .toast.visible { transform: translateX(-50%) translateY(0); }
+.toast--visible, .toast.show, .toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; visibility: visible;
+  transition: transform var(--transition-slow), opacity var(--transition-slow), visibility 0s;
+}
 .toast--success, .toast.exito {
   border-left-color: var(--color-success-mid);
   color: var(--color-success);
@@ -212,6 +316,20 @@ h1, h2, h3, .titulo-seccion, .kpi-valor, .display {
 .toast--warning {
   border-left-color: var(--color-warning-mid);
   color: var(--color-warning);
+}
+/* Barra de progreso: muestra visualmente el tiempo que le queda al mensaje
+   antes de auto-ocultarse, para que quede claro que no está "trabado". La
+   duración real la fija ui-utils.js vía animation-duration inline (ver
+   `_toastBarEl.style.animation` en la función toast()). */
+.toast-progress {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+  background: currentColor; opacity: .35;
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
 }
 
 /* ─── Sello de estado (elemento firma "Hoja de Ruta") ───
@@ -252,11 +370,11 @@ h1, h2, h3, .titulo-seccion, .kpi-valor, .display {
 .btn--primary {
   background: var(--color-box-primary); color: #fff;
   border-color: var(--color-box-primary);
-  box-shadow: 0 1px 2px rgba(184,122,0,.25);
+  box-shadow: 0 1px 2px rgba(106,152,115,.25);
 }
 .btn--primary:hover:not(:disabled) {
   background: var(--color-primary-dark); border-color: var(--color-primary-dark);
-  box-shadow: var(--shadow-glow), 0 4px 12px rgba(184,122,0,.22);
+  box-shadow: var(--shadow-glow), 0 4px 12px rgba(106,152,115,.22);
 }
 .btn--success  { background: var(--color-box-success); color: #fff; border-color: var(--color-box-success); }
 .btn--danger   { background: var(--color-box-danger);  color: #fff; border-color: var(--color-box-danger); }
@@ -289,7 +407,7 @@ h1, h2, h3, .titulo-seccion, .kpi-valor, .display {
   border-radius: 50%; animation: btn-spin .65s linear infinite;
 }
 .btn--ghost.btn--loading::after, .btn--outline-primary.btn--loading::after {
-  border-color: rgba(184,122,0,.28); border-top-color: var(--color-primary);
+  border-color: rgba(106,152,115,.28); border-top-color: var(--color-primary);
 }
 @keyframes btn-spin { to { transform: rotate(360deg); } }
 
@@ -359,7 +477,7 @@ h1, h2, h3, .titulo-seccion, .kpi-valor, .display {
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   line-height: 1.5;
 }
-.input-base:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(232,160,0,.16); }
+.input-base:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(106,152,115,.16); }
 .input-base::placeholder { color: var(--color-text-light); }
 .input-base:disabled { opacity: .55; cursor: not-allowed; background: var(--color-surface-2); }
 

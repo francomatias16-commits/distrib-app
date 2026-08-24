@@ -42,6 +42,32 @@
     return opt ? opt.textContent.trim() : '';
   }
 
+  // Lleva al usuario directo al select de depósito cuando falta elegir uno
+  // puntual (en vez de solo avisarle con el toast): en mobile el bloque de
+  // filtros avanzados está colapsado por defecto (ver toggleFiltrosAvanzados
+  // en stock.js), así que primero hay que desplegarlo. Después scrollea,
+  // resalta brevemente y enfoca/abre el combo — showPicker() despliega la
+  // lista de opciones de una si el navegador lo soporta (Chrome/Edge); si
+  // no, el foco + resalte igual deja clarísimo dónde hay que tocar.
+  function irAlFiltroDeposito() {
+    const wrap = document.getElementById('filtros-avanzados-stock');
+    if (wrap && !wrap.classList.contains('abierto')) {
+      wrap.classList.add('abierto');
+      document.getElementById('btn-toggle-filtros-der')?.classList.add('abierto');
+      document.getElementById('btn-toggle-filtros-der')?.setAttribute('aria-expanded', 'true');
+    }
+    const sel = document.getElementById('filtro-deposito');
+    if (!sel) return;
+    sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    sel.classList.add('campo-resaltado-atencion');
+    const quitarResalte = () => sel.classList.remove('campo-resaltado-atencion');
+    sel.addEventListener('change', quitarResalte, { once: true });
+    sel.addEventListener('blur', quitarResalte, { once: true });
+    setTimeout(quitarResalte, 3000);
+    sel.focus({ preventScroll: true });
+    try { sel.showPicker?.(); } catch (_) { /* no soportado — el foco alcanza */ }
+  }
+
   async function buscarYAbrir(codigo, depId) {
     const sb = window.authCtx?.sb;
     if (!sb) return;
@@ -104,6 +130,7 @@
       window.mostrarToast
         ? window.mostrarToast('Elegí un depósito puntual en el filtro antes de vincular el celular.', 'error', 4000)
         : alert('Elegí un depósito puntual en el filtro antes de vincular el celular.');
+      irAlFiltroDeposito();
       return;
     }
     if (!window.authCtx?.sb) return;
@@ -128,6 +155,7 @@
       window.mostrarToast
         ? window.mostrarToast('Elegí un depósito puntual en el filtro antes de escanear.', 'error', 4000)
         : alert('Elegí un depósito puntual en el filtro antes de escanear.');
+      irAlFiltroDeposito();
       return;
     }
     if (!window.CameraScanner) return;

@@ -19,10 +19,13 @@ const {
   listarFacturasProveedorFiltradas,
   listarPagosFactura,
   existeProveedorEnEmpresa,
+  existeOrdenCompraEnEmpresa,
   insertarFacturaProveedorCC,
   insertarItemsFacturaProveedorCC,
   eliminarItemsFacturaProveedorCC,
   conciliarOcFacturaRpc,
+  altaFacturaProveedorRpc,
+  editarFacturaProveedorRpc,
   actualizarConciliacionFactura,
   registrarPagoProveedorRpc,
   obtenerFacturaEstadoTotalPagado,
@@ -169,11 +172,45 @@ describe('insertarFacturaProveedorCC / items', () => {
 });
 
 describe('conciliarOcFacturaRpc / registrarPagoProveedorRpc', () => {
-  it('conciliarOcFacturaRpc envuelve la RPC con los p_ params esperados', async () => {
+  // FIX (auditoría v880, punto 2): la RPC ahora exige p_empresa_id y valida
+  // tenant/proveedor antes de conciliar. Estos tests cubren tanto el wrapper
+  // del repo como el comportamiento esperado de la RPC ante cruces de tenant.
+
+  it('conciliarOcFacturaRpc envuelve la RPC con p_empresa_id incluido', async () => {
     dbMock.rpc.mockResolvedValue({ data: { ok: true, discrepancias: [] }, error: null });
-    const { data } = await conciliarOcFacturaRpc({ orden_id: 'oc1', factura_id: 'f1', umbral_pct: 5 });
-    expect(dbMock.rpc).toHaveBeenCalledWith('conciliar_oc_factura', { p_orden_id: 'oc1', p_factura_id: 'f1', p_umbral_pct: 5 });
+    const { data } = await conciliarOcFacturaRpc({ orden_id: 'oc1', factura_id: 'f1', empresa_id: 'e1', umbral_pct: 5 });
+    expect(dbMock.rpc).toHaveBeenCalledWith('conciliar_oc_factura', {
+      p_orden_id: 'oc1', p_factura_id: 'f1', p_empresa_id: 'e1', p_umbral_pct: 5,
+    });
     expect(data.ok).toBe(true);
+  });
+
+  it('conciliarOcFacturaRpc rechaza sin llamar a la RPC si falta empresa_id', async () => {
+    const { data } = await conciliarOcFacturaRpc({ orden_id: 'oc1', factura_id: 'f1', umbral_pct: 5 });
+    expect(dbMock.rpc).not.toHaveBeenCalled();
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('EMPRESA_REQUERIDA');
+  });
+
+  it('propaga el rechazo de la RPC cuando OC y factura son de empresas distintas', async () => {
+    // Simula el caso real: OC de empresa B usada con factura de empresa A.
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'EMPRESA_NO_COINCIDE', error: 'la orden y la factura no pertenecen a la misma empresa' },
+      error: null,
+    });
+    const { data } = await conciliarOcFacturaRpc({ orden_id: 'oc-empresa-B', factura_id: 'f-empresa-A', empresa_id: 'empresaA', umbral_pct: 5 });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('EMPRESA_NO_COINCIDE');
+  });
+
+  it('propaga el rechazo de la RPC cuando OC y factura son del mismo empresa pero proveedores distintos', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'PROVEEDOR_NO_COINCIDE', error: 'la orden y la factura no pertenecen al mismo proveedor' },
+      error: null,
+    });
+    const { data } = await conciliarOcFacturaRpc({ orden_id: 'oc-prov1', factura_id: 'f-prov2', empresa_id: 'e1', umbral_pct: 5 });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('PROVEEDOR_NO_COINCIDE');
   });
 
   it('registrarPagoProveedorRpc pasa el payload tal cual', async () => {
@@ -181,6 +218,18 @@ describe('conciliarOcFacturaRpc / registrarPagoProveedorRpc', () => {
     const payload = { p_empresa_id: 'e1', p_proveedor_id: 'p1', p_factura_id: 'f1', p_monto: 100 };
     await registrarPagoProveedorRpc(payload);
     expect(dbMock.rpc).toHaveBeenCalledWith('registrar_pago_proveedor', payload);
+  });
+});
+
+describe('existeOrdenCompraEnEmpresa', () => {
+  it('devuelve true si la OC existe en la empresa', async () => {
+    dbMock.from.mockReturnValue(fakeQuery({ data: { id: 'oc1' }, error: null }));
+    expect(await existeOrdenCompraEnEmpresa({ empresa_id: 'e1', orden_id: 'oc1' })).toBe(true);
+  });
+
+  it('devuelve false si la OC es de otra empresa (cross-tenant) o no existe', async () => {
+    dbMock.from.mockReturnValue(fakeQuery({ data: null, error: null }));
+    expect(await existeOrdenCompraEnEmpresa({ empresa_id: 'empresaA', orden_id: 'oc-de-empresaB' })).toBe(false);
   });
 });
 
@@ -218,5 +267,156 @@ describe('actualizarFacturaProveedorCC', () => {
     dbMock.from.mockReturnValue(fakeQuery({ data: row, error: null }));
     const data = await actualizarFacturaProveedorCC({ id: 'f1', empresa_id: 'e1', upd: { estado: 'pendiente' } });
     expect(data).toEqual(row);
+  });
+});
+
+describe('altaFacturaProveedorRpc', () => {
+  // Punto 3 auditoría: el alta pasa a ser una única RPC transaccional
+  // (cabecera + ítems + conciliación + auditoría atómicos). Estos tests
+  // cubren el wrapper del repo — el comportamiento transaccional en sí
+  // (rollback ante item inválido, cross-tenant, etc.) se probó en vivo
+  // contra Supabase al aplicar la migración 506.
+
+  it('envuelve la RPC con todos los parámetros, incluido empresa_id y usuario_id', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: true, factura_id: 'f1', subtotal: 100, iva_monto: 21, total: 121, conciliacion: null },
+      error: null,
+    });
+    const { data } = await altaFacturaProveedorRpc({
+      empresa_id: 'e1', proveedor_id: 'p1', numero_factura: 'A-0001', fecha_factura: '2026-08-19',
+      orden_id: 'oc1', tipo: 'A', fecha_vencimiento: '2026-09-19', iva_pct: 21, notas: 'nota',
+      items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 100 }], umbral_pct: 5, usuario_id: 'u1',
+    });
+    expect(dbMock.rpc).toHaveBeenCalledWith('alta_factura_proveedor', {
+      p_empresa_id: 'e1', p_proveedor_id: 'p1', p_numero_factura: 'A-0001', p_fecha_factura: '2026-08-19',
+      p_orden_id: 'oc1', p_tipo: 'A', p_fecha_vencimiento: '2026-09-19', p_iva_pct: 21, p_notas: 'nota',
+      p_items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 100 }], p_umbral_pct: 5, p_usuario_id: 'u1',
+    });
+    expect(data.ok).toBe(true);
+    expect(data.factura_id).toBe('f1');
+  });
+
+  it('aplica defaults (orden_id null, tipo A, iva_pct 21, umbral_pct 5) si no vienen', async () => {
+    dbMock.rpc.mockResolvedValue({ data: { ok: true, factura_id: 'f2' }, error: null });
+    await altaFacturaProveedorRpc({
+      empresa_id: 'e1', proveedor_id: 'p1', numero_factura: 'A-0002', fecha_factura: '2026-08-19',
+      items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 50 }],
+    });
+    expect(dbMock.rpc).toHaveBeenCalledWith('alta_factura_proveedor', expect.objectContaining({
+      p_orden_id: null, p_tipo: 'A', p_iva_pct: 21, p_umbral_pct: 5, p_usuario_id: null,
+    }));
+  });
+
+  it('propaga el rechazo de la RPC (ítem inválido) sin que el wrapper lo transforme', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'ITEM_PRECIO_INVALIDO', error: 'cada item requiere precio_unitario >= 0' },
+      error: null,
+    });
+    const { data } = await altaFacturaProveedorRpc({
+      empresa_id: 'e1', proveedor_id: 'p1', numero_factura: 'A-0003', fecha_factura: '2026-08-19',
+      items: [{ descripcion: 'item', cantidad: 1, precio_unitario: -5 }],
+    });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('ITEM_PRECIO_INVALIDO');
+  });
+
+  it('propaga el rechazo cuando la OC es de otra empresa (cross-tenant)', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'EMPRESA_NO_COINCIDE', error: 'la orden de compra no pertenece a la empresa' },
+      error: null,
+    });
+    const { data } = await altaFacturaProveedorRpc({
+      empresa_id: 'empresaA', proveedor_id: 'p1', numero_factura: 'A-0004', fecha_factura: '2026-08-19',
+      orden_id: 'oc-de-empresaB', items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 10 }],
+    });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('EMPRESA_NO_COINCIDE');
+  });
+});
+
+describe('editarFacturaProveedorRpc', () => {
+  // Punto 4 auditoría: la edición pasa a ser una única RPC transaccional
+  // (lock FOR UPDATE + control de versión + cabecera + ítems +
+  // reconciliación + auditoría atómicos). Estos tests cubren el wrapper
+  // del repo — el comportamiento transaccional en sí (rollback ante item
+  // inválido, cross-tenant, conflicto de versión) se probó en vivo contra
+  // Supabase al aplicar la migración 507.
+
+  it('envuelve la RPC con todos los parámetros, incluidos los flags *_provisto', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: true, factura_id: 'f1', orden_id: 'oc1', conciliacion: null },
+      error: null,
+    });
+    const { data } = await editarFacturaProveedorRpc({
+      empresa_id: 'e1', id: 'f1', expected_updated_at: '2026-08-19T10:00:00Z',
+      estado: 'pendiente', notas: 'nota nueva', notas_provisto: true,
+      fecha_vencimiento: '2026-09-19', numero_factura: 'A-0001', tipo: 'A',
+      fecha_factura: '2026-08-19', iva_pct: 21,
+      orden_id_provisto: true, orden_id: 'oc1',
+      items_provisto: true, items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 100 }],
+      umbral_pct: 5, usuario_id: 'u1',
+    });
+    expect(dbMock.rpc).toHaveBeenCalledWith('editar_factura_proveedor', {
+      p_empresa_id: 'e1', p_id: 'f1', p_expected_updated_at: '2026-08-19T10:00:00Z',
+      p_estado: 'pendiente', p_notas: 'nota nueva', p_notas_provisto: true,
+      p_fecha_vencimiento: '2026-09-19', p_numero_factura: 'A-0001', p_tipo: 'A',
+      p_fecha_factura: '2026-08-19', p_iva_pct: 21,
+      p_orden_id_provisto: true, p_orden_id: 'oc1',
+      p_items_provisto: true, p_items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 100 }],
+      p_umbral_pct: 5, p_usuario_id: 'u1',
+    });
+    expect(data.ok).toBe(true);
+  });
+
+  it('manda los flags *_provisto en false y expected_updated_at null si no vienen (edición parcial sin control de versión)', async () => {
+    dbMock.rpc.mockResolvedValue({ data: { ok: true, factura_id: 'f2' }, error: null });
+    await editarFacturaProveedorRpc({ empresa_id: 'e1', id: 'f2', notas: 'solo notas', notas_provisto: true });
+    expect(dbMock.rpc).toHaveBeenCalledWith('editar_factura_proveedor', expect.objectContaining({
+      p_expected_updated_at: null,
+      p_orden_id_provisto: false, p_items_provisto: false,
+      p_notas: 'solo notas', p_notas_provisto: true,
+      p_umbral_pct: 5, p_usuario_id: null,
+    }));
+  });
+
+  it('propaga VERSION_CONFLICT sin que el wrapper lo transforme', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: {
+        ok: false, codigo: 'VERSION_CONFLICT',
+        error: 'La factura fue editada por otra persona mientras tanto. Volvé a abrirla para ver los cambios.',
+        updated_at_actual: '2026-08-19T11:00:00Z',
+      },
+      error: null,
+    });
+    const { data } = await editarFacturaProveedorRpc({
+      empresa_id: 'e1', id: 'f3', expected_updated_at: '2026-08-19T10:00:00Z', notas: 'x', notas_provisto: true,
+    });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('VERSION_CONFLICT');
+    expect(data.updated_at_actual).toBe('2026-08-19T11:00:00Z');
+  });
+
+  it('propaga EDICION_NO_PERMITIDA (factura anulada o con pagos) sin que el wrapper lo transforme', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'EDICION_NO_PERMITIDA', error: 'No se pueden editar los datos/ítems de una factura anulada o con pagos ya registrados.' },
+      error: null,
+    });
+    const { data } = await editarFacturaProveedorRpc({
+      empresa_id: 'e1', id: 'f4', items_provisto: true, items: [{ descripcion: 'item', cantidad: 1, precio_unitario: 10 }],
+    });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('EDICION_NO_PERMITIDA');
+  });
+
+  it('propaga el rechazo cuando la nueva OC es de otra empresa (cross-tenant)', async () => {
+    dbMock.rpc.mockResolvedValue({
+      data: { ok: false, codigo: 'EMPRESA_NO_COINCIDE', error: 'la orden de compra no pertenece a la empresa' },
+      error: null,
+    });
+    const { data } = await editarFacturaProveedorRpc({
+      empresa_id: 'empresaA', id: 'f5', orden_id_provisto: true, orden_id: 'oc-de-empresaB',
+    });
+    expect(data.ok).toBe(false);
+    expect(data.codigo).toBe('EMPRESA_NO_COINCIDE');
   });
 });

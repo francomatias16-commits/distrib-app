@@ -133,28 +133,21 @@ body.dash-export-contable-gentelella .badge-listo {
   color: var(--ge-teal-dark) !important;
 }
 
-/* Chips genéricos (ok/no) */
-body.dash-export-contable-gentelella .chip-ok {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-export-contable-gentelella .chip-no {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-orange) !important;
-}
+/* Chips genéricos (ok/no) — movidos al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan). */
 
 /* Botones */
-body.dash-export-contable-gentelella .btn-primary {
+body.dash-export-contable-gentelella .btn--primary {
   background: var(--ge-teal) !important;
   color: var(--ge-panel) !important;
   border-radius: var(--ge-radius-btn) !important;
   font-weight: 600 !important;
 }
-body.dash-export-contable-gentelella .btn-primary:hover {
+body.dash-export-contable-gentelella .btn--primary:hover {
   filter: none !important;
   background: var(--ge-teal-dark) !important;
 }
-body.dash-export-contable-gentelella .btn-primary:disabled {
+body.dash-export-contable-gentelella .btn--primary:disabled {
   opacity: .55 !important;
 }
 body.dash-export-contable-gentelella .btn-secundario {
@@ -204,17 +197,27 @@ body.dash-export-contable-gentelella .tabla-header h2 {
 body.dash-export-contable-gentelella .tabla-header span {
   color: var(--ge-muted) !important;
 }
-body.dash-export-contable-gentelella .tabla th {
+body.dash-export-contable-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  padding: 10px 14px !important; /* valor del <style> inline pre-reskin, preservado al migrar a .tabla-admin */
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+  white-space: nowrap !important;
 }
-body.dash-export-contable-gentelella .tabla td {
+body.dash-export-contable-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  padding: 10px 14px !important; /* valor del <style> inline pre-reskin, preservado al migrar a .tabla-admin */
 }
-body.dash-export-contable-gentelella .tabla tbody tr:hover {
+body.dash-export-contable-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
+}
+body.dash-export-contable-gentelella .tabla-admin tbody tr:last-child td {
+  border-bottom: none !important; /* del <style> inline pre-reskin: el gentelella pisa el borde por td, no por tr, así que hace falta este negador explícito */
 }
 body.dash-export-contable-gentelella .empty-state {
   color: var(--ge-muted) !important;

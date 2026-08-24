@@ -8,6 +8,15 @@ let estadoReportesFinancieros = {
 
 let chartsInstancias = {};
 
+// Setea el ancho de la barra de magnitud de una línea del manifiesto de KPIs
+// (0-100, ya clampeado). Tolerante a que el elemento no exista todavía.
+function setBarraKpi(id, pct) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = Math.max(0, Math.min(100, isFinite(pct) ? pct : 0));
+    el.style.setProperty('--bar', val + '%');
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -107,10 +116,27 @@ async function cargarKPIsFinancieros() {
 
         if (error) throw error;
 
-        // Obtener costos de productos
+        // Ventas de mostrador (POS) del mismo período — mismo criterio que usa
+        // el dashboard ejecutivo (obtenerVentasPosPeriodo): estado 'completada'.
+        const { data: ventasPos, error: errorPos } = await window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id)')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+
+        if (errorPos) throw errorPos;
+
+        // Obtener costos de productos (pedidos + POS)
         const productosIds = new Set();
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                if (item.producto_id) productosIds.add(item.producto_id);
+            });
+        });
+        (ventasPos || []).forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 if (item.producto_id) productosIds.add(item.producto_id);
             });
         });
@@ -125,13 +151,20 @@ async function cargarKPIsFinancieros() {
             productoCosto[p.id] = p.costo || 0;
         });
 
-        // Calcular ingresos y costos
+        // Calcular ingresos y costos (pedidos + POS)
         let ingresos = 0;
         let costos = 0;
 
         (pedidos || []).forEach(p => {
             ingresos += p.total || 0;
             (p.pedido_items || []).forEach(item => {
+                costos += (item.cantidad * (productoCosto[item.producto_id] || 0));
+            });
+        });
+
+        (ventasPos || []).forEach(v => {
+            ingresos += v.total || 0;
+            (v.venta_pos_items || []).forEach(item => {
                 costos += (item.cantidad * (productoCosto[item.producto_id] || 0));
             });
         });
@@ -154,12 +187,27 @@ async function cargarKPIsFinancieros() {
             .gte('fecha_pedido', fechaInicioAnterior.toISOString())
             .lte('fecha_pedido', fechaFinAnterior.toISOString());
 
+        const { data: ventasPosAnterior } = await window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id)')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .gte('created_at', fechaInicioAnterior.toISOString())
+            .lte('created_at', fechaFinAnterior.toISOString());
+
         let ingresosAnterior = 0;
         let costosAnterior = 0;
 
         (pedidosAnterior || []).forEach(p => {
             ingresosAnterior += p.total || 0;
             (p.pedido_items || []).forEach(item => {
+                costosAnterior += (item.cantidad * (productoCosto[item.producto_id] || 0));
+            });
+        });
+
+        (ventasPosAnterior || []).forEach(v => {
+            ingresosAnterior += v.total || 0;
+            (v.venta_pos_items || []).forEach(item => {
                 costosAnterior += (item.cantidad * (productoCosto[item.producto_id] || 0));
             });
         });
@@ -175,20 +223,77 @@ async function cargarKPIsFinancieros() {
 
         // Actualizar UI - Ingresos y Costos
         document.getElementById('kpiIngresos').textContent = `$${ingresos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioIngresos').textContent = `${cambioIngresos > 0 ? '+' : ''}${cambioIngresos}% vs período anterior`;
-        document.getElementById('kpiCambioIngresos').className = `kpi-change ${cambioIngresos >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioIngresos').textContent = `${cambioIngresos > 0 ? '+' : ''}${cambioIngresos}%`;
+        document.getElementById('kpiCambioIngresos').className = `linea-delta kpi-change ${cambioIngresos >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiCostos').textContent = `$${costos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioCostos').textContent = `${cambioCostos > 0 ? '+' : ''}${cambioCostos}% vs período anterior`;
-        document.getElementById('kpiCambioCostos').className = `kpi-change ${cambioCostos >= 0 ? 'negative' : 'positive'}`;
+        document.getElementById('kpiCambioCostos').textContent = `${cambioCostos > 0 ? '+' : ''}${cambioCostos}%`;
+        document.getElementById('kpiCambioCostos').className = `linea-delta kpi-change ${cambioCostos >= 0 ? 'negative' : 'positive'}`;
 
         document.getElementById('kpiMargen').textContent = `$${margenBruto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioMargen').textContent = `${cambioMargen > 0 ? '+' : ''}${cambioMargen}% vs período anterior`;
-        document.getElementById('kpiCambioMargen').className = `kpi-change ${cambioMargen >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioMargen').textContent = `${cambioMargen > 0 ? '+' : ''}${cambioMargen}%`;
+        document.getElementById('kpiCambioMargen').className = `linea-delta kpi-change ${cambioMargen >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiPorcentajeMargen').textContent = `${porcentajeMargen}%`;
-        document.getElementById('kpiCambioPorcentajeMargen').textContent = `${cambioPorcentajeMargen > 0 ? '+' : ''}${cambioPorcentajeMargen}% vs período anterior`;
-        document.getElementById('kpiCambioPorcentajeMargen').className = `kpi-change ${cambioPorcentajeMargen >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioPorcentajeMargen').textContent = `${cambioPorcentajeMargen > 0 ? '+' : ''}${cambioPorcentajeMargen}%`;
+        document.getElementById('kpiCambioPorcentajeMargen').className = `linea-delta kpi-change ${cambioPorcentajeMargen >= 0 ? 'positive' : 'negative'}`;
+
+        // Barras de magnitud (grupo "Resultado del período"): Ingresos/Costos/Margen
+        // relativos entre sí; % Margen usa directamente el porcentaje (0-100).
+        const maxGrupo1 = Math.max(ingresos, costos, Math.abs(margenBruto), 1);
+        setBarraKpi('kpiBarIngresos', ingresos / maxGrupo1 * 100);
+        setBarraKpi('kpiBarCostos', costos / maxGrupo1 * 100);
+        setBarraKpi('kpiBarMargen', Math.abs(margenBruto) / maxGrupo1 * 100);
+        setBarraKpi('kpiBarPorcentajeMargen', porcentajeMargen);
+
+        // Gastos Generales (migración 479) — alquiler/sueldos/servicios/impuestos/
+        // otros, la pieza que faltaba para que la Ganancia Neta sea de verdad
+        // neta: Ganancia Neta = Margen Bruto - Gastos Generales del período.
+        // Consulta directa vía RLS (mismo criterio que el resto de esta pantalla),
+        // no rompe el resto del panel si la migración 479 no corrió todavía.
+        try {
+            const [{ data: gastos }, { data: gastosAnterior }] = await Promise.all([
+                window.authCtx.sb.from('gastos_generales').select('monto')
+                    .eq('empresa_id', window.authCtx.perfil.empresa_id).eq('activo', true)
+                    .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString().slice(0, 10))
+                    .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString().slice(0, 10)),
+                window.authCtx.sb.from('gastos_generales').select('monto')
+                    .eq('empresa_id', window.authCtx.perfil.empresa_id).eq('activo', true)
+                    .gte('fecha', fechaInicioAnterior.toISOString().slice(0, 10))
+                    .lte('fecha', fechaFinAnterior.toISOString().slice(0, 10)),
+            ]);
+
+            const gastosGenerales = (gastos || []).reduce((s, g) => s + (Number(g.monto) || 0), 0);
+            const gastosGeneralesAnterior = (gastosAnterior || []).reduce((s, g) => s + (Number(g.monto) || 0), 0);
+
+            const gananciaNeta = margenBruto - gastosGenerales;
+            const gananciaNetaAnterior = margenBrutoAnterior - gastosGeneralesAnterior;
+            const porcentajeGananciaNeta = ingresos > 0 ? (gananciaNeta / ingresos * 100).toFixed(2) : 0;
+            const cambioGananciaNeta = gananciaNetaAnterior > 0
+                ? ((gananciaNeta - gananciaNetaAnterior) / gananciaNetaAnterior * 100).toFixed(1) : 0;
+
+            document.getElementById('kpiGastosGenerales').textContent = `$${gastosGenerales.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+            const elGananciaNeta = document.getElementById('kpiGananciaNeta');
+            elGananciaNeta.textContent = `$${gananciaNeta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+            elGananciaNeta.className = `linea-valor dato-mono ${gananciaNeta >= 0 ? 'valor-positivo' : 'valor-negativo'}`;
+            document.getElementById('kpiCambioGananciaNeta').textContent = `${cambioGananciaNeta > 0 ? '+' : ''}${cambioGananciaNeta}%`;
+            document.getElementById('kpiCambioGananciaNeta').className = `linea-delta kpi-change ${cambioGananciaNeta >= 0 ? 'positive' : 'negative'}`;
+            const elPorcentajeGananciaNeta = document.getElementById('kpiPorcentajeGananciaNeta');
+            elPorcentajeGananciaNeta.textContent = `${porcentajeGananciaNeta}%`;
+            elPorcentajeGananciaNeta.className = `linea-valor dato-mono ${porcentajeGananciaNeta >= 0 ? 'valor-positivo' : 'valor-negativo'}`;
+
+            // Barras de magnitud (grupo "Rentabilidad neta")
+            const maxGrupo2 = Math.max(gastosGenerales, Math.abs(gananciaNeta), 1);
+            setBarraKpi('kpiBarGastosGenerales', gastosGenerales / maxGrupo2 * 100);
+            setBarraKpi('kpiBarGananciaNeta', Math.abs(gananciaNeta) / maxGrupo2 * 100);
+            setBarraKpi('kpiBarPorcentajeGananciaNeta', porcentajeGananciaNeta);
+
+            estadoReportesFinancieros.datos.gastosGenerales = gastosGenerales;
+            estadoReportesFinancieros.datos.gananciaNeta = gananciaNeta;
+        } catch (errGastos) {
+            console.error('Error cargando gastos generales:', errGastos);
+            document.getElementById('franjaGananciaNeta').style.display = 'none';
+        }
 
         // Cargar KPIs de Cobranza
         await cargarKPIsCobranza();
@@ -278,19 +383,26 @@ async function cargarKPIsCobranza() {
 
         // Actualizar UI
         document.getElementById('kpiFacturasEmitidas').textContent = `$${totalFacturado.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioFacturas').textContent = `+${cantidadFacturas} vs período anterior`;
-        document.getElementById('kpiCambioFacturas').className = 'kpi-change positive';
+        document.getElementById('kpiCambioFacturas').textContent = `+${cantidadFacturas}`;
+        document.getElementById('kpiCambioFacturas').className = 'linea-delta kpi-change positive';
 
         document.getElementById('kpiCobrosRealizados').textContent = `$${totalCobrado.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioCobros').textContent = `${cambioCobros > 0 ? '+' : ''}${cambioCobros}% vs período anterior`;
-        document.getElementById('kpiCambioCobros').className = `kpi-change ${cambioCobros >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioCobros').textContent = `${cambioCobros > 0 ? '+' : ''}${cambioCobros}%`;
+        document.getElementById('kpiCambioCobros').className = `linea-delta kpi-change ${cambioCobros >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiDeudaPendiente').textContent = `$${deudaPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioDeuda').textContent = `${cambioDeuda > 0 ? '+' : ''}${cambioDeuda}% vs período anterior`;
-        document.getElementById('kpiCambioDeuda').className = `kpi-change ${cambioDeuda >= 0 ? 'negative' : 'positive'}`;
+        document.getElementById('kpiCambioDeuda').textContent = `${cambioDeuda > 0 ? '+' : ''}${cambioDeuda}%`;
+        document.getElementById('kpiCambioDeuda').className = `linea-delta kpi-change ${cambioDeuda >= 0 ? 'negative' : 'positive'}`;
 
         document.getElementById('kpiDeudaVencida').textContent = `$${deudaVencida.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioDeudaVencida').className = 'kpi-change negative';
+        document.getElementById('kpiCambioDeudaVencida').className = 'linea-delta kpi-change negative';
+
+        // Barras de magnitud (grupo "Cobranza y cartera")
+        const maxGrupo3 = Math.max(totalFacturado, totalCobrado, deudaPendiente, deudaVencida, 1);
+        setBarraKpi('kpiBarFacturas', totalFacturado / maxGrupo3 * 100);
+        setBarraKpi('kpiBarCobros', totalCobrado / maxGrupo3 * 100);
+        setBarraKpi('kpiBarDeudaPendiente', deudaPendiente / maxGrupo3 * 100);
+        setBarraKpi('kpiBarDeudaVencida', deudaVencida / maxGrupo3 * 100);
 
     } catch (error) {
         console.error('Error cargando KPIs de cobranza:', error);
@@ -317,11 +429,25 @@ async function cargarFlujoCaja() {
             .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString())
             .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString());
 
+        // Ventas de mostrador (POS) del mismo período
+        const { data: ventasPos } = await window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, created_at')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+
         // Agrupar por día
         const flujoPorDia = {};
         (pedidos || []).forEach(p => {
             const fecha = new Date(p.fecha_pedido).toLocaleDateString('es-AR');
             flujoPorDia[fecha] = (flujoPorDia[fecha] || 0) + (p.total || 0);
+        });
+
+        (ventasPos || []).forEach(v => {
+            const fecha = new Date(v.created_at).toLocaleDateString('es-AR');
+            flujoPorDia[fecha] = (flujoPorDia[fecha] || 0) + (v.total || 0);
         });
 
         (cobros || []).forEach(c => {
@@ -333,8 +459,8 @@ async function cargarFlujoCaja() {
         const valores = fechas.map(f => flujoPorDia[f]);
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorPositivo = tokens.teal || '#B87A00';
-        const colorNegativo = tokens.red || '#B3261E';
+        const colorPositivo = tokens.teal || '#6A9873';
+        const colorNegativo = tokens.red || '#B8402E';
 
         if (!fechas.length) {
             chartsInstancias.flujoCaja = crearGraficoECharts(chartsInstancias.flujoCaja, 'chartFlujoCaja', null);
@@ -385,10 +511,24 @@ async function cargarIngresosVsCostos() {
             .gte('fecha_pedido', estadoReportesFinancieros.fechaInicio.toISOString())
             .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString());
 
+        // Ventas de mostrador (POS) del mismo período
+        const { data: ventasPos } = await window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id), created_at')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+
         // Obtener costos
         const productosIds = new Set();
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                if (item.producto_id) productosIds.add(item.producto_id);
+            });
+        });
+        (ventasPos || []).forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 if (item.producto_id) productosIds.add(item.producto_id);
             });
         });
@@ -416,13 +556,24 @@ async function cargarIngresosVsCostos() {
             });
         });
 
+        (ventasPos || []).forEach(v => {
+            const fecha = new Date(v.created_at).toLocaleDateString('es-AR');
+            if (!datoPorDia[fecha]) {
+                datoPorDia[fecha] = { ingresos: 0, costos: 0 };
+            }
+            datoPorDia[fecha].ingresos += v.total || 0;
+            (v.venta_pos_items || []).forEach(item => {
+                datoPorDia[fecha].costos += item.cantidad * (productoCosto[item.producto_id] || 0);
+            });
+        });
+
         const fechas = Object.keys(datoPorDia).sort();
         const ingresos = fechas.map(f => datoPorDia[f].ingresos);
         const costos = fechas.map(f => datoPorDia[f].costos);
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorIngresos = tokens.teal || '#B87A00';
-        const colorCostos = tokens.red || '#B3261E';
+        const colorIngresos = tokens.teal || '#6A9873';
+        const colorCostos = tokens.red || '#B8402E';
 
         if (!fechas.length) {
             chartsInstancias.ingresosVsCostos = crearGraficoECharts(chartsInstancias.ingresosVsCostos, 'chartIngresosVsCostos', null);
@@ -633,10 +784,27 @@ async function cargarEvolucionMargen() {
             console.error('Error consultando pedidos para evolución de margen:', errPedidos);
         }
 
+        // Ventas de mostrador (POS) del año en curso
+        const { data: ventasPos, error: errVentasPos } = await window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id), created_at')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .gte('created_at', new Date(new Date().getFullYear(), 0, 1).toISOString());
+
+        if (errVentasPos) {
+            console.error('Error consultando ventas POS para evolución de margen:', errVentasPos);
+        }
+
         // Obtener costos
         const productosIds = new Set();
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                if (item.producto_id) productosIds.add(item.producto_id);
+            });
+        });
+        (ventasPos || []).forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 if (item.producto_id) productosIds.add(item.producto_id);
             });
         });
@@ -667,6 +835,14 @@ async function cargarEvolucionMargen() {
             });
         });
 
+        (ventasPos || []).forEach(v => {
+            const mes = new Date(v.created_at).getMonth();
+            datoPorMes[mes].ingresos += v.total || 0;
+            (v.venta_pos_items || []).forEach(item => {
+                datoPorMes[mes].costos += item.cantidad * (productoCosto[item.producto_id] || 0);
+            });
+        });
+
         // Renderizar tabla
         const tbody = document.getElementById('tbodyMargen');
         tbody.innerHTML = Object.entries(datoPorMes)
@@ -686,7 +862,7 @@ async function cargarEvolucionMargen() {
             }).join('');
 
         if (!tbody.children.length) {
-            tbody.innerHTML = '<tr><td colspan="5" class="tabla-empty">No hay pedidos entregados este año para calcular el margen.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="tabla-empty">No hay ventas (pedidos ni mostrador) este año para calcular el margen.</td></tr>';
         }
 
     } catch (error) {
@@ -705,23 +881,23 @@ function mostrarMenuExport(fecha, tipo) {
 
     const overlay = document.createElement('div');
     overlay.id = 'export-menu-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(22,24,29,.35)';
     overlay.innerHTML = `
-      <div style="background:var(--color-surface,#FCFAF5);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <div style="background:var(--color-surface,#FFFFFF);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(22,24,29,.18)">
         <h3 style="margin:0 0 16px;font-size:16px;font-weight:600">Exportar reporte</h3>
-        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#DCEDE3);border:1px solid var(--color-success-mid,#1F5B4A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#17402F)">
+        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#E2F0E5);border:1px solid var(--color-success-mid,#75A37D);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#487050)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 10 2.5 4L13 10m0 4-2.5-4M3 7h18"/></svg>
           Excel (.xlsx)
         </button>
-        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#DAD3C0);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
+        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#E7E9E4);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           CSV (.csv)
         </button>
-        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F3DAD8);border:1px solid var(--color-danger-mid,#B3261E);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A1E19)">
+        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F5DDD8);border:1px solid var(--color-danger-mid,#D1594A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A2820)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           PDF (imprimir)
         </button>
-        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#4B4A45)">Cancelar</button>
+        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#5B6660)">Cancelar</button>
       </div>`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
@@ -747,6 +923,9 @@ function exportarExcel_finanzas(fecha) {
             ['Costos Totales',      document.getElementById('kpiCostos').textContent],
             ['Margen Bruto',        document.getElementById('kpiMargen').textContent],
             ['% Margen',            document.getElementById('kpiPorcentajeMargen').textContent],
+            ['Gastos Generales',    document.getElementById('kpiGastosGenerales').textContent],
+            ['Ganancia Neta',       document.getElementById('kpiGananciaNeta').textContent],
+            ['% Ganancia Neta',     document.getElementById('kpiPorcentajeGananciaNeta').textContent],
             [],
             ['KPIs de Cobranza', ''],
             ['Facturas Emitidas',   document.getElementById('kpiFacturasEmitidas').textContent],
@@ -802,7 +981,10 @@ function generarCSVFinanzas() {
     csv += `Ingresos Totales,$${document.getElementById('kpiIngresos').textContent.replace('$', '')}\n`;
     csv += `Costos Totales,$${document.getElementById('kpiCostos').textContent.replace('$', '')}\n`;
     csv += `Margen Bruto,$${document.getElementById('kpiMargen').textContent.replace('$', '')}\n`;
-    csv += `% Margen,${document.getElementById('kpiPorcentajeMargen').textContent}\n\n`;
+    csv += `% Margen,${document.getElementById('kpiPorcentajeMargen').textContent}\n`;
+    csv += `Gastos Generales,$${document.getElementById('kpiGastosGenerales').textContent.replace('$', '')}\n`;
+    csv += `Ganancia Neta,$${document.getElementById('kpiGananciaNeta').textContent.replace('$', '')}\n`;
+    csv += `% Ganancia Neta,${document.getElementById('kpiPorcentajeGananciaNeta').textContent}\n\n`;
 
     csv += 'KPIs de Cobranza\n';
     csv += `Facturas Emitidas,$${document.getElementById('kpiFacturasEmitidas').textContent.replace('$', '')}\n`;

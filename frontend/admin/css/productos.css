@@ -15,6 +15,76 @@
   overflow: hidden;
 }
 
+/* ── Toggle de vista Productos/Combos (FIX 2026-08-23) ──
+   productos.html no cargaba antes ningún stylesheet que definiera
+   .estado-pills/.e-pill (viven en clientes.css, stock.css, etc., cada
+   uno con su propia copia) — se agrega acá la misma base para el
+   toggle "Productos | Combos" en la parte de arriba de la página. */
+.estado-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.e-pill {
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0,0,0,.07);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+}
+.e-pill:hover { background: var(--color-bg); }
+.e-pill.activa {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ── Pestaña "Combos": resaltada con su propio acento (ámbar, el mismo
+   tono que usan las promos/ofertas en el resto del sistema) para que no
+   se pierda al lado de "Productos" — antes eran dos pills idénticas y
+   Combos quedaba visualmente invisible pese a ser una sección con
+   contenido propio (nombre, precio, foto, productos incluidos, activo/
+   inactivo). Incluye ícono + badge con la cantidad de combos activos,
+   poblado por cb_cargarContadorCombos() en combos-tab.js. */
+.e-pill-combos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-color: var(--color-warning-mid);
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+.e-pill-combos:hover { background: var(--color-warning-bg); filter: brightness(0.97); }
+.e-pill-combos svg { flex-shrink: 0; }
+.e-pill-combos.activa {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+  color: #fff;
+}
+.e-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-warning);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.e-pill-combos.activa .e-pill-badge {
+  background: rgba(255,255,255,.28);
+}
+
 /* ── Toolbar superior ── */
 .prod-toolbar {
   padding: 16px 24px 14px;
@@ -84,6 +154,15 @@
   white-space: nowrap;
 }
 
+/* Wrap del filtro de etiqueta + botón "Gestionar etiquetas" (popover
+   anclado, ver .et-gestion-popover en etiquetas.js) */
+.prod-etiqueta-filtro-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Select de filtro */
 .prod-select-filtro {
   padding: 6px 12px;
@@ -132,7 +211,7 @@
   gap: 6px;
   padding: 6px 14px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
+  border: 1px solid transparent;
   border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: border-color 0.15s;
@@ -327,17 +406,6 @@
 .prod-tabla tbody td:first-child { padding-left: 20px; }
 .prod-tabla tbody td:last-child  { padding-right: 20px; text-align: left; }
 
-/* Checkbox */
-.prod-check {
-  width: 17px;
-  height: 17px;
-  border-radius: 4px;
-  border: 1.5px solid var(--color-border);
-  cursor: pointer;
-  accent-color: var(--nav-facturacion);
-  flex-shrink: 0;
-}
-
 /* Avatar / thumbnail */
 .prod-avatar {
   width: 36px;
@@ -364,24 +432,74 @@
   object-fit: cover;
   background: var(--color-surface-2);
   border: 1px solid rgba(0, 0, 0, .06);
+  cursor: zoom-in;
 }
 
-.prod-foto-badge {
+/* v730: se sacó .prod-foto-badge (el punto de color de origen de la foto,
+   real/genérica) — quedaba como ruido visual sin utilidad real en la fila. */
+
+/* ── Zoom de imagen de producto (v730) ── */
+.foto-zoom-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 12, .72);
+  z-index: var(--z-super-overlay);
+}
+
+.foto-zoom-backdrop.activo {
+  display: block;
+}
+
+.foto-zoom-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-super-overlay-content);
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  pointer-events: none;
+}
+
+.foto-zoom-modal.activo {
+  display: flex;
+}
+
+.foto-zoom-modal #foto-zoom-img {
+  max-width: min(90vw, 720px);
+  max-height: 85vh;
+  border-radius: 12px;
+  box-shadow: var(--shadow-big, 0 12px 40px rgba(0,0,0,.35));
+  background: var(--color-surface);
+  object-fit: contain;
+  pointer-events: auto;
+}
+
+.foto-zoom-close {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 10px;
-  height: 10px;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-surface, var(--color-surface));
+  border: none;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background .15s ease;
 }
 
-.prod-foto-badge--real {
-  background: var(--color-success-mid); /* verde: foto real (barcode, Google Images o subida manual) */
+.foto-zoom-close:hover {
+  background: rgba(255, 255, 255, .22);
 }
 
-.prod-foto-badge--generica {
-  background: var(--color-warning-mid); /* ámbar: foto genérica de banco (Pexels), no es la marca exacta */
+#fp-foto-preview {
+  cursor: zoom-in;
 }
 
 .prod-nombre-cell {
@@ -558,7 +676,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.35);
-  z-index: 300;
+  z-index: var(--z-modal-backdrop);
   display: none;
 }
 
@@ -571,7 +689,7 @@
   height: 100vh;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  z-index: 400;
+  z-index: var(--z-modal);
   overflow-y: auto;
   padding: 28px;
   transition: right .25s cubic-bezier(.4,0,.2,1);
@@ -692,7 +810,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
-  z-index: 50;
+  z-index: var(--z-panel);
 }
 .ayuda-contextual:hover::after,
 .ayuda-contextual:focus::after {
@@ -911,7 +1029,7 @@
 
 /* ── Buscador tipo píldora ── */
 #vista-productos .prod-tag-input {
-  border: 1px solid var(--color-border-soft);
+  border: 1px solid transparent;
   border-radius: 999px;
   background: var(--color-bg);
   padding: 8px 16px;
@@ -943,7 +1061,6 @@
 #vista-productos .prod-mes-btn.activo { background: var(--tb-accent-bg); color: var(--tb-accent-dark); }
 #vista-productos .prod-th-sort:hover,
 #vista-productos .prod-sort-icon { color: var(--tb-accent); }
-#vista-productos .prod-check { accent-color: var(--tb-accent); }
 
 /* ── Tabla: aireada, separación mínima entre filas ── */
 #vista-productos .prod-tabla-wrap { border-radius: 14px; }
@@ -1016,7 +1133,7 @@
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  z-index: 40;
+  z-index: var(--z-popover);
   background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg, 12px);

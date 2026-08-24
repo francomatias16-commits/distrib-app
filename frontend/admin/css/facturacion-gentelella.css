@@ -146,9 +146,15 @@ body.dash-facturacion-gentelella .e-pill.activa {
    Filtros de fecha + buscador
    ════════════════════════════════════════════════════════════ */
 body.dash-facturacion-gentelella #filtro-rango-wrap input[type="date"],
-body.dash-facturacion-gentelella #input-busqueda,
 body.dash-facturacion-gentelella #filtro-periodo {
   border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-facturacion-gentelella #input-busqueda {
+  border: 1px solid transparent !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -237,13 +243,20 @@ body.dash-facturacion-gentelella .btn-icon.icon-primary {
 body.dash-facturacion-gentelella .btn-icon.icon-primary:hover {
   background: var(--ge-teal-light) !important;
 }
-body.dash-facturacion-gentelella .btn-reintentar {
+body.dash-facturacion-gentelella .btn-icon.icon-enviar {
+  border-color: var(--ge-teal) !important;
+  color: var(--ge-teal) !important;
+}
+body.dash-facturacion-gentelella .btn-icon.icon-enviar:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-facturacion-gentelella .btn-icon.btn-reintentar {
   border: 1px solid var(--ge-orange) !important;
   color: var(--ge-warning-text) !important;
   background: rgba(240,173,78,.08) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-facturacion-gentelella .btn-reintentar:hover {
+body.dash-facturacion-gentelella .btn-icon.btn-reintentar:hover {
   background: rgba(240,173,78,.18) !important;
 }
 

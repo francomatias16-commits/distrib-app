@@ -143,7 +143,7 @@ describe('obtenerSesionPorId', () => {
 });
 
 describe('listarSesionesPorEmpresa', () => {
-  it('filtra por empresa_id, ordena por created_at desc, limita a 20', async () => {
+  it('filtra por empresa_id, ordena por created_at desc y pagina los primeros 20', async () => {
     const query = fakeQuery({ data: [], error: null });
     dbMock.from.mockReturnValue(query);
 
@@ -151,7 +151,7 @@ describe('listarSesionesPorEmpresa', () => {
 
     expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
     expect(query.order).toHaveBeenCalledWith('created_at', { ascending: false });
-    expect(query.limit).toHaveBeenCalledWith(20);
+    expect(query.range).toHaveBeenCalledWith(0, 19);
   });
 });
 

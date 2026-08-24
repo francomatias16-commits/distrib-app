@@ -44,20 +44,19 @@ function renderTabla() {
   }
 
   tbody.innerHTML = zonaData.map(z => `
-    <tr>
+    <tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${z.id}')">
       <td data-label="Zona"><div style="font-weight:600;color:var(--color-text)">${sanitize(z.nombre)}</div></td>
       <td data-label="Días de reparto" style="font-size:12px;color:var(--color-text-muted)">
         ${(z.dias_reparto || []).length ? z.dias_reparto.map(d => NOMBRE_DIA[d] || d).join(', ') : '—'}
       </td>
-      <td data-label="Estado"><span class="badge ${z.activa ? 'badge-activo' : 'badge-inactivo'}">${z.activa ? 'Activa' : 'Inactiva'}</span></td>
+      <td data-label="Estado">${ComponentesAdmin.renderBadgeEstado(z.activa ? 'Activa' : 'Inactiva', z.activa ? 'ok' : 'inactivo')}</td>
       <td class="col-sticky-end" data-label="Acciones">
-        <div class="acciones-td">
-          <button class="btn-tabla" onclick="abrirModalEditar('${z.id}')">Editar</button>
-          ${z.activa
-            ? `<button class="btn-tabla peligro" onclick="desactivar('${z.id}')">Dar de baja</button>`
-            : `<button class="btn-tabla primario" onclick="activar('${z.id}')">Activar</button>`
-          }
-        </div>
+        ${ComponentesAdmin.renderFilaAcciones([
+          { label: 'Editar', attrs: `onclick="abrirModalEditar('${z.id}')"` },
+          z.activa
+            ? { label: 'Dar de baja', cls: 'peligro', attrs: `onclick="desactivar('${z.id}')"` }
+            : { label: 'Activar', cls: 'primario', attrs: `onclick="activar('${z.id}')"` }
+        ])}
       </td>
     </tr>
   `).join('');

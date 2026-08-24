@@ -14,18 +14,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=197" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/admin/css/pedidos.css?v=218" />
+  <link rel="stylesheet" href="/frontend/admin/css/pedidos.css?v=219" />
   <link rel="stylesheet" href="/frontend/admin/css/pedidos-gentelella.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=196" />
+  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=905" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
   <style>
     /* ── REQ-13: Filtros rápidos ── */
@@ -105,8 +106,8 @@
     .pres-search-wrap { position:relative; }
     .pres-search-wrap svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--color-text-muted); }
     .pres-search-wrap input { padding:7px 10px 7px 32px; border:1px solid var(--color-border); border-radius: var(--radius-md); font-size:13px; background:var(--color-surface); color:var(--color-text); width:220px; }
-    .btn-nuevo-pres { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius: var(--radius-md); border:none; background:var(--color-primary); color:var(--color-surface); font-size:13px; font-weight:600; cursor:pointer; margin-left:auto; }
-    .btn-nuevo-pres:hover { opacity:.9; }
+    .btn--primary { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius: var(--radius-md); border:none; background:var(--color-primary); color:var(--color-surface); font-size:13px; font-weight:600; cursor:pointer; margin-left:auto; }
+    .btn--primary:hover { opacity:.9; }
 
     /* Panel detalle presupuesto */
     .pres-detalle-panel { position:fixed; top:0; right:0; width:460px; max-width:95vw; height:100vh;
@@ -141,6 +142,46 @@
     .pres-form-group input, .pres-form-group select, .pres-form-group textarea {
       width:100%; padding:8px; border:1px solid var(--color-border); border-radius: var(--radius-sm);
       font-size:13px; background:var(--color-surface); color:var(--color-text); }
+
+    /* Combo cliente: un único recuadro que fusiona el buscador de texto
+       con la lista desplegable — antes eran dos cajas apiladas (input +
+       select) con borde propio cada una, lo que se leía como dos
+       controles redundantes para elegir lo mismo. */
+    .combo-cliente {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow: hidden;
+      position: relative;
+    }
+    .combo-cliente-icon {
+      position: absolute;
+      left: 8px;
+      top: 9px;
+      color: var(--color-text-light);
+      pointer-events: none;
+    }
+    .combo-cliente .combo-cliente-input {
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 8px 8px 8px 28px !important;
+      background: transparent !important;
+    }
+    .combo-cliente .combo-cliente-input:focus { outline: none; }
+    .combo-cliente .combo-cliente-select {
+      border: none !important;
+      border-radius: 0 !important;
+      border-top: 1px solid var(--color-border) !important;
+      background: var(--color-bg) !important;
+      font-size: 12px !important;
+      color: var(--color-text-muted);
+    }
+    .combo-cliente:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-bg, rgba(37,99,235,.12));
+    }
     .pres-item-row { display:grid; grid-template-columns:2fr 2fr 1fr 1.2fr .8fr 28px;
       gap:6px; align-items:center; margin-bottom:8px; }
     .pres-item-row .item-prod, .pres-item-row .item-desc,
@@ -252,7 +293,7 @@
       display: flex; gap: 8px; justify-content: flex-end;
     }
   </style>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -276,7 +317,7 @@
 
 <!-- ── PRELOADER ── -->
 <div id="app-preloader" class="preloader">
-  <div class="preloader-logo">D</div>
+  <div class="preloader-logo"><img src="/frontend/admin/img/logo-fluxo-mark.png" alt="Fluxo" width="56" height="56"></div>
   <span class="preloader-text">Cargando pedidos…</span>
   <div class="preloader-bar"></div>
 </div>
@@ -321,12 +362,12 @@
         </button>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;">
-        <button type="button" class="btn-nuevo-pres" id="btn-nuevo-pedido" onclick="pedido_abrirModalNuevo()"
+        <button type="button" class="btn--primary" id="btn-nuevo-pedido" onclick="pedido_abrirModalNuevo()"
                 style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius: var(--radius-md);border:none;background:var(--color-primary);color:var(--color-surface);font-size:13px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Nuevo pedido
               </button>
-              <button type="button" class="btn-nuevo-pres hidden" id="btn-nuevo-presupuesto" onclick="pres_abrirModalNuevo()"
+              <button type="button" class="btn--primary hidden" id="btn-nuevo-presupuesto" onclick="pres_abrirModalNuevo()"
                 style="display:none;align-items:center;gap:6px;padding:7px 14px;border-radius: var(--radius-md);border:none;background:var(--color-primary);color:var(--color-surface);font-size:13px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Nuevo presupuesto
@@ -346,9 +387,8 @@
     <!-- ── Resumen de solo lectura: montos/totales, no son categorías filtrables ── -->
     <div class="pedidos-resumen-top">
       <div class="franja-resumen-sololectura">
-        <span><strong id="side-total-pedidos">—</strong> pedidos este mes</span>
-        <span class="sep">·</span>
-        <span>Facturado: <strong id="side-total-facturado">—</strong></span>
+        <div class="dato-sello"><div class="dato-sello-valor" id="side-total-pedidos">—</div><div class="dato-sello-etiqueta">Pedidos este mes</div></div>
+        <div class="dato-sello"><div class="dato-sello-valor" id="side-total-facturado">—</div><div class="dato-sello-etiqueta">Facturado</div></div>
       </div>
     </div>
 
@@ -423,17 +463,27 @@
 
     <!-- ── Tabla de pedidos ── -->
     <div class="tabla-wrap table-responsive-cards">
-      <table class="tabla-pedidos table-compact">
+      <table class="tabla-admin table-compact tabla-lista-pedidos">
+        <colgroup>
+          <col style="width:10%">
+          <col style="width:24%">
+          <col style="width:13%">
+          <col style="width:11%">
+          <col style="width:8%">
+          <col style="width:12%">
+          <col style="width:10%">
+          <col style="width:12%">
+        </colgroup>
         <thead>
             <tr>
-            <th>N° Pedido</th>
+            <th class="col-fit">N° Pedido</th>
             <th>Cliente</th>
-            <th class="thead-sep">Vendedor</th>
-            <th>Zona</th>
-            <th class="thead-sep">Entrega</th>
-            <th>Total</th>
-            <th class="thead-sep">Estado</th>
-            <th class="col-sticky-end">Acciones</th>
+            <th class="thead-sep col-fit">Vendedor</th>
+            <th class="col-fit">Zona</th>
+            <th class="thead-sep col-fit">Entrega</th>
+            <th class="col-fit">Total</th>
+            <th class="thead-sep col-fit">Estado</th>
+            <th class="col-sticky-end col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-body">
@@ -476,16 +526,16 @@
 
       <!-- Tabla presupuestos -->
       <div class="tabla-wrap table-responsive-cards">
-        <table class="tabla-pedidos table-compact">
+        <table class="tabla-admin table-compact">
           <thead>
             <tr>
-              <th>Número</th>
+              <th class="col-fit">Número</th>
               <th>Cliente</th>
-              <th class="thead-sep">Vendedor</th>
-              <th>Total</th>
-              <th class="thead-sep">Vencimiento</th>
-              <th>Estado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="thead-sep col-fit">Vendedor</th>
+              <th class="col-fit">Total</th>
+              <th class="thead-sep col-fit">Vencimiento</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="pres-tbody">
@@ -527,11 +577,14 @@
       <div class="pres-form-row">
         <div class="pres-form-group">
           <label>Cliente *</label>
-          <input type="text" id="pres-f-cliente-filtro" placeholder="Escribí para filtrar…"
-                 autocomplete="off" style="margin-bottom:6px" />
-          <select id="pres-f-cliente">
-            <option value="">Seleccionar cliente...</option>
-          </select>
+          <div class="combo-cliente">
+            <svg class="combo-cliente-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="pres-f-cliente-filtro" class="combo-cliente-input" placeholder="Buscar cliente por nombre…"
+                   autocomplete="off" />
+            <select id="pres-f-cliente" class="combo-cliente-select">
+              <option value="">Seleccionar cliente...</option>
+            </select>
+          </div>
         </div>
         <div class="pres-form-group">
           <label>Vigencia (horas) *</label>
@@ -596,9 +649,12 @@
             <div class="pedfs-datos-grid">
               <div class="pres-form-group">
                 <label>Cliente *</label>
-                <input type="text" id="pedido-f-cliente-filtro" placeholder="Escribí para filtrar…"
-                       autocomplete="off" style="margin-bottom:6px" />
-                <select id="pedido-f-cliente"></select>
+                <div class="combo-cliente">
+                  <svg class="combo-cliente-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <input type="text" id="pedido-f-cliente-filtro" class="combo-cliente-input" placeholder="Buscar cliente por nombre…"
+                         autocomplete="off" />
+                  <select id="pedido-f-cliente" class="combo-cliente-select"></select>
+                </div>
               </div>
               <div class="pres-form-group">
                 <label>Forma de entrega</label>
@@ -695,6 +751,14 @@
     <div id="modal-notas" class="modal-notas-texto"></div>
   </div>
 
+  <!-- v808: devoluciones vinculadas a este pedido — oculto por defecto,
+       se muestra en JS (_renderDevolucionesPedido) solo si el pedido tiene
+       al menos una devolución. -->
+  <div class="modal-seccion" id="modal-devoluciones-wrap" style="display:none">
+    <div class="modal-sec-label">Devoluciones de este pedido</div>
+    <div id="modal-devoluciones-lista"></div>
+  </div>
+
   <!-- Estado de notificaciones (Hallazgo 2, auditoría notificaciones) -->
   <div class="modal-seccion" id="modal-notif-wrap" style="display:none">
     <div class="modal-sec-label">Notificaciones de confirmación</div>
@@ -726,7 +790,7 @@
     <p class="confirmar-msg">¿Cancelar este pedido? El stock reservado se liberará.</p>
     <div class="confirmar-btns">
       <button type="button" class="btn-secundario" onclick="cerrarConfirmar()">No, volver</button>
-      <button type="button" class="btn-danger"     id="btn-confirmar-cancelar">Sí, cancelar pedido</button>
+      <button type="button" class="btn btn--danger" id="btn-confirmar-cancelar">Sí, cancelar pedido</button>
     </div>
   </div>
 </div>
@@ -738,14 +802,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
-<script src="/frontend/admin/js/remito.js?v1782328742714"></script>
+<script src="/frontend/admin/js/remito.js?v1786978189156"></script>
 <script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
 <!-- Buscador visual de productos (ProductoPicker) — lo usan tanto el modal
      de "Nuevo pedido" (script inline más abajo) como presupuestos.js.
@@ -754,9 +818,9 @@
      "new window.ProductoPicker(...)" tiraba un TypeError silencioso dentro
      de la función async — por eso los botones "Nuevo pedido" y "Nuevo
      presupuesto" no hacían nada visible al hacer click. -->
-<script src="/frontend/admin/js/producto-picker.js?v=196"></script>
+<script src="/frontend/admin/js/producto-picker.js?v=905"></script>
 <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
-<script type="module" src="/frontend/admin/js/pedidos.js?v259"></script>
+<script type="module" src="/frontend/admin/js/pedidos.js?v260"></script>
 
 <!-- ── Push notifications (admin) ── -->
 <!-- Activa notificaciones push cuando llega un nuevo pedido.
@@ -995,6 +1059,24 @@
       if (!_pickerPed) {
         _pickerPed = new window.ProductoPicker(pickerEl, {
           onAgregar(item) {
+            // v(combos): un renglón de combo nunca se fusiona con otro
+            // (cada "Agregar" en el picker es una fila propia) — a
+            // diferencia de productos sueltos, no hay ninguna ventaja en
+            // consolidar dos renglones del mismo combo (el backend igual
+            // suma stock por combo_items al validar), y así se simplifica
+            // no tener que rastrear combo_id en el mismo buscador de
+            // "existente" que usa producto_id.
+            if (item.combo_id) {
+              _itemsPed.push({
+                combo_id:        item.combo_id,
+                descripcion:     item.descripcion,
+                cantidad:        item.cantidad,
+                precio_unitario: item.precio_unitario,
+                es_combo:        true,
+              });
+              _renderItemsPed();
+              return;
+            }
             // REQ-AGIL: si el producto ya está en la lista, suma cantidad
             // en vez de crear una fila duplicada (evita tener que limpiar
             // a mano cuando se re-escanea/re-tipea el mismo ítem).
@@ -1058,6 +1140,32 @@
     ).join('');
     cont.innerHTML = _itemsPed.map((it, i) => {
       const subtotal = (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0);
+      // v(combos): un renglón de combo no tiene <select> de producto (no es
+      // "un producto más" — el server siempre usa combo.precio, nunca lo
+      // que se tipee acá), así que el precio se muestra de solo lectura y
+      // el nombre va con una insignia "Combo" en vez del dropdown.
+      if (it.es_combo) {
+        return `
+        <div class="pedcart-row pedcart-row--combo" id="ped-item-row-${i}">
+          <div class="pedcart-row-top">
+            <span class="pedcart-combo-nombre">
+              <span class="pedcart-combo-badge">Combo</span>
+              ${_esc2(it.descripcion)}
+            </span>
+            <button type="button" class="pedcart-remove" onclick="pedido_quitarItem(${i})" aria-label="Quitar ítem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="pedcart-row-nums">
+            <input class="item-cant pedcart-cant" type="number" min="1" step="1" inputmode="numeric" value="${Math.round(it.cantidad) || 1}"
+                   oninput="_soloEnterosPed(this);_pedUpdItem(${i},'cantidad',parseInt(this.value,10)||0);_pedRecalcRow(${i});_recalcPed()" />
+            <span class="pedcart-x">×</span>
+            <span class="pedcart-precio-fijo" title="El precio del combo lo fija el catálogo, no se edita acá">$${_fmtPed(it.precio_unitario)}</span>
+            <span class="pedcart-eq">=</span>
+            <span class="pedcart-subtotal" id="ped-subtotal-${i}">$${_fmtPed(subtotal)}</span>
+          </div>
+        </div>`;
+      }
       return `
       <div class="pedcart-row" id="ped-item-row-${i}">
         <div class="pedcart-row-top">
@@ -1160,7 +1268,7 @@
     const tipo_entrega = document.getElementById('pedido-f-entrega')?.value || 'envio';
 
     if (!cliente_id) { window.toast('Seleccioná un cliente.', 'error'); return; }
-    const items = _itemsPed.filter(it => it.descripcion || it.producto_id);
+    const items = _itemsPed.filter(it => it.descripcion || it.producto_id || it.combo_id);
     if (!items.length) { window.toast('Agregá al menos un producto.', 'error'); return; }
 
     // Confirmación previa: crear un pedido reserva stock y dispara

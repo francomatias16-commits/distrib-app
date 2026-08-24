@@ -320,6 +320,20 @@ textarea:focus {
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px rgba(37,99,235,.10) !important;
 }
+/* Sacar las flechitas (spinner) de todos los inputs numéricos del panel:
+   no son prácticas para tipear montos/cantidades a mano. Regla global acá
+   porque reskin-patch.css se carga en casi todas las pantallas del admin
+   (POS, productos, pedidos, compras, etc.) — así se aplica en todos lados
+   de una sola vez en vez de parchear cada CSS de sección. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
 /* Campos de login (línea inferior, sin caja): esta regla global de arriba les da
    borde+fondo de "input de formulario", pero el diseño del login pide un input
    desnudo con solo línea inferior. Se anula puntualmente aquí, para las 3
@@ -330,6 +344,8 @@ textarea:focus {
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  font-size: 17px !important;
+  color: var(--login-text, var(--color-text)) !important;
 }
 .login-field input:focus,
 .field-wrap input:focus {
@@ -650,8 +666,12 @@ button.btn-secondary:hover:not(:disabled),
   background: var(--color-surface);
   box-shadow: -6px 0 8px -6px rgba(0,0,0,.15);
 }
-thead .col-sticky-end,
-.tabla-clientes thead .col-sticky-end {
+thead .col-sticky-end {
+  /* Cubre todas las tablas, incluida clientes.html tras su migración a
+     .tabla-admin (Fase 3, PLAN_UNIFICACION_UX_ADMIN.md §20) — el selector
+     .tabla-clientes que estaba acá era redundante con este mismo desde
+     antes (misma regla, sin scope), no hacía falta reemplazarlo por
+     .tabla-admin. */
   background: var(--color-bg, var(--color-surface-2));
   z-index: 3;
 }
@@ -677,12 +697,19 @@ tbody tr.fila-inactiva .col-sticky-end {
    ══════════════════════════════════════════════════ */
 .toast {
   background: var(--color-surface) !important;
-  color: var(--color-text) !important;
+  /* [Fix — aviso "Seleccioná un chofer" pasaba desapercibido] Este archivo
+     se carga con !important DESPUÉS de tokens.css en las ~78 páginas que lo
+     incluyen, así que pisaba el ajuste de tokens.css si solo se tocaba ahí.
+     Mismo criterio acá: el tipo "default" (sin color explícito) es el que
+     usan los avisos de validación en toda la app — se sube de tamaño y
+     pasa a rojo para que se note. */
+  color: var(--color-danger) !important;
   border: 1px solid var(--color-border) !important;
-  border-left: 4px solid var(--color-primary) !important;
+  border-left: 4px solid var(--color-danger-mid) !important;
   border-radius: var(--radius-md) !important;
   font-family: var(--font-family) !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
+  font-weight: var(--font-weight-bold) !important;
   box-shadow: var(--shadow-big) !important;
   letter-spacing: .01em !important;
   -webkit-backdrop-filter: none !important;
@@ -968,7 +995,10 @@ button { transition: all var(--transition-base) !important; }
 #app-preloader {
   background: var(--color-bg) !important;
 }
-#app-preloader .preloader-logo { color: var(--color-primary) !important; }
+#app-preloader .preloader-logo {
+  color: var(--color-primary) !important;
+  background: var(--color-surface, #fff) !important;
+}
 #app-preloader .preloader-text { color: var(--color-text-muted) !important; }
 .preloader-bar {
   background: var(--color-border) !important;

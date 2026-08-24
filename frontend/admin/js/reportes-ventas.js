@@ -10,6 +10,16 @@ let estadoReportesVentas = {
 
 let chartsInstancias = {};
 
+// Setea el ancho de la barra de magnitud de una línea del manifiesto de KPIs
+// (0-100, ya clampeado). Tolerante a que el elemento no exista todavía.
+function setBarraKpi(id, pct) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = Math.max(0, Math.min(100, isFinite(pct) ? pct : 0));
+    el.style.setProperty('--bar', val + '%');
+}
+
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -186,11 +196,30 @@ async function cargarKPIs() {
         const { data: pedidos, error } = await query;
         if (error) throw error;
 
+        // Ventas de mostrador (POS) del mismo período — mismo criterio que usa
+        // el dashboard ejecutivo. Si hay un vendedor seleccionado, se excluyen:
+        // el filtro de vendedor no aplica a ventas de mostrador.
+        let ventasPos = [];
+        if (!estadoReportesVentas.vendedorSeleccionado) {
+            const { data } = await window.authCtx.sb
+                .from('ventas_pos')
+                .select('id, total, cliente_id', { count: 'exact' })
+                .eq('empresa_id', window.authCtx.perfil.empresa_id)
+                .eq('estado', 'completada')
+                .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+            ventasPos = data || [];
+        }
+
         // Calcular KPIs
-        const totalVentas = (pedidos || []).reduce((sum, p) => sum + (p.total || 0), 0);
-        const cantidadPedidos = (pedidos || []).length;
+        const totalVentas = (pedidos || []).reduce((sum, p) => sum + (p.total || 0), 0)
+            + ventasPos.reduce((sum, v) => sum + (v.total || 0), 0);
+        const cantidadPedidos = (pedidos || []).length + ventasPos.length;
         const ticketPromedio = cantidadPedidos > 0 ? totalVentas / cantidadPedidos : 0;
-        const clientesUnicos = new Set((pedidos || []).map(p => p.cliente_id)).size;
+        const clientesUnicos = new Set([
+            ...(pedidos || []).map(p => p.cliente_id),
+            ...ventasPos.filter(v => v.cliente_id).map(v => v.cliente_id),
+        ]).size;
 
         // Calcular período anterior
         const diasDiferencia = Math.floor((estadoReportesVentas.fechaFin - estadoReportesVentas.fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
@@ -212,25 +241,53 @@ async function cargarKPIs() {
         }
 
         const { data: pedidosAnterior } = await queryAnterior;
-        const totalVentasAnterior = (pedidosAnterior || []).reduce((sum, p) => sum + (p.total || 0), 0);
+
+        let ventasPosAnterior = [];
+        if (!estadoReportesVentas.vendedorSeleccionado) {
+            const { data } = await window.authCtx.sb
+                .from('ventas_pos')
+                .select('id, total')
+                .eq('empresa_id', window.authCtx.perfil.empresa_id)
+                .eq('estado', 'completada')
+                .gte('created_at', fechaInicioAnterior.toISOString())
+                .lte('created_at', fechaFinAnterior.toISOString());
+            ventasPosAnterior = data || [];
+        }
+
+        const totalVentasAnterior = (pedidosAnterior || []).reduce((sum, p) => sum + (p.total || 0), 0)
+            + ventasPosAnterior.reduce((sum, v) => sum + (v.total || 0), 0);
+        const cantidadAnterior = (pedidosAnterior || []).length + ventasPosAnterior.length;
         const cambioVentas = totalVentasAnterior > 0 ? ((totalVentas - totalVentasAnterior) / totalVentasAnterior * 100).toFixed(1) : 0;
-        const cambioPedidos = (pedidosAnterior || []).length > 0 ? cantidadPedidos - (pedidosAnterior || []).length : 0;
-        const cambioTicket = totalVentasAnterior > 0 ? (((totalVentas / cantidadPedidos) - (totalVentasAnterior / (pedidosAnterior || []).length)) / (totalVentasAnterior / (pedidosAnterior || []).length) * 100).toFixed(1) : 0;
+        const cambioPedidos = cantidadAnterior > 0 ? cantidadPedidos - cantidadAnterior : 0;
+        const cambioTicket = totalVentasAnterior > 0 && cantidadAnterior > 0 ? (((totalVentas / cantidadPedidos) - (totalVentasAnterior / cantidadAnterior)) / (totalVentasAnterior / cantidadAnterior) * 100).toFixed(1) : 0;
 
         // Actualizar UI
         document.getElementById('kpiTotalVentas').textContent = `$${totalVentas.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioVentas').textContent = `${cambioVentas > 0 ? '+' : ''}${cambioVentas}% vs período anterior`;
-        document.getElementById('kpiCambioVentas').className = `kpi-change ${cambioVentas >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioVentas').textContent = `${cambioVentas > 0 ? '+' : ''}${cambioVentas}%`;
+        document.getElementById('kpiCambioVentas').className = `linea-delta kpi-change ${cambioVentas >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiCantidadPedidos').textContent = cantidadPedidos;
-        document.getElementById('kpiCambioPedidos').textContent = `${cambioPedidos > 0 ? '+' : ''}${cambioPedidos} vs período anterior`;
-        document.getElementById('kpiCambioPedidos').className = `kpi-change ${cambioPedidos >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioPedidos').textContent = `${cambioPedidos > 0 ? '+' : ''}${cambioPedidos}`;
+        document.getElementById('kpiCambioPedidos').className = `linea-delta kpi-change ${cambioPedidos >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiTicketPromedio').textContent = `$${ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiCambioTicket').textContent = `${cambioTicket > 0 ? '+' : ''}${cambioTicket}% vs período anterior`;
-        document.getElementById('kpiCambioTicket').className = `kpi-change ${cambioTicket >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('kpiCambioTicket').textContent = `${cambioTicket > 0 ? '+' : ''}${cambioTicket}%`;
+        document.getElementById('kpiCambioTicket').className = `linea-delta kpi-change ${cambioTicket >= 0 ? 'positive' : 'negative'}`;
 
         document.getElementById('kpiClientesActivos').textContent = clientesUnicos;
+
+        // Barras de magnitud del manifiesto "Resumen de ventas" — proporción
+        // real entre sí (Ventas/Pedidos/Ticket/Clientes no comparten unidad,
+        // por eso cada una se referencia contra su propio máximo esperable
+        // implícito: usamos el valor actual vs. el máximo del grupo de montos
+        // para Ventas/Ticket, y una escala de conteo para Pedidos/Clientes).
+        const maxMonto = Math.max(totalVentas, ticketPromedio, 1);
+        setBarraKpi('kpiBarVentas', totalVentas / maxMonto * 100);
+        setBarraKpi('kpiBarTicket', ticketPromedio / maxMonto * 100);
+        const maxConteo = Math.max(cantidadPedidos, clientesUnicos, 1);
+        setBarraKpi('kpiBarPedidos', cantidadPedidos / maxConteo * 100);
+        setBarraKpi('kpiBarClientes', clientesUnicos / maxConteo * 100);
+
 
         estadoReportesVentas.datos.totalVentas = totalVentas;
         estadoReportesVentas.datos.cantidadPedidos = cantidadPedidos;
@@ -259,6 +316,19 @@ async function cargarVentasDiarias() {
         const { data: pedidos, error } = await query;
         if (error) throw error;
 
+        // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
+        let ventasPos = [];
+        if (!estadoReportesVentas.vendedorSeleccionado) {
+            const { data } = await window.authCtx.sb
+                .from('ventas_pos')
+                .select('id, total, created_at')
+                .eq('empresa_id', window.authCtx.perfil.empresa_id)
+                .eq('estado', 'completada')
+                .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+            ventasPos = data || [];
+        }
+
         // Agrupar por día
         const ventasPorDia = {};
         (pedidos || []).forEach(p => {
@@ -266,11 +336,16 @@ async function cargarVentasDiarias() {
             ventasPorDia[fecha] = (ventasPorDia[fecha] || 0) + (p.total || 0);
         });
 
+        ventasPos.forEach(v => {
+            const fecha = new Date(v.created_at).toLocaleDateString('es-AR');
+            ventasPorDia[fecha] = (ventasPorDia[fecha] || 0) + (v.total || 0);
+        });
+
         const fechas = Object.keys(ventasPorDia).sort();
         const valores = fechas.map(f => ventasPorDia[f]);
 
         const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-        const colorVentas = tokens.teal || '#B87A00';
+        const colorVentas = tokens.teal || '#6A9873';
 
         if (!fechas.length) {
             chartsInstancias.ventasDiarias = crearGraficoECharts(chartsInstancias.ventasDiarias, 'chartVentasDiarias', null);
@@ -343,10 +418,28 @@ async function cargarVentasCategorias() {
         const { data: pedidos, error } = await query;
         if (error) throw error;
 
+        // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
+        let ventasPos = [];
+        if (!estadoReportesVentas.vendedorSeleccionado) {
+            const { data } = await window.authCtx.sb
+                .from('ventas_pos')
+                .select('venta_pos_items(cantidad, precio_unitario, producto_id)')
+                .eq('empresa_id', window.authCtx.perfil.empresa_id)
+                .eq('estado', 'completada')
+                .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+            ventasPos = data || [];
+        }
+
         // Obtener categorías de productos
         const productosIds = new Set();
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                if (item.producto_id) productosIds.add(item.producto_id);
+            });
+        });
+        ventasPos.forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 if (item.producto_id) productosIds.add(item.producto_id);
             });
         });
@@ -371,6 +464,16 @@ async function cargarVentasCategorias() {
         const ventasPorCategoria = {};
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                const categoriaId = productoCategoria[item.producto_id];
+                const categoria = (categorias || []).find(c => c.id === categoriaId);
+                const nombreCategoria = categoria ? categoria.nombre : 'Sin categoría';
+                const monto = item.cantidad * item.precio_unitario;
+                ventasPorCategoria[nombreCategoria] = (ventasPorCategoria[nombreCategoria] || 0) + monto;
+            });
+        });
+
+        ventasPos.forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 const categoriaId = productoCategoria[item.producto_id];
                 const categoria = (categorias || []).find(c => c.id === categoriaId);
                 const nombreCategoria = categoria ? categoria.nombre : 'Sin categoría';
@@ -507,6 +610,29 @@ async function cargarRankingClientes() {
         const { data: pedidos, error } = await query;
         if (error) throw error;
 
+        // Ventas de mostrador (POS) con cliente identificado — las ventas
+        // anónimas de mostrador (cliente_id null) no se pueden atribuir a
+        // ningún cliente y quedan fuera del ranking.
+        let queryPos = window.authCtx.sb
+            .from('ventas_pos')
+            .select('id, total, cliente_id, clientes(razon_social)')
+            .eq('empresa_id', window.authCtx.perfil.empresa_id)
+            .eq('estado', 'completada')
+            .not('cliente_id', 'is', null)
+            .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
+            .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+
+        if (estadoReportesVentas.zonaSeleccionada) {
+            const { data: clientesZona } = await window.authCtx.sb
+                .from('clientes')
+                .select('id')
+                .eq('zona_id', estadoReportesVentas.zonaSeleccionada);
+            const clientesIds = (clientesZona || []).map(c => c.id);
+            queryPos = queryPos.in('cliente_id', clientesIds);
+        }
+
+        const { data: ventasPos } = await queryPos;
+
         // Agrupar por cliente
         const ventasPorCliente = {};
         (pedidos || []).forEach(p => {
@@ -520,6 +646,20 @@ async function cargarRankingClientes() {
                 };
             }
             ventasPorCliente[clienteId].total += p.total || 0;
+            ventasPorCliente[clienteId].cantidad += 1;
+        });
+
+        (ventasPos || []).forEach(v => {
+            const clienteId = v.cliente_id;
+            const clienteNombre = v.clientes?.razon_social || 'Sin cliente';
+            if (!ventasPorCliente[clienteId]) {
+                ventasPorCliente[clienteId] = {
+                    nombre: clienteNombre,
+                    total: 0,
+                    cantidad: 0
+                };
+            }
+            ventasPorCliente[clienteId].total += v.total || 0;
             ventasPorCliente[clienteId].cantidad += 1;
         });
 
@@ -574,10 +714,36 @@ async function cargarRankingProductos() {
         const { data: pedidos, error } = await query;
         if (error) throw error;
 
+        // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
+        let ventasPos = [];
+        if (!estadoReportesVentas.vendedorSeleccionado) {
+            const { data } = await window.authCtx.sb
+                .from('ventas_pos')
+                .select('venta_pos_items(cantidad, precio_unitario, producto_id)')
+                .eq('empresa_id', window.authCtx.perfil.empresa_id)
+                .eq('estado', 'completada')
+                .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+            ventasPos = data || [];
+        }
+
         // Agrupar por producto
         const ventasPorProducto = {};
         (pedidos || []).forEach(p => {
             (p.pedido_items || []).forEach(item => {
+                if (!ventasPorProducto[item.producto_id]) {
+                    ventasPorProducto[item.producto_id] = {
+                        cantidad: 0,
+                        ingresos: 0
+                    };
+                }
+                ventasPorProducto[item.producto_id].cantidad += item.cantidad;
+                ventasPorProducto[item.producto_id].ingresos += item.cantidad * item.precio_unitario;
+            });
+        });
+
+        ventasPos.forEach(v => {
+            (v.venta_pos_items || []).forEach(item => {
                 if (!ventasPorProducto[item.producto_id]) {
                     ventasPorProducto[item.producto_id] = {
                         cantidad: 0,
@@ -704,23 +870,23 @@ function mostrarMenuExport(fecha, tipo) {
 
     const overlay = document.createElement('div');
     overlay.id = 'export-menu-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(22,24,29,.35)';
     overlay.innerHTML = `
-      <div style="background:var(--color-surface,#FCFAF5);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <div style="background:var(--color-surface,#FFFFFF);border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(22,24,29,.18)">
         <h3 style="margin:0 0 16px;font-size:16px;font-weight:600">Exportar reporte</h3>
-        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#DCEDE3);border:1px solid var(--color-success-mid,#1F5B4A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#17402F)">
+        <button onclick="exportarExcel_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--color-success-bg,#E2F0E5);border:1px solid var(--color-success-mid,#75A37D);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-success,#487050)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 10 2.5 4L13 10m0 4-2.5-4M3 7h18"/></svg>
           Excel (.xlsx)
         </button>
-        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#DAD3C0);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
+        <button onclick="exportarCSV_${tipo}('${fecha}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:8px;background:var(--pill-neutral-bg,#EAE4D6);border:1px solid var(--color-border-soft,#E7E9E4);border-radius:8px;cursor:pointer;font-size:14px;color:var(--pill-neutral-text,#4B4A45)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           CSV (.csv)
         </button>
-        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F3DAD8);border:1px solid var(--color-danger-mid,#B3261E);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A1E19)">
+        <button onclick="exportarPDF_${tipo}()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-bottom:16px;background:var(--color-danger-bg,#F5DDD8);border:1px solid var(--color-danger-mid,#D1594A);border-radius:8px;cursor:pointer;font-size:14px;color:var(--color-danger,#7A2820)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           PDF (imprimir)
         </button>
-        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#4B4A45)">Cancelar</button>
+        <button onclick="document.getElementById('export-menu-overlay').remove()" style="width:100%;padding:8px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-muted,#5B6660)">Cancelar</button>
       </div>`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);

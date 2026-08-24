@@ -25,6 +25,58 @@
       ]
     },
     {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/app.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/styles.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*\\.woff2)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/frontend/(.*)\\.html",
       "headers": [
         {
@@ -45,7 +97,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.mercadopago.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.mercadopago.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
         }
       ]
     },
@@ -81,11 +133,24 @@
       ]
     },
     {
+      "source": "/frontend/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
       "source": "/frontend/admin/sw-admin.js",
       "headers": [
         {
           "key": "Service-Worker-Allowed",
-          "value": "/"
+          "value": "/admin/"
         },
         {
           "key": "Cache-Control",
@@ -210,6 +275,11 @@
       "source": "/admin/depositos",
       "destination": "/admin/stock?modal=depositos",
       "permanent": false
+    },
+    {
+      "source": "/admin/combos",
+      "destination": "/admin/productos?tab=combos",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -224,6 +294,50 @@
     {
       "source": "/admin/manifest.json",
       "destination": "/frontend/admin/manifest.json"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/frontend/manifest.json"
+    },
+    {
+      "source": "/registro.html",
+      "destination": "/frontend/registro.html"
+    },
+    {
+      "source": "/terminos.html",
+      "destination": "/frontend/terminos.html"
+    },
+    {
+      "source": "/privacidad.html",
+      "destination": "/frontend/privacidad.html"
+    },
+    {
+      "source": "/eliminacion-datos.html",
+      "destination": "/frontend/eliminacion-datos.html"
+    },
+    {
+      "source": "/terminos",
+      "destination": "/frontend/terminos.html"
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/frontend/privacidad.html"
+    },
+    {
+      "source": "/eliminacion-datos",
+      "destination": "/frontend/eliminacion-datos.html"
+    },
+    {
+      "source": "/scan-pos/portal",
+      "destination": "/frontend/scan-pos/portal.html"
+    },
+    {
+      "source": "/scan-pos/portal.html",
+      "destination": "/frontend/scan-pos/portal.html"
+    },
+    {
+      "source": "/chofer/index",
+      "destination": "/frontend/chofer/index.html"
     },
     {
       "source": "/api/importar/vision",
@@ -248,6 +362,10 @@
     {
       "source": "/api/empresa/datos",
       "destination": "/api/index?_mod=empresa&_svc=datos"
+    },
+    {
+      "source": "/api/empresa/slug",
+      "destination": "/api/index?_mod=empresa&_svc=slug"
     },
     {
       "source": "/api/empresa/catalogo-publico",
@@ -288,6 +406,18 @@
     {
       "source": "/api/auth/reset-password",
       "destination": "/api/index?_mod=auth&_ruta=reset-password"
+    },
+    {
+      "source": "/api/auth/reset-password-whatsapp",
+      "destination": "/api/index?_mod=auth&_ruta=reset-password-whatsapp"
+    },
+    {
+      "source": "/api/auth/confirmar-codigo-whatsapp",
+      "destination": "/api/index?_mod=auth&_ruta=confirmar-codigo-whatsapp"
+    },
+    {
+      "source": "/api/auth/change-password",
+      "destination": "/api/index?_mod=auth&_ruta=change-password"
     },
     {
       "source": "/api/admin/kpis",
@@ -344,6 +474,10 @@
     {
       "source": "/api/chofer/remitos/(.*)/entregar",
       "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=entregar"
+    },
+    {
+      "source": "/api/chofer/remitos/(.*)/no-entregar",
+      "destination": "/api/index?_mod=pedidos&_svc=chofer&_ruta=no-entregar"
     },
     {
       "source": "/api/chofer/remitos",
@@ -426,6 +560,10 @@
       "destination": "/api/index?_mod=reglas-precio"
     },
     {
+      "source": "/api/gastos-generales(.*)",
+      "destination": "/api/index?_mod=gastos-generales"
+    },
+    {
       "source": "/api/reglas-automatizacion(.*)",
       "destination": "/api/index?_mod=reglas-automatizacion"
     },
@@ -506,6 +644,26 @@
       "destination": "/api/index?_mod=pagos&_svc=publico"
     },
     {
+      "source": "/api/pagos/pos-qr-setup",
+      "destination": "/api/index?_mod=pagos&_svc=pos-qr-setup"
+    },
+    {
+      "source": "/api/pagos/pos-qr-cobrar",
+      "destination": "/api/index?_mod=pagos&_svc=pos-qr-cobrar"
+    },
+    {
+      "source": "/api/pagos/pos-qr-verificar",
+      "destination": "/api/index?_mod=pagos&_svc=pos-qr-verificar"
+    },
+    {
+      "source": "/api/pagos/oauth-iniciar",
+      "destination": "/api/index?_mod=pagos&_svc=oauth-iniciar"
+    },
+    {
+      "source": "/api/pagos/oauth-callback",
+      "destination": "/api/index?_mod=pagos&_svc=oauth-callback"
+    },
+    {
       "source": "/api/pagos(.*)",
       "destination": "/api/index?_mod=pagos"
     },
@@ -532,6 +690,10 @@
     {
       "source": "/api/notif/whatsapp-salientes-reprocesar",
       "destination": "/api/index?_mod=notif&_svc=whatsapp-salientes-reprocesar-cron"
+    },
+    {
+      "source": "/api/notif/audit-log-reprocesar",
+      "destination": "/api/index?_mod=notif&_svc=audit-log-reprocesar-cron"
     },
     {
       "source": "/api/notif/whatsapp",
@@ -747,7 +909,39 @@
     },
     {
       "source": "/",
-      "destination": "/frontend/index.html"
+      "destination": "/frontend/landing/index.html"
+    },
+    {
+      "source": "/landing",
+      "destination": "/frontend/landing/index.html"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/frontend/landing/app.js"
+    },
+    {
+      "source": "/landing-install.js",
+      "destination": "/frontend/landing-install.js"
+    },
+    {
+      "source": "/modulos/styles.css",
+      "destination": "/frontend/landing/modulos/styles.css"
+    },
+    {
+      "source": "/modulos/app.js",
+      "destination": "/frontend/landing/modulos/app.js"
+    },
+    {
+      "source": "/modulos/(.*)",
+      "destination": "/frontend/landing/modulos/index.html"
+    },
+    {
+      "source": "/styles.css",
+      "destination": "/frontend/landing/styles.css"
+    },
+    {
+      "source": "/fonts/(.*\\.woff2)",
+      "destination": "/frontend/landing/fonts/$1"
     },
     {
       "source": "/setup",
@@ -808,6 +1002,10 @@
     {
       "source": "/admin/reglas-precio",
       "destination": "/frontend/admin/reglas-precio.html"
+    },
+    {
+      "source": "/admin/gastos-generales",
+      "destination": "/frontend/admin/gastos-generales.html"
     },
     {
       "source": "/admin/conciliacion-bancaria",
@@ -994,6 +1192,10 @@
       "destination": "/frontend/cliente/catalogo.html"
     },
     {
+      "source": "/cliente/catalogo/:slug",
+      "destination": "/frontend/cliente/catalogo.html?e=:slug"
+    },
+    {
       "source": "/cliente/carrito",
       "destination": "/frontend/cliente/carrito.html"
     },
@@ -1150,6 +1352,10 @@
       "destination": "/frontend/admin/suspendida.html"
     },
     {
+      "source": "/api/saas",
+      "destination": "/api/index?_mod=saas"
+    },
+    {
       "source": "/api/saas/kpis",
       "destination": "/api/index?_mod=saas&_svc=kpis"
     },
@@ -1180,6 +1386,10 @@
     {
       "source": "/api/saas/precio",
       "destination": "/api/index?_mod=saas&_svc=precio"
+    },
+    {
+      "source": "/api/saas/demo-reset",
+      "destination": "/api/index?_mod=saas&_svc=demo-reset"
     },
     {
       "source": "/frontend/(.*)",
@@ -1234,6 +1444,10 @@
     {
       "path": "/api/notif/whatsapp-salientes-reprocesar",
       "schedule": "20 3 * * *"
+    },
+    {
+      "path": "/api/notif/audit-log-reprocesar",
+      "schedule": "40 3 * * *"
     }
   ],
   "functions": {

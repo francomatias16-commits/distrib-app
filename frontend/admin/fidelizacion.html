@@ -15,12 +15,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
   <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -30,7 +30,8 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/fidelizacion-gentelella.css?v=1" />
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
   <style>
@@ -81,29 +82,21 @@
     }
     .fidel-tabla-header h2 { font-size: 14px; font-weight: 700; color: var(--color-text); margin: 0; }
     .tabla-overflow { overflow-x: auto; }
-    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .tabla th {
-      padding: 10px 14px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      color: var(--color-text-muted);
-      background: var(--color-bg);
-      border-bottom: 1px solid var(--color-border);
-      white-space: nowrap;
-    }
-    .tabla td {
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(0,0,0,.04);
-      vertical-align: middle;
-    }
-    .tabla tbody tr:last-child td { border-bottom: none; }
-    .tabla tbody tr:hover td { background: rgba(0,174,112,.03); }
+    /* .tabla/.tabla th/td (pre-reskin) se quitó acá: componentes-admin.css
+       (.tabla-admin) es ahora la fuente única de estos estilos, compartida
+       por las 3 tablas de esta pantalla (canjes/clientes/historial).
+       white-space del thead se preservó explícitamente en
+       fidelizacion-gentelella.css. */
 
     /* Formulario config */
-    .config-form { max-width: 560px; }
+    .config-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 4px 24px;
+      align-items: start;
+    }
+    .config-form .f-group--full,
+    .config-form > button { grid-column: 1 / -1; }
     .f-group { margin-bottom: 16px; }
     .f-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--color-text); }
     .f-group small { display: block; font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
@@ -155,17 +148,31 @@
     .recomp-card.inactiva { opacity: .55; }
     .recomp-pts { font-size: 22px; font-weight: 800; color: var(--color-primary); }
 
-    /* Chips de estado para canjes */
-    .chip-pendiente { background: rgba(245,158,11,.12); color: var(--color-warning); }
-    .chip-aplicado  { background: rgba(34,197,94,.12);  color: #166534; }
-    .chip-expirado  { background: rgba(239,68,68,.12);  color: var(--color-danger); }
-    .chip-base {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 10px;
-      border-radius: var(--radius-full);
+    /* Paginación cliente "Cargar más" (recompensas, canjes, clientes, historial) */
+    .fidel-paginar-fila td { border-bottom: none !important; padding: 0 !important; }
+    .fidel-paginar-foot {
+      padding: 10px 18px;
+      border-top: 1px solid rgba(0,0,0,.06);
+      text-align: center;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
+    .fidel-paginar-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 12.5px; font-weight: 600; color: var(--color-primary);
+      padding: 4px 10px;
+    }
+    .fidel-paginar-btn:hover { text-decoration: underline; }
+    .fidel-paginar-btn--ghost { color: var(--color-text-muted); font-weight: 500; }
+
+    /* Chips de estado para canjes — .chip-base/.chip-aplicado/.chip-expirado
+       movidos al componente canónico (frontend/shared/componentes-admin.css,
+       Hallazgo #2 del plan). Estas reglas quedaban "muertas" antes porque
+       fidelizacion-gentelella.css las pisaba con mayor especificidad; al
+       sacar esa versión, dejarlas acá habría vuelto a mostrar estos colores
+       viejos (misma especificidad que el canónico, cargan después) — por
+       eso se borran acá también, no solo en el CSS de la página.
+       .chip-pendiente SÍ sigue viva en fidelizacion-gentelella.css (colisión
+       de nombre con rutas.html, ver ese archivo), así que no se toca acá. */
 
     /* Modal */
     .modal-backdrop {
@@ -246,7 +253,7 @@
                 <label>Mínimo de puntos para canjear</label>
                 <input type="number" id="config-puntos-minimos" value="100" step="1" min="1" required aria-label="Mínimos para canje">
               </div>
-              <div class="f-group">
+              <div class="f-group f-group--full">
                 <label>
                   <input type="checkbox" id="config-activo" checked aria-label="Programa activo" style="margin-right:6px;">
                   Programa activo
@@ -268,7 +275,7 @@
               El bonus se aplica automáticamente al acreditar puntos.
             </p>
             <form id="form-bonus">
-              <div class="score-grid" style="max-width:600px;margin-bottom:16px;">
+              <div class="score-grid" style="margin-bottom:16px;">
                 <div class="score-cell">
                   <label><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</label>
                   <div style="display:flex;align-items:center;gap:6px;"><input type="number" id="bonus-premium" value="20" step="1" min="0" max="100" aria-label="Bonus Premium"><span style="font-size:12px;color:var(--color-text-muted);">%</span></div>
@@ -308,7 +315,7 @@
               <!-- Umbrales -->
               <div style="margin-bottom:20px;">
                 <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:10px;">Umbrales de categoría (puntaje 0–100)</div>
-                <div class="score-grid" style="max-width:700px;">
+                <div class="score-grid">
                   <div class="score-cell">
                     <label><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium (≥)</label>
                     <input type="number" id="rs-umbral-premium" value="80" min="0" max="100" aria-label="Umbral Premium">
@@ -330,7 +337,7 @@
               <!-- Multiplicadores de crédito -->
               <div style="margin-bottom:20px;">
                 <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:10px;">Multiplicador de límite de crédito</div>
-                <div class="score-grid" style="max-width:700px;">
+                <div class="score-grid">
                   <div class="score-cell">
                     <label><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</label>
                     <input type="number" id="rs-mult-premium" value="2.0" step="0.1" min="0" aria-label="Mult crédito Premium">
@@ -352,7 +359,7 @@
               <!-- Días de crédito -->
               <div style="margin-bottom:20px;">
                 <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:10px;">Días de crédito por categoría</div>
-                <div class="score-grid" style="max-width:700px;">
+                <div class="score-grid">
                   <div class="score-cell">
                     <label><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</label>
                     <input type="number" id="rs-dias-premium" value="45" min="0" aria-label="Días crédito Premium">
@@ -407,15 +414,15 @@
             </div>
           </div>
           <div class="tabla-overflow">
-            <table class="tabla">
+            <table class="tabla-admin">
               <thead>
                 <tr>
-                  <th>Fecha</th>
+                  <th class="col-fit">Fecha</th>
                   <th>Cliente</th>
-                  <th>Recompensa</th>
-                  <th>Puntos gastados</th>
-                  <th>Estado</th>
-                  <th class="col-sticky-end">Acciones</th>
+                  <th class="col-fit">Recompensa</th>
+                  <th class="col-fit">Puntos gastados</th>
+                  <th class="col-fit">Estado</th>
+                  <th class="col-sticky-end col-fit">Acciones</th>
                 </tr>
               </thead>
               <tbody id="tbody-canjes"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -433,14 +440,14 @@
               style="padding:6px 12px;border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:13px;width:220px;" aria-label="Buscar cliente">
           </div>
           <div class="tabla-overflow">
-            <table class="tabla">
+            <table class="tabla-admin">
               <thead>
                 <tr>
                   <th>Cliente</th>
-                  <th style="text-align:left;">Puntos disponibles</th>
-                  <th style="text-align:left;">Total ganado</th>
-                  <th style="text-align:left;">Canjeados</th>
-                  <th style="text-align:center;">Último mov.</th>
+                  <th style="text-align:left;" class="col-fit">Puntos disponibles</th>
+                  <th style="text-align:left;" class="col-fit">Total ganado</th>
+                  <th style="text-align:left;" class="col-fit">Canjeados</th>
+                  <th style="text-align:center;" class="col-fit">Último mov.</th>
                 </tr>
               </thead>
               <tbody id="tabla-clientes-puntos"><tr><td colspan="5" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -464,13 +471,13 @@
             </select>
           </div>
           <div class="tabla-overflow">
-            <table class="tabla">
+            <table class="tabla-admin">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Cliente</th>
-                  <th>Tipo</th>
-                  <th style="text-align:left;">Puntos</th>
+                  <th class="col-fit">Fecha</th>
+                  <th class="col-fit">Cliente</th>
+                  <th class="col-fit">Tipo</th>
+                  <th style="text-align:left;" class="col-fit">Puntos</th>
                   <th>Motivo</th>
                 </tr>
               </thead>
@@ -539,12 +546,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-  <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+  <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
   <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
   <script src="/frontend/admin/js/fidelizacion.js?v1782328742714"></script>
 </body>

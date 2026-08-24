@@ -1,0 +1,465 @@
+/**
+ * gastos-generales-gentelella.css — Reskin "Gentelella v4" de la pantalla Gastos generales
+ * ─────────────────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/reportes.css y de
+ * /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * Esta pantalla define estilos en un bloque <style> inline; este archivo los sobreescribe
+ * todos bajo el scope, sin tocar ningún id/clase que lea gastos-generales.js.
+ * Adaptado 1:1 desde reglas-precio-gentelella.css (mismo patrón ABM).
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-gastos-generales-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella { background: var(--ge-bg) !important; }
+body.dash-gastos-generales-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-gastos-generales-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-gastos-generales-gentelella .topbar-workspace {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-gastos-generales-gentelella .topbar-fecha {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-gastos-generales-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* CTA principal — Nueva regla */
+body.dash-gastos-generales-gentelella #btn-nueva-regla,
+body.dash-gastos-generales-gentelella .btn-primario {
+  background: var(--ge-teal) !important;
+  border: none !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-panel) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+body.dash-gastos-generales-gentelella #btn-nueva-regla:hover,
+body.dash-gastos-generales-gentelella .btn-primario:hover:not(:disabled) {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-gastos-generales-gentelella .btn-primario:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Breadcrumb
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI cards — small-box (generadas por JS)
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .small-box {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-gastos-generales-gentelella .small-box.bg-primary {
+  background: var(--ge-teal) !important;
+}
+body.dash-gastos-generales-gentelella .small-box.bg-success {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-gastos-generales-gentelella .small-box.bg-secondary {
+  background: var(--ge-sidebar) !important;
+}
+body.dash-gastos-generales-gentelella .small-box.bg-info {
+  background: var(--ge-blue) !important;
+}
+body.dash-gastos-generales-gentelella .small-box .inner h3 {
+  color: var(--ge-panel) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+body.dash-gastos-generales-gentelella .small-box .inner p {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla wrapper
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .tabla-wrap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+  overflow: hidden !important;
+}
+body.dash-gastos-generales-gentelella .tabla-header {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-gastos-generales-gentelella .tabla-header h2 {
+  color: var(--ge-ink) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Filtros bar
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .filtros-bar input,
+body.dash-gastos-generales-gentelella .filtros-bar select {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-gastos-generales-gentelella .filtros-bar input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-gastos-generales-gentelella .filtros-bar input:focus,
+body.dash-gastos-generales-gentelella .filtros-bar select:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Tabla (thead / tbody)
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .tabla-admin th {
+  background: var(--ge-bg) !important;
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin quitado al migrar a .tabla-admin (Fase 2) */
+}
+body.dash-gastos-generales-gentelella .tabla-admin td {
+  color: var(--ge-ink) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+}
+body.dash-gastos-generales-gentelella .tabla-admin tbody tr:last-child td {
+  border-bottom: none !important;
+}
+body.dash-gastos-generales-gentelella .tabla-admin tbody tr:hover td {
+  background: var(--ge-teal-light) !important;
+}
+/* Fila de gasto inactivo. OJO: antes de esta migración esta regla apuntaba a
+   tr.regla-inactiva/tr.regla-vencida (copiado 1:1 de reglas-precio-gentelella.css
+   sin adaptar), pero el JS de esta página (gastos-generales.js) marca la fila
+   con la clase .gasto-inactivo — esa regla nunca se activó. El efecto de
+   opacidad que sí se veía en producción venía del <style> inline
+   (.tabla tr.gasto-inactivo td), ahora removido. Se corrige acá para que el
+   componente canónico sea la única fuente de este efecto, con el selector real. */
+body.dash-gastos-generales-gentelella .tabla-admin tr.gasto-inactivo td {
+  opacity: .5 !important;
+}
+body.dash-gastos-generales-gentelella .col-sticky-end {
+  background: var(--ge-panel) !important;
+}
+body.dash-gastos-generales-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
+  background: var(--ge-teal-light) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Chips — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
+   ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   Botones de acción en tabla (fila-acciones)
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .fila-acciones button {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 10px !important;
+}
+body.dash-gastos-generales-gentelella .fila-acciones button:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-gastos-generales-gentelella .fila-acciones button.danger {
+  border-color: var(--ge-red) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-gastos-generales-gentelella .fila-acciones button.danger:hover {
+  background: rgba(231,76,60,.08) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Modal de regla (backdrop + panel lateral)
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .modal-backdrop {
+  background: rgba(42,63,84,.45) !important;
+}
+body.dash-gastos-generales-gentelella .modal {
+  background: var(--ge-panel) !important;
+  border-left: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+}
+body.dash-gastos-generales-gentelella .modal-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 18px !important;
+}
+body.dash-gastos-generales-gentelella .modal-header > div:first-child {
+  padding-right: 40px !important;
+}
+body.dash-gastos-generales-gentelella .modal-titulo {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+body.dash-gastos-generales-gentelella .modal-subtitulo {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+}
+body.dash-gastos-generales-gentelella .modal-close {
+  color: var(--ge-muted) !important;
+  background: transparent !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-gastos-generales-gentelella .modal-close:hover {
+  color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
+}
+body.dash-gastos-generales-gentelella .modal-seccion {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+/* Esta pantalla nunca tuvo .form-row/.form-group con layout propio: los
+   campos quedaban apilados uno debajo del otro en una sola columna.
+   Se agrega la grilla de 2 columnas que ya usan productos/clientes/stock. */
+body.dash-gastos-generales-gentelella .form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px !important;
+}
+body.dash-gastos-generales-gentelella .form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+/* Filas con un solo campo (Nombre de la regla, Alcance del producto) deben
+   ocupar el ancho completo de las 2 columnas del grid, no quedar a la mitad. */
+body.dash-gastos-generales-gentelella .form-row > .form-group:only-child {
+  grid-column: 1 / -1 !important;
+}
+@media (max-width: 640px) {
+  body.dash-gastos-generales-gentelella .form-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Formulario de regla
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .form-label {
+  color: var(--ge-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+body.dash-gastos-generales-gentelella .form-input,
+body.dash-gastos-generales-gentelella .form-group input,
+body.dash-gastos-generales-gentelella .form-group select,
+body.dash-gastos-generales-gentelella .form-group textarea {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-gastos-generales-gentelella .form-input:focus,
+body.dash-gastos-generales-gentelella .form-group input:focus,
+body.dash-gastos-generales-gentelella .form-group select:focus,
+body.dash-gastos-generales-gentelella .form-group textarea:focus {
+  border-color: var(--ge-teal) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+}
+body.dash-gastos-generales-gentelella .form-input::placeholder,
+body.dash-gastos-generales-gentelella .form-group input::placeholder {
+  color: var(--ge-muted) !important;
+}
+body.dash-gastos-generales-gentelella .tooltip-info {
+  color: var(--ge-muted) !important;
+  cursor: help !important;
+}
+
+/* Selector de alcance (Todo el catálogo / Producto específico / Categoría) */
+body.dash-gastos-generales-gentelella .alcance-toggle label {
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  color: var(--ge-ink-soft) !important;
+  background: var(--ge-panel) !important;
+  font-weight: 500 !important;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+body.dash-gastos-generales-gentelella .alcance-toggle label:hover {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+}
+body.dash-gastos-generales-gentelella .alcance-toggle label:has(input:checked) {
+  border-color: var(--ge-teal) !important;
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 600 !important;
+}
+body.dash-gastos-generales-gentelella .alcance-toggle input {
+  accent-color: var(--ge-teal) !important;
+}
+
+/* Cantidad mínima, valor, prioridad — inputs numéricos */
+body.dash-gastos-generales-gentelella input[type="number"] {
+  color-scheme: light !important;
+}
+
+/* Vigente desde / hasta */
+body.dash-gastos-generales-gentelella input[type="date"] {
+  color-scheme: light !important;
+}
+
+/* Checkbox "Regla activa" */
+body.dash-gastos-generales-gentelella #fg-activo {
+  accent-color: var(--ge-teal) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+body.dash-gastos-generales-gentelella .form-group label:has(#fg-activo) {
+  color: var(--ge-ink-soft) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+/* Acciones del formulario */
+body.dash-gastos-generales-gentelella .form-acciones {
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 16px 0 0 !important;
+  margin-top: auto !important;
+  border-top: 1px solid var(--ge-border) !important;
+  background: transparent !important;
+}
+body.dash-gastos-generales-gentelella .btn-secundario {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  font-size: 13px !important;
+}
+body.dash-gastos-generales-gentelella .btn-secundario:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Toast
+   ════════════════════════════════════════════════════════════ */
+body.dash-gastos-generales-gentelella .toast {
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Responsive (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body.dash-gastos-generales-gentelella .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.dash-gastos-generales-gentelella .filtros-bar input,
+  body.dash-gastos-generales-gentelella .filtros-bar select {
+    width: 100% !important;
+  }
+  body.dash-gastos-generales-gentelella .kpis-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  body.dash-gastos-generales-gentelella .kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Fix: modal de regla de precio quedaba atrapado detrás del
+   backdrop (invisible) y sin posición fija -> cualquier click
+   se lo comía el backdrop y cerraba el modal.
+   Se replica el patrón "cajón deslizante" usado en el resto
+   del admin (clientes, pedidos, stock, etc.).
+   ════════════════════════════════════════════════════════════ */
+#modal-gasto-backdrop.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: var(--z-modal-backdrop);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+#modal-gasto.modal {
+  position: fixed;
+  top: 0;
+  right: -600px;
+  left: auto;
+  width: 580px;
+  max-width: 95vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  z-index: var(--z-modal);
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  transform: none;
+}
+#modal-gasto.modal.open { right: 0; }

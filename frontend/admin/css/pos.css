@@ -91,7 +91,6 @@
 }
 @media (max-width: 480px) {
   .pos-caja-kpis { grid-template-columns: 1fr; }
-  .pos-item-fila { grid-template-columns: 1fr 44px 52px auto auto; gap: 4px; }
 }
 
 .pos-col-busqueda {
@@ -100,7 +99,7 @@
 }
 .pos-busqueda-wrap {
   display: flex; align-items: center; gap: 8px;
-  border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+  border: 1.5px solid transparent; border-radius: var(--radius-md);
   padding: 10px 14px; color: var(--color-text-light);
 }
 .pos-busqueda-wrap:focus-within { border-color: var(--nav-ventas, var(--color-box-success)); color: var(--color-text); }
@@ -189,16 +188,8 @@
 .pos-carrito-head h3 { margin: 0; font-size: var(--font-size-md); }
 .pos-vaciar { background: none; border: none; color: var(--color-danger-mid); font-size: var(--font-size-xs); cursor: pointer; }
 
-.pos-carrito-items { display: flex; flex-direction: column; gap: 8px; max-height: 35vh; overflow-y: auto; }
 .pos-carrito-vacio { color: var(--color-text-light); font-size: var(--font-size-sm); text-align: center; padding: 24px 0; }
 
-/* Fase 2 — ítem 11: columna de descuento por línea */
-.pos-item-fila {
-  display: grid;
-  grid-template-columns: 1fr 52px 60px auto auto;
-  align-items: center; gap: 6px;
-  padding: 6px 0; border-bottom: 1px solid var(--color-border);
-}
 .pos-item-recien-agregado { animation: pos-flash-agregado 900ms ease-out; }
 @keyframes pos-flash-agregado {
   0%   { background: var(--color-success-bg, var(--color-success-bg)); }
@@ -270,14 +261,165 @@
   background: var(--color-surface); border-radius: var(--radius-lg);
   width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
   padding: 22px; box-shadow: var(--shadow-xl); display: flex; flex-direction: column; gap: 12px;
+  /* Ancla para los botones "X" de cerrar (.modal-close / .pos-modal-cerrar),
+     que se posicionan con position:absolute. Sin esto, el navegador los
+     ancla al ancestro posicionado más cercano — que termina siendo
+     .pos-modal-overlay (position:fixed; inset:0, o sea TODA la pantalla)
+     en vez de esta tarjeta — y la cruz aparece flotando en la esquina del
+     viewport en vez de la esquina del modal. Afectaba a Cobro, Cierre de
+     turno, Movimiento de caja, Administración, PIN y Reporte Z (los que
+     usan .modal-close); .pos-modal-ticket ya tenía este mismo parche
+     aplicado a mano más abajo, ahora es redundante pero inofensivo. */
+  position: relative;
 }
 .pos-modal-head { display: flex; align-items: center; justify-content: space-between; }
 .pos-modal-head h2 { margin: 0; font-size: var(--font-size-lg); }
 .modal-close {
   background: none; border: none; border-radius: var(--radius-sm);
   padding: 4px; cursor: pointer; color: var(--color-text-muted);
+  /* .modal-close es una clase compartida en toda la app (ver
+     shared/adminlte-components.css), donde por defecto viene con
+     position:absolute; top:16px; right:16px — pensada para el patrón
+     .modal-backdrop > .modal genérico. Acá el header (.pos-modal-head /
+     .pos-admin-head) ya es un flex row con justify-content:space-between
+     que espera la cruz como un ítem normal más (título a la izquierda,
+     cruz a la derecha) — el mismo patrón que ya usan sin problema los
+     modales con .pos-modal-cerrar. Si se deja position:absolute, el botón
+     se sale de ese flujo y termina anclado al ancestro posicionado más
+     cercano, que es .pos-modal-overlay (position:fixed; inset:0 — TODA la
+     pantalla), no la tarjeta del modal: la cruz flota afuera, en la
+     esquina del navegador. Se vuelve a static para que participe del
+     flex row como estaba pensado. */
+  position: static;
 }
 .modal-close:hover { background: var(--color-bg); color: var(--color-text); }
+
+/* Modal de cobro: más ancho para que el cajero vea el estado y los medios
+   sin depender de un selector pequeño. El resto de los modales conserva su
+   ancho compacto. */
+.pos-modal-cobro {
+  max-width: 900px;
+  gap: 16px;
+  border-top: 4px solid var(--nav-ventas, var(--color-box-success));
+}
+.pos-cobro-eyebrow {
+  margin: 0 0 2px;
+  color: var(--color-text-light);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pos-cobro-grid {
+  display: grid;
+  grid-template-columns: minmax(210px, .72fr) minmax(420px, 1.55fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.pos-cobro-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.pos-cobro-total-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  background: linear-gradient(145deg, var(--nav-ventas, #487050), color-mix(in srgb, var(--nav-ventas, #487050) 72%, #10231a));
+  border-radius: var(--radius-md);
+  color: #fff;
+}
+.pos-cobro-total-label {
+  font-size: var(--font-size-xs);
+  opacity: .82;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.pos-cobro-total-card strong {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+.pos-cobro-resumen-box {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+.pos-cobro-resumen-box .pos-totales-fila strong {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+.pos-cobro-resumen-box #pos-pagos-diferencia-fila {
+  border-top: 1px solid var(--color-border);
+  padding-top: 9px;
+}
+.pos-cobro-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+  line-height: 1.35;
+}
+.pos-cobro-notice-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--nav-ventas, var(--color-box-success));
+}
+.pos-cobro-pagos {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pos-cobro-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pos-cobro-section-kicker {
+  display: block;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+}
+.pos-cobro-section-head p {
+  margin: 2px 0 0;
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+}
+.pos-cobro-key-hint {
+  flex: 0 0 auto;
+  color: var(--color-text-light);
+  font-size: 11px;
+}
+.pos-cobro-key-hint kbd,
+.pos-cobro-keybar kbd,
+.pos-modal-acciones kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 5px;
+  border: 1px solid rgba(0,0,0,.15);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary, var(--color-text-muted));
+  font-size: 10px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  line-height: 1;
+}
 
 /* Alias de nombre usado por los modales de Fase 3 (cliente rápido, alerta
    stock, facturar opcional) — misma apariencia que .pos-modal-head/.modal-close
@@ -354,9 +496,89 @@
   color: var(--color-text-light); background: var(--color-bg); padding: 4px 10px; border-radius: var(--radius-sm);
 }
 
-.pos-pagos-lista { display: flex; flex-direction: column; gap: 8px; }
-.pos-pago-fila { display: grid; grid-template-columns: 1.1fr 1fr auto; gap: 6px; align-items: center; }
-.pos-pago-fila select, .pos-pago-fila input { font-family: inherit; }
+.pos-pagos-lista { display: flex; flex-direction: column; gap: 10px; }
+.pos-pago-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.pos-pago-fila--activa {
+  border-color: var(--nav-ventas, var(--color-box-success));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nav-ventas, #487050) 18%, transparent);
+  background: color-mix(in srgb, var(--nav-ventas-bg, rgba(40,167,69,.12)) 48%, var(--color-surface));
+}
+.pos-pago-fila-top { display: flex; align-items: center; justify-content: space-between; }
+.pos-pago-numero {
+  color: var(--color-text-light);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.pos-pago-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+.pos-pago-quitar:hover { background: var(--color-danger-bg, rgba(122,40,32,.1)); color: var(--color-danger, #7A2820); }
+.pos-pago-metodos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+.pos-pago-metodo {
+  display: flex;
+  min-width: 0;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text-secondary, var(--color-text-muted));
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1.1;
+  transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+}
+.pos-pago-metodo:hover { border-color: var(--nav-ventas, var(--color-box-success)); color: var(--color-text); transform: translateY(-1px); }
+.pos-pago-metodo kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-light);
+  font: 700 10px var(--font-mono, monospace);
+}
+.pos-pago-metodo--activo {
+  border-color: var(--nav-ventas, var(--color-box-success));
+  background: var(--nav-ventas, var(--color-box-success));
+  color: #fff;
+}
+.pos-pago-metodo--activo kbd { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.35); color: #fff; }
+.pos-pago-importe { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--color-text-secondary, var(--color-text-muted)); font-size: var(--font-size-xs); font-weight: 600; }
+.pos-pago-input-wrap { display: flex; align-items: center; min-width: 150px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); overflow: hidden; }
+.pos-pago-input-wrap > span { padding-left: 10px; color: var(--color-text-light); }
+.pos-pago-input-wrap input { width: 100%; border: 0; box-shadow: none; text-align: right; font-weight: 700; }
+.pos-pago-input-wrap input:focus { outline: none; box-shadow: none; }
+/* Flechitas del input number: removidas globalmente en frontend/shared/reskin-patch.css */
+.pos-pago-medio-fallback { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
 .pos-btn-agregar-pago {
   align-self: flex-start; background: none; border: 1px dashed var(--color-border);
@@ -387,6 +609,16 @@
   color: var(--nav-ventas, var(--color-box-success)); line-height: 1;
 }
 
+.pos-cobro-keybar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 14px;
+  padding-top: 2px;
+  color: var(--color-text-light);
+  font-size: 10px;
+}
+.pos-cobro-keybar span { display: inline-flex; align-items: center; gap: 4px; }
 .pos-modal-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 .btn-secundario {
   background: var(--color-surface); border: 1px solid rgba(0,0,0,.07);
@@ -574,6 +806,23 @@
 .pos-admin-panel { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
 .pos-admin-lista { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; }
 
+/* Paginación de la lista de ventas (panel admin del POS) */
+.pos-paginacion {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 10px 0 2px;
+}
+.pos-paginacion:empty { display: none; }
+.pos-pag-btn {
+  background: var(--color-surface); color: var(--color-text);
+  border: 1px solid var(--color-border, var(--color-surface-2));
+  border-radius: var(--radius-sm); padding: 6px 12px;
+  font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.pos-pag-btn:hover:not(:disabled) { background: var(--color-surface-2, #f3f3f1); border-color: var(--color-primary); }
+.pos-pag-btn:disabled { opacity: .4; cursor: default; }
+.pos-pag-info { font-size: var(--font-size-sm); color: var(--color-text-light); white-space: nowrap; }
+
 .pos-ventas-resumen-tabla { display: flex; flex-direction: column; margin-bottom: 12px; border: 1px solid var(--color-border,var(--color-surface-2)); border-radius: var(--radius-md); overflow: hidden; }
 .pos-ventas-resumen-fila {
   display: grid; grid-template-columns: 1.4fr .8fr .8fr 1fr; gap: 8px;
@@ -596,6 +845,20 @@
   background: var(--color-bg);
 }
 
+/* AUDITORIA-RESPONSIVE-ETAPA2: esta tabla vive dentro del modal admin del
+   POS, que a partir de 860px ya ocupa el 100% de la pantalla (ver @media
+   más abajo) — en un teléfono chico (≤360-375px de ancho) las 4 columnas
+   fijas (1.4fr .8fr .8fr 1fr) dejan muy poco lugar para "Anuladas" y
+   "Total" con el font-size normal. Se achica tipografía/gap nada más en
+   ese rango, sin tocar el layout de 4 columnas (que sí entra bien). */
+@media (max-width: 400px) {
+  .pos-ventas-resumen-fila {
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 11.5px;
+  }
+}
+
 
 @media (max-width: 860px) {
   .pos-modal-overlay--admin { padding: 0; }
@@ -606,8 +869,7 @@
     border-right: none; border-bottom: 1px solid var(--color-border);
     padding: 8px 10px; gap: 4px;
   }
-  .pos-admin-tabs-sep { display: none; }
-  .pos-admin-tab { flex-shrink: 0; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .pos-admin-tabs-sep { display: none; }  .pos-admin-tab { flex-shrink: 0; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
   .pos-admin-tab.activo { border-left-color: transparent; border-bottom-color: var(--nav-ventas, var(--color-box-success)); }
   .pos-admin-content { padding: 16px; }
   .pos-admin-panel { max-width: 100%; }
@@ -654,24 +916,91 @@
 }
 
 /* ══════════════════ Print ══════════════════ */
+
+/* Encabezado/pie de "comercio" del ticket: solo existen para la vista
+   impresa (ver @media print más abajo). En pantalla no aportan nada
+   (ya se ve el nombre de la empresa en el resto del admin) y ocuparían
+   espacio de más en el modal. */
+.pos-ticket-print-header,
+.pos-ticket-print-footer { display: none; }
+
 @media print {
-  /* Ticket normal */
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+
+  /* El ancho físico de la página (58mm/80mm) lo define el <style
+     id="pos-print-page-style"> que inyecta pos-printer.js
+     (prepararPaginaNavegador()) justo antes de window.print(), según el
+     "Ancho de papel" configurado en Admin → Hardware. El atributo
+     data-pos-papel en <body>, seteado por esa misma función, es lo que
+     usan las reglas de acá abajo para ajustar tamaño de letra. */
+
+  /* ── Ticket de venta ──────────────────────────────────────────────── */
   body:not(.imprimiendo-z) * { visibility: hidden; }
   body:not(.imprimiendo-z) #modal-ticket-overlay,
   body:not(.imprimiendo-z) #modal-ticket-overlay * { visibility: visible; }
   body:not(.imprimiendo-z) #modal-ticket-overlay {
-    position: absolute; inset: 0; background: var(--color-surface);
+    position: absolute; inset: 0; background: #fff;
   }
-  body:not(.imprimiendo-z) .pos-modal-acciones { display: none; }
+  body:not(.imprimiendo-z) .pos-modal-acciones,
+  body:not(.imprimiendo-z) .pos-modal-cerrar,
+  body:not(.imprimiendo-z) .pos-ticket-ok svg,
+  body:not(.imprimiendo-z) #pos-ticket-factura-estado { display: none !important; }
 
-  /* Reporte Z */
+  /* Look de rollo térmico: angosto, monoespaciado, sin sombras/bordes de
+     modal ni colores — así se acerca al ticket real en vez del recorte de
+     pantalla completa que salía antes (A4, con toda la interfaz de fondo). */
+  body:not(.imprimiendo-z) .pos-modal-ticket {
+    position: static; width: 100%; max-width: none; min-width: 0;
+    margin: 0; padding: 3mm 3mm 6mm;
+    box-shadow: none; border: none; border-radius: 0;
+    background: #fff; color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11.5px; line-height: 1.45;
+  }
+  body[data-pos-papel="58"]:not(.imprimiendo-z) .pos-modal-ticket { font-size: 9.5px; }
+
+  body:not(.imprimiendo-z) .pos-ticket-print-header,
+  body:not(.imprimiendo-z) .pos-ticket-print-footer { display: block; text-align: center; }
+  .pos-ticket-print-empresa { font-weight: 700; font-size: 1.2em; margin-bottom: 2px; }
+  .pos-ticket-print-sep     { border-top: 1px dashed #000; margin: 5px 0; }
+  .pos-ticket-print-meta    { display: flex; justify-content: space-between; gap: 6px; text-align: left; }
+  .pos-ticket-print-gracias { font-weight: 700; }
+
+  body:not(.imprimiendo-z) .pos-ticket-ok { margin: 4px 0 2px; color: #000; }
+  body:not(.imprimiendo-z) .pos-ticket-ok h2 { font-size: 1.05em; margin: 0; color: #000; }
+  body:not(.imprimiendo-z) #pos-ticket-numero { font-size: 0.9em; margin: 0; color: #000; }
+
+  body:not(.imprimiendo-z) .pos-ticket-detalle {
+    border-top: 1px dashed #000; border-bottom: 1px dashed #000;
+    padding: 4px 0; margin: 5px 0; gap: 3px;
+  }
+  /* pisa colores de descuento/vuelto que en pantalla usan verde/rojo —
+     en el rollo térmico (o en B&N) todo va en negro. */
+  body:not(.imprimiendo-z) .pos-ticket-fila { color: #000 !important; }
+
+  /* ── Reporte Z ────────────────────────────────────────────────────── */
   body.imprimiendo-z * { visibility: hidden; }
   body.imprimiendo-z #modal-z-overlay,
   body.imprimiendo-z #modal-z-overlay * { visibility: visible; }
-  body.imprimiendo-z #modal-z-overlay { position: absolute; inset: 0; background: var(--color-surface); }
+  body.imprimiendo-z #modal-z-overlay { position: absolute; inset: 0; background: #fff; }
   body.imprimiendo-z .pos-modal-acciones { display: none; }
   body.imprimiendo-z .pos-modal-head button { display: none; }
   body.imprimiendo-z .pos-z-ventas { max-height: none; overflow: visible; }
+
+  body.imprimiendo-z .pos-modal-z {
+    position: static; width: 100%; max-width: none;
+    margin: 0; padding: 3mm 3mm 6mm;
+    box-shadow: none; border: none; border-radius: 0;
+    background: #fff; color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11.5px; line-height: 1.45;
+  }
+  body[data-pos-papel="58"].imprimiendo-z .pos-modal-z { font-size: 9.5px; }
+  body.imprimiendo-z .pos-z-row,
+  body.imprimiendo-z .pos-z-row.ok,
+  body.imprimiendo-z .pos-z-row.diferencia { color: #000 !important; }
+  body.imprimiendo-z .pos-z-section { border-bottom: 1px dashed #000; }
+  body.imprimiendo-z .pos-z-row.total { border-top: 1px solid #000; }
 }
 
 /* ══════════════════ Fase 4: Badges de promo/peso ══════════════════ */
@@ -870,7 +1199,7 @@
 }
 .pos-buscador-container { position: relative; flex: 1; min-width: 0; }
 .pos-grid--facil .pos-busqueda-wrap {
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid transparent;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   height: 60px;
@@ -1213,6 +1542,17 @@
   .pos-col-inferior { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
+  .pos-modal-cobro { padding: 16px; max-height: 94vh; }
+  .pos-cobro-grid { grid-template-columns: 1fr; gap: 12px; }
+  .pos-cobro-total-card { padding: 14px; }
+  .pos-cobro-total-card strong { font-size: 2rem; }
+  .pos-cobro-section-head { flex-direction: column; gap: 5px; }
+  .pos-pago-metodos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pos-pago-importe { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .pos-pago-input-wrap { width: 100%; }
+  .pos-cobro-keybar { gap: 6px 10px; }
+  .pos-modal-acciones { flex-direction: column-reverse; }
+  .pos-modal-acciones button { width: 100%; justify-content: center; }
   .pos-ticket-toolbar { flex-direction: column; }
   .pos-grid--facil .pos-busqueda-wrap { height: 52px; }
   .pos-btn-buscar-articulo { justify-content: center; padding: 12px; height: 46px; }
@@ -1228,3 +1568,15 @@
     background: transparent;
   }
 }
+
+/* Modal de ayuda — Atajos de teclado (F1) */
+.pos-tabla-atajos td { padding: 6px 8px; border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
+.pos-tabla-atajos tr:last-child td { border-bottom: none; }
+.pos-atajo-tecla { white-space: nowrap; width: 1%; }
+.pos-tabla-atajos kbd {
+  display: inline-block; min-width: 22px; padding: 2px 6px; text-align: center;
+  font-family: inherit; font-size: 12px; font-weight: var(--font-weight-semibold);
+  background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px;
+  box-shadow: 0 1px 0 var(--color-border);
+}
+.pos-atajos-nota { margin: 10px 0 0; font-size: 12px; color: var(--color-text-light); }

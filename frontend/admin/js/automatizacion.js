@@ -28,10 +28,10 @@ function toast(msg, tipo = 'info') {
   let t = q('#auto-toast');
   if (!t) {
     t = Object.assign(document.createElement('div'), { id: 'auto-toast' });
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.18);transition:opacity .3s;pointer-events:none';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(22,24,29,.18);transition:opacity .3s;pointer-events:none';
     document.body.appendChild(t);
   }
-  const bg = { info: 'var(--color-info,#1E3A52)', ok: 'var(--color-success,#17402F)', error: 'var(--color-danger,#7A1E19)', warn: 'var(--color-warning,#7A4A00)' };
+  const bg = { info: 'var(--color-info,#1F3555)', ok: 'var(--color-success,#487050)', error: 'var(--color-danger,#7A2820)', warn: 'var(--color-warning,#8A5F13)' };
   Object.assign(t.style, { background: bg[tipo] || bg.info, color: '#fff', opacity: '1' });
   t.textContent = msg;
   clearTimeout(_toastTimer);
@@ -70,7 +70,7 @@ function iniciarSafe() {
 // ── Inicialización ────────────────────────────────────────────────────────
 async function iniciar() {
   if (!_token()) {
-    renderError('Token de sesión no disponible. <a href="/admin/login" style="color:var(--color-primary,#B87A00)">Iniciar sesión</a>');
+    renderError('Token de sesión no disponible. <a href="/admin/login" style="color:var(--color-primary,#6A9873)">Iniciar sesión</a>');
     return;
   }
 
@@ -152,7 +152,7 @@ function renderError(htmlMsg) {
       <div style="margin-bottom:14px"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <div style="font-size:15px;font-weight:700;color:var(--color-text);margin-bottom:8px">Error al cargar los motores</div>
       <div style="font-size:13px;max-width:420px;margin:0 auto 20px">${htmlMsg}</div>
-      <button onclick="location.reload()" style="padding:9px 22px;border-radius:8px;background:var(--color-primary,#B87A00);color:#fff;border:none;cursor:pointer;font-size:14px;font-weight:600">
+      <button onclick="location.reload()" style="padding:9px 22px;border-radius:8px;background:var(--color-primary,#6A9873);color:#fff;border:none;cursor:pointer;font-size:14px;font-weight:600">
         Recargar página
       </button>
     </div>`;
@@ -264,7 +264,7 @@ function buildCierreCard(c) {
   const items = (c.recientes || []).slice(0, 3).map(r =>
     `<div class="motor-list-item">
       <div style="flex:1"><strong style="font-size:13px">${r.cliente || '—'}</strong>
-      ${r.monto ? `<span style="font-size:11px;color:var(--color-success,#17402F);display:block">${formatMonto(r.monto)}</span>` : ''}</div>
+      ${r.monto ? `<span style="font-size:11px;color:var(--color-success,#487050);display:block">${formatMonto(r.monto)}</span>` : ''}</div>
       <span style="font-size:11px;color:var(--color-text-muted)">${formatTs(r.updated_at)}</span>
     </div>`).join('') || '<p class="empty-hint">Sin movimientos recientes</p>';
 
@@ -282,7 +282,7 @@ function buildCierreCard(c) {
         <div class="motor-kpi"><div class="motor-kpi__val ${err > 0 ? 'kpi-error' : 'kpi-ok'}">${err}</div><div class="motor-kpi__lbl">Con error</div></div>
         <div class="motor-kpi"><div class="motor-kpi__val ${bloq > 0 ? 'kpi-error' : 'kpi-muted'}">${bloq}</div><div class="motor-kpi__lbl">Bloqueados</div></div>
       </div>
-      ${c.monto_pendiente > 0 ? `<div class="motor-monto-box"><span style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase">Monto pendiente</span><span style="font-size:20px;font-weight:800;color:var(--color-warning,#7A4A00)">${formatMonto(c.monto_pendiente)}</span></div>` : ''}
+      ${c.monto_pendiente > 0 ? `<div class="motor-monto-box"><span style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase">Monto pendiente</span><span style="font-size:20px;font-weight:800;color:var(--color-warning,#8A5F13)">${formatMonto(c.monto_pendiente)}</span></div>` : ''}
       <div class="motor-list-label">Cobros recientes (7 días)</div>
       <div class="motor-list">${items}</div>
       <div class="motor-ts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${c.ultima_ejecucion ? formatTs(c.ultima_ejecucion) : 'Sin actividad reciente'}</div>
@@ -356,7 +356,7 @@ function buildStockCard(s) {
     </div>`).join('') || '<p class="empty-hint">Stock saludable<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg></p>';
 
   const ordenItems = (s.ordenes || []).slice(0, 2).map(o =>
-    `<div class="motor-list-item" style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:8px">
+    `<div class="motor-list-item" style="background:rgba(91,74,143,.06);border:1px solid rgba(91,74,143,.2);border-radius:8px">
       <strong style="font-size:12px;flex:1">${o.numero}</strong>
       <span class="tarea-badge conf-media">${o.estado}</span>
       <button class="btn-aprobar-orden" onclick="aprobarOrdenPanel('${o.id}',this)">Aprobar</button>
@@ -401,10 +401,10 @@ function buildScoreCard(s) {
   const pctS = con > 0 ? Math.round((cats.saludable || 0) / con * 100) : 0;
 
   const barChart = con > 0 ? `<div class="score-bar-group">
-    <div class="score-bar-item"><div class="score-bar" style="height:${pctC*0.8+4}px;background:var(--color-danger-mid,#B3261E)"></div><span class="score-bar-lbl">${cats.critico || 0}<br><small>Críticos</small></span></div>
-    <div class="score-bar-item"><div class="score-bar" style="height:${pctR*0.8+4}px;background:var(--color-warning-mid,#B87A00)"></div><span class="score-bar-lbl">${cats.en_riesgo || 0}<br><small>Riesgo</small></span></div>
-    <div class="score-bar-item"><div class="score-bar" style="height:${pctS*0.8+4}px;background:var(--color-success-mid,#1F5B4A)"></div><span class="score-bar-lbl">${cats.saludable || 0}<br><small>Sanos</small></span></div>
-    <div class="score-bar-item"><div class="score-bar" style="height:${Math.round((s.sin_score||0)/Math.max(total,1)*100)*0.8+4}px;background:var(--color-border,#C7BFA9)"></div><span class="score-bar-lbl">${s.sin_score || 0}<br><small>Sin nivel</small></span></div>
+    <div class="score-bar-item"><div class="score-bar" style="height:${pctC*0.8+4}px;background:var(--color-danger-mid,#D1594A)"></div><span class="score-bar-lbl">${cats.critico || 0}<br><small>Críticos</small></span></div>
+    <div class="score-bar-item"><div class="score-bar" style="height:${pctR*0.8+4}px;background:var(--color-warning-mid,#E0A53E)"></div><span class="score-bar-lbl">${cats.en_riesgo || 0}<br><small>Riesgo</small></span></div>
+    <div class="score-bar-item"><div class="score-bar" style="height:${pctS*0.8+4}px;background:var(--color-success-mid,#75A37D)"></div><span class="score-bar-lbl">${cats.saludable || 0}<br><small>Sanos</small></span></div>
+    <div class="score-bar-item"><div class="score-bar" style="height:${Math.round((s.sin_score||0)/Math.max(total,1)*100)*0.8+4}px;background:var(--color-border,#DDE1DC)"></div><span class="score-bar-lbl">${s.sin_score || 0}<br><small>Sin nivel</small></span></div>
   </div>` : '';
 
   const peores = (s.peores || []).slice(0, 3).map(c =>
@@ -470,8 +470,8 @@ function buildAuditoriaCard(s) {
     const quien    = a.usuario_nombre ? `<span style="font-weight:600">${window.sanitize(a.usuario_nombre)}</span>` : 'Usuario desconocido';
     const extra    = a.entidad_nombre ? ` · ${window.sanitize(a.entidad_nombre)}` : '';
     const badge    = a.severidad === 'alta'
-      ? '<span style="background:var(--color-danger-bg,#F3DAD8);color:var(--color-danger,#7A1E19);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin-left:4px">Alta</span>'
-      : '<span style="background:var(--color-warning-bg,#FBEBC7);color:var(--color-warning,#7A4A00);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin-left:4px">Media</span>';
+      ? '<span style="background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin-left:4px">Alta</span>'
+      : '<span style="background:var(--color-warning-bg,#FBE8C9);color:var(--color-warning,#8A5F13);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin-left:4px">Media</span>';
     return `<div class="motor-list-item" style="flex-direction:column;align-items:flex-start;gap:2px">
       <div style="display:flex;align-items:center;gap:4px;width:100%">
         <span style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${etiqueta}</span>${badge}
@@ -591,22 +591,45 @@ window.togglePush = async function() {
     if (perm !== 'granted') { toast('Permiso denegado', 'warn'); return; }
     const reg = await navigator.serviceWorker.ready;
     if (_pushSub) {
+      const endpoint = _pushSub.endpoint;
+      // Cancelar primero en el server (mientras la subscription del browser
+      // sigue viva) para poder reintentar si falla, en vez de desincronizar.
+      const resp = await fetch('/api/automatizacion?accion=push-cancelar', { method: 'DELETE', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint }) });
+      if (!resp.ok) {
+        console.warn('[Auto] push-cancelar error:', resp.status);
+        toast('No se pudo desactivar las alertas — probá de nuevo', 'error');
+        return;
+      }
       await _pushSub.unsubscribe();
-      await fetch('/api/automatizacion?accion=push-cancelar', { method: 'DELETE', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: _pushSub.endpoint }) });
       _pushSub = null; actualizarUIPush(false); toast('Alertas desactivadas', 'info');
     } else {
-      const { key } = await fetch('/api/automatizacion?accion=vapid-key', { headers: { Authorization: `Bearer ${_token()}` } }).then(r => r.json());
+      const vapidResp = await fetch('/api/automatizacion?accion=vapid-key', { headers: { Authorization: `Bearer ${_token()}` } });
+      if (!vapidResp.ok) { toast('No se pudo obtener la configuración de alertas', 'error'); return; }
+      const { key } = await vapidResp.json();
       if (!key) { toast('Push no configurado en el servidor', 'warn'); return; }
       const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
-      await fetch('/api/automatizacion?accion=push-suscribir', { method: 'POST', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))), auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))) } }) });
+      const subResp = await fetch('/api/automatizacion?accion=push-suscribir', { method: 'POST', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))), auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))) } }) });
+      if (!subResp.ok) {
+        console.warn('[Auto] push-suscribir error:', subResp.status);
+        // No dejar una subscription huérfana en el browser si el server no la guardó.
+        try { await sub.unsubscribe(); } catch {}
+        toast('No se pudieron activar las alertas — probá de nuevo', 'error');
+        return;
+      }
       _pushSub = sub; actualizarUIPush(true); toast('Alertas activadas', 'ok');
     }
   } catch (err) { console.error('[Auto] activar push:', err); toast('No se pudieron activar las alertas', 'error'); }
 };
 window.guardarPref = async function(el) {
+  const valorPrevio = !el.checked;
   try {
-    await fetch('/api/automatizacion?accion=push-prefs', { method: 'POST', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo: el.id.replace('pref-', ''), valor: el.checked }) });
-  } catch {}
+    const resp = await fetch('/api/automatizacion?accion=push-prefs', { method: 'POST', headers: { Authorization: `Bearer ${_token()}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo: el.id.replace('pref-', ''), valor: el.checked }) });
+    if (!resp.ok) throw new Error('resp ' + resp.status);
+  } catch (err) {
+    console.warn('[Auto] guardarPref error:', err.message);
+    el.checked = valorPrevio;
+    toast('No se pudo guardar la preferencia', 'error');
+  }
 };
 
 // FIX: cargarEstado se llama desde onclick="cargarEstado()" en el botón "Reintentar",
@@ -726,7 +749,7 @@ function renderReglasAuto() {
   if (vacio) vacio.style.display = 'none';
 
   tbody.innerHTML = _reglasAuto.map(r => `
-    <tr>
+    <tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalReglaAuto('${r.id}')">
       <td><strong>${escapeHtml(r.nombre)}</strong>${r.descripcion ? `<div style="font-size:12px;color:var(--color-text-muted)">${escapeHtml(r.descripcion)}</div>` : ''}</td>
       <td>${escapeHtml(EVENTO_LABELS[r.evento_disparador] || r.evento_disparador)}</td>
       <td style="font-family:var(--font-mono,monospace);font-size:12px">${escapeHtml(describirCondicion(r.condicion))}</td>

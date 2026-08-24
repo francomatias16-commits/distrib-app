@@ -2,6 +2,32 @@
 
 > Generado a partir de: Supabase advisors (`jgiquzjwoedmzwqgzubr`), `PLAN_COMERCIALIZACION_DISTRIB.md`, `TESTING_OPTIMIZACION.md`, `checklist_pase_manual.md` y revisión directa del repo (v699/v700).
 > Marcá cada casillero a medida que lo ejecutás. Orden = prioridad de ejecución.
+> **Re-verificado en vivo el 2026-08-16** contra Supabase real (no solo lectura de código) — ver hallazgos nuevos en la sección 0 y los cierres marcados "16/08" abajo.
+
+---
+
+## ⚠️ Corrección (16/08) — workflow de backup duplicado, no usar
+
+En esta misma sesión se generó por error un `.github/workflows/backup-db.yml` alternativo (secret único `SUPABASE_DB_URL`, sin GPG, sin URL-encoding de password, sin fijar versión de `pg_dump`, sube a una rama git en vez de artifact) **sin saber que ya existía `backup-supabase.yml`, real y probado** (ver `AUDITORIA_2026/etapas/09b_backup_automatizado_setup.md`). El archivo `backup-db.yml` que se entregó en el zip anterior **debe borrarse del repo si se llegó a copiar** — usar solo `backup-supabase.yml` y los 5 secrets (`SUPABASE_DB_HOST/PORT/NAME/USER/PASSWORD` + `BACKUP_GPG_PASSPHRASE`) ya configurados en GitHub.
+
+---
+
+## 🔴 NUEVO BLOQUEANTE (16/08) — Supabase está en plan Free
+
+- [ ] **El proyecto (`jgiquzjwoedmzwqgzubr`, org "distribuidora_prueba") corre en plan Free de Supabase.** Confirmado vía `get_organization`. Esto es un bloqueante real para vender a clientes pagos, no solo una mejora:
+  - ~~Sin backups point-in-time~~ **Mitigado (16/08):** ver `AUDITORIA_2026/etapas/09b_backup_automatizado_setup.md` — workflow `.github/workflows/backup-supabase.yml` corriendo en verde, backup semanal automático (`pg_dump` cifrado con GPG, subido como artifact de GitHub Actions, retención 90 días). No es PITR real — hasta 7 días de pérdida de datos en el peor caso — pero cubre el riesgo de "cero backup" mientras se decide el upgrade a Pro. **Pendiente único: probar la restauración una vez contra un proyecto de prueba** (nunca se hizo, un backup no probado no es confiable).
+  - El proyecto se pausa automáticamente por inactividad — un cliente real que no use el sistema una semana puede encontrarse con el sistema caído hasta que alguien lo reactive a mano. No hay mitigación gratuita completa para esto (no depende de un chequeo de conexión externo porque igual perdés minutos/horas de disponibilidad hasta que alguien note la pausa).
+  - Límites de conexiones/CPU muy por debajo de lo que soporta tráfico de varios tenants pagos simultáneos. Sin mitigación gratuita — es el motivo de mayor peso para pasar a Pro.
+  - **"Leaked password protection" (sección 3) también depende de este mismo bloqueante** para la vía nativa de Supabase — pero tiene mitigación propia por código, ver sección 3.
+  - **Acción:** pasar a plan Pro (u otro con backups y sin auto-pausa) sigue siendo lo recomendado antes de escalar a muchos clientes pagos simultáneos — las mitigaciones de arriba son red de seguridad, no reemplazo. Decisión de billing de Kello (Organization → Billing).
+
+## 🟢 Cerrado en la re-verificación del 16/08 (no estaba en la auditoría del 10/08)
+
+- [x] **`function_search_path_mutable`** — `obtener_ventas_por_canal` y `obtener_resumen_compras_proveedor` (agregadas después del 10/08, migración 478) no tenían `search_path` fijo. Corregido con `SET search_path TO 'public'` en migración `495_auditoria_publicacion_rls_indices_search_path`.
+- [x] **EXECUTE de más a `anon`** en esas mismas dos funciones — no eran `SECURITY DEFINER` y dependían del RLS real de `pedidos`/`ventas_pos`/`facturas_proveedor` (que sí bloquea a `anon` porque `auth.uid()` da `NULL` para ese rol, así que no había fuga real), pero el grant estaba de más. Revocado.
+- [x] **3 foreign keys nuevas sin índice de cobertura** (posteriores a la migración 453 del 10/08): `gastos_generales.created_by`, `whatsapp_reset_codigos.cliente_id`, `whatsapp_reset_codigos.empresa_id`. Índices creados.
+- [x] **5 policies RLS con `auth.uid()`/`auth.role()` sin envolver en `(select ...)`** — se re-evaluaban fila por fila (`auth_rls_initplan`), en `entidad_etiquetas`, `etiquetas`, `gastos_generales`, `movimientos_stock_lotes`, `whatsapp_reset_codigos`. No pega hoy con el volumen actual, pero sí iba a pegar en `movimientos_stock_lotes` (tabla de detalle, crece rápido) con más tenants. Reescritas.
+- Todo lo anterior verificado contra los Supabase advisors reales antes y después del fix — las 4 categorías (`function_search_path_mutable`, `unindexed_foreign_keys`, `auth_rls_initplan` de estas 5 tablas) ya no aparecen. Documentado en `supabase/migrations/495_auditoria_publicacion_rls_indices_search_path.sql`.
 
 ---
 
@@ -41,7 +67,7 @@ Archivo `checklist_pase_manual.md` en el repo — 9 fixes verificados solo por l
 ## 🟠 ALTO — muy cerca del lanzamiento
 
 ### 3. Auth — protección de contraseñas filtradas
-- [ ] Supabase → Authentication → Policies → habilitar "Leaked password protection" (HaveIBeenPwned). 1 click, cero motivo para no tenerlo antes de abrir registro público.
+- [ ] Supabase → Authentication → Attack Protection → "Prevent use of leaked passwords". **Probado el 16/08: el toggle se puede activar y guardar en la UI aun en plan Free, pero Supabase no lo aplica de verdad** — la propia pantalla lo dice ("Only available on Pro plan and above") y el advisor de seguridad lo sigue marcando como pendiente después de guardar. No es un bug ni un delay de caché: **queda bloqueado por el mismo motivo que la sección 0** (plan Free). Se resuelve solo al pasar a Pro — no reintentar el toggle hasta entonces.
 
 ### 4. ARCA en modo producción (no homologación)
 - [ ] Por cada cliente real que se dé de alta: cargar certificado/clave real en `facturacion-config.html`.

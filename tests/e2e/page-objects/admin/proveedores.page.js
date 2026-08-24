@@ -79,11 +79,26 @@ export class ProveedoresPage extends PageObjectBase {
   get infoPagina() { return this.page.locator('#info-pag-proveedores'); }
 
   // ── Acciones de fila (onclick inline, ver renderTabla()) ────────────────
+  // (2026-08-19, cierre del Hallazgo #6 — PLAN_UNIFICACION_UX_ADMIN.md §17)
+  // Editar/Dar de baja/Activar siguen siendo botones .btn-tabla visibles en
+  // la fila. Compras/Portal se movieron a un menú "⋮" flotante (mismo patrón
+  // que Cheques/Notas de crédito — #menu-acciones-proveedor, compartido por
+  // todas las filas, reposicionado por JS al abrir) — ya NO son
+  // button.btn-tabla, hay que abrir el kebab primero.
   botonEditar(id)    { return this.fila(id).locator('button.btn-tabla', { hasText: 'Editar' }); }
-  botonCompras(id)   { return this.fila(id).locator('button.btn-tabla', { hasText: 'Compras' }); }
-  botonPortal(id)    { return this.fila(id).locator('button.btn-tabla', { hasText: 'Portal' }); }
   botonDesactivar(id) { return this.fila(id).locator('button.btn-tabla.peligro', { hasText: 'Dar de baja' }); }
   botonActivar(id)   { return this.fila(id).locator('button.btn-tabla.primario', { hasText: 'Activar' }); }
+  botonKebab(id)     { return this.fila(id).locator('button.btn-kebab'); }
+
+  get menuAcciones()      { return this.page.locator('#menu-acciones-proveedor'); }
+  get botonMenuCompras()  { return this.menuAcciones.locator('.dropdown-item', { hasText: 'Compras' }); }
+  get botonMenuPortal()   { return this.menuAcciones.locator('.dropdown-item', { hasText: 'Portal' }); }
+
+  /** Abre el menú "⋮" de una fila (Compras / Portal). */
+  async abrirMenuAcciones(id) {
+    await this.botonKebab(id).click();
+    await expect(this.menuAcciones).toBeVisible();
+  }
 
   // ── Modal alta/edición ───────────────────────────────────────────────
   // getByRole('button', {name: 'Nuevo proveedor'}) sin exact matchea
@@ -170,8 +185,15 @@ export class ProveedoresPage extends PageObjectBase {
   get portalError() { return this.page.locator('.portal-error'); }
 
   async abrirPortalFila(id) {
-    await this.botonPortal(id).click();
+    await this.abrirMenuAcciones(id);
+    await this.botonMenuPortal.click();
     await expect(this.modalPortal).toBeVisible();
+  }
+
+  /** Click en "Compras" del menú "⋮" de una fila (navega a Compras filtrado por proveedor). */
+  async irAComprasFila(id) {
+    await this.abrirMenuAcciones(id);
+    await this.botonMenuCompras.click();
   }
 
   async cerrarModalPortal() {

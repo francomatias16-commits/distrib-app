@@ -24,7 +24,6 @@ window.authReady.then(async () => {
   _sb = window.authCtx.sb;
 
   (document.getElementById('topbar-usuario') || {}).textContent = user.nombre || user.email;
-  const _elEmp = document.getElementById('sidebar-empresa'); if (_elEmp) _elEmp.textContent = user.empresa_nombre || 'Distribuidora';
 
   const hoy = new Date();
   const elFecha = document.getElementById('topbar-fecha');
@@ -167,14 +166,14 @@ function renderTabla() {
                      `<span class="badge badge-high">${saldo} pts</span>`;
 
     return `<tr onclick="abrirModal('${d.cliente_id}')" style="cursor:pointer">
-      <td class="td-nombre">
+      <td class="td-nombre" data-label="Cliente">
         <span class="cliente-nombre">${escHtml(d.cliente_nombre)}</span>
         ${d.cliente_email ? `<span class="cliente-email">${escHtml(d.cliente_email)}</span>` : ''}
       </td>
-      <td class="td-center">${badge || '—'}</td>
-      <td class="td-right td-muted">${(d.total_ganado || 0).toLocaleString('es-AR')}</td>
-      <td class="td-right td-muted">${(d.total_canjeado || 0).toLocaleString('es-AR')}</td>
-      <td class="td-right td-muted">${window.formatFecha(d.updated_at)}</td>
+      <td class="td-center" data-label="Saldo">${badge || '—'}</td>
+      <td class="td-right td-muted" data-label="Total ganado">${(d.total_ganado || 0).toLocaleString('es-AR')}</td>
+      <td class="td-right td-muted" data-label="Total canjeado">${(d.total_canjeado || 0).toLocaleString('es-AR')}</td>
+      <td class="td-right td-muted" data-label="Última actividad">${window.formatFecha(d.updated_at)}</td>
     </tr>`;
   }).join('');
 }
@@ -300,8 +299,8 @@ function renderHistorial(movs) {
   tbody.innerHTML = movs.map(m => {
     const esPositivo = m.puntos > 0;
     const iconoTipo  = {
-      acreditacion: '⬆',
-      canje:        '⬇',
+      acreditacion: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
+      canje:        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
       ajuste:       '◈',
       vencimiento:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     }[m.tipo] || '•';

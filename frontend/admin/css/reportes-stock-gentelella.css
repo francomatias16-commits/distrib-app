@@ -181,10 +181,10 @@ body.dash-reportes-stock-gentelella .ranking-section h2 {
   font-weight: 700 !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table thead {
+body.dash-reportes-stock-gentelella .tabla-admin thead {
   background: var(--ge-bg) !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table th {
+body.dash-reportes-stock-gentelella .tabla-admin th {
   color: var(--ge-muted) !important;
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -192,19 +192,19 @@ body.dash-reportes-stock-gentelella .ranking-table th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table td {
+body.dash-reportes-stock-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   font-size: 13px !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table tbody tr:nth-child(even) {
+body.dash-reportes-stock-gentelella .tabla-admin tbody tr:nth-child(even) {
   background: transparent !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table tbody tr:hover {
+body.dash-reportes-stock-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
-body.dash-reportes-stock-gentelella .ranking-table .loading,
-body.dash-reportes-stock-gentelella .ranking-table .tabla-empty {
+body.dash-reportes-stock-gentelella .tabla-admin .loading,
+body.dash-reportes-stock-gentelella .tabla-admin .tabla-empty {
   color: var(--ge-muted) !important;
 }
 

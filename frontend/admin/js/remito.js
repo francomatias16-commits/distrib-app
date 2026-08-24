@@ -54,6 +54,27 @@ async function obtenerNroRemito(pedidoId) {
 async function imprimirRemito(pedidoId, itemsPrecargados) {
   if (!window.authCtx) { window.toast('Sin sesión', 'danger'); return; }
 
+  // FIX v812: abrir la ventana ANTES de cualquier await. Los navegadores solo
+  // permiten window.open() sin bloqueo si ocurre de forma síncrona dentro del
+  // gesto de click; después de varios await (fetch a pedidos/items/nro_remito)
+  // el popup blocker lo descarta en silencio, sin disparar ni el aviso propio
+  // del navegador ni nuestro toast de "Bloqueador de popups activo" — por eso
+  // no pasaba nada visible al hacer click. Reservamos la ventana ya y recién
+  // al final le escribimos el HTML del remito.
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) {
+    if (window.mostrarToast) window.toast('Bloqueador de popups activo — permití ventanas emergentes', 'error');
+    return;
+  }
+  win.document.write('<p style="font-family:sans-serif;padding:20px;color:#666">Generando remito…</p>');
+
+  // FIX v813: try/catch envolviendo todo lo que sigue. Antes, cualquier error
+  // no controlado (como el ReferenceError de formatPesoRemito) cortaba la
+  // función a mitad de camino y dejaba la ventana ya abierta trabada en el
+  // placeholder de arriba para siempre, sin ningún mensaje. Ahora, pase lo
+  // que pase, la ventana termina mostrando el remito o un error legible.
+  try {
+
   const sb          = window.authCtx.sb;
   const empresaData = window.authCtx.perfil?.empresas || { id: window.authCtx.perfil?.empresa_id, nombre: '', config: {} };
 
@@ -67,13 +88,15 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
       notas_cliente, fecha_pedido, fecha_entrega, created_at, remito_nro,
       clientes(razon_social, nombre_fantasia, cuit, telefono, domicilio, localidad,
                condicion_iva, zonas(nombre)),
-      usuarios(nombre)
+      usuarios!vendedor_id(nombre)
     `)
     .eq('id', pedidoId)
     .single();
 
   if (error || !p) {
     if (window.mostrarToast) window.toast('Error al cargar el pedido', 'error');
+    win.document.write('<p style="font-family:sans-serif;padding:20px;color:#c00">Error al cargar el pedido. Podés cerrar esta ventana.</p>');
+    win.document.close();
     return;
   }
 
@@ -447,14 +470,24 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
 </body>
 </html>`;
 
-  // Abrir ventana e imprimir
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) {
-    if (window.mostrarToast) window.toast('Bloqueador de popups activo — permití ventanas emergentes', 'error');
-    return;
-  }
+  // Escribir el remito en la ventana que ya habíamos abierto al principio
+  win.document.open();
   win.document.write(html);
   win.document.close();
+
+  } catch (err) {
+    // FIX v813: si algo falla en cualquier punto de arriba (query, referencia
+    // indefinida, etc.), la ventana ya está abierta con el placeholder — sin
+    // este catch se queda trabada ahí para siempre. Mostramos el error acá
+    // adentro en vez de dejarla colgada en silencio.
+    console.error('[remito] Error al generar remito:', err);
+    win.document.open();
+    win.document.write(`<p style="font-family:sans-serif;padding:20px;color:#b91c1c">
+      No se pudo generar el remito.<br>${err?.message || 'Error desconocido'}
+    </p>`);
+    win.document.close();
+    if (window.mostrarToast) window.toast('Error al generar el remito', 'error');
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -467,4 +500,15 @@ function labelCondicionIVA(cond) {
     consumidor_final:      'Consumidor Final',
   };
   return map[cond] || cond || '';
+}
+
+// FIX v813: esta función se usaba en 6 lugares del HTML del remito pero
+// nunca estuvo definida en ningún archivo del proyecto — era un
+// ReferenceError puro que cortaba imprimirRemito() al armar el HTML,
+// dejando la ventana ya abierta trabada para siempre en el placeholder
+// "Generando remito…" sin ningún aviso de error. Sigue el mismo patrón
+// que el resto de los formatPeso/fmtPeso del proyecto (ver productos.js).
+function formatPesoRemito(n) {
+  if (n == null) return '—';
+  return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0 });
 }

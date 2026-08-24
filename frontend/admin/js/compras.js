@@ -300,44 +300,118 @@ function renderTabla() {
       ? new Date(o.fecha_esperada).toLocaleDateString('es-AR') : '—';
 
     return `
-      <tr data-testid="oc-fila" data-id="${o.id}">
-        <td style="font-weight:600">${o.numero}</td>
-        <td>${sanitize(o.proveedores?.razon_social || '—')}</td>
-        <td style="font-size:12px;color:var(--color-text-muted)">${fecha}</td>
-        <td style="font-size:12px;color:var(--color-text-muted)">${esperada}</td>
-        <td style="text-align:left;font-weight:600">$${Number(o.total).toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
-        <td><span class="badge badge-${o.estado}">${labelEstado(o.estado)}</span></td>
-        <td class="col-sticky-end">
-          <div class="acciones-td" style="white-space:nowrap">
-            <button class="btn-tabla primario" onclick="verDetalle('${o.id}')">Ver</button>
-            ${o.estado === 'pendiente_aprobacion'
-              ? `<button class="btn-tabla" onclick="aprobarOrdenCompras('${o.id}',this)" style="background:var(--color-success-bg);color:var(--color-success)">Aprobar</button>`
-              : ''
-            }
-            ${['borrador','enviada','confirmada','recibida_parcial'].includes(o.estado)
-              ? `<button class="btn-tabla" onclick="abrirRecepcionar('${o.id}')">Recepcionar</button>`
-              : ''
-            }
-            ${['borrador','pendiente_aprobacion'].includes(o.estado)
-              ? `<button class="btn-tabla" onclick="eliminarOrdenCompra('${o.id}',this)" style="background:var(--color-danger-bg,#F8D7DA);color:var(--color-danger,#B02A37)">Eliminar</button>`
-              : ''
-            }
-            ${['enviada','confirmada'].includes(o.estado)
-              ? `<button class="btn-tabla" onclick="cancelarOrdenCompra('${o.id}',this)" style="background:var(--color-danger-bg,#F8D7DA);color:var(--color-danger,#B02A37)">Cancelar</button>`
-              : ''
-            }
-            ${o.estado === 'recibida'
-              ? `<button class="btn-tabla" onclick="irAFactura('${o.id}','${o.proveedor_id}')" title="Registrar / ver factura del proveedor" style="background:var(--color-surface-2,#EAE4D6);border:1px solid var(--color-border)">
-                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Factura
-                 </button>`
-              : ''
-            }
-          </div>
+      <tr data-testid="oc-fila" data-id="${o.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) verDetalle('${o.id}')">
+        <td data-label="N° Orden" style="font-weight:600">${o.numero}</td>
+        <td data-label="Proveedor">${sanitize(o.proveedores?.razon_social || '—')}</td>
+        <td data-label="Fecha pedido" style="font-size:12px;color:var(--color-text-muted)">${fecha}</td>
+        <td data-label="Fecha esperada" style="font-size:12px;color:var(--color-text-muted)">${esperada}</td>
+        <td data-label="Total" style="text-align:left;font-weight:600">$${Number(o.total).toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
+        <td data-label="Estado"><span class="badge badge-${o.estado}">${labelEstado(o.estado)}</span></td>
+        <td class="col-sticky-end" data-label="Acciones">
+          ${renderAccionesOC(o)}
         </td>
       </tr>
     `;
   }).join('');
 }
+
+// Fila de acciones — "Ver" siempre primaria + hasta una segunda acción
+// primaria según estado (Aprobar/Recepcionar/Factura) + Eliminar/Cancelar
+// (destructivas, mutuamente excluyentes con la primaria de arriba) al menú
+// "⋮" — mismo patrón que Cheques/Proveedores (ver
+// PLAN_UNIFICACION_UX_ADMIN.md, cierre del Hallazgo #6). Se arma a mano
+// (no con ComponentesAdmin.renderFilaAcciones) porque el kebab necesita una
+// segunda clase propia (`btn-kebab-oc`, para scopear el delegado de clicks
+// de esta página) y el helper del componente no admite agregar una clase
+// extra al botón kebab sin duplicar el atributo `class` — mismo criterio ya
+// aplicado en proveedores.js/cheques.js, que tampoco pasan por el helper
+// para esa parte. El badge de estado (`.badge.badge-${estado}`, 7 variantes
+// propias de esta pantalla) queda deliberadamente sin tocar: no hay
+// variante canónica para `pendiente_aprobacion` (violeta) y mapear
+// `recibida_parcial` al canónico le cambiaría el color de naranja a azul —
+// mismo criterio que `.badge-fx` de cc-proveedores.
+function renderAccionesOC(o) {
+  let primarias = `<button type="button" class="btn-tabla primario" onclick="verDetalle('${o.id}')">Ver</button>`;
+
+  if (o.estado === 'pendiente_aprobacion') {
+    primarias += `<button type="button" class="btn-tabla" onclick="aprobarOrdenCompras('${o.id}',this)" style="background:var(--color-success-bg);color:var(--color-success)">Aprobar</button>`;
+  }
+  if (['borrador', 'enviada', 'confirmada', 'recibida_parcial'].includes(o.estado)) {
+    primarias += `<button type="button" class="btn-tabla" onclick="abrirRecepcionar('${o.id}')">Recepcionar</button>`;
+  }
+  if (o.estado === 'recibida') {
+    primarias += `<button type="button" class="btn-tabla" onclick="irAFactura('${o.id}','${o.proveedor_id}')" title="Registrar / ver factura del proveedor" style="background:var(--color-surface-2,#ECEEEA);border:1px solid var(--color-border)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Factura
+    </button>`;
+  }
+
+  const tieneSecundaria = ['borrador', 'pendiente_aprobacion', 'enviada', 'confirmada'].includes(o.estado);
+  const kebab = tieneSecundaria
+    ? `<button type="button" class="btn-kebab btn-kebab-oc" data-oc-id="${o.id}" data-estado="${o.estado}" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>`
+    : '';
+
+  return `<span class="fila-acciones">${primarias}${kebab}</span>`;
+}
+
+// ── Menú "⋮" de acciones secundarias por fila (Eliminar / Cancelar) ─────
+// Mutuamente excluyentes según el estado — mismo patrón de menú flotante
+// compartido que Cheques (ver cheques.js::iniciarMenuAccionesCheque) y
+// Proveedores.
+(function iniciarMenuAccionesOC() {
+  const menu = document.getElementById('menu-acciones-oc');
+  if (!menu) return;
+
+  const cerrar = () => {
+    menu.hidden = true;
+    document.querySelectorAll('.btn-kebab-oc[aria-expanded="true"]')
+      .forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.btn-kebab-oc');
+    if (!btn) { if (!ev.target.closest('#menu-acciones-oc')) cerrar(); return; }
+    ev.stopPropagation();
+
+    const yaAbiertoParaEsteBtn = !menu.hidden && menu.dataset.ocId === btn.dataset.ocId;
+    cerrar();
+    if (yaAbiertoParaEsteBtn) return;
+
+    const ocId = btn.dataset.ocId;
+    const estado = btn.dataset.estado;
+    const items = [];
+    if (['borrador', 'pendiente_aprobacion'].includes(estado)) {
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" onclick="eliminarOrdenCompra('${ocId}',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Eliminar
+      </button>`);
+    }
+    if (['enviada', 'confirmada'].includes(estado)) {
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" onclick="cancelarOrdenCompra('${ocId}',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Cancelar orden
+      </button>`);
+    }
+    if (!items.length) return;
+
+    menu.innerHTML = items.join('');
+    menu.dataset.ocId = ocId;
+
+    const r = btn.getBoundingClientRect();
+    menu.style.top   = `${r.bottom + 4}px`;
+    menu.style.left  = 'auto';
+    menu.style.right = `${window.innerWidth - r.right}px`;
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  });
+
+  menu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (ev.target.closest('.dropdown-item')) cerrar();
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
+  window.addEventListener('resize', cerrar);
+  document.getElementById('tbody-compras')?.addEventListener('scroll', cerrar);
+})();
 
 function labelEstado(e) {
   const map = {
@@ -383,6 +457,10 @@ function cerrarModalSiFondo(event) {
 function agregarItemOC() {
   itemsOC.push({ producto_id: '', nombre: '', cantidad: 1, precio_costo: 0, iva_pct: 21 });
   renderItemsOC();
+  // Foco automático en el buscador de la fila recién creada — flujo típico:
+  // click en "Agregar producto" → escribir → Enter → escribir el siguiente.
+  const idx = itemsOC.length - 1;
+  requestAnimationFrame(() => document.getElementById(`prod-combo-input-${idx}`)?.focus());
 }
 
 function quitarItemOC(idx) {
@@ -403,12 +481,23 @@ function renderItemsOC() {
   tbody.innerHTML = itemsOC.map((it, i) => `
     <tr>
       <td>
-        <select onchange="seleccionarProductoOC(${i}, this.value)" style="width:100%;border:none;background:transparent;font-size:12px;color:var(--color-text)">
-          <option value="">Seleccionar...</option>
-          ${productosData.map(p => `<option value="${p.id}" ${p.id === it.producto_id ? 'selected' : ''}>${sanitize(p.nombre)}${p.codigo ? ' ('+p.codigo+')' : ''}</option>`).join('')}
-        </select>
+        <div class="prod-combo">
+          <input
+            type="text"
+            class="prod-combo-input"
+            id="prod-combo-input-${i}"
+            placeholder="Buscar por nombre o código..."
+            value="${it.nombre ? sanitize(it.nombre) : ''}"
+            autocomplete="off"
+            oninput="filtrarProductoOC(${i}, this.value)"
+            onfocus="filtrarProductoOC(${i}, this.value)"
+            onblur="ocultarComboOC(${i})"
+            onkeydown="teclaComboOC(event, ${i})"
+          />
+          <div class="prod-combo-lista" id="prod-combo-lista-${i}" hidden></div>
+        </div>
       </td>
-      <td><input type="number" min="0.001" step="any" value="${it.cantidad}" onchange="updateItemOC(${i},'cantidad',this.value)" /></td>
+      <td><input type="number" id="cant-oc-${i}" min="0.001" step="any" value="${it.cantidad}" onchange="updateItemOC(${i},'cantidad',this.value)" /></td>
       <td><input type="number" min="0" step="1" data-money value="${Math.round(it.precio_costo)}" onchange="updateItemOC(${i},'precio_costo',this.value)" /></td>
       <td><input type="number" min="0" max="100" value="${it.iva_pct}" onchange="updateItemOC(${i},'iva_pct',this.value)" /></td>
       <td style="text-align:left;font-size:12px;font-weight:600">$${Number(it.cantidad * it.precio_costo).toLocaleString('es-AR',{minimumFractionDigits:2})}</td>
@@ -417,14 +506,103 @@ function renderItemsOC() {
   `).join('');
 }
 
-function seleccionarProductoOC(idx, productoId) {
+// ── Combo de búsqueda de productos (reemplaza el <select> gigante) ─────
+// El catálogo puede tener cientos/miles de productos activos (cargados de
+// una sola vez en productosData) — un <select> nativo con todas las
+// opciones era impracticable para buscar (scroll interminable, sin
+// filtro real). Este combo filtra en vivo por nombre o código, con
+// navegación por teclado (↑↓ Enter Esc), y al enfocar vacío muestra un
+// primer lote para poder "hojear" sin escribir nada.
+const PROD_COMBO_MAX = 30;
+
+function filtrarProductoOC(idx, q) {
+  const lista = document.getElementById(`prod-combo-lista-${idx}`);
+  if (!lista) return;
+
+  const query = (q || '').trim().toLowerCase();
+  const matches = query
+    ? productosData.filter(p =>
+        (p.nombre || '').toLowerCase().includes(query) ||
+        (p.codigo || '').toLowerCase().includes(query))
+    : productosData;
+
+  const recorte = matches.slice(0, PROD_COMBO_MAX);
+
+  if (!recorte.length) {
+    lista.innerHTML = `<div class="prod-combo-vacio">Sin resultados${query ? ` para "${sanitize(q)}"` : ''}</div>`;
+    lista.hidden = false;
+    lista.dataset.hi = -1;
+    return;
+  }
+
+  lista.innerHTML = recorte.map(p => `
+    <div class="prod-combo-item" data-testid="prod-opt-${p.id}" onmousedown="event.preventDefault();elegirProductoOC(${idx}, '${p.id}')">
+      <span class="prod-combo-nombre">${sanitize(p.nombre)}</span>
+      ${p.codigo ? `<span class="prod-combo-codigo">${sanitize(p.codigo)}</span>` : ''}
+    </div>
+  `).join('') + (matches.length > PROD_COMBO_MAX
+    ? `<div class="prod-combo-mas">+${matches.length - PROD_COMBO_MAX} más — seguí escribiendo para acotar</div>`
+    : '');
+  lista.hidden = false;
+  lista.dataset.hi = -1;
+}
+
+function teclaComboOC(e, idx) {
+  const lista = document.getElementById(`prod-combo-lista-${idx}`);
+  if (!lista || lista.hidden) return;
+  const items = Array.from(lista.querySelectorAll('.prod-combo-item'));
+  if (!items.length) return;
+
+  let hi = parseInt(lista.dataset.hi, 10);
+  if (isNaN(hi)) hi = -1;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    hi = Math.min(hi + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    hi = Math.max(hi - 1, 0);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    (items[hi] || items[0])?.dispatchEvent(new MouseEvent('mousedown'));
+    return;
+  } else if (e.key === 'Escape') {
+    lista.hidden = true;
+    return;
+  } else {
+    return;
+  }
+
+  lista.dataset.hi = hi;
+  items.forEach((el, j) => el.classList.toggle('prod-combo-item--activa', j === hi));
+  items[hi]?.scrollIntoView({ block: 'nearest' });
+}
+
+// Pequeño delay antes de esconder el dropdown al perder foco — si no,
+// el blur se dispara antes que el click/mousedown de la opción llegue a
+// ejecutarse. (elegirProductoOC ya usa mousedown+preventDefault para no
+// depender de este timeout, pero se deja como red de contención.)
+function ocultarComboOC(idx) {
+  setTimeout(() => {
+    const lista = document.getElementById(`prod-combo-lista-${idx}`);
+    if (lista) lista.hidden = true;
+  }, 150);
+}
+
+function elegirProductoOC(idx, productoId) {
   const prod = productosData.find(p => p.id === productoId);
   itemsOC[idx].producto_id  = productoId;
   itemsOC[idx].nombre       = prod?.nombre || '';
   itemsOC[idx].precio_costo = prod?.costo  || 0;
   renderItemsOC();
   actualizarTotalesOC();
+  // Foco automático en Cantidad — se sigue cargando la orden sin soltar el teclado.
+  requestAnimationFrame(() => document.getElementById(`cant-oc-${idx}`)?.focus());
 }
+window.filtrarProductoOC = filtrarProductoOC;
+window.teclaComboOC      = teclaComboOC;
+window.ocultarComboOC    = ocultarComboOC;
+window.elegirProductoOC  = elegirProductoOC;
 
 function updateItemOC(idx, campo, valor) {
   itemsOC[idx][campo] = parseFloat(valor) || 0;
@@ -899,19 +1077,7 @@ async function escanearRemito(input) {
 
     // 2. Subir foto al bucket 'remitos' (en paralelo, no bloquea)
     if (data.recepcion_id) {
-      fetch('/api/compras?accion=upload-remito', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imagen_base64: base64, mime_type: mimeType, recepcion_id: data.recepcion_id })
-      })
-      .then(r => r.json())
-      .then(r => {
-        if (r.foto_url && estado) {
-          // Mostrar miniatura del remito
-          _mostrarMiniatura(r.foto_url);
-        }
-      })
-      .catch(e => console.warn('[upload-remito]', e.message));
+      _subirFotoRemitoConEstado({ token, base64, mimeType, recepcionId: data.recepcion_id, estadoEl: estado });
     }
 
     if (estado) estado.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>${data.datos_ocr?.length || 0} producto(s) detectados`;
@@ -938,7 +1104,65 @@ async function escanearRemito(input) {
   }
 }
 
+// BUG-10: antes esta subida corría en background y solo actuaba si
+// `r.foto_url` venía en la respuesta — un 4xx/5xx (mime rechazado, red
+// caída, etc.) quedaba mudo: el OCR ya había mostrado éxito, y la foto de
+// respaldo simplemente no quedaba guardada sin que nadie se enterara.
+// Ahora valida `resp.ok`, muestra el fallo explícitamente junto al estado
+// del OCR (que ya se completó, no se repite) y ofrece reintentar la subida
+// sola, sin volver a pedir la foto ni recorrer el OCR de nuevo.
+function _subirFotoRemitoConEstado({ token, base64, mimeType, recepcionId, estadoEl }) {
+  fetch('/api/compras?accion=upload-remito', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imagen_base64: base64, mime_type: mimeType, recepcion_id: recepcionId })
+  })
+    .then(async (r) => {
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || `Error ${r.status} al subir la foto`);
+      }
+      return r.json();
+    })
+    .then((r) => {
+      if (r.foto_url) _mostrarMiniatura(r.foto_url);
+    })
+    .catch((e) => {
+      console.warn('[upload-remito]', e.message);
+      _mostrarErrorFotoRemito({ mensaje: e.message, reintentar: () =>
+        _subirFotoRemitoConEstado({ token, base64, mimeType, recepcionId, estadoEl })
+      });
+    });
+}
+
+function _mostrarErrorFotoRemito({ mensaje, reintentar }) {
+  const zonaOcr = document.getElementById('zona-ocr-remito');
+  if (!zonaOcr) return;
+  let aviso = document.getElementById('remito-foto-error');
+  if (!aviso) {
+    aviso = document.createElement('span');
+    aviso.id = 'remito-foto-error';
+    aviso.style.cssText = 'display:inline-block;margin-left:8px;color:var(--color-danger,#7A2820);font-size:.85em;vertical-align:middle';
+    zonaOcr.querySelector('div').appendChild(aviso);
+  }
+  aviso.innerHTML = '';
+  aviso.append(`⚠️ No se guardó la foto del remito: ${mensaje}. `);
+  const btnRetry = document.createElement('button');
+  btnRetry.type = 'button';
+  btnRetry.textContent = 'Reintentar';
+  btnRetry.className = 'btn-link';
+  btnRetry.style.cssText = 'text-decoration:underline;background:none;border:none;padding:0;cursor:pointer;color:inherit;font:inherit';
+  btnRetry.addEventListener('click', () => {
+    aviso.remove();
+    reintentar();
+  });
+  aviso.appendChild(btnRetry);
+}
+
 function _mostrarMiniatura(fotoUrl) {
+  // Si había un aviso de error de una subida anterior, se limpia al lograr
+  // mostrar la miniatura (reintento exitoso).
+  document.getElementById('remito-foto-error')?.remove();
   // Insertar miniatura clickeable junto al estado OCR
   const zonaOcr = document.getElementById('zona-ocr-remito');
   if (!zonaOcr) return;
@@ -949,7 +1173,7 @@ function _mostrarMiniatura(fotoUrl) {
     mini.target = '_blank';
     mini.rel    = 'noopener';
     mini.style.cssText = 'display:inline-block;margin-left:8px;vertical-align:middle';
-    mini.innerHTML = `<img style="height:40px;border-radius:4px;border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,.15)" alt="remito">`;
+    mini.innerHTML = `<img style="height:40px;border-radius:4px;border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(22,24,29,.15)" alt="remito">`;
     zonaOcr.querySelector('div').appendChild(mini);
   }
   mini.href = fotoUrl;
@@ -975,7 +1199,7 @@ function _aplicarSugerenciasOcr(items) {
     if (inpCosto && match.precio_sugerido != null) inpCosto.value = match.precio_sugerido;
 
     // Colorear fila si hay alerta
-    fila.style.background = match.alerta ? 'rgba(184,122,0,0.08)' : '';
+    fila.style.background = match.alerta ? 'rgba(106,152,115,0.08)' : '';
   });
 }
 
@@ -1007,8 +1231,8 @@ function _mostrarPanelDiff(discrepancias) {
   }
 
   tbody.innerHTML = discrepancias.map(d => {
-    const colorCant  = Math.abs(d.diff_cant_pct   || 0) > 10 ? 'var(--color-danger-mid,#B3261E)' : 'var(--color-warning-mid,#B87A00)';
-    const colorPrecio = Math.abs(d.diff_precio_pct || 0) > 10 ? 'var(--color-danger-mid,#B3261E)' : 'var(--color-warning-mid,#B87A00)';
+    const colorCant  = Math.abs(d.diff_cant_pct   || 0) > 10 ? 'var(--color-danger-mid,#D1594A)' : 'var(--color-warning-mid,#E0A53E)';
+    const colorPrecio = Math.abs(d.diff_precio_pct || 0) > 10 ? 'var(--color-danger-mid,#D1594A)' : 'var(--color-warning-mid,#E0A53E)';
     return `<tr>
       <td style="padding:4px 8px">${sanitize(d.nombre || '—')}</td>
       <td style="padding:4px 8px;text-align:left">${d.cant_pedida ?? '—'}</td>
@@ -1055,14 +1279,14 @@ function _renderHistorial(recepciones) {
   const filas = recepciones.map((r, idx) => {
     const fecha     = new Date(r.confirmada_at || r.created_at).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
     const estadoBadge = {
-      confirmada:  '<span style="background:var(--color-success-bg,#DCEDE3);color:var(--color-success,#17402F);font-size:11px;padding:2px 8px;border-radius:99px">Confirmada</span>',
-      borrador:    '<span style="background:var(--color-warning-bg,#FBEBC7);color:var(--color-warning,#7A4A00);font-size:11px;padding:2px 8px;border-radius:99px">Borrador</span>',
-      descartada:  '<span style="background:var(--color-danger-bg,#F3DAD8);color:var(--color-danger,#7A1E19);font-size:11px;padding:2px 8px;border-radius:99px">Descartada</span>',
+      confirmada:  '<span style="background:var(--color-success-bg,#E2F0E5);color:var(--color-success,#487050);font-size:11px;padding:2px 8px;border-radius:99px">Confirmada</span>',
+      borrador:    '<span style="background:var(--color-warning-bg,#FBE8C9);color:var(--color-warning,#8A5F13);font-size:11px;padding:2px 8px;border-radius:99px">Borrador</span>',
+      descartada:  '<span style="background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);font-size:11px;padding:2px 8px;border-radius:99px">Descartada</span>',
     }[r.estado] || r.estado;
 
     const discCount = Array.isArray(r.discrepancias) ? r.discrepancias.length : 0;
     const discCell  = discCount
-      ? `<span style="color:var(--color-warning,#7A4A00);font-weight:600">⚠ ${discCount} difer.</span>`
+      ? `<span style="color:var(--color-warning,#8A5F13);font-weight:600">⚠ ${discCount} difer.</span>`
       : '<span style="color:var(--color-text-muted)">—</span>';
 
     const miniatura = r.foto_url
@@ -1077,7 +1301,7 @@ function _renderHistorial(recepciones) {
     // Botón notificar — solo si tiene orden_id (hay proveedor) y está confirmada
     const btnNotif = (r.orden_id && r.estado === 'confirmada')
       ? `<button onclick="notificarProveedorRecepcion('${r.id}', this)"
-           style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--color-border);background:var(--color-surface-2,#EAE4D6);cursor:pointer;white-space:nowrap">
+           style="font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--color-border);background:var(--color-surface-2,#ECEEEA);cursor:pointer;white-space:nowrap">
            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>Notificar
          </button>`
       : '<span style="color:var(--color-text-muted);font-size:12px">—</span>';
@@ -1091,7 +1315,7 @@ function _renderHistorial(recepciones) {
       : '<span style="color:var(--color-text-muted);font-size:12px">Sin detalle</span>';
 
     const filaDetalle = items.length
-      ? `<tr id="${detalleId}" style="display:none;background:var(--color-surface-2,#EAE4D6)">
+      ? `<tr id="${detalleId}" style="display:none;background:var(--color-surface-2,#ECEEEA)">
            <td colspan="8" style="padding:6px 10px 10px 24px">
              <table style="width:100%;font-size:12px;border-collapse:collapse">
                <thead><tr style="color:var(--color-text-muted)">
@@ -1126,7 +1350,7 @@ function _renderHistorial(recepciones) {
   return `
     <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead>
-        <tr style="background:var(--color-surface-2,#EAE4D6);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted)">
+        <tr style="background:var(--color-surface-2,#ECEEEA);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted)">
           <th style="padding:8px 10px;text-align:left;font-weight:600">Fecha</th>
           <th style="padding:8px 10px;text-align:left;font-weight:600">Orden</th>
           <th style="padding:8px 10px;text-align:left;font-weight:600">Estado</th>
@@ -1161,7 +1385,7 @@ async function notificarProveedorRecepcion(recepcionId, btn) {
     }
 
     mostrarToast(`Email enviado a ${sanitize(data.email)}`, 'exito');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Enviado'; btn.style.color = 'var(--color-success,#17402F)'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Enviado'; btn.style.color = 'var(--color-success,#487050)'; }
 
   } catch (err) {
     console.error('[compras] Error al notificar proveedor:', err);

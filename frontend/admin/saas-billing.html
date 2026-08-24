@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
@@ -21,10 +21,11 @@
 
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
   <link rel="stylesheet" href="/frontend/admin/css/saas-billing-gentelella.css" />
   <style>
     /* ── Config CBU banner ─────────────────────────────────── */
@@ -49,20 +50,14 @@
     }
 
     /* ── Tabla ─────────────────────────────────────────────── */
-    .saas-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .saas-table thead th {
-      background: var(--color-surface-2);
-      border-bottom: 1px solid var(--color-border-soft);
-      padding: 9px 12px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--color-text);
-      white-space: nowrap;
-    }
-    .saas-table tbody tr { border-bottom: 1px solid #f3f4f6; }
-    .saas-table tbody tr:hover { background: #fafafa; }
-    .saas-table tbody tr.saas-row--alerta { background: #fff5f5; }
-    .saas-table td { padding: 10px 12px; vertical-align: middle; }
+    /* .saas-table migrada al canónico .tabla-admin (Fase 3, ver
+       PLAN_UNIFICACION_UX_ADMIN.md §25). Se retiran ancho/borde/tipografía/
+       padding/hover base (ya los cubre .tabla-admin) y se conservan solo dos
+       cosas que el canónico no trae y acá eran a propósito: el fondo del
+       thead (el canónico lo deja transparente) y el resaltado de fila que
+       necesita atención (.saas-row--alerta). */
+    .tabla-admin thead th { background: var(--color-surface-2); white-space: nowrap; }
+    .tabla-admin tbody tr.saas-row--alerta { background: #fff5f5; }
 
     /* ── Badges ────────────────────────────────────────────── */
     .badge {
@@ -82,21 +77,10 @@
     .badge--pagada     { background:#dcfce7; color:#166534; }
     .badge--vencida    { background:#fee2e2; color:var(--color-danger); }
 
-    /* ── Botón confirmar pago ──────────────────────────────── */
-    .btn-confirmar {
-      background: #16a34a;
-      color: var(--color-surface);
-      border: none;
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background .15s, opacity .15s;
+    /* ── Botón confirmar pago (usa .btn--success + .btn--sm compartidos) ── */
+    .btn--success:hover:not(:disabled) {
+      filter: brightness(1.08);
     }
-    .btn-confirmar:hover    { background: #15803d; }
-    .btn-confirmar:disabled { opacity: .55; cursor: not-allowed; }
 
     /* ── Modal config CBU ──────────────────────────────────── */
     .saas-modal-overlay {
@@ -180,11 +164,35 @@
       background: #dbeafe; border-radius: var(--radius-full); padding: 2px 8px;
     }
     .planes-nota { font-size: 12px; color: var(--color-text-light); padding: 0 16px 16px; margin: 0; }
+
+    /* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.5/1.7): esta página no
+       tenía ningún @media propio (ni en su HTML ni en saas-billing-
+       gentelella.css, que es reskin de color puro). El modal de CBU y
+       el toast usan unidades ya responsivas (min()/vw), pero el padding
+       fijo de 28px del modal y el toast pegado al borde se ajustan en
+       mobile chico. */
+    @media (max-width: 480px) {
+      .saas-modal { padding: 20px; }
+      #saas-toast { left: 12px; right: 12px; max-width: none; top: 12px; }
+    }
   </style>
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-saas-billing-gentelella dash-gentelella">
 <div id="nav-root"></div>
+
+<!-- ── Layout ─────────────────────────────────────────────────────
+     Sin este wrapper, auth.js inserta el banner de "modo demostración"
+     (perfil.solo_lectura) directo en <body>, que es display:flex sin
+     flex-direction (fila) — el banner, sin alto propio, queda
+     estirado por align-items:stretch a 100% de la altura de la
+     pantalla y tapa todo el contenido. Mismo bug ya documentado y
+     resuelto para el resto del admin en v456-fix (ver auth.js), pero
+     esta página había quedado afuera del patrón `.layout` que usan
+     las otras ~43 pantallas. `.layout` es flex-direction:column
+     (nav.css), así que ahí el banner se comporta como una franja
+     normal arriba del contenido. ────────────────────────────────── -->
+<div class="layout">
 
 <!-- ── Toast ──────────────────────────────────────────────────── -->
 <div id="saas-toast"></div>
@@ -303,15 +311,15 @@
     </div>
 
     <div style="overflow-x:auto;">
-      <table class="saas-table">
+      <table class="tabla-admin">
         <thead>
           <tr>
             <th>Empresa</th>
-            <th>Estado</th>
-            <th>Última factura</th>
-            <th>Monto</th>
-            <th>Vencimiento</th>
-            <th>Acción</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-fit">Última factura</th>
+            <th class="col-fit">Monto</th>
+            <th class="col-fit">Vencimiento</th>
+            <th class="col-fit">Acción</th>
           </tr>
         </thead>
         <tbody id="saas-tbody">
@@ -332,16 +340,16 @@
     </div>
 
     <div style="overflow-x:auto;">
-      <table class="saas-table">
+      <table class="tabla-admin">
         <thead>
             <tr>
             <th>Empresa</th>
-            <th>Entidad</th>
-            <th class="thead-sep">Estado</th>
-            <th>Filas</th>
-            <th>Válidas</th>
-            <th class="thead-sep">Con error</th>
-            <th>Fecha</th>
+            <th class="col-fit">Entidad</th>
+            <th class="thead-sep col-fit">Estado</th>
+            <th class="col-fit">Filas</th>
+            <th class="col-fit">Válidas</th>
+            <th class="thead-sep col-fit">Con error</th>
+            <th class="col-fit">Fecha</th>
           </tr>
         </thead>
         <tbody id="saas-tbody-migraciones">
@@ -383,14 +391,14 @@
     </div>
 
     <div style="overflow-x:auto;">
-      <table class="saas-table">
+      <table class="tabla-admin">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Empresa</th>
-            <th>Tipo de evento</th>
-            <th>Estado</th>
-            <th>Origen</th>
+            <th class="col-fit">Fecha</th>
+            <th class="col-fit">Empresa</th>
+            <th class="col-fit">Tipo de evento</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-fit">Origen</th>
             <th>Payload</th>
           </tr>
         </thead>
@@ -485,15 +493,15 @@
       <button type="button" class="btn-sec texto-chico" onclick="cargarSuscripcionTenant()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
     </div>
     <div style="overflow-x:auto;">
-      <table class="saas-table">
+      <table class="tabla-admin">
         <thead>
           <tr>
-            <th>N° factura</th>
-            <th>Período</th>
-            <th>Monto</th>
-            <th>Estado</th>
-            <th>Vencimiento</th>
-            <th>Pagada el</th>
+            <th class="col-fit">N° factura</th>
+            <th class="col-fit">Período</th>
+            <th class="col-fit">Monto</th>
+            <th class="col-fit">Estado</th>
+            <th class="col-fit">Vencimiento</th>
+            <th class="col-fit">Pagada el</th>
           </tr>
         </thead>
         <tbody id="tenant-tbody-facturas">
@@ -508,15 +516,18 @@
 
 </div>
 
+</div>
+<!-- ── /Layout ── -->
+
 <script src="/frontend/env-config.js?v1782328742714"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
 <script src="/frontend/shared/filtro-tabs.js?v=1"></script>
 
 <script>
@@ -549,6 +560,24 @@ function onclickArg(valor) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+
+// FIX SEC-06 (auditoría 2026, hallazgo alto — stored XSS): nombre/email de
+// empresa, número/período/estado de factura y nombre de plan se interpolaban
+// directo en innerHTML (renderTabla, cargarHistorialFacturas,
+// cargarPlanesTenant) sin escapar. Todos esos campos vienen de datos que un
+// tenant puede setear sobre sí mismo (razón social al darse de alta, email
+// de contacto) o de catálogos que en algún momento podrían incorporar texto
+// libre (nombre_visible de un plan) — texto con `<script>` o un
+// `<img onerror=...>` ahí se ejecutaba en el panel de un admin de SaaS que
+// mirara esa fila. escapeHtml() reemplaza los 5 caracteres con significado
+// en HTML por su entidad — igual que onclickArg() ya hacía para atributos
+// onclick, pero para texto que va dentro de nodos, no de atributos.
+function escapeHtml(valor) {
+  return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 function fmtFecha(d) {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('es-AR');
@@ -607,12 +636,12 @@ function renderTabla() {
     return `
       <tr class="${needsAction ? 'saas-row--alerta' : ''}">
         <td>
-          <div style="font-weight:600; color:var(--color-text);">${e.nombre}</div>
-          <div class="txt-muted">${e.email || ''}</div>
+          <div style="font-weight:600; color:var(--color-text);">${escapeHtml(e.nombre)}</div>
+          <div class="txt-muted">${escapeHtml(e.email || '')}</div>
           <div class="txt-muted">Alta: ${fmtFecha(e.alta)}</div>
         </td>
         <td>
-          <span class="badge badge--${e.saas_plan}">${e.saas_plan}</span>
+          <span class="badge badge--${escapeHtml(e.saas_plan)}">${escapeHtml(e.saas_plan)}</span>
           ${e.saas_plan === 'trial' && e.saas_trial_fin
             ? `<div class="txt-muted" style="margin-top:3px;">hasta ${fmtFecha(e.saas_trial_fin)}</div>`
             : ''}
@@ -622,9 +651,9 @@ function renderTabla() {
         </td>
         <td>
           ${e.ultima_factura_numero
-            ? `<div class="txt-mono">${e.ultima_factura_numero}</div>
-               <div class="txt-muted">${e.ultima_factura_periodo || ''}</div>
-               <span class="badge badge--${e.ultima_factura_estado}" style="margin-top:3px;">${e.ultima_factura_estado}</span>`
+            ? `<div class="txt-mono">${escapeHtml(e.ultima_factura_numero)}</div>
+               <div class="txt-muted">${escapeHtml(e.ultima_factura_periodo || '')}</div>
+               <span class="badge badge--${escapeHtml(e.ultima_factura_estado)}" style="margin-top:3px;">${escapeHtml(e.ultima_factura_estado)}</span>`
             : `<span class="txt-empty">—</span>`}
         </td>
         <td style="font-weight:600; color:var(--color-text);">
@@ -638,7 +667,7 @@ function renderTabla() {
         </td>
         <td>
           ${needsAction
-            ? `<button class="btn-confirmar" onclick="btnAsyncClick(this, () => confirmarPago('${e.ultima_factura_id}',${onclickArg(e.nombre)},this))">
+            ? `<button class="btn btn--success btn--sm" onclick="btnAsyncClick(this, () => confirmarPago('${e.ultima_factura_id}',${onclickArg(e.nombre)},this))">
 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar pago
                </button>`
             : e.ultima_factura_estado === 'pagada'
@@ -862,10 +891,10 @@ async function cargarSuscripcionTenant() {
   }
   tbody.innerHTML = facturas.map(f => `
     <tr>
-      <td class="txt-mono">${f.numero}</td>
-      <td>${f.periodo}</td>
+      <td class="txt-mono">${escapeHtml(f.numero)}</td>
+      <td>${escapeHtml(f.periodo)}</td>
       <td style="font-weight:600;">${fmtMonto(f.monto)}</td>
-      <td><span class="badge badge--${f.estado}">${f.estado}</span></td>
+      <td><span class="badge badge--${escapeHtml(f.estado)}">${escapeHtml(f.estado)}</span></td>
       <td>${fmtFecha(f.fecha_vencimiento)}</td>
       <td>${f.fecha_pago ? fmtFecha(f.fecha_pago) : '<span class="txt-empty">—</span>'}</td>
     </tr>`).join('');
@@ -929,7 +958,7 @@ async function cargarPlanesTenant(s) {
 
     return `
       <div class="plan-tarjeta ${esActual ? 'plan-tarjeta--actual' : ''}">
-        <div class="plan-tarjeta__nombre">${p.nombre_visible}</div>
+        <div class="plan-tarjeta__nombre">${escapeHtml(p.nombre_visible)}</div>
         <div class="plan-tarjeta__precio">${fmtPrecioPlan(p.precio_mes)}</div>
         <div class="plan-tarjeta__limites">${limites}</div>
         ${boton}

@@ -178,7 +178,7 @@ body.dash-rentabilidad-producto-vendedor-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla th {
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -187,24 +187,25 @@ body.dash-rentabilidad-producto-vendedor-gentelella .tabla th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin quitado al migrar a .tabla-admin (Fase 2) */
 }
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla td {
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla tbody tr:last-child td {
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla tbody tr:hover td {
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
 }
 /* Filas destacadas (mejor/peor margen) */
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla tr.fila-mejor td {
-  background: rgba(184,122,0,.08) !important;
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin tr.fila-mejor td {
+  background: rgba(106,152,115,.08) !important;
 }
-body.dash-rentabilidad-producto-vendedor-gentelella .tabla tr.fila-peor td {
+body.dash-rentabilidad-producto-vendedor-gentelella .tabla-admin tr.fila-peor td {
   background: rgba(231,76,60,.06) !important;
 }
 /* Montos */
@@ -219,22 +220,9 @@ body.dash-rentabilidad-producto-vendedor-gentelella .monto-gris {
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips de origen (Pedidos / POS)
+   Chips de origen (Pedidos / POS) — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
    ════════════════════════════════════════════════════════════ */
-body.dash-rentabilidad-producto-vendedor-gentelella .chip {
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 9px !important;
-}
-body.dash-rentabilidad-producto-vendedor-gentelella .chip-origen-pedido {
-  background: rgba(52,152,219,.13) !important;
-  color: var(--ge-blue) !important;
-}
-body.dash-rentabilidad-producto-vendedor-gentelella .chip-origen-pos {
-  background: rgba(142,68,173,.13) !important;
-  color: var(--ge-purple) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Paginación

@@ -14,18 +14,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/admin/css/clientes.css?v=197" />
-  <link rel="stylesheet" href="/frontend/admin/css/clientes-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes.css?v=200" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes-gentelella.css?v=3" />
   <link rel="stylesheet" href="/frontend/admin/css/clientes-ciclos.css?v=196" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/pagination.css?v=1" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
@@ -39,7 +40,7 @@
 
 <!-- ── PRELOADER ── -->
 <div id="app-preloader" class="preloader">
-  <div class="preloader-logo">D</div>
+  <div class="preloader-logo"><img src="/frontend/admin/img/logo-fluxo-mark.png" alt="Fluxo" width="56" height="56"></div>
   <span class="preloader-text">Cargando clientes…</span>
   <div class="preloader-bar"></div>
 </div>
@@ -90,7 +91,11 @@
         <button type="button" class="e-pill e-pill-verde"    data-f="activo"    onclick="selFiltroEstado('activo', this)">Activos</button>
         <button type="button" class="e-pill e-pill-rojo"     data-f="inactivo"  onclick="selFiltroEstado('inactivo', this)">Inactivos</button>
         <button type="button" class="e-pill e-pill-amarillo" data-f="deuda"     onclick="selFiltroEstado('deuda', this)">Con deuda</button>
-        <button type="button" class="e-pill e-pill-rojo"     data-f="riesgo"    onclick="selFiltroEstado('riesgo', this)">En riesgo</button>
+        <span class="estado-pills-sep" aria-hidden="true"></span>
+        <button type="button" class="e-pill e-pill-dorado"   data-f="premium"   onclick="selFiltroEstado('premium', this)"   title="Clientes con nivel de confianza Premium">★ Premium</button>
+        <button type="button" class="e-pill e-pill-verde"    data-f="bueno"     onclick="selFiltroEstado('bueno', this)"     title="Clientes con nivel de confianza Bueno">● Bueno</button>
+        <button type="button" class="e-pill e-pill-rojo"     data-f="riesgo"    onclick="selFiltroEstado('riesgo', this)"    title="Clientes en riesgo o bloqueados por nivel de confianza">En riesgo</button>
+        <button type="button" class="e-pill e-pill-gris"     data-f="bloqueado" onclick="selFiltroEstado('bloqueado', this)" title="Clientes bloqueados por nivel de confianza">⊘ Bloqueado</button>
       </div>
 
       <div class="filtros-der">
@@ -103,7 +108,7 @@
           Ver catálogo
         </button>
         <div class="topbar-mas-acciones">
-          <button type="button" class="btn-exportar" id="btn-mas-acciones" aria-haspopup="true" aria-expanded="false">
+          <button type="button" class="btn btn--secondary" id="btn-mas-acciones" aria-haspopup="true" aria-expanded="false">
             <svg id="btn-mas-acciones-icon-exportar" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span id="btn-mas-acciones-texto">Más acciones</span>
             <svg id="btn-mas-acciones-chevron" class="topbar-mas-acciones-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -113,7 +118,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               <span id="btn-geocodificar-lote-texto">Geocodificar pendientes</span>
             </button>
-            <button type="button" class="dropdown-item" onclick="exportarExcel()" role="menuitem">
+            <button type="button" class="dropdown-item" id="btn-exportar-excel-clientes" onclick="exportarExcel()" role="menuitem">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar
             </button>
@@ -128,18 +133,18 @@
 
     <!-- ── Tabla ── -->
     <div class="tabla-wrap table-responsive-cards">
-      <table class="tabla-clientes">
+      <table class="tabla-admin">
         <thead>
             <tr>
             <th>Cliente</th>
-            <th>CUIT</th>
-            <th>Zona</th>
-            <th class="thead-sep">Teléfono</th>
-            <th class="th-num">Límite crédito</th>
-            <th class="th-num">Saldo deuda</th>
-            <th>Estado</th>
-            <th class="thead-sep">Confianza</th>
-            <th class="col-sticky-end">Acciones</th>
+            <th class="col-fit">CUIT</th>
+            <th class="col-fit">Zona</th>
+            <th class="thead-sep col-fit">Teléfono</th>
+            <th class="th-num col-fit">Límite crédito</th>
+            <th class="th-num col-fit">Saldo deuda</th>
+            <th class="col-fit">Estado</th>
+            <th class="thead-sep col-fit">Confianza</th>
+            <th class="col-sticky-end col-fit">Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-body">
@@ -170,15 +175,15 @@
       </div>
 
       <div class="tabla-wrap table-responsive-cards">
-        <table class="tabla-clientes">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Cliente</th>
-              <th>Producto</th>
-              <th class="th-num">Precio especial</th>
+              <th class="col-fit">Cliente</th>
+              <th class="col-fit">Producto</th>
+              <th class="th-num col-fit">Precio especial</th>
               <th>Notas</th>
-              <th>Actualizado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="col-fit">Actualizado</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-precios-body">
@@ -201,16 +206,16 @@
       </div>
 
       <div class="tabla-wrap table-responsive-cards">
-        <table class="tabla-clientes">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Cliente</th>
-              <th class="thead-sep">Etiqueta</th>
+              <th class="col-fit">Cliente</th>
+              <th class="thead-sep col-fit">Etiqueta</th>
               <th>Domicilio</th>
-              <th>Localidad</th>
-              <th class="thead-sep">Provincia</th>
-              <th>Principal</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="col-fit">Localidad</th>
+              <th class="thead-sep col-fit">Provincia</th>
+              <th class="col-fit">Principal</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-direcciones-body">
@@ -238,13 +243,13 @@
       </p>
 
       <div class="tabla-wrap table-responsive-cards">
-        <table class="tabla-clientes">
+        <table class="tabla-admin">
           <thead>
             <tr>
               <th>Lista</th>
-              <th style="text-align:center">Predeterminada</th>
-              <th>Estado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th style="text-align:center" class="col-fit">Predeterminada</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-listas-body">
@@ -377,7 +382,7 @@
         </div>
       </div>
       <div class="form-group">
-        <button type="button" id="btn-geocodificar" class="btn btn-secondary btn-sm"
+        <button type="button" id="btn-geocodificar" class="btn btn--secondary btn-sm"
                 onclick="geocodificarClienteActual()"
                 style="display:inline-flex;align-items:center;gap:6px;font-size:.82rem;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -503,6 +508,9 @@
   <!-- Acciones del form (solo visible en tabs datos/comercial) -->
   <div class="form-acciones" id="form-acciones">
     <button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+    <button type="button" class="btn-secundario" id="btn-desbloquear" onclick="btnAsyncClick(this, confirmarDesbloqueo)" style="display:none">
+      Desbloquear cliente
+    </button>
     <button type="button" class="btn-peligro" id="btn-baja" onclick="btnAsyncClick(this, confirmarBaja)" style="display:none">
       Dar de baja
     </button>
@@ -685,17 +693,17 @@
 <!-- ── Supabase ── -->
 
   <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/migracion-badge.js?v1782328742714"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
   <script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
-  <script type="module" src="/frontend/admin/js/clientes.js?v1782328742714"></script>
+  <script type="module" src="/frontend/admin/js/clientes.js?v1787278849584"></script>
   <script src="/frontend/admin/js/clientes-ciclos.js?v1782328742714"></script>
 
 <!-- ── REQ-5: Modal Score Cliente ── -->

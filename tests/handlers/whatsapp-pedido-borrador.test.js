@@ -126,7 +126,7 @@ describe('crearPedidoDesdeItemsWhatsapp — camino feliz', () => {
     await crearPedidoDesdeItemsWhatsapp({ empresaId: 'empresa-1', clienteId: 'cliente-1', items: [ITEM] });
 
     expect(itemsEnviados).toEqual([
-      { producto_id: 'prod-1', cantidad: 2, precio_unitario: 100, descuento_pct: 0, subtotal: 200 },
+      { producto_id: 'prod-1', combo_id: null, cantidad: 2, precio_unitario: 100, descuento_pct: 0, subtotal: 200 },
     ]);
   });
 

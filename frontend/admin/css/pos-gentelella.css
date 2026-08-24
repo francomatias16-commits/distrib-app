@@ -214,7 +214,7 @@ body.dash-pos-gentelella .btn--outline:hover {
 
 /* Barra de búsqueda */
 body.dash-pos-gentelella .pos-busqueda-wrap {
-  border: 1.5px solid var(--ge-border) !important;
+  border: 1.5px solid transparent !important;
   background: var(--ge-bg) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
@@ -355,7 +355,7 @@ body.dash-pos-gentelella .pos-panel-totales .input-base {
 }
 body.dash-pos-gentelella .pos-panel-totales .input-base:focus {
   border-color: var(--ge-teal) !important;
-  box-shadow: 0 0 0 2px rgba(184,122,0,.25) !important;
+  box-shadow: 0 0 0 2px rgba(106,152,115,.25) !important;
 }
 body.dash-pos-gentelella .pos-desc-quitar-btn {
   color: var(--ge-sidebar-muted) !important;
@@ -393,7 +393,7 @@ body.dash-pos-gentelella .pos-btn-accion-rapida {
   background: transparent !important;
 }
 body.dash-pos-gentelella .pos-btn-accion-rapida:hover {
-  background: rgba(184,122,0,.15) !important;
+  background: rgba(106,152,115,.15) !important;
 }
 
 /* Grilla de favoritos */

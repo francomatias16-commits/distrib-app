@@ -19,8 +19,41 @@
 
 'use strict';
 
+// ─── Deduplicación de GETs en vuelo ────────────────────────────────────────
+// FIX (v861 — diagnóstico 504 en /api/admin/kpis, 18/08): dashboard.html
+// dispara cargarKPIs() y cargarARCA() en paralelo (mismo Promise.allSettled
+// de arranque, y de nuevo en cada cambio de pestaña Hoy/Semana/Mes) y las
+// dos le pegan al MISMO /api/admin/kpis?periodo=X — mismo dato, mismo
+// período, mismo instante. Confirmado con EXPLAIN ANALYZE que cada RPC
+// individual responde en <200ms (no es lentitud de query ni falta de
+// índice); el problema es que esta es la ruta más pesada del panel (1 RPC
+// principal + 3 en paralelo) y duplicarla exactamente dobla la chance de
+// pasarse del timeout de 10s del plan Hobby de Vercel en un cold start.
+// Como un GET es idempotente, cualquier llamada idéntica que llegue
+// mientras la primera todavía no resolvió reutiliza la misma promesa en
+// vez de abrir un fetch nuevo — corrige este caso puntual y cualquier otro
+// duplicado que aparezca a futuro en el resto del panel.
+const _enVueloGET = new Map(); // url -> Promise
+
 // ─── Fetch base con auth header ───────────────────────────────────────────────
 async function fetchJson(url, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+
+  if (method === 'GET' && _enVueloGET.has(url)) {
+    return _enVueloGET.get(url);
+  }
+
+  const promise = _fetchJsonInterno(url, options);
+
+  if (method === 'GET') {
+    _enVueloGET.set(url, promise);
+    promise.finally(() => _enVueloGET.delete(url));
+  }
+
+  return promise;
+}
+
+async function _fetchJsonInterno(url, options = {}) {
   let token = '';
   try {
     const authCtx = await window.authReady;
@@ -37,21 +70,31 @@ async function fetchJson(url, options = {}) {
     ...(options.headers || {}),
   };
 
-  const resp = await fetch(url, { ...options, method, headers });
-
-  // Si 401/403 → sesión expirada → redirigir
-  if (resp.status === 401 || resp.status === 403) {
-    window.location.href = '/admin/login';
-    return;
-  }
+  const resp = await fetch(url, {
+    method,
+    headers,
+    body: options.body,
+  });
 
   if (!resp.ok) {
-    let msg = `HTTP ${resp.status}`;
-    try {
-      const body = await resp.json();
-      msg = body.error || body.message || msg;
-    } catch { /* ignorar */ }
-    throw new Error(`[api-client] ${msg} en ${url}`);
+    let body = null;
+    try { body = await resp.json(); } catch { /* ignorar */ }
+
+    // 456 — usuario demo (solo_lectura): no es una sesión inválida, así que
+    // NO redirigimos a login. Se muestra el mensaje devuelto por el
+    // dispatcher (ver lib/solo-lectura.js) como un error normal.
+    if (body?.codigo === 'DEMO_SOLO_LECTURA') {
+      window.mostrarToast?.(body.error, 'warning');
+      throw new Error(body.error);
+    }
+
+    // Si 401/403 (sin ser el caso de arriba) → sesión expirada → redirigir
+    if (resp.status === 401 || resp.status === 403) {
+      window.location.href = '/admin/login';
+      return;
+    }
+
+    throw new Error(`[api-client] ${body?.error || body?.message || `HTTP ${resp.status}`} en ${url}`);
   }
 
   return resp.json();

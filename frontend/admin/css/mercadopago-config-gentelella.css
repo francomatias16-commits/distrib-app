@@ -79,17 +79,8 @@ body.dash-mercadopago-config-gentelella #txt-estado {
   color: var(--ge-ink-soft) !important;
 }
 
-/* ════════════════════════════════════════════════════════════
-   Chips genéricos (ok/no)
-   ════════════════════════════════════════════════════════════ */
-body.dash-mercadopago-config-gentelella .chip-ok {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-mercadopago-config-gentelella .chip-no {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-orange) !important;
-}
+/* Chips genéricos (ok/no) — movidos al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan). */
 
 /* ════════════════════════════════════════════════════════════
    Guía (pasos)
@@ -150,17 +141,17 @@ body.dash-mercadopago-config-gentelella hr.div {
 /* ════════════════════════════════════════════════════════════
    Botones
    ════════════════════════════════════════════════════════════ */
-body.dash-mercadopago-config-gentelella .btn-primary {
+body.dash-mercadopago-config-gentelella .btn--primary {
   border-radius: var(--ge-radius-btn) !important;
   font-weight: 600 !important;
 }
-body.dash-mercadopago-config-gentelella .btn-danger {
+body.dash-mercadopago-config-gentelella .btn--danger {
   background: var(--ge-panel) !important;
   color: var(--ge-red) !important;
   border: 1px solid var(--ge-red) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-mercadopago-config-gentelella .btn-danger:hover {
+body.dash-mercadopago-config-gentelella .btn--danger:hover {
   background: rgba(231,76,60,.08) !important;
 }
 

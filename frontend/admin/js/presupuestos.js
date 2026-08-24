@@ -380,7 +380,7 @@ window.pres_aceptarYGenerarPedido = async function(id) {
         if (tr) {
           tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
           tr.style.transition = 'background-color .4s';
-          tr.style.backgroundColor = 'var(--color-primary-bg, rgba(232,160,0,.14))';
+          tr.style.backgroundColor = 'var(--color-primary-bg, rgba(106,152,115,.14))';
           setTimeout(() => { tr.style.backgroundColor = ''; }, 2500);
         }
       }, 400);
@@ -530,6 +530,22 @@ window.pres_abrirModalNuevo = async function() {
     if (!_picker) {
       _picker = new window.ProductoPicker(pickerEl, {
         onAgregar(item) {
+          // v(combos): renglón de combo — nunca se fusiona con otro (cada
+          // "Agregar" es una fila propia) ni pasa por _preciosCliente (esa
+          // tabla es de precios por producto/cliente; el combo siempre usa
+          // su precio propio, resuelto server-side igual que en pedidos).
+          if (item.combo_id) {
+            _itemsModal.push({
+              combo_id:        item.combo_id,
+              descripcion:     item.descripcion,
+              cantidad:        item.cantidad,
+              precio_unitario: item.precio_unitario,
+              descuento:       0,
+              es_combo:        true,
+            });
+            pres_renderItemsModal();
+            return;
+          }
           // REQ-AGIL: si el producto ya está en la lista, suma cantidad
           // en vez de crear una fila duplicada.
           const existente = item.producto_id &&

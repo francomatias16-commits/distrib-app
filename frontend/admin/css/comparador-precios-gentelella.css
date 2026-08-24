@@ -174,7 +174,7 @@ body.dash-comparador-precios-gentelella .filtros-bar select:focus {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */
-body.dash-comparador-precios-gentelella .tabla th {
+body.dash-comparador-precios-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -183,20 +183,21 @@ body.dash-comparador-precios-gentelella .tabla th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin que se quitó de comparador-precios.html al migrar a .tabla-admin (Fase 2) */
 }
-body.dash-comparador-precios-gentelella .tabla td {
+body.dash-comparador-precios-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-comparador-precios-gentelella .tabla tbody tr:last-child td {
+body.dash-comparador-precios-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-comparador-precios-gentelella .tabla tbody tr:hover td {
+body.dash-comparador-precios-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
 }
-body.dash-comparador-precios-gentelella .tabla tbody tr.clickable {
+body.dash-comparador-precios-gentelella .tabla-admin tbody tr.clickable {
   cursor: pointer !important;
 }
 

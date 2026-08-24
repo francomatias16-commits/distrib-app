@@ -4,95 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="/cliente/manifest.json" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#19372D" />
   <title>Inicio — Fluxo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
 
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=2" />
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/cliente/pwa-init.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
-
-    /* ── TOP BAR ── */
-    .topbar {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-      color: #fff; padding: 1.25rem 1.25rem .75rem;
-    }
-    .topbar-row { display: flex; justify-content: space-between; align-items: flex-start; }
-    .topbar h1 { font-size: 1.1rem; font-weight: 700; }
-    .topbar-sub { font-size: .8rem; opacity: .75; margin-top: .15rem; }
-    .btn-logout {
-      background: rgba(255,255,255,.15); color: #fff; border: none;
-      border-radius: var(--radius-md); padding: .35rem .75rem; font-size: .78rem;
-      cursor: pointer; font-family: inherit; white-space: nowrap;
-    }
-
-    /* ── NAV BOTTOM: ver /shared/tienda-nav.css ── */
-
-    /* ── CONTENIDO ── */
-    .contenido { padding: 1rem 1rem 5rem; max-width: 480px; margin: 0 auto; }
-
-    /* ── BANNER BIENVENIDA ── */
-    .banner-bienvenida {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      border-radius: var(--radius-xxl); padding: 1.25rem 1.25rem 1rem; color: #fff; margin-bottom: 1rem;
-    }
-    .banner-bienvenida h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: .25rem; }
-    .banner-bienvenida p { font-size: .83rem; opacity: .85; }
-
-    /* ── ACCESOS RÁPIDOS ── */
-    .sección-titulo { font-size: .78rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .04em; margin: 1.25rem 0 .6rem; }
-    .grid-accesos { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
-    .card-acceso {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: 1rem; display: flex; flex-direction: column; align-items: center;
-      gap: .45rem; cursor: pointer; text-decoration: none; color: inherit;
-      transition: transform .1s, box-shadow .1s;
-    }
-    .card-acceso:active { transform: scale(.97); }
-    .card-acceso-icon {
-      width: 44px; height: 44px; border-radius: var(--radius-xl);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .card-acceso-icon.azul { background: var(--color-primary-bg); color: var(--color-primary); }
-    .card-acceso-icon.verde { background: var(--color-success-bg); color: var(--color-success-mid); }
-    .card-acceso-icon.naranja { background: #fff3e8; }
-    .card-acceso-icon.violeta { background: #f0ebfb; color: var(--nav-facturacion); }
-    .card-acceso-label { font-size: .85rem; font-weight: 600; color: var(--color-text); }
-    .card-acceso-sub { font-size: .72rem; color: var(--color-text-light); }
-
-    /* ── PEDIDOS RECIENTES ── */
-    .card-pedido {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: .9rem 1rem; margin-bottom: .5rem; display: flex; align-items: center; gap: .85rem;
-    }
-    .pedido-estado-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .dot-confirmado { background: var(--color-success-mid); }
-    .dot-preparando { background: var(--color-warning-mid); }
-    .dot-despachado { background: var(--color-info-mid); }
-    .dot-entregado  { background: var(--color-text-muted); }
-    .dot-borrador   { background: var(--color-border); }
-    .dot-cancelado  { background: var(--color-danger-mid); }
-    .pedido-info { flex: 1; min-width: 0; }
-    .pedido-nro { font-size: .85rem; font-weight: 600; color: var(--color-text); }
-    .pedido-fecha { font-size: .72rem; color: var(--color-text-light); margin-top: .1rem; }
-    .pedido-total { font-size: .9rem; font-weight: 700; color: var(--color-primary); white-space: nowrap; }
-
-    .empty-state { text-align: center; color: var(--color-text-light); padding: 2rem 1rem; font-size: .85rem; }
-    .loading { text-align: center; color: var(--color-text-light); padding: 1.5rem; font-size: .85rem; }
-  </style>
+  <link rel="stylesheet" href="/cliente/css/inicio.css?v=2" />
   <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>

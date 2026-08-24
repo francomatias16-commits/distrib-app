@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -125,8 +125,10 @@
     .monto-destac .monto-val { font-size: 32px; font-weight: 800; }
     .monto-destac .monto-label { font-size: 12px; opacity: .8; margin-top: 2px; }
 
-    /* Botones */
-    .btn-primary {
+    /* Botones (nombre propio: evita colisión con .btn-primary legacy
+       de reskin-patch.css, que trae !important e inline-flex y le rompía
+       el diseño full-width a esta pantalla) */
+    .susp-btn-primary {
       display: block;
       width: 100%;
       padding: 14px;
@@ -142,8 +144,8 @@
       transition: background .15s;
       margin-bottom: 12px;
     }
-    .btn-primary:hover { background: var(--azul-h); }
-    .btn-secondary {
+    .susp-btn-primary:hover { background: var(--azul-h); }
+    .susp-btn-secondary {
       display: block;
       width: 100%;
       padding: 12px;
@@ -159,7 +161,7 @@
       transition: all .15s;
       margin-bottom: 12px;
     }
-    .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+    .susp-btn-secondary:hover { border-color: var(--text); color: var(--text); }
 
     /* Copy CBU */
     .copy-cbu {
@@ -299,10 +301,10 @@
         Reactivamos tu cuenta en menos de 24hs hábiles.
       </p>
 
-      <a id="btn-whatsapp" href="#" target="_blank" class="btn-primary">
+      <a id="btn-whatsapp" href="#" target="_blank" class="susp-btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Avisarnos por WhatsApp →
       </a>
-      <a href="mailto:soporte@distrib.app" class="btn-secondary">
+      <a href="mailto:soporte@distrib.app" class="susp-btn-secondary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>Enviar comprobante por email
       </a>
     </div>
@@ -312,7 +314,7 @@
       <div class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
       <h1>No pudimos cargar el estado</h1>
       <p class="subtitle">Intentá recargar la página o comunicate con nosotros.</p>
-      <button class="btn-primary" onclick="location.reload()">Reintentar</button>
+      <button class="susp-btn-primary" onclick="location.reload()">Reintentar</button>
     </div>
 
     <p class="footer-note">

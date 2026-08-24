@@ -12,6 +12,22 @@ let loteActivoId    = null;
 let movimientosData = [];
 let puedeEscribir   = false;
 
+// ── Paginación cliente ("Cargar más") ───────────────────────────────────────
+const LOTES_MOSTRAR_INICIAL = 15;
+const LOTES_PAGINA          = 30;
+let _lotesVisibles = LOTES_MOSTRAR_INICIAL;
+
+function piePaginacionHTML(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const hayMas        = total > visibles;
+  const puedeColapsar = visibles > mostrarInicial;
+  if (!hayMas && !puedeColapsar) return '';
+  const restantes = total - visibles;
+  return `<div class="paginar-foot">
+    ${hayMas ? `<button type="button" class="paginar-btn" onclick="${cargarMasFn}()">Cargar ${Math.min(pagina, restantes)} más (quedan ${restantes})</button>` : ''}
+    ${puedeColapsar ? `<button type="button" class="paginar-btn paginar-btn--ghost" onclick="${colapsarFn}()">Ver menos</button>` : ''}
+  </div>`;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await window.authReady;
@@ -88,8 +104,11 @@ async function onArchivoSeleccionado(file) {
 
     window.toast(`Importado: ${movimientos.length} movimientos`, 'ok');
     document.getElementById('input-csv').value = '';
+    // Forzamos que cargarLotes() auto-seleccione el recién importado (va a
+    // quedar primero en la lista por created_at desc) en vez de conservar
+    // el lote que estaba activo antes de importar.
+    loteActivoId = null;
     await cargarLotes();
-    await seleccionarLote(data.id);
   } catch (e) {
     console.error('[CONCILIACION] importar:', e);
     window.toast('No se pudo importar el extracto. Probá de nuevo.', 'error');
@@ -206,7 +225,19 @@ async function cargarLotes() {
     if (!r.ok) throw new Error(data.error || 'Error al cargar los extractos');
 
     lotesData = data || [];
+    _lotesVisibles = LOTES_MOSTRAR_INICIAL;
     renderLotes();
+
+    // Auto-selección: al entrar a la pantalla no tiene sentido dejar el panel
+    // de movimientos vacío esperando que el usuario clickee un extracto — la
+    // API ya devuelve los lotes ordenados por created_at desc (ver
+    // lib/repos/conciliacion-bancaria.js), así que el primero es el más
+    // reciente. Si ya había uno activo (ej. venimos de importar un CSV
+    // nuevo, o de refrescar la lista tras eliminar), se respeta ese en vez
+    // de pisarlo — solo se auto-selecciona en la carga inicial de la página.
+    if (!loteActivoId && lotesData.length) {
+      await seleccionarLote(lotesData[0].id);
+    }
   } catch (e) {
     console.error('[CONCILIACION] lotes:', e);
     cont.innerHTML = `<div style="padding:16px;color:var(--color-danger);font-size:13px;">No se pudieron cargar los extractos. Probá de nuevo en un momento.</div>`;
@@ -220,17 +251,35 @@ function renderLotes() {
     return;
   }
 
-  cont.innerHTML = lotesData.map(l => {
+  const total    = lotesData.length;
+  const visibles = lotesData.slice(0, _lotesVisibles);
+
+  const filas = visibles.map(l => {
     const pct = l.cantidad_movimientos ? Math.round((l.cantidad_conciliados / l.cantidad_movimientos) * 100) : 0;
     return `
       <div class="lote-item ${l.id === loteActivoId ? 'activo' : ''}" data-testid="lote-item" data-id="${l.id}" onclick="seleccionarLote('${l.id}')">
         <div class="lote-nombre">${window.sanitize(l.nombre_archivo)}</div>
         <div class="lote-meta">${l.cantidad_conciliados}/${l.cantidad_movimientos} conciliados · ${fmtFecha(l.created_at)}</div>
         <div class="lote-progreso"><div class="lote-progreso-fill" style="width:${pct}%"></div></div>
-        ${puedeEscribir ? `<button type="button" class="lote-btn-eliminar" title="Eliminar extracto" onclick="event.stopPropagation();eliminarLote('${l.id}')" style="margin-top:6px;background:none;border:none;color:var(--color-danger,#B02A37);font-size:12px;cursor:pointer;padding:0">Eliminar</button>` : ''}
+        ${puedeEscribir ? `<button type="button" class="lote-btn-eliminar" title="Eliminar extracto" onclick="event.stopPropagation();eliminarLote('${l.id}')" style="margin-top:6px;background:none;border:none;color:var(--color-danger,#7A2820);font-size:12px;cursor:pointer;padding:0">Eliminar</button>` : ''}
       </div>`;
   }).join('');
+
+  const pie = piePaginacionHTML(total, _lotesVisibles, LOTES_MOSTRAR_INICIAL, LOTES_PAGINA, 'cargarMasLotes', 'colapsarLotes');
+  cont.innerHTML = filas + pie;
 }
+
+function cargarMasLotes() {
+  _lotesVisibles = Math.min(lotesData.length, _lotesVisibles + LOTES_PAGINA);
+  renderLotes();
+}
+function colapsarLotes() {
+  _lotesVisibles = LOTES_MOSTRAR_INICIAL;
+  renderLotes();
+  document.getElementById('lista-lotes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.cargarMasLotes = cargarMasLotes;
+window.colapsarLotes  = colapsarLotes;
 
 // ── Eliminar lote (y sus movimientos, en cascada del lado del servidor) ────
 async function eliminarLote(loteId) {
@@ -316,10 +365,10 @@ function renderKpis(filas) {
   cont.className = 'franja-resumen-sololectura';
   cont.innerHTML = [
     { label: 'Movimientos', valor: total, sub: 'Del extracto bancario importado' },
-    { label: 'Conciliados', valor: conciliados, sub: 'Ya vinculados a un comprobante' },
-    { label: 'Pendientes', valor: pendientes, sub: 'Todavía sin conciliar' },
-    { label: 'Sin candidato', valor: sinCandidatos, sub: 'No se encontró comprobante posible' },
-  ].map((k, i) => `${i > 0 ? '<span class="sep">·</span>' : ''}<span title="${k.sub}">${k.label}: <strong>${k.valor}</strong></span>`).join('');
+    { label: 'Conciliados', valor: conciliados, sub: 'Ya vinculados a un comprobante', tono: 'verde' },
+    { label: 'Pendientes', valor: pendientes, sub: 'Todavía sin conciliar', tono: 'ambar' },
+    { label: 'Sin candidato', valor: sinCandidatos, sub: 'No se encontró comprobante posible', tono: 'riesgo' },
+  ].map(k => `<div class="dato-sello"${k.tono ? ` data-tono="${k.tono}"` : ''} title="${k.sub}"><div class="dato-sello-valor">${k.valor}</div><div class="dato-sello-etiqueta">${k.label}</div></div>`).join('');
 }
 
 function renderMovimientos() {
@@ -336,7 +385,7 @@ function renderMovimientos() {
       <td><span class="badge-tipo ${m.tipo}">${m.tipo === 'credito' ? 'Crédito' : 'Débito'}</span></td>
       <td>${fmtPeso(m.monto)}</td>
       <td><span class="badge-estado ${m.estado}">${capitalizar(m.estado)}</span></td>
-      <td>${renderCandidatosOMatch(m)}</td>
+      <td data-label="Candidatos / Match" class="td-candidatos">${renderCandidatosOMatch(m)}</td>
       <td class="fila-acciones col-sticky-end">${renderAcciones(m)}</td>
     </tr>
   `).join('');
@@ -345,7 +394,7 @@ function renderMovimientos() {
 function renderCandidatosOMatch(m) {
   if (m.estado === 'conciliado' && m.cobros) {
     const c = m.cobros;
-    return `<div style="font-size:12px;">Cobro ${fmtFecha(c.fecha)} · ${fmtPeso(c.monto)}${c.clientes?.razon_social ? ` · ${window.sanitize(c.clientes.razon_social)}` : ''}</div>`;
+    return `<div class="cobro-conciliado-inline">Cobro ${fmtFecha(c.fecha)} · ${fmtPeso(c.monto)}${c.clientes?.razon_social ? ` · ${window.sanitize(c.clientes.razon_social)}` : ''}</div>`;
   }
   if (m.estado !== 'pendiente') return '<span class="sin-candidatos">—</span>';
 

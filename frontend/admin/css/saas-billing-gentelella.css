@@ -9,7 +9,7 @@
  * A diferencia de otras pantallas del reskin, esta NO usa el shell estándar
  * (no hay topbar/breadcrumb/nav-root en el HTML) ni clases compartidas de
  * finanzas.css/compras.css — todo el sistema visual (.btn-prim/.btn-sec,
- * .badge/.badge--*, .saas-table, .saas-kpi, .saas-modal, .plan-tarjeta, etc.)
+ * .badge/.badge--*, .tabla-admin, .saas-kpi, .saas-modal, .plan-tarjeta, etc.)
  * está definido en el <style> inline del propio saas-billing.html, sin
  * ninguna base compartida. Por eso este archivo redefine estructura + color
  * de casi todos los componentes (no son solo overrides de color).
@@ -76,16 +76,16 @@ body.dash-saas-billing-gentelella .btn-sec:hover {
 body.dash-saas-billing-gentelella .texto-chico {
   font-size: 12px !important;
 }
-body.dash-saas-billing-gentelella .btn-confirmar {
+body.dash-saas-billing-gentelella .btn--success {
   background: var(--ge-teal) !important;
   color: var(--ge-panel) !important;
   border: none !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-saas-billing-gentelella .btn-confirmar:hover {
+body.dash-saas-billing-gentelella .btn--success:hover {
   background: var(--ge-teal-dark) !important;
 }
-body.dash-saas-billing-gentelella .btn-confirmar:disabled {
+body.dash-saas-billing-gentelella .btn--success:disabled {
   opacity: .55 !important;
 }
 
@@ -153,8 +153,11 @@ body.dash-saas-billing-gentelella .saas-kpi--green .saas-kpi__val {
 }
 
 /* ════════════════════════════════════════════════════════════
-   Tablas (.seccion-tabla / .tabla-header / .saas-table)
-   ════════════════════════════════════════════════════════════ */
+   Tablas (.seccion-tabla / .tabla-header / .tabla-admin)
+   ════════════════════════════════════════════════════════════
+   .saas-table migrada al canónico .tabla-admin (Fase 3, ver
+   PLAN_UNIFICACION_UX_ADMIN.md §25) — mismo patrón que
+   reportes-*-gentelella.css. */
 body.dash-saas-billing-gentelella .seccion-tabla {
   background: var(--ge-panel) !important;
   border: 1px solid var(--ge-border) !important;
@@ -169,8 +172,10 @@ body.dash-saas-billing-gentelella .tabla-header {
 body.dash-saas-billing-gentelella .tabla-header h2 {
   color: var(--ge-ink) !important;
 }
-body.dash-saas-billing-gentelella .saas-table thead th {
+body.dash-saas-billing-gentelella .tabla-admin thead {
   background: var(--ge-bg) !important;
+}
+body.dash-saas-billing-gentelella .tabla-admin th {
   color: var(--ge-muted) !important;
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -178,16 +183,16 @@ body.dash-saas-billing-gentelella .saas-table thead th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-saas-billing-gentelella .saas-table tbody tr {
+body.dash-saas-billing-gentelella .tabla-admin tbody tr {
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-saas-billing-gentelella .saas-table tbody tr:hover {
+body.dash-saas-billing-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
-body.dash-saas-billing-gentelella .saas-table tbody tr.saas-row--alerta {
+body.dash-saas-billing-gentelella .tabla-admin tbody tr.saas-row--alerta {
   background: rgba(231,76,60,.06) !important;
 }
-body.dash-saas-billing-gentelella .saas-table td {
+body.dash-saas-billing-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
 }
 

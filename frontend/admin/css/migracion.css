@@ -440,12 +440,74 @@
   font-weight: 600;
 }
 
-.mig-tabla-wrap tr.fila-error { background: var(--color-danger-bg); }
+.mig-tabla-wrap tr.fila-error {
+  background: var(--color-danger-bg);
+  box-shadow: inset 3px 0 0 var(--color-danger);
+}
+.mig-tabla-wrap tr.fila-error td { opacity: .75; }
+.mig-tabla-wrap tr.fila-error .mig-celda-errores { opacity: 1; }
+.mig-tabla-wrap tr.fila-error select:disabled { opacity: .55; }
+
+.mig-fila-num-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--color-danger);
+  opacity: 1 !important;
+}
 
 .mig-celda-errores {
   color: var(--color-danger);
   white-space: normal;
   min-width: 200px;
+}
+
+.mig-paginacion {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.mig-paginacion-info {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.mig-paginacion-botones {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.mig-paginacion-num {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mig-paginacion-num:hover { background: var(--color-bg); }
+
+.mig-paginacion-num.activa {
+  background: var(--color-primary-bg, var(--color-bg));
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.mig-paginacion-elipsis {
+  padding: 0 4px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
 }
 
 .mig-vacio-celda {
@@ -609,16 +671,37 @@
 .mig-maestra-progreso-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .mig-maestra-progreso-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px 16px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface);
   font-size: 13px;
 }
-.mig-maestra-progreso-item .detalle { color: var(--color-text-secondary); font-size: 12px; }
+.mig-maestra-progreso-item-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mig-maestra-progreso-item .detalle { color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
+.mig-maestra-progreso-item .detalle.ok { color: var(--color-success); }
+.mig-maestra-progreso-item .detalle.error { color: var(--color-danger); }
+
+.mig-maestra-progreso-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.mig-maestra-progreso-barra-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transition: width .3s ease;
+}
+
+/* Wizard clásico por entidad (paso-mapear / paso-revisar): mismo componente
+   de barra que la migración maestra (.mig-maestra-progreso-barra*), solo con
+   su propio wrapper de texto + margen. */
+.mig-progreso-wizard { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.mig-progreso-wizard p { margin: 0; color: var(--color-text-muted); font-size: 13px; }
 
 .mig-maestra-resultado-tabla { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
 .mig-maestra-resultado-tabla th, .mig-maestra-resultado-tabla td {

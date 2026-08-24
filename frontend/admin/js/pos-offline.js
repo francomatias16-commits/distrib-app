@@ -227,6 +227,25 @@
                     ' Revisá el estado actual (stock, turno, cliente) antes de reintentar — puede haber cambiado mientras la venta esperaba sin conexión. "Descartar" no borra nada del servidor, solo saca esta venta de la cola local.',
         };
       },
+
+      // SYNC-04 — texto del modal de cuarentena (offline-core.js) para las
+      // ventas migradas desde pos_offline_db v1 (ver _migrarVentasPendientesV1).
+      // reg.payload acá es el mismo `body` que arma ejecutarVenta() en pos.js:
+      // no trae un total ya calculado, así que se suma pagos[].monto.
+      formatoCuarentena: (reg) => {
+        const body  = reg.payload || {};
+        const fecha = reg.created_at ? new Date(reg.created_at).toLocaleString('es-AR') : 'fecha desconocida';
+        const monto = Array.isArray(body.pagos)
+          ? body.pagos.reduce((acc, p) => acc + (Number(p.monto) || 0), 0)
+          : null;
+        const nItems = Array.isArray(body.items) ? body.items.length : 0;
+
+        return {
+          titulo:  `Venta antigua — ${fecha}`,
+          detalle: (monto != null ? `$ ${monto.toLocaleString('es-AR')} · ` : '') +
+                    `${nItems} ítem${nItems === 1 ? '' : 's'}. Encolada en este dispositivo antes del aislamiento por empresa (cola v1) — confirmala solo si esta venta es de tu empresa.`,
+        };
+      },
     },
 
     // Etapa 5 — n es el total sincronizado en esta pasada SIN distinguir
@@ -302,7 +321,17 @@
 
       const pendientes = todas.filter((v) => v.estado === 'pendiente');
       for (const v of pendientes) {
-        await outbox.encolarAccion(TIPO_VENTA, v.body);
+        // FIX SYNC-04: antes esto llamaba a outbox.encolarAccion(), que le
+        // pone el empresa_id de la SESIÓN ACTUAL al registro migrado. Estas
+        // ventas son de la cola v1 (pre-multi-tenant), sin ningún dato de a
+        // qué empresa pertenecen realmente — en un dispositivo compartido
+        // entre usuarios de dos empresas, una venta vieja de la Empresa A
+        // podía terminar sincronizada y ejecutada bajo la Empresa B si es
+        // B quien dispara esta migración al abrir el POS. Ahora quedan en
+        // cuarentena (no se auto-sincronizan con nadie) hasta revisión
+        // explícita — ver PosOffline.getCuarentenaLegacy()/
+        // confirmarCuarentenaLegacy()/descartarCuarentenaLegacy().
+        await outbox.encolarLegacySinTenant(TIPO_VENTA, v.body, 'pos_offline_db_v1');
       }
 
       if (pendientes.length) {
@@ -313,7 +342,10 @@
           r.onsuccess = resolve;
           r.onerror   = () => reject(r.error);
         });
-        console.log(`[PosOffline] Migradas ${pendientes.length} venta(s) pendiente(s) desde pos_offline_db v1.`);
+        console.warn(`[PosOffline] ${pendientes.length} venta(s) pendiente(s) migradas desde pos_offline_db v1 quedaron en CUARENTENA — no tienen empresa_id verificable y no se sincronizan solas. Revisar con PosOffline.getCuarentenaLegacy() y confirmar la empresa correcta antes de liberarlas.`);
+        if (typeof window.toast === 'function') {
+          window.toast(`Hay ${pendientes.length} venta(s) offline antiguas pendientes de revisión manual (dispositivo compartido) — ver soporte`, 'warn');
+        }
       }
 
       dbVieja.close();
@@ -351,6 +383,12 @@
     getConflictos:         outbox.getConflictos,
     getContadorConflictos: outbox.getContadorConflictos,
     resolverConflicto:     outbox.resolverConflicto,
+    // SYNC-04 — revisión manual de ventas legacy v1 en cuarentena (ver
+    // _migrarVentasPendientesV1 más arriba): no se sincronizan solas.
+    getCuarentenaLegacy:        outbox.getCuarentena,
+    getContadorCuarentenaLegacy: outbox.getContadorCuarentena,
+    confirmarCuarentenaLegacy:   outbox.confirmarCuarentena,
+    descartarCuarentenaLegacy:   outbox.descartarCuarentena,
     estaOnline:            outbox.estaOnline,
   };
 })();

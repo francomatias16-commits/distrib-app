@@ -18,9 +18,22 @@
  *   </div>
  *
  * Incluye también `.franja-resumen-sololectura`: la variante SIN clic para
- * indicadores que son montos/promedios (no categorías filtrables) — misma
- * franja tipográfica que las pestañas, sin caja, para no simular una
- * interacción que no existe.
+ * indicadores que son montos/promedios (no categorías filtrables).
+ *
+ * v2 (2026-08-20): reemplazado el look de "Etiqueta: valor · Etiqueta: valor"
+ * por el de "sello de control" — cada indicador como un sello de inspección
+ * (doble filete, leve rotación, color por rol semántico), evocando los
+ * sellos de aprobado/recibido de depósito. Markup por indicador:
+ *   <div class="franja-resumen-sololectura">
+ *     <div class="dato-sello" data-tono="verde">
+ *       <div class="dato-sello-valor" id="...">18</div>
+ *       <div class="dato-sello-etiqueta">Proveedores con saldo</div>
+ *       <div class="dato-sello-nota">texto secundario opcional</div>
+ *     </div>
+ *     ...
+ *   </div>
+ * `data-tono`: omitido = navy neutro · "verde" = positivo/saludable ·
+ * "ambar" = atención · "riesgo" = crítico/bloqueante.
  */
 
 body.dash-gentelella .filtro-tabs {
@@ -54,15 +67,15 @@ body.dash-gentelella .filtro-tab:hover {
 }
 
 body.dash-gentelella .filtro-tab:focus-visible {
-  outline: 2px solid var(--ge-teal, #B87A00) !important;
+  outline: 2px solid var(--ge-teal, #6A9873) !important;
   outline-offset: 1px !important;
 }
 
 body.dash-gentelella .filtro-tab.activa {
-  background: var(--ge-teal-light, rgba(232,160,0,.14)) !important;
-  border-color: var(--ge-teal, #B87A00) !important;
-  color: var(--ge-teal-dark, #8F5F00) !important;
-  box-shadow: inset 0 0 0 1px var(--ge-teal, #B87A00), var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+  background: var(--ge-teal-light, rgba(106,152,115,.14)) !important;
+  border-color: var(--ge-teal, #6A9873) !important;
+  color: var(--ge-teal-dark, #487050) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal, #6A9873), var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
 }
 
 body.dash-gentelella .filtro-tab-lbl {
@@ -87,34 +100,146 @@ body.dash-gentelella .filtro-tab-count {
 }
 
 body.dash-gentelella .filtro-tab.activa .filtro-tab-count {
-  background: var(--ge-teal, #B87A00) !important;
+  background: var(--ge-teal, #6A9873) !important;
   color: #fff !important;
 }
 
-/* ── Variante de solo lectura: mismos indicadores tipográficos, sin caja,
-      sin cursor pointer y sin estado activo — para montos/promedios que
-      no son una categoría filtrable de la tabla. ── */
+/* ── Variante de solo lectura — "sello de control": cada indicador como un
+      sello de inspección (doble filete, leve rotación individual, color por
+      rol) para montos/promedios que no son una categoría filtrable. ── */
 body.dash-gentelella .franja-resumen-sololectura {
   display: flex !important;
   flex-wrap: wrap !important;
-  align-items: baseline !important;
-  gap: 8px !important;
-  margin: 0 0 14px !important;
-  padding: 0 2px !important;
-  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
-  font-size: 13px !important;
-  color: var(--ge-ink-soft, #4B4A45) !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  margin: 0 0 16px !important;
+  padding: 2px 0 !important;
 }
 
-body.dash-gentelella .franja-resumen-sololectura strong {
-  font-family: var(--font-family-display, 'Oswald', 'Arial Narrow', sans-serif) !important;
-  font-weight: 700 !important;
-  color: var(--ge-ink, #16181D) !important;
+body.dash-gentelella .dato-sello {
+  padding: 8px 16px 9px !important;
+  border: 1px solid var(--ge-blue, #33507A) !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  position: relative !important;
+}
+
+body.dash-gentelella .dato-sello::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 3px !important;
+  border: 1px solid var(--ge-blue, #33507A) !important;
+  border-radius: 2px !important;
+  opacity: .45 !important;
+  pointer-events: none !important;
+}
+
+body.dash-gentelella .dato-sello:nth-child(odd)  { transform: rotate(-0.6deg) !important; }
+body.dash-gentelella .dato-sello:nth-child(even) { transform: rotate(0.6deg) !important; }
+
+body.dash-gentelella .dato-sello-valor {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace) !important;
   font-variant-numeric: tabular-nums !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  color: var(--ge-blue, #33507A) !important;
+  text-align: center !important;
+  white-space: nowrap !important;
 }
 
-body.dash-gentelella .franja-resumen-sololectura .sep {
-  color: var(--ge-border, #DAD3C0) !important;
+body.dash-gentelella .dato-sello-etiqueta {
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 9.5px !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  color: var(--ge-muted, #5B6660) !important;
+  text-align: center !important;
+  margin-top: 2px !important;
+  white-space: nowrap !important;
+}
+
+body.dash-gentelella .dato-sello-nota {
+  font-family: var(--font-family, 'IBM Plex Sans', sans-serif) !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  color: var(--ge-muted, #5B6660) !important;
+  text-align: center !important;
+  margin-top: 2px !important;
+  white-space: nowrap !important;
+}
+
+/* Tonos semánticos — mismo lenguaje de color que el resto del reskin */
+body.dash-gentelella .dato-sello[data-tono="verde"] {
+  border-color: var(--ge-teal-dark, #487050) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="verde"]::before {
+  border-color: var(--ge-teal-dark, #487050) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="verde"] .dato-sello-valor {
+  color: var(--ge-teal-dark, #487050) !important;
+}
+
+body.dash-gentelella .dato-sello[data-tono="ambar"] {
+  border-color: var(--ge-orange, #8A5F13) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="ambar"]::before {
+  border-color: var(--ge-orange, #8A5F13) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="ambar"] .dato-sello-valor {
+  color: var(--ge-orange, #8A5F13) !important;
+}
+
+body.dash-gentelella .dato-sello[data-tono="riesgo"] {
+  border-color: var(--ge-red, #B8402E) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="riesgo"]::before {
+  border-color: var(--ge-red, #B8402E) !important;
+}
+body.dash-gentelella .dato-sello[data-tono="riesgo"] .dato-sello-valor {
+  color: var(--ge-red, #B8402E) !important;
+}
+
+/* ── Variante integrada: el sello se inserta dentro de otra barra ya
+      existente (filtros-bar, tabla-header) en vez de vivir solo en su
+      propia franja de ancho completo — evita el renglón con espacio en
+      blanco feo que queda cuando hay un único sello. Sin la rotación
+      individual (no aporta nada con un solo elemento en línea) ni el
+      margen inferior pensado para una franja propia. ── */
+body.dash-gentelella .dato-sello.dato-sello--integrado {
+  transform: none !important;
+  margin: 0 !important;
+}
+
+/* ── Variante clickeable: mismo "sello de control" pero como <button> real
+      (ver dato-sello--clickeable en cheques.html/cheques.js, v908) — reseteo
+      de estilos nativos de <button> + affordance de hover/focus/active,
+      mismo criterio que .alerta-inline--clickable en finanzas.css. Antes
+      este sello era 100% de solo lectura (comentario "de solo lectura" en
+      cheques.html), sin forma de ver los cheques que representa. ── */
+body.dash-gentelella .dato-sello--clickeable {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  font: inherit !important;
+  cursor: pointer !important;
+  transition: filter .15s, transform .1s, box-shadow .15s !important;
+}
+body.dash-gentelella .dato-sello--clickeable:hover { filter: brightness(0.96) !important; }
+body.dash-gentelella .dato-sello--clickeable:active { transform: scale(0.98) !important; }
+body.dash-gentelella .dato-sello--clickeable:focus-visible {
+  outline: 2px solid var(--color-primary) !important; outline-offset: 2px !important;
+}
+/* Estado activo: mientras el filtro "Vencen en 3 días" está aplicado a la
+   tabla, el sello queda con relleno sólido en vez del contorno vacío, para
+   que se note que es el criterio activo (mismo lenguaje que .filtro-tab.activa). */
+body.dash-gentelella .dato-sello--clickeable.sello-proximos-activo {
+  background: var(--ge-orange, #8A5F13) !important;
+}
+body.dash-gentelella .dato-sello--clickeable.sello-proximos-activo .dato-sello-valor,
+body.dash-gentelella .dato-sello--clickeable.sello-proximos-activo .dato-sello-etiqueta,
+body.dash-gentelella .dato-sello--clickeable.sello-proximos-activo .dato-sello-nota {
+  color: #fff !important;
 }
 
 /* ── Contador fusionado dentro de un pill .e-pill YA existente (pedidos.html,
@@ -150,7 +275,12 @@ body.dash-gentelella .tab-btn.active .n {
     font-size: 12.5px !important;
   }
   body.dash-gentelella .franja-resumen-sololectura {
-    font-size: 12px !important;
-    gap: 6px !important;
+    gap: 8px !important;
+  }
+  body.dash-gentelella .dato-sello {
+    padding: 6px 12px 7px !important;
+  }
+  body.dash-gentelella .dato-sello-valor {
+    font-size: 15px !important;
   }
 }

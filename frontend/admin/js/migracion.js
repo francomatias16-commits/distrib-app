@@ -548,16 +548,39 @@ function renderChecklist(sesiones) {
 }
 
 // ─── Paso 0: historial de sesiones ───────────────────────────────────────────
-async function cargarSesionesRecientes() {
+const HISTORIAL_SESIONES_POR_PAGINA = 7;
+let paginaHistorialSesiones = 1;
+
+async function cargarSesionesRecientes(pagina = paginaHistorialSesiones) {
   const cont = document.getElementById('lista-sesiones');
+  paginaHistorialSesiones = Math.max(1, Number.parseInt(pagina, 10) || 1);
+
   try {
-    const data = await migApi('/api/migracion');
-    renderChecklist(data.sesiones || []);
-    if (!data.sesiones || data.sesiones.length === 0) {
+    const [data, resumen] = await Promise.all([
+      migApi(`/api/migracion?page=${paginaHistorialSesiones}&limit=${HISTORIAL_SESIONES_POR_PAGINA}`),
+      // El checklist necesita conocer la última sesión de cada entidad y no
+      // debe quedar limitado a la página que el usuario está mirando.
+      migApi('/api/migracion?limit=20'),
+    ]);
+
+    renderChecklist(resumen.sesiones || []);
+    const sesiones = data.sesiones || [];
+    const paginacion = data.paginacion || {};
+
+    // Si se eliminó la última fila de la última página, volvemos a la página
+    // anterior en lugar de dejar un estado vacío que parezca un error.
+    if (!sesiones.length && paginaHistorialSesiones > 1 && paginacion.total_paginas < paginaHistorialSesiones) {
+      paginaHistorialSesiones = paginacion.total_paginas;
+      return cargarSesionesRecientes(paginaHistorialSesiones);
+    }
+
+    if (sesiones.length === 0) {
       cont.innerHTML = '<p class="mig-vacio">Todavía no hiciste ninguna migración.</p>';
+      renderPaginacionSesiones(null);
       return;
     }
-    cont.innerHTML = data.sesiones.map(s => `
+
+    cont.innerHTML = sesiones.map(s => `
       <div class="mig-sesion-row" data-sesion-id="${s.id}">
         <div class="mig-sesion-info">
           <strong>${escapeHtml(s.nombre_archivo_original || '(sin nombre)')}</strong>
@@ -580,10 +603,61 @@ async function cargarSesionesRecientes() {
         </div>
       </div>
     `).join('');
+    renderPaginacionSesiones(paginacion);
   } catch (err) {
     console.error('[migracion] cargar historial:', err);
     cont.innerHTML = `<p class="mig-vacio">No se pudo cargar el historial.</p>`;
+    renderPaginacionSesiones(null);
   }
+}
+
+function renderPaginacionSesiones(paginacion) {
+  const cont = document.getElementById('historial-sesiones-paginacion');
+  if (!cont) return;
+
+  const total = Number(paginacion?.total) || 0;
+  const pagina = Number(paginacion?.pagina) || paginaHistorialSesiones;
+  const porPagina = Number(paginacion?.por_pagina) || HISTORIAL_SESIONES_POR_PAGINA;
+  const totalPaginas = Number(paginacion?.total_paginas) || 1;
+
+  if (!total || totalPaginas <= 1) {
+    cont.style.display = 'none';
+    cont.innerHTML = '';
+    return;
+  }
+
+  const inicio = (pagina - 1) * porPagina + 1;
+  const fin = Math.min(pagina * porPagina, total);
+  const numeros = [];
+  for (let p = 1; p <= totalPaginas; p++) {
+    if (p === 1 || p === totalPaginas || (p >= pagina - 1 && p <= pagina + 1)) {
+      numeros.push(p);
+    } else if (numeros[numeros.length - 1] !== '…') {
+      numeros.push('…');
+    }
+  }
+
+  cont.style.display = 'flex';
+  cont.innerHTML = `
+    <span class="mig-paginacion-info">${inicio.toLocaleString('es-AR')}–${fin.toLocaleString('es-AR')} de ${total.toLocaleString('es-AR')} sesiones</span>
+    <div class="mig-paginacion-botones">
+      <button type="button" class="btn btn--secondary btn--sm"
+              ${pagina === 1 ? 'disabled' : ''}
+              onclick="cambiarPaginaHistorial(${pagina - 1})">Anterior</button>
+      ${numeros.map(p => p === '…'
+        ? `<span class="mig-paginacion-elipsis">…</span>`
+        : `<button type="button" class="mig-paginacion-num ${p === pagina ? 'activa' : ''}" aria-current="${p === pagina ? 'page' : 'false'}" onclick="cambiarPaginaHistorial(${p})">${p}</button>`
+      ).join('')}
+      <button type="button" class="btn btn--secondary btn--sm"
+              ${pagina === totalPaginas ? 'disabled' : ''}
+              onclick="cambiarPaginaHistorial(${pagina + 1})">Siguiente</button>
+    </div>`;
+}
+
+function cambiarPaginaHistorial(pagina) {
+  paginaHistorialSesiones = Math.max(1, pagina);
+  cargarSesionesRecientes(paginaHistorialSesiones);
+  document.getElementById('lista-sesiones')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function etiquetaEstado(estado) {
@@ -746,6 +820,7 @@ async function onArchivoElegido(ev) {
     }
 
     estado.sesionId = data.sesion_id;
+    estado.totalFilasArchivo = filas.length;
     estado.columnasDetectadas = data.columnas_detectadas;
     estado.camposDisponibles = data.campos_disponibles;
     estado.camposRequeridos = data.campos_requeridos;
@@ -1708,11 +1783,15 @@ async function confirmarMapeo() {
   // vueltas siguientes.
   const btn = document.getElementById('btn-mapear');
   const progreso = document.getElementById('mapeo-progreso');
+  const progresoTexto = document.getElementById('mapeo-progreso-texto');
+  const progresoBarra = document.getElementById('mapeo-progreso-barra-fill');
+  const totalArchivo = estado.totalFilasArchivo || 0;
   btn.disabled = true;
   if (progreso) progreso.style.display = 'block';
+  if (progresoBarra) progresoBarra.style.width = '0%';
 
   try {
-    let data = {}, hayMas = true, vueltas = 0;
+    let data = {}, hayMas = true, vueltas = 0, procesadas = 0;
     while (hayMas) {
       vueltas++;
       data = await migApi('/api/migracion?accion=mapear', {
@@ -1720,10 +1799,20 @@ async function confirmarMapeo() {
         body: JSON.stringify(body),
       });
       hayMas = !!data.hay_mas;
-      if (progreso) {
-        progreso.textContent = hayMas
-          ? `Mapeando… ${data.filas_mapeadas_lote ?? 0} filas de este lote (continúa)`
+      // FIX: el backend no devuelve un contador acumulado en esta etapa
+      // (solo filas_mapeadas_lote, del lote actual), así que sumamos lote a
+      // lote contra el total ya conocido de la subida para estimar el %.
+      procesadas = hayMas
+        ? Math.min(procesadas + (data.filas_mapeadas_lote || 0), totalArchivo)
+        : totalArchivo;
+      if (progresoTexto) {
+        progresoTexto.textContent = hayMas
+          ? `Mapeando… ${procesadas.toLocaleString('es-AR')} de ${totalArchivo.toLocaleString('es-AR')} filas`
           : 'Mapeo terminado, armando la vista previa...';
+      }
+      if (progresoBarra) {
+        const pct = totalArchivo ? Math.max(0, Math.min(100, (procesadas / totalArchivo) * 100)) : 0;
+        progresoBarra.style.width = `${pct}%`;
       }
       // Salvaguarda: igual que en confirmar, no hacer loop infinito si algo
       // queda trabado sin avanzar nunca.
@@ -1746,6 +1835,7 @@ async function confirmarMapeo() {
 async function cargarFilasRevision() {
   const data = await migApi(`/api/migracion?sesion_id=${estado.sesionId}&limit=500`);
   estado.filasRevision = data.filas || [];
+  estado.paginaFilas = 1;
 
   document.getElementById('resumen-validas').textContent = estado.resumen.filas_validas;
   document.getElementById('resumen-errores').textContent = estado.resumen.filas_con_error;
@@ -1833,10 +1923,18 @@ function renderResumenMapeo(resumen) {
 
 function filtrarFilas(filtro, btn) {
   estado.filtroActual = filtro;
+  estado.paginaFilas = 1;
   document.querySelectorAll('.mig-filtro-filas .e-pill').forEach(b => b.classList.remove('activa'));
   btn.classList.add('activa');
   renderTablaFilas();
 }
+
+// Filas por página de la tabla de revisión (client-side: ya tenemos hasta
+// 500 filas cargadas en memoria por cargarFilasRevision, así que paginar acá
+// es solo una cuestión de no renderizar las 500 en el DOM de una — con
+// archivos grandes eso hacía que la pantalla quedara con un scroll
+// interminable y se sintiera pesada para tipear/scrollear).
+const FILAS_POR_PAGINA = 50;
 
 function renderTablaFilas() {
   const campos = estado.camposDisponibles;
@@ -1849,12 +1947,18 @@ function renderTablaFilas() {
   const tbody = document.getElementById('filas-tbody');
   if (!filas.length) {
     tbody.innerHTML = `<tr><td colspan="${campos.length + 3}" class="mig-vacio-celda">No hay filas para mostrar.</td></tr>`;
+    document.getElementById('filas-paginacion').style.display = 'none';
     return;
   }
 
-  tbody.innerHTML = filas.map(f => `
+  const totalPaginas = Math.max(1, Math.ceil(filas.length / FILAS_POR_PAGINA));
+  if (!estado.paginaFilas || estado.paginaFilas > totalPaginas) estado.paginaFilas = 1;
+  const inicio = (estado.paginaFilas - 1) * FILAS_POR_PAGINA;
+  const filasPagina = filas.slice(inicio, inicio + FILAS_POR_PAGINA);
+
+  tbody.innerHTML = filasPagina.map(f => `
     <tr class="${f.es_valida ? '' : 'fila-error'}">
-      <td>${f.fila_numero}</td>
+      <td>${f.es_valida ? f.fila_numero : `<span class="mig-fila-num-error" title="Esta fila no se va a importar">⚠ ${f.fila_numero}</span>`}</td>
       <td>
         <select onchange="cambiarAccionFila('${f.id}', this.value)" ${!f.es_valida ? 'disabled' : ''}>
           <option value="crear" ${f.accion === 'crear' ? 'selected' : ''}>Crear</option>
@@ -1866,6 +1970,46 @@ function renderTablaFilas() {
       <td class="mig-celda-errores">${(f.errores || []).map(e => escapeHtml(e)).join('; ')}</td>
     </tr>
   `).join('');
+
+  renderPaginacionFilas(filas.length, totalPaginas);
+}
+
+function renderPaginacionFilas(totalFilas, totalPaginas) {
+  const cont = document.getElementById('filas-paginacion');
+  if (!cont) return;
+  if (totalPaginas <= 1) { cont.style.display = 'none'; return; }
+
+  const pagina = estado.paginaFilas;
+  const inicio = (pagina - 1) * FILAS_POR_PAGINA + 1;
+  const fin = Math.min(pagina * FILAS_POR_PAGINA, totalFilas);
+
+  // Ventana acotada de números de página (máx. 7) para no listar cientos de
+  // botones con archivos grandes — igual criterio que cualquier paginador
+  // clásico: siempre primera, última, la actual, y un par a cada lado.
+  const numeros = [];
+  const rango = 1;
+  for (let p = 1; p <= totalPaginas; p++) {
+    if (p === 1 || p === totalPaginas || (p >= pagina - rango && p <= pagina + rango)) numeros.push(p);
+    else if (numeros[numeros.length - 1] !== '…') numeros.push('…');
+  }
+
+  cont.style.display = 'flex';
+  cont.innerHTML = `
+    <span class="mig-paginacion-info">${inicio.toLocaleString('es-AR')}–${fin.toLocaleString('es-AR')} de ${totalFilas.toLocaleString('es-AR')}</span>
+    <div class="mig-paginacion-botones">
+      <button type="button" class="btn btn--secondary btn--sm" ${pagina === 1 ? 'disabled' : ''} onclick="cambiarPaginaFilas(${pagina - 1})">Anterior</button>
+      ${numeros.map(p => p === '…'
+        ? `<span class="mig-paginacion-elipsis">…</span>`
+        : `<button type="button" class="mig-paginacion-num ${p === pagina ? 'activa' : ''}" onclick="cambiarPaginaFilas(${p})">${p}</button>`
+      ).join('')}
+      <button type="button" class="btn btn--secondary btn--sm" ${pagina === totalPaginas ? 'disabled' : ''} onclick="cambiarPaginaFilas(${pagina + 1})">Siguiente</button>
+    </div>`;
+}
+
+function cambiarPaginaFilas(pagina) {
+  estado.paginaFilas = pagina;
+  renderTablaFilas();
+  document.querySelector('.mig-tabla-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ─── Descargar filas con error (Excel) ───────────────────────────────────────
@@ -2228,13 +2372,26 @@ function actualizarBotonReintentar() {
 async function confirmarSesion() {
   const btn = document.getElementById('btn-confirmar');
   const progreso = document.getElementById('confirmar-progreso');
+  const progresoTexto = document.getElementById('confirmar-progreso-texto');
+  const progresoBarra = document.getElementById('confirmar-progreso-barra-fill');
+  const totalAImportar = estado.resumen?.filas_validas || 0;
   btn.disabled = true;
   progreso.style.display = 'block';
+  if (progresoBarra) progresoBarra.style.width = '0%';
 
   try {
     const { r, advertencias } = await ejecutarLoteConfirmacion((r, hayMas) => {
-      progreso.textContent = `Importando… ${r.creados ?? 0} creados, ${r.actualizados ?? 0} actualizados` +
-        (r.errores ? `, ${r.errores} con error` : '') + (hayMas ? ' (continúa)' : '');
+      if (progresoTexto) {
+        progresoTexto.textContent = `Importando… ${r.creados ?? 0} creados, ${r.actualizados ?? 0} actualizados` +
+          (r.errores ? `, ${r.errores} con error` : '') + (hayMas ? ' (continúa)' : '');
+      }
+      if (progresoBarra) {
+        // resultado.creados/actualizados/errores es acumulado real sobre
+        // toda la sesión (no solo el lote), así que este % es exacto.
+        const procesadas = (r.creados || 0) + (r.actualizados || 0) + (r.errores || 0);
+        const pct = totalAImportar ? Math.max(0, Math.min(100, (procesadas / totalAImportar) * 100)) : (hayMas ? 0 : 100);
+        progresoBarra.style.width = `${pct}%`;
+      }
     });
 
     mostrarResultado(r, advertencias);
@@ -2351,7 +2508,7 @@ async function deshacerSesionHistorial(sesionId, btn) {
     return;
   }
 
-  cargarSesionesRecientes();
+  cargarSesionesRecientes(paginaHistorialSesiones);
 }
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -2399,7 +2556,7 @@ const ESTADO_LBL_MIG = {
 async function cargarSuperadminMig() {
   const tbody = document.getElementById('tbody-superadmin-mig');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-light,#6B695F);">Cargando…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-light,#7A857E);">Cargando…</td></tr>';
 
   try {
     const sb = window.authCtx?.sb;
@@ -2408,30 +2565,30 @@ async function cargarSuperadminMig() {
 
     const filas = data || [];
     if (!filas.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-light,#6B695F);">Todavía no importaste ningún archivo. Subí una planilla arriba para empezar.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-light,#7A857E);">Todavía no importaste ningún archivo. Subí una planilla arriba para empezar.</td></tr>';
       return;
     }
 
     tbody.innerHTML = filas.map(f => {
       const esError = f.estado === 'error';
-      const estadoStyle = esError ? 'color:var(--color-danger,#7A1E19);font-weight:700;' : '';
+      const estadoStyle = esError ? 'color:var(--color-danger,#7A2820);font-weight:700;' : '';
       const fecha = f.created_at
         ? new Date(f.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
         : '—';
       return `
-        <tr style="border-bottom:1px solid var(--color-border-soft,#DAD3C0);">
+        <tr style="border-bottom:1px solid var(--color-border-soft,#E7E9E4);">
           <td style="padding:8px 10px;">${escapeHtml(f.empresa_nombre || '—')}</td>
           <td style="padding:8px 10px;">${escapeHtml(f.entidad || '—')}</td>
           <td style="padding:8px 10px;${estadoStyle}">${escapeHtml(ESTADO_LBL_MIG[f.estado] || f.estado || '—')}</td>
           <td style="padding:8px 10px;text-align:left;">${f.total_filas ?? 0}</td>
-          <td style="padding:8px 10px;text-align:left;color:var(--color-success,#17402F);">${f.filas_validas ?? 0}</td>
-          <td style="padding:8px 10px;text-align:left;${f.filas_con_error ? 'color:var(--color-danger,#7A1E19);font-weight:700;' : ''}">${f.filas_con_error ?? 0}</td>
-          <td style="padding:8px 10px;font-size:11px;color:var(--color-text-muted,#4B4A45);">${fecha}</td>
+          <td style="padding:8px 10px;text-align:left;color:var(--color-success,#487050);">${f.filas_validas ?? 0}</td>
+          <td style="padding:8px 10px;text-align:left;${f.filas_con_error ? 'color:var(--color-danger,#7A2820);font-weight:700;' : ''}">${f.filas_con_error ?? 0}</td>
+          <td style="padding:8px 10px;font-size:11px;color:var(--color-text-muted,#5B6660);">${fecha}</td>
         </tr>`;
     }).join('');
   } catch (e) {
     console.error('[migracion] render tabla:', e);
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-danger,#7A1E19);">No se pudo cargar la información.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-danger,#7A2820);">No se pudo cargar la información.</td></tr>`;
   }
 }
 
@@ -2450,7 +2607,7 @@ async function cargarSuperadminMig() {
     const fila = document.querySelector(`.mig-sesion-row[data-sesion-id="${sesionIdParam}"]`);
     if (fila) {
       fila.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      fila.style.outline = '2px solid var(--color-warning, #b45309)';
+      fila.style.outline = '2px solid var(--color-warning, #8A5F13)';
       fila.style.outlineOffset = '2px';
       fila.style.transition = 'outline-color 1.2s ease 1.5s';
       setTimeout(() => { fila.style.outlineColor = 'transparent'; }, 1600);

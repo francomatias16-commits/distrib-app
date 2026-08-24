@@ -81,10 +81,10 @@ body.dash-rutas-gentelella .tab-btn:hover {
   transform: translateY(-1px) !important;
 }
 body.dash-rutas-gentelella .tab-btn.active {
-  background: var(--ge-teal-light, rgba(232,160,0,.14)) !important;
-  border-color: var(--ge-teal, #B87A00) !important;
-  color: var(--ge-teal-dark, #8F5F00) !important;
-  box-shadow: inset 0 0 0 1px var(--ge-teal, #B87A00), var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
+  background: var(--ge-teal-light, rgba(106,152,115,.14)) !important;
+  border-color: var(--ge-teal, #6A9873) !important;
+  color: var(--ge-teal-dark, #487050) !important;
+  box-shadow: inset 0 0 0 1px var(--ge-teal, #6A9873), var(--ge-shadow, 0 1px 0 rgba(22,24,29,.06), 2px 3px 0 rgba(22,24,29,.05)) !important;
   font-weight: 700 !important;
 }
 body.dash-rutas-gentelella .tabs {
@@ -148,7 +148,7 @@ body.dash-rutas-gentelella .panel-search {
   border-bottom: 1px solid var(--ge-border) !important;
 }
 body.dash-rutas-gentelella .panel-search input {
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -274,28 +274,21 @@ body.dash-rutas-gentelella .chofer-avatar {
 
 /* ════════════════════════════════════════════════════════════
    Chips de estado de ruta (generados por chipEstadoRuta())
+   .chip/.chip-en-camino/.chip-completada/.chip-cancelada movidos
+   al componente canónico (frontend/shared/componentes-admin.css,
+   Hallazgo #2 del plan).
+
+   .chip-pendiente queda ACÁ a propósito, sin mover: en esta página
+   significa "ruta sin asignar" (gris). En fidelizacion.html la misma
+   clase significa "regla pendiente de aplicar" (amarillo) — es una
+   colisión de nombre entre dos páginas, no la misma duplicación que
+   el resto de los chips, así que no se puede unificar en un único
+   selector global sin cambiar el color de una de las dos. Se deja
+   documentada para una futura desambiguación de nombre.
    ════════════════════════════════════════════════════════════ */
-body.dash-rutas-gentelella .chip {
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 10px !important;
-}
 body.dash-rutas-gentelella .chip-pendiente {
   background: var(--ge-chip-bg) !important;
   color: var(--ge-ink-soft) !important;
-}
-body.dash-rutas-gentelella .chip-en-camino {
-  background: rgba(52,152,219,.13) !important;
-  color: var(--ge-blue) !important;
-}
-body.dash-rutas-gentelella .chip-completada {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-rutas-gentelella .chip-cancelada {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -315,14 +308,14 @@ body.dash-rutas-gentelella .btn-primary:disabled {
   opacity: .45 !important;
   cursor: not-allowed !important;
 }
-body.dash-rutas-gentelella .btn-secondary {
+body.dash-rutas-gentelella .btn--secondary {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
   color: var(--ge-ink-soft) !important;
   border-radius: var(--ge-radius-btn) !important;
   font-size: 13px !important;
 }
-body.dash-rutas-gentelella .btn-secondary:hover {
+body.dash-rutas-gentelella .btn--secondary:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
 }
@@ -488,6 +481,12 @@ body.dash-rutas-gentelella .mapa-leyenda-item {
   color: var(--ge-ink-soft) !important;
   font-size: 12px !important;
 }
+body.dash-rutas-gentelella .mapa-sin-ubicar {
+  border-top: 1px solid var(--ge-border) !important;
+}
+body.dash-rutas-gentelella .mapa-sin-ubicar-lista {
+  color: var(--ge-ink-soft) !important;
+}
 
 /* ════════════════════════════════════════════════════════════
    KPI / stat cards (resumen y reporte)
@@ -548,7 +547,7 @@ body.dash-rutas-gentelella .resumen-card:has(.kpi-icono.azul) {
 }
 body.dash-rutas-gentelella .resumen-card:has(.kpi-icono.verde) {
   background: var(--ge-teal-light)   !important;
-  border-color: rgba(184,122,0,.3)  !important;
+  border-color: rgba(106,152,115,.3)  !important;
 }
 body.dash-rutas-gentelella .resumen-card:has(.kpi-icono.morado) {
   background: rgba(142,68,173,.08)   !important;
@@ -577,7 +576,7 @@ body.dash-rutas-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.azul) {
 }
 body.dash-rutas-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.verde) {
   background: var(--ge-teal-light)   !important;
-  border-color: rgba(184,122,0,.3)  !important;
+  border-color: rgba(106,152,115,.3)  !important;
 }
 body.dash-rutas-gentelella .reporte-kpi-card:has(.reporte-kpi-icon.morado) {
   background: rgba(142,68,173,.08)   !important;

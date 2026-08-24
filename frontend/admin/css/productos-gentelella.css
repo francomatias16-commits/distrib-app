@@ -114,7 +114,7 @@ body.dash-productos-gentelella #vista-productos .prod-select-filtro:focus {
 body.dash-productos-gentelella .prod-tag-input,
 body.dash-productos-gentelella #vista-productos .prod-tag-input {
   background: var(--ge-bg) !important;
-  border: 1.5px solid var(--ge-border) !important;
+  border: 1.5px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   box-shadow: none !important;
   padding: 7px 14px !important;
@@ -240,13 +240,6 @@ body.dash-productos-gentelella #vista-productos .prod-tabla tbody tr:hover {
 }
 body.dash-productos-gentelella .prod-tabla tbody td { color: var(--ge-ink) !important; }
 
-/* Checkbox */
-body.dash-productos-gentelella .prod-check,
-body.dash-productos-gentelella #vista-productos .prod-check {
-  accent-color: var(--ge-teal) !important;
-  border-color: var(--ge-border) !important;
-}
-
 /* Avatar de producto */
 body.dash-productos-gentelella .prod-avatar,
 body.dash-productos-gentelella #vista-productos .prod-avatar {
@@ -293,9 +286,6 @@ body.dash-productos-gentelella .prod-badge.sin-stock {
   background: rgba(231,76,60,.1) !important;
   color: var(--ge-red) !important;
 }
-
-/* Indicador de selección */
-body.dash-productos-gentelella #prod-sel-count { color: var(--ge-teal) !important; }
 
 /* Barra de progreso (ventas goal) */
 body.dash-productos-gentelella .prod-progress-wrap {

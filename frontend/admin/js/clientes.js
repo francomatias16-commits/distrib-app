@@ -508,7 +508,14 @@ async function cargarClientes() {
   if (filtroEstado === 'activo') query = query.eq('activo', true);
   if (filtroEstado === 'inactivo') query = query.eq('activo', false);
   if (filtroEstado === 'deuda') query = query.gt('saldo_deuda', 0);
+  // 'riesgo' se mantiene como riesgo+bloqueado combinado (compatibilidad con
+  // el deep-link ?filter=riesgo que ya usan las alertas de confianza del
+  // dashboard). 'bloqueado' es un pill nuevo, más específico, que aísla solo
+  // esa categoría — igual criterio que el select de riesgo-cheques.js.
   if (filtroEstado === 'riesgo') query = query.in('score_categoria', ['riesgo', 'bloqueado']);
+  if (filtroEstado === 'premium') query = query.eq('score_categoria', 'premium');
+  if (filtroEstado === 'bueno') query = query.eq('score_categoria', 'bueno');
+  if (filtroEstado === 'bloqueado') query = query.eq('score_categoria', 'bloqueado');
 
   const { data, count, error } = await query;
 
@@ -600,7 +607,7 @@ function renderTabla() {
     const deudaCls = deuda > limite && limite > 0 ? 'num-rojo' : deuda > 0 ? 'num-amarillo' : 'num-verde';
 
     return `
-      <tr class="fila-cliente${c.activo ? '' : ' fila-inactiva'}" data-testid="clientes-fila" data-id="${c.id}">
+      <tr class="fila-cliente fila-clickeable${c.activo ? '' : ' fila-inactiva'}" data-testid="clientes-fila" data-id="${c.id}" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${c.id}')">
         <td class="td-cliente" data-label="Cliente">
           <div class="cli-avatar">${iniciales(nombre)}</div>
           <div>
@@ -619,12 +626,11 @@ function renderTabla() {
             <span class="badge-dot"></span>${c.activo ? 'Activo' : 'Inactivo'}
           </span>
         </td>
-        <td data-label="Confianza" class="td-score">
+        <td data-label="Confianza" class="td-score" ${c.score_actual != null ? `onclick="verScoreCliente('${c.id}')"` : ''}>
           ${c.score_actual != null
             ? (() => {
                 const _frase = motivoFrase(c, c.score_categoria);
                 return `<button class="score-badge-btn ${(SCORE_CATEGORIAS[c.score_categoria] || SCORE_CATEGORIAS.normal).cls}"
-                   onclick="verScoreCliente('${c.id}')"
                    title="${_frase || 'Ver detalle de confianza'}">
                    ${(SCORE_CATEGORIAS[c.score_categoria] || SCORE_CATEGORIAS.normal).icono} ${c.score_actual}
                  </button>
@@ -633,12 +639,14 @@ function renderTabla() {
             : '<span class="td-muted">—</span>'}
         </td>
         <td class="td-acciones col-sticky-end" data-label="Acciones">
-          <button class="btn-editar" onclick="abrirModalEditar('${c.id}')">Ver / Editar</button>
+          <span class="fila-acciones">
+          <button class="btn-tabla" onclick="abrirModalEditar('${c.id}')">Ver / Editar</button>
           <button class="btn-portal ${c.usuario_id ? 'btn-portal--activo' : ''}"
                   onclick="btnAsyncClick(this, () => gestionarAccesoPortal('${c.id}', ${escOnclickArg(nombre)}, ${!!c.usuario_id}))"
                   title="${c.usuario_id ? 'Tiene acceso portal — click para revocar' : 'Dar acceso al portal'}">
             ${c.usuario_id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Portal' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Sin portal'}
           </button>
+          </span>
         </td>
       </tr>`;
   }, 8);
@@ -656,6 +664,7 @@ function abrirModalNuevo() {
   document.getElementById('tab-comprobantes').style.display = 'none';
   document.getElementById('tab-bloqueos').style.display     = 'none';
   document.getElementById('btn-baja').style.display      = 'none';
+  document.getElementById('btn-desbloquear').style.display = 'none';
   document.getElementById('resumen-deuda').style.display = 'none';
   resetForm();
   selTab('datos', document.querySelector('.modal-tab[data-tab="datos"]'));
@@ -685,6 +694,7 @@ async function abrirModalEditar(id) {
   document.getElementById('tab-comprobantes').style.display = 'flex';
   document.getElementById('tab-bloqueos').style.display     = 'flex';
   document.getElementById('btn-baja').style.display      = c.activo ? 'inline-flex' : 'none';
+  document.getElementById('btn-desbloquear').style.display = c.bloqueado ? 'inline-flex' : 'none';
 
   // Poblar form
   document.getElementById('f-razon_social').value    = c.razon_social || '';
@@ -820,6 +830,7 @@ function selTab(tab, btn) {
     (tab === 'historial' || tab === 'cta' || tab === 'comprobantes') ? 'none' : 'flex';
 
   if (tab === 'historial' && modalClienteId) {
+    window.NotasInternas?.resetPaginacion('historial-lista');
     cargarHistorialNotasCliente(modalClienteId);
   }
   if (tab === 'cta' && modalClienteId) cargarCtaCteCliente(modalClienteId);
@@ -1203,7 +1214,7 @@ function renderTablaPrecios(rows) {
       <td class="th-num">$${Number(r.precio).toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
       <td>${sanitize(r.notas || '—')}</td>
       <td>${actualizado}</td>
-      <td class="col-sticky-end"><button type="button" class="btn-secundario" onclick="btnAsyncClick(this, () => eliminarPrecioCliente('${r.id}'))">Eliminar</button></td>
+      <td class="col-sticky-end"><span class="fila-acciones"><button type="button" class="btn-tabla peligro" onclick="btnAsyncClick(this, () => eliminarPrecioCliente('${r.id}'))">Eliminar</button></span></td>
     `;
     frag.appendChild(tr);
   });
@@ -1339,8 +1350,10 @@ function renderTablaDirecciones(rows) {
       <td>${sanitize(r.provincia || '—')}</td>
       <td>${r.es_principal ? '<span class="sello sello--exito">Principal</span>' : ''}</td>
       <td class="col-sticky-end">
-        <button type="button" class="btn-secundario" onclick="abrirModalDireccion('${r.id}')">Editar</button>
-        <button type="button" class="btn-secundario" onclick="btnAsyncClick(this, () => eliminarDireccion('${r.id}'))">Eliminar</button>
+        <span class="fila-acciones">
+        <button type="button" class="btn-tabla" onclick="abrirModalDireccion('${r.id}')">Editar</button>
+        <button type="button" class="btn-tabla peligro" onclick="btnAsyncClick(this, () => eliminarDireccion('${r.id}'))">Eliminar</button>
+        </span>
       </td>
     `;
     frag.appendChild(tr);
@@ -1501,13 +1514,13 @@ function renderTablaListasPrecios() {
       <td style="text-align:center">${l.es_default ? '<span class="badge-estado badge-ok"><span class="badge-dot"></span>Sí</span>' : '—'}</td>
       <td><span class="badge-estado ${l.activa ? 'badge-ok' : 'badge-critico'}"><span class="badge-dot"></span>${l.activa ? 'Activa' : 'Inactiva'}</span></td>
       <td class="col-sticky-end">
-        <div style="display:flex;gap:6px;justify-content:flex-end">
-          <button type="button" class="btn-secundario" onclick="abrirModalListaPrecio('${l.id}')">Editar</button>
+        <span class="fila-acciones">
+          <button type="button" class="btn-tabla" onclick="abrirModalListaPrecio('${l.id}')">Editar</button>
           ${l.activa
-            ? `<button type="button" class="btn-secundario" onclick="btnAsyncClick(this, () => desactivarListaPrecio('${l.id}'))">Dar de baja</button>`
-            : `<button type="button" class="btn-primario" onclick="btnAsyncClick(this, () => activarListaPrecio('${l.id}'))">Activar</button>`
+            ? `<button type="button" class="btn-tabla peligro" onclick="btnAsyncClick(this, () => desactivarListaPrecio('${l.id}'))">Dar de baja</button>`
+            : `<button type="button" class="btn-tabla primario" onclick="btnAsyncClick(this, () => activarListaPrecio('${l.id}'))">Activar</button>`
           }
-        </div>
+        </span>
       </td>
     </tr>
   `).join('');
@@ -1642,6 +1655,10 @@ window.cambiarPagina = cambiarPagina;
 
 // ── REQ-08: Exportar clientes a Excel ────────────────────────────────────
 async function exportarExcel() {
+  const btn = document.getElementById('btn-exportar-excel-clientes');
+  const btnHtmlOriginal = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Generando…'; }
+  window.toast?.('Preparando exportación…');
   try {
 
     // Traer TODOS los clientes con filtros activos (sin paginación)
@@ -1654,10 +1671,13 @@ async function exportarExcel() {
       .order('razon_social');
 
     if (zonaFiltro) query = query.eq('zona_id', zonaFiltro);
-    if (filtroEstado === 'activo')   query = query.eq('activo', true);
-    if (filtroEstado === 'inactivo') query = query.eq('activo', false);
-    if (filtroEstado === 'deuda')    query = query.gt('saldo_deuda', 0);
-    if (filtroEstado === 'riesgo')   query = query.in('score_categoria', ['riesgo', 'bloqueado']);
+    if (filtroEstado === 'activo')    query = query.eq('activo', true);
+    if (filtroEstado === 'inactivo')  query = query.eq('activo', false);
+    if (filtroEstado === 'deuda')     query = query.gt('saldo_deuda', 0);
+    if (filtroEstado === 'riesgo')    query = query.in('score_categoria', ['riesgo', 'bloqueado']);
+    if (filtroEstado === 'premium')   query = query.eq('score_categoria', 'premium');
+    if (filtroEstado === 'bueno')     query = query.eq('score_categoria', 'bueno');
+    if (filtroEstado === 'bloqueado') query = query.eq('score_categoria', 'bloqueado');
     if (busq) query = query.or(`razon_social.ilike.%${busq}%,nombre_fantasia.ilike.%${busq}%,cuit.ilike.%${busq}%`);
 
     const { data, error } = await query;
@@ -1706,6 +1726,8 @@ async function exportarExcel() {
   } catch (err) {
     console.error('Error exportando clientes:', err);
     window.toast('Error al exportar', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = btnHtmlOriginal; }
   }
 }
 window.exportarExcel = exportarExcel;
@@ -2021,6 +2043,36 @@ async function confirmarBaja() {
   }
 }
 window.confirmarBaja = confirmarBaja;
+
+// ── confirmarDesbloqueo: desbloqueo manual (override de admin) ────────────
+// Hallazgo AUDITORIA_CRUD_TABLAS_2026: existía bloqueo automático por mora
+// (motor de cierre) pero ningún botón para desbloquear a mano — un cliente
+// que arregla la deuda por fuera del flujo automático (acuerdo de pago,
+// error de carga) quedaba bloqueado para siempre salvo que se saldara
+// completamente vía registrar_cobro_completo.
+async function confirmarDesbloqueo() {
+  if (!modalClienteId) return;
+  if (!(await confirmar('¿Desbloquear a este cliente? Va a poder volver a hacer pedidos.', { labelOk: 'Desbloquear' }))) return;
+  try {
+    const token = await getFreshToken();
+    const res = await fetch('/api/clientes?_svc=desbloquear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ cliente_id: modalClienteId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'No se pudo desbloquear al cliente');
+    }
+    window.toast('Cliente desbloqueado', 'success');
+    cerrarModal();
+    await cargarClientes();
+  } catch (err) {
+    console.error(err);
+    window.toast(err.message || 'No se pudo desbloquear al cliente', 'error');
+  }
+}
+window.confirmarDesbloqueo = confirmarDesbloqueo;
 
 // ── Acceso Portal Cliente ─────────────────────────────────────────────────────
 

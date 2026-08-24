@@ -37,17 +37,17 @@
    * un modo oscuro con otro set de tokens); por eso no cachea los valores.
    */
   function construirTemaECharts() {
-    const ink       = leerToken('--ge-ink', '#2A3F54');
-    const inkSoft   = leerToken('--ge-ink-soft', '#73879C');
-    const muted     = leerToken('--ge-muted', '#AAB7B8');
-    const border    = leerToken('--ge-border', '#E6E9ED');
-    const panel     = leerToken('--ge-panel', '#ffffff');
-    const teal      = leerToken('--ge-teal', '#26B99A');
-    const tealDark  = leerToken('--ge-teal-dark', '#169F85');
-    const blue      = leerToken('--ge-blue', '#3498DB');
-    const orange    = leerToken('--ge-orange', '#F0AD4E');
-    const red       = leerToken('--ge-red', '#e74c3c');
-    const purple    = leerToken('--ge-purple', '#8E44AD');
+    const ink       = leerToken('--ge-ink', '#111A17');
+    const inkSoft   = leerToken('--ge-ink-soft', '#3A423E');
+    const muted     = leerToken('--ge-muted', '#5B6660');
+    const border    = leerToken('--ge-border', '#DDE1DC');
+    const panel     = leerToken('--ge-panel', '#FFFFFF');
+    const teal      = leerToken('--ge-teal', '#6A9873');
+    const tealDark  = leerToken('--ge-teal-dark', '#487050');
+    const blue      = leerToken('--ge-blue', '#33507A');
+    const orange    = leerToken('--ge-orange', '#8A5F13');
+    const red       = leerToken('--ge-red', '#B8402E');
+    const purple    = leerToken('--ge-purple', '#5B4A8F');
 
     // Paleta de series en el orden que ya usan los gráficos existentes
     // (teal primero porque es el color de marca / acción principal).
@@ -93,7 +93,7 @@
         borderColor: border,
         borderWidth: 1,
         textStyle: { color: ink },
-        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,.13), 0 2px 4px rgba(0,0,0,.10); border-radius: 8px;',
+        extraCssText: 'box-shadow: 0 4px 12px rgba(22,24,29,.13), 0 2px 4px rgba(22,24,29,.10); border-radius: 8px;',
       },
       line: {
         smooth: true,

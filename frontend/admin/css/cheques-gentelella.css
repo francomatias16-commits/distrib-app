@@ -178,62 +178,56 @@ body.dash-cheques-gentelella .empty-state {
   padding: 32px !important;
 }
 
-/* Botones de acción en tabla */
-body.dash-cheques-gentelella .btn-icon {
-  border: 1px solid var(--ge-border) !important;
-  background: var(--ge-panel) !important;
-  color: var(--ge-ink-soft) !important;
-  border-radius: var(--ge-radius-btn) !important;
-  padding: 4px 8px !important;
+/* Columna Acciones — compacta, agrupada y pegada al borde derecho, en vez
+   de dejar el ancho de la columna atado a la fila más larga (la única con
+   botón "Anular") y que el resto quede con un hueco en blanco. Con
+   justify-content:flex-end el grupo de acciones queda siempre pegado al
+   borde, así que el espacio "sobrante" (cuando falta el botón Anular) pasa
+   a estar antes del grupo, pegado a la columna Estado, en vez de leerse
+   como un vacío suelto después del selector. */
+body.dash-cheques-gentelella .th-acciones { text-align: right !important; }
+body.dash-cheques-gentelella .td-acciones-cheque { text-align: right !important; }
+body.dash-cheques-gentelella .th-acciones,
+body.dash-cheques-gentelella .td-acciones-cheque {
+  min-width: 220px !important;
 }
-body.dash-cheques-gentelella .btn-icon:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-teal) !important;
-  border-color: var(--ge-teal) !important;
+body.dash-cheques-gentelella .fila-acciones {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
 }
-/* Select inline de cambio de estado */
-body.dash-cheques-gentelella .btn.btn-sm.btn-secondary {
+
+/* Botones de acción en tabla — antes .btn-icon/.btn-text-action locales,
+   ahora .btn-tabla/.btn-kebab canónicos (componentes-admin.css), que no
+   necesitan override acá — ver PLAN_UNIFICACION_UX_ADMIN.md §5 paso 5. */
+
+/* Select inline de cambio de estado — ancho fijo y compacto, en vez de
+   estirarse al 100% del contenido, para que la columna no varíe de fila
+   a fila más de lo necesario. */
+body.dash-cheques-gentelella .select-estado-cheque {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink-soft) !important;
   border-radius: var(--ge-radius-btn) !important;
   font-size: 11px !important;
+  height: 26px !important;
+  width: 92px !important;
+  padding: 0 6px !important;
+  flex-shrink: 0 !important;
 }
-body.dash-cheques-gentelella .btn.btn-sm.btn-secondary:focus {
+body.dash-cheques-gentelella .select-estado-cheque:focus {
   border-color: var(--ge-teal) !important;
   outline: none !important;
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips de estado
+   Chips de estado — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
+   .chip/.chip-azul/.chip-amarillo/.chip-verde/.chip-rojo/.chip-gris
+   ya no se redeclaran acá.
    ════════════════════════════════════════════════════════════ */
-body.dash-cheques-gentelella .chip {
-  display: inline-block !important;
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  padding: 3px 10px !important;
-}
-body.dash-cheques-gentelella .chip-azul {
-  background: rgba(52,152,219,.13) !important;
-  color: var(--ge-blue) !important;
-}
-body.dash-cheques-gentelella .chip-amarillo {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-cheques-gentelella .chip-verde {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-cheques-gentelella .chip-rojo {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-cheques-gentelella .chip-gris {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Paginación
@@ -386,19 +380,15 @@ body.dash-cheques-gentelella .modal-close:hover {
   color: var(--ge-ink) !important;
 }
 
-/* ── Z-INDEX ESCALADO: confirm por encima de #modal-cheque / #modal-bcra-denuncia ──
-   BUG REAL (no solo de los tests): ambos modales de esta página usan la
-   clase .modal-overlay (finanzas.css, z-index:500). window.confirmar()
-   usa --z-modal (default 400, shared/tokens.css). Con #modal-cheque
-   abierto (alta o edición) y --z-modal en 400, el diálogo de confirmación
-   de "¿Guardar los cambios...?" queda VISUALMENTE DETRÁS del modal — su
-   botón "ok" es inclickeable con mouse para cualquier usuario real, no
-   solo para Playwright ("<div class="form-grid">...</div> subtree
-   intercepts pointer events"). Confirmado corriendo cheques.spec.js contra
-   Chromium real. Mismo hallazgo y mismo fix ya aplicado para el caso
-   análogo de #modal-cobro en cobranzas-gentelella.css (y #modal-producto
-   en productos-modal-fix.css) — acá se replica scopeado a cheques.html.
-   --z-toast ya estaba bien (600 > 500). */
-:root {
-  --z-modal: 10100;
-}
+/* ── Z-INDEX: confirm por encima de #modal-cheque / #modal-bcra-denuncia ──
+   Ambos modales de esta página usan la clase .modal-overlay (finanzas.css,
+   --z-flyout:500). window.confirmar() usaba --z-modal (400), así que el
+   diálogo de "¿Guardar los cambios...?" quedaba VISUALMENTE DETRÁS del
+   modal — su botón "ok" era inclickeable con mouse para cualquier usuario
+   real, no solo para Playwright.
+   FIX (2026-08-22): window.confirmar() ahora usa un token propio,
+   --z-confirm-dialog (750, shared/tokens.css), en vez de reutilizar
+   --z-modal (que también hereda el backdrop del "Menú principal" global de
+   admin/nav.css — subirlo acá tapaba ese menú en toda la página). Ver el
+   mismo fix aplicado en notas-gentelella.css, cobranzas-gentelella.css y
+   productos-modal-fix.css. Esta sobreescritura ya no hace falta. */

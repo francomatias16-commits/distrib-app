@@ -234,14 +234,14 @@ function renderComparativaMensual(data) {
       type: 'category',
       data: labels,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#DAD3C0' } },
+      axisLine: { lineStyle: { color: '#DDE1DC' } },
       axisTick: { show: false },
-      axisLabel: { fontSize: 10, color: '#6B695F' },
+      axisLabel: { fontSize: 10, color: '#3A423E' },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { fontSize: 10, color: '#6B695F', formatter: fmt },
-      splitLine: { lineStyle: { color: '#DAD3C0', type: 'dashed' } },
+      axisLabel: { fontSize: 10, color: '#3A423E', formatter: fmt },
+      splitLine: { lineStyle: { color: '#DDE1DC', type: 'dashed' } },
     },
     series: [
       ...(dataAnterior ? [{
@@ -258,15 +258,15 @@ function renderComparativaMensual(data) {
         type: 'line',
         data: dataActual,
         showSymbol: false,
-        lineStyle: { color: '#B87A00', width: 2.5 },
-        itemStyle: { color: '#B87A00' },
+        lineStyle: { color: '#6A9873', width: 2.5 },
+        itemStyle: { color: '#6A9873' },
         emphasis: { focus: 'series' },
         areaStyle: {
           color: {
             type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(184,122,0,0.28)' },
-              { offset: 1, color: 'rgba(184,122,0,0.02)' },
+              { offset: 0, color: 'rgba(106,152,115,0.28)' },
+              { offset: 1, color: 'rgba(106,152,115,0.02)' },
             ],
           },
         },
@@ -276,7 +276,7 @@ function renderComparativaMensual(data) {
 
   if (legendEl) {
     legendEl.innerHTML = `
-      <span><i style="background:#B87A00"></i>${escapeHtml(data.mes_actual_label)} (${window.formatMonedaCorto(data.total_actual || 0)})</span>
+      <span><i style="background:#6A9873"></i>${escapeHtml(data.mes_actual_label)} (${window.formatMonedaCorto(data.total_actual || 0)})</span>
       ${nAnt > 0 ? `<span><i style="background:#C8D0D4;border:1px dashed #aaa"></i>${escapeHtml(data.mes_anterior_label)} (${window.formatMonedaCorto(data.total_anterior || 0)})</span>` : ''}
     `;
   }
@@ -440,7 +440,7 @@ async function exportarPDF() {
     const cmp = PE.ultimaComparativa || {};
 
     const doc = new jsPDF();
-    const empresaNombre = window.authCtx?.perfil?.empresa_nombre || document.title;
+    const empresaNombre = window.authCtx?.perfil?.empresas?.nombre || document.title;
 
     doc.setFontSize(16);
     doc.text('Panel ejecutivo', 14, 18);

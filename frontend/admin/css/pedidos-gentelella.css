@@ -65,7 +65,7 @@ body.dash-pedidos-gentelella .topbar-right > a:hover {
 /* CTA principal — Nuevo pedido / Nuevo presupuesto */
 body.dash-pedidos-gentelella #btn-nuevo-pedido,
 body.dash-pedidos-gentelella #btn-nuevo-presupuesto,
-body.dash-pedidos-gentelella .btn-nuevo-pres {
+body.dash-pedidos-gentelella .btn--primary {
   background: var(--ge-teal) !important;
   border: none !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -73,7 +73,7 @@ body.dash-pedidos-gentelella .btn-nuevo-pres {
 }
 body.dash-pedidos-gentelella #btn-nuevo-pedido:hover,
 body.dash-pedidos-gentelella #btn-nuevo-presupuesto:hover,
-body.dash-pedidos-gentelella .btn-nuevo-pres:hover {
+body.dash-pedidos-gentelella .btn--primary:hover {
   background: var(--ge-teal-dark) !important;
 }
 
@@ -98,17 +98,27 @@ body.dash-pedidos-gentelella .page-intro {
 body.dash-pedidos-gentelella .page-tabs {
   border-bottom: 2px solid var(--ge-border) !important;
   padding: 0 0 !important;
+  gap: 6px !important;
 }
 body.dash-pedidos-gentelella .page-tab {
   color: var(--ge-ink-soft) !important;
+  border: 1px solid transparent !important;
   border-bottom: 2px solid transparent !important;
+  border-radius: var(--ge-radius-btn) var(--ge-radius-btn) 0 0 !important;
+  background: transparent !important;
+  margin-bottom: -2px !important;
 }
 body.dash-pedidos-gentelella .page-tab:hover {
   color: var(--ge-ink) !important;
+  background: var(--ge-bg) !important;
 }
 body.dash-pedidos-gentelella .page-tab.activa {
-  color: var(--ge-teal) !important;
-  border-bottom-color: var(--ge-teal) !important;
+  color: var(--ge-teal-dark) !important;
+  font-weight: 700 !important;
+  background: var(--ge-panel) !important;
+  border-color: var(--ge-border) !important;
+  border-bottom: 2px solid var(--ge-teal) !important;
+  box-shadow: var(--ge-shadow) !important;
 }
 body.dash-pedidos-gentelella .page-tab-count {
   background: var(--ge-teal-light) !important;
@@ -167,7 +177,7 @@ body.dash-pedidos-gentelella .filtros-bar {
 /* Search wrap */
 body.dash-pedidos-gentelella .search-wrap {
   background: var(--ge-bg) !important;
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   box-shadow: none !important;
 }
@@ -259,12 +269,12 @@ body.dash-pedidos-gentelella .tabla-wrap {
   box-shadow: var(--ge-shadow) !important;
 }
 
-body.dash-pedidos-gentelella .tabla-pedidos thead {
+body.dash-pedidos-gentelella .tabla-admin thead {
   background: var(--ge-bg) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
 
-body.dash-pedidos-gentelella .tabla-pedidos th {
+body.dash-pedidos-gentelella .tabla-admin th {
   color: var(--ge-muted) !important;
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -406,7 +416,7 @@ body.dash-pedidos-gentelella .pg-num.activa {
   background: var(--ge-teal) !important;
   border-color: var(--ge-teal) !important;
   color: var(--ge-panel) !important;
-  box-shadow: 0 2px 8px rgba(184,122,0,.35) !important;
+  box-shadow: 0 2px 8px rgba(106,152,115,.35) !important;
 }
 body.dash-pedidos-gentelella .pg-rango {
   color: var(--ge-ink-soft) !important;
@@ -549,7 +559,7 @@ body.dash-pedidos-gentelella .btn-secundario {
 body.dash-pedidos-gentelella .btn-secundario:hover {
   background: var(--ge-bg) !important;
 }
-body.dash-pedidos-gentelella .btn-danger {
+body.dash-pedidos-gentelella .btn.btn--danger {
   background: var(--ge-red) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
@@ -667,7 +677,7 @@ body.dash-pedidos-gentelella .pres-btn-agregar:hover {
   color: var(--ge-teal) !important;
 }
 body.dash-pedidos-gentelella .pres-search-wrap input {
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
@@ -713,16 +723,16 @@ body.dash-pedidos-gentelella #vista-pedidos {
     solo se ajustan colores del nuevo scope)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos tr {
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-admin tr {
     border: 1px solid var(--ge-border) !important;
     background: var(--ge-panel) !important;
     box-shadow: var(--ge-shadow) !important;
     border-radius: var(--ge-radius-card) !important;
   }
-  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos td {
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-admin td {
     border-bottom: 1px solid var(--ge-bg) !important;
   }
-  body.dash-pedidos-gentelella .table-responsive-cards .tabla-pedidos td::before {
+  body.dash-pedidos-gentelella .table-responsive-cards .tabla-admin td::before {
     color: var(--ge-muted) !important;
   }
 }

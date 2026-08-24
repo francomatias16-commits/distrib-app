@@ -1,0 +1,68 @@
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f0f4f8; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+
+    .login-card {
+      background: #fff; width: 100%; max-width: 380px; border-radius: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      color: #fff; padding: 2rem 1.5rem 1.6rem; text-align: center;
+    }
+    .login-header .icon {
+      width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto .75rem;
+    }
+    .login-header h1 { font-size: 1.15rem; font-weight: 700; }
+    .login-header p { font-size: .8rem; opacity: .8; margin-top: .25rem; }
+
+    .login-body { padding: 1.5rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: .78rem; font-weight: 600; color: #374151;
+      margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .02em;
+    }
+    .form-group input {
+      width: 100%; padding: .75rem .85rem; border: 1px solid #d1d5db; border-radius: 10px;
+      /* AUDITORIA-RESPONSIVE FASE1: .95rem (~15.2px) disparaba zoom
+         automático de iOS al enfocar los campos del alta de chofer. */
+      font-size: 1rem; font-family: inherit; outline: none;
+    }
+    .form-group input:focus { border-color: #2563EB; }
+    .form-group .ayuda { font-size: .72rem; color: #9ca3af; margin-top: .3rem; }
+
+    .btn {
+      width: 100%; padding: .85rem; border: none; border-radius: 10px;
+      font-size: .95rem; font-weight: 600; cursor: pointer; margin-top: .4rem;
+    }
+    .btn-primary { background: #2563EB; color: #fff; }
+    .btn-primary:hover { background: #134a82; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .alerta {
+      border-radius: 8px; padding: .65rem .85rem; font-size: .85rem; margin-bottom: 1rem; display: none;
+    }
+    .alerta-err { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alerta-ok  { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+
+    .saludo { font-size: .95rem; color: #374151; margin-bottom: 1.1rem; line-height: 1.4; }
+    .saludo strong { color: #1D4ED8; }
+
+    .spinner-wrap { text-align: center; padding: 2.5rem 1.5rem; color: #6b7280; font-size: .9rem; }
+
+    .nota-pie { text-align: center; font-size: .75rem; color: #9ca3af; margin-top: 1.25rem; }
+
+    /* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.7): sin @media propio.
+       En 320px (body padding 1.5rem) queda muy poco margen visual;
+       se reduce el padding exterior sólo en ese rango. */
+    @media (max-width: 360px) {
+      body { padding: .85rem; }
+      .login-header { padding: 1.5rem 1.1rem 1.2rem; }
+      .login-body { padding: 1.1rem; }
+    }
+  

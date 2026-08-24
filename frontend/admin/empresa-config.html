@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
   <script src="/frontend/env-config.js?v1782328742714"></script>
@@ -35,8 +35,19 @@
     .cfg-card h2 {
       font-size: 11px; font-weight: var(--font-weight-bold, 700);
       letter-spacing: var(--letter-spacing-wide, .05em); text-transform: uppercase;
-      color: var(--color-text-light); margin: 0 0 8px;
+      color: var(--color-text-light); margin: 0;
     }
+    /* Chip de ícono junto al título — mismo lenguaje que .card-head/.card-icon
+       de dashboard.html (KPI cards), para que empresa-config no se sienta
+       como una pantalla aparte del resto del panel. */
+    .card-head { display:flex; align-items:center; gap:10px; margin:0 0 8px; }
+    .card-icon {
+      width:26px; height:26px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+      border: 1px solid rgba(15,23,42,.06);
+    }
+    .card-icon svg { width:15px; height:15px; }
     .cfg-card .sub { font-size:13.5px; color: var(--color-text-muted); margin:0 0 22px; line-height:1.5; }
     .form-group { margin-bottom:18px; }
     .form-group label { display:block; font-size:13px; font-weight:500; color:var(--color-text); margin-bottom:6px; }
@@ -57,6 +68,10 @@
       .cfg-wrap { padding: 14px; }
       .cfg-card { padding: 18px; }
       .form-row { grid-template-columns: 1fr; }
+
+      /* AUDITORIA-RESPONSIVE-ETAPA4: .btn--secondary (Cambiar logo, Copiar
+         links) en ~32px de alto — target táctil mínimo en mobile. */
+      .btn--secondary { min-height: 40px; }
     }
     .acciones { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:10px; padding-top:18px; border-top:1px solid var(--color-border-soft); }
     .acciones .guardado-ok { font-size:12.5px; color: var(--color-success); display:none; align-items:center; gap:5px; }
@@ -73,13 +88,9 @@
     .logo-preview img { width:100%; height:100%; object-fit:cover; display:block; }
     .logo-preview #logo-inicial { font-size:24px; font-weight:700; color: var(--color-primary); line-height:1; }
     .logo-actions { display:flex; flex-direction:column; gap:2px; }
-    .btn-secondary {
-      background: var(--color-surface); color: var(--color-text);
-      border:1px solid var(--color-border); padding:8px 15px;
-      border-radius: var(--radius-md, 8px); font-size:13px; font-weight:500; cursor:pointer;
-      transition: background .15s, border-color .15s; align-self:flex-start;
-    }
-    .btn-secondary:hover { background: var(--color-surface-2); border-color: var(--color-text-light); }
+    /* El look del botón ya lo da el componente canónico .btn.btn--secondary (tokens.css);
+       acá solo queda lo específico de este layout en columna. */
+    .logo-actions .btn--secondary { align-self:flex-start; }
 
     /* FIX v477 — toggle catálogo público (SEC-008 / CHANGELOG_v296) */
     .switch-row { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
@@ -99,15 +110,27 @@
     .switch input:checked + .track::before { transform:translateX(18px); }
     .switch input:disabled + .track { opacity:.55; cursor:not-allowed; }
     .link-compartir {
-      margin-top:16px; display:none; align-items:center; gap:8px; background: var(--color-surface-2);
+      margin-top:16px; display:flex; align-items:center; gap:8px; background: var(--color-surface-2);
       border:1px solid var(--color-border-soft); border-radius: var(--radius-md, 8px); padding:9px 11px;
     }
     .link-compartir input {
       flex:1; border:none; background:transparent; font-size:12.5px; color: var(--color-text-muted);
       outline:none; padding:0;
     }
+    /* FIX: el campo para personalizar el slug reutilizaba la clase
+       .link-compartir de arriba (fila input+botón), pero esa clase tiene
+       display:none por defecto — pensada para la caja de link de solo
+       lectura, que el JS muestra/oculta según el switch. Acá nadie la
+       activaba nunca, así que el botón "Guardar" quedaba invisible
+       siempre. Clase propia, visible siempre (no depende del switch). */
+    .fila-input-boton { margin-top:0; display:flex; align-items:center; gap:8px; }
+    .fila-input-boton input {
+      flex:1; padding:7px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md);
+      font-size:14px; outline:none; transition:border .15s;
+    }
+    .fila-input-boton input:focus { border-color: var(--color-primary); }
   </style>
-  <!-- .btn-primary se define globalmente en reskin-patch.css (azul corporativo);
+  <!-- Botones: componente canónico .btn.btn--primary/.btn--secondary (frontend/shared/tokens.css);
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
@@ -117,7 +140,7 @@
   <style>
     .cfg-card h2 + .sub { margin-top: -2px; }
   </style>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
@@ -154,7 +177,10 @@
 
         <!-- Logo -->
         <div class="cfg-card">
-          <h2>Logo</h2>
+          <div class="card-head">
+            <div class="card-icon" style="background:var(--color-info-bg);color:var(--color-info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+            <h2>Logo</h2>
+          </div>
           <p class="sub">Se usa en el panel y (próximamente) en los comprobantes impresos.</p>
           <div class="logo-row">
             <div class="logo-preview" id="logo-preview">
@@ -163,7 +189,7 @@
             </div>
             <div class="logo-actions">
               <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none">
-              <button type="button" class="btn-secondary" id="btn-logo">Cambiar logo</button>
+              <button type="button" class="btn btn--secondary" id="btn-logo">Cambiar logo</button>
               <p class="hint" style="margin-top:6px">PNG, JPG, WEBP o SVG · hasta 2 MB</p>
             </div>
           </div>
@@ -172,7 +198,10 @@
         <!-- FIX v477: catálogo público (SEC-008 / CHANGELOG_v296) — antes solo
              se podía activar con un UPDATE manual en Supabase. -->
         <div class="cfg-card">
-          <h2>Catálogo público</h2>
+          <div class="card-head">
+            <div class="card-icon" style="background:var(--color-primary-bg);color:var(--color-primary-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <h2>Catálogo público</h2>
+          </div>
           <p class="sub">Compartí un link de tu catálogo con clientes potenciales, sin que necesiten iniciar sesión.</p>
 
           <div class="switch-row">
@@ -186,17 +215,59 @@
             </label>
           </div>
 
-          <div class="link-compartir" id="link-compartir">
-            <input type="text" id="link-compartir-input" readonly aria-label="Link del catálogo público">
-            <button type="button" class="btn-secondary" id="btn-copiar-link">Copiar</button>
+          <div class="form-group" style="margin-top:14px">
+            <label for="e-slug">Personalizar el link (opcional)</label>
+            <p class="hint" style="margin-top:2px;margin-bottom:8px">Escribí acá la parte final del link (reemplaza el código automático de abajo) y tocá <strong>Guardar</strong>. Ejemplo: si escribís <code>distribuidora-sur</code>, tu link va a quedar terminado en <code>catalogo/distribuidora-sur</code>. Solo minúsculas, números y guiones — sin espacios ni acentos.</p>
+            <div class="fila-input-boton">
+              <input type="text" id="e-slug" placeholder="tu-negocio" maxlength="30" autocomplete="off">
+              <button type="button" class="btn btn--secondary" id="btn-guardar-slug">Guardar</button>
+            </div>
+            <p class="hint" style="margin-top:8px;padding:8px 10px;background:var(--color-warning-bg);color:var(--color-warning);border:1px solid var(--color-warning-mid);border-radius:var(--radius-sm)">
+              <strong>Ojo:</strong> si ya compartiste el link actual (por WhatsApp, impreso en un cartel, etc.), guardar uno nuevo hace que el anterior deje de funcionar. Guardá el nuevo recién cuando estés listo para reemplazarlo en todos lados.
+            </p>
           </div>
+
+          <div class="link-compartir" id="link-compartir" style="margin-top:10px;display:none">
+            <input type="text" id="link-compartir-input" readonly aria-label="Link del catálogo público">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link">Copiar</button>
+          </div>
+        </div>
+
+        <!-- v477 (SQL) — antes /admin/login y /cliente/login no tenían forma
+             de saber a qué empresa pertenecían antes de iniciar sesión: con
+             varias empresas activas al mismo tiempo (esto es una SaaS
+             multi-tenant, no un deploy por-cliente), el login podía llegar a
+             mostrar el nombre/logo de otra empresa. Ahora exige empresa_id
+             explícito en la URL — este es el link estable con tu marca para
+             que tu equipo/clientes lo guarden como favorito. -->
+        <div class="cfg-card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(var(--violeta-rgb),.15);color:var(--violeta-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
+            <h2>Link de acceso con tu marca</h2>
+          </div>
+          <p class="sub">Usá este link (en vez de la URL genérica) para que la pantalla de inicio de sesión muestre el nombre y logo de tu empresa desde el primer momento.</p>
+
+          <div class="link-compartir" id="link-acceso-admin">
+            <input type="text" id="link-acceso-admin-input" readonly aria-label="Link de acceso al panel admin">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-admin">Copiar</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Para tu equipo (panel admin).</p>
+
+          <div class="link-compartir" id="link-acceso-cliente" style="margin-top:10px">
+            <input type="text" id="link-acceso-cliente-input" readonly aria-label="Link de acceso al portal de clientes">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-cliente">Copiar</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Para tus clientes (portal de clientes).</p>
         </div>
 
         </div><!-- /cfg-col-left -->
 
         <!-- Formulario -->
         <div class="cfg-card">
-          <h2>Información general</h2>
+          <div class="card-head">
+            <div class="card-icon" style="background:var(--color-surface-2);color:var(--color-text-muted)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M10 21v-6h4v6"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1"/></svg></div>
+            <h2>Información general</h2>
+          </div>
           <p class="sub">Nombre, CUIT y datos de contacto de tu empresa.</p>
 
           <div class="form-group">
@@ -227,7 +298,7 @@
           </div>
 
           <div class="acciones">
-            <button type="button" class="btn-primary" id="btn-guardar">Guardar cambios</button>
+            <button type="button" class="btn btn--primary" id="btn-guardar">Guardar cambios</button>
             <span class="guardado-ok" id="guardado-ok">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               Guardado
@@ -244,11 +315,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script>
@@ -274,6 +345,35 @@ async function init() {
   // FIX v477: toggle de catálogo público
   document.getElementById('sw-catalogo-publico').addEventListener('change', toggleCatalogoPublico);
   document.getElementById('btn-copiar-link').addEventListener('click', copiarLinkCatalogo);
+
+  // 501: slug editable del link de catálogo
+  document.getElementById('btn-guardar-slug').addEventListener('click', guardarSlug);
+
+  // v477 (SQL) — links de acceso con marca propia (admin + portal cliente)
+  actualizarLinksAcceso();
+  document.getElementById('btn-copiar-link-admin').addEventListener('click', () => copiarLink('link-acceso-admin-input', 'btn-copiar-link-admin'));
+  document.getElementById('btn-copiar-link-cliente').addEventListener('click', () => copiarLink('link-acceso-cliente-input', 'btn-copiar-link-cliente'));
+}
+
+// v477 (SQL) — mismo empresa_id que ya usa actualizarLinkCatalogo() más abajo.
+function actualizarLinksAcceso() {
+  const empresaId = window.authCtx?.perfil?.empresa_id || window.authCtx?.perfil?.empresas?.id || '';
+  document.getElementById('link-acceso-admin-input').value   = `${window.location.origin}/admin/login?empresa_id=${empresaId}`;
+  document.getElementById('link-acceso-cliente-input').value = `${window.location.origin}/cliente/login?empresa_id=${empresaId}`;
+}
+
+async function copiarLink(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  try {
+    await navigator.clipboard.writeText(input.value);
+  } catch (e) {
+    input.select();
+    document.execCommand('copy');
+  }
+  const btn = document.getElementById(btnId);
+  const original = btn.textContent;
+  btn.textContent = 'Copiado ✓';
+  setTimeout(() => { btn.textContent = original; }, 1800);
 }
 
 async function cargarDatos() {
@@ -294,6 +394,12 @@ async function cargarDatos() {
     document.getElementById('e-email').value     = d.email || '';
     pintarLogo(d.logo_url, d.nombre);
 
+    // 501: slug actual del link de catálogo (si ya tiene uno asignado —
+    // el backfill de la migración le puso uno a toda empresa existente,
+    // pero por las dudas cae al UUID si viniera vacío)
+    slugActual = d.slug || null;
+    document.getElementById('e-slug').value = slugActual || '';
+
     // FIX v477: estado inicial del toggle de catálogo público
     const sw = document.getElementById('sw-catalogo-publico');
     sw.checked = !!d.catalogo_publico_habilitado;
@@ -305,14 +411,67 @@ async function cargarDatos() {
 }
 
 // FIX v477 — catálogo público (SEC-008 / CHANGELOG_v296)
+// 501: si ya tiene slug, el link usa /catalogo/<slug> (path limpio, fácil
+// de recordar/tipear) en vez de ?empresa_id=<uuid>. El endpoint sigue
+// leyendo el slug vía ?e= (frontend/cliente/catalogo.html) — el rewrite
+// /cliente/catalogo/:slug de vercel.json traduce el path a esa query
+// param, así que los links viejos con ?e= (ya compartidos) siguen
+// funcionando igual. slugActual se carga en cargarDatos() y se actualiza
+// en guardarSlug() cada vez que se guarda uno nuevo.
+let slugActual = null;
+
 function actualizarLinkCatalogo(mostrar) {
   const cont = document.getElementById('link-compartir');
   if (!mostrar) { cont.style.display = 'none'; return; }
 
   const empresaId = window.authCtx?.perfil?.empresa_id || window.authCtx?.perfil?.empresas?.id || '';
   const input = document.getElementById('link-compartir-input');
-  input.value = `${window.location.origin}/cliente/catalogo?empresa_id=${empresaId}`;
+  input.value = slugActual
+    ? `${window.location.origin}/cliente/catalogo/${slugActual}`
+    : `${window.location.origin}/cliente/catalogo?empresa_id=${empresaId}`;
   cont.style.display = 'flex';
+}
+
+
+async function guardarSlug() {
+  const input = document.getElementById('e-slug');
+  const btn   = document.getElementById('btn-guardar-slug');
+  const slug  = input.value.trim().toLowerCase();
+
+  if (!/^[a-z][a-z0-9-]{2,29}$/.test(slug)) {
+    mostrarAlerta('err', 'El link debe tener entre 3 y 30 caracteres, empezar con una letra, y usar solo minúsculas, números y guiones.');
+    return;
+  }
+
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/slug`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await getToken()}`
+      },
+      body: JSON.stringify({ slug })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      mostrarAlerta('err', d.error || 'No se pudo guardar el link.');
+      return;
+    }
+    slugActual = d.slug;
+    input.value = slugActual;
+    const sw = document.getElementById('sw-catalogo-publico');
+    actualizarLinkCatalogo(sw.checked);
+    mostrarAlerta('ok', 'Link actualizado.');
+  } catch (e) {
+    mostrarAlerta('err', 'Error de conexión al guardar el link.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 }
 
 async function toggleCatalogoPublico(ev) {

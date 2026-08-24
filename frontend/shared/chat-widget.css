@@ -18,14 +18,27 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: var(--shadow-big, 0 8px 24px rgba(0,0,0,.18));
   transition: transform var(--transition-base, 250ms ease), background var(--transition-base, 250ms ease);
-  z-index: 590;
+  z-index: var(--z-chat-widget);
+  /* El botón es arrastrable (ver habilitarArrastreBoton() en chat-widget.js).
+     touch-action:none evita que el navegador interprete el gesto como scroll
+     de la página en mobile/tablet mientras se está moviendo el botón. */
+  touch-action: none;
+  user-select: none;
 }
 .chat-asistente-boton:hover { transform: translateY(-2px) scale(1.04); background: var(--color-primary-dark); }
 .chat-asistente-boton svg { width: 24px; height: 24px; flex-shrink: 0; }
 .chat-asistente-boton--activo { background: var(--color-primary-dark); }
+/* Mientras se arrastra: sin transición (si no, el botón "persigue" al mouse
+   con delay) y cursor "grabbing". Se agrega/saca por JS al cruzar el umbral
+   de arrastre (6px) para que un click normal no pierda su hover/transform. */
+.chat-asistente-boton--arrastrando {
+  cursor: grabbing;
+  transition: none !important;
+  transform: none !important;
+}
 /* Texto visible junto al ícono — que quede claro que es "trabajar con IA"
    y no un botón de ayuda/soporte genérico. En pantallas chicas se colapsa
    a un círculo con solo el ícono (como antes) para no comerse espacio. */
@@ -70,7 +83,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 590;
+  z-index: var(--z-chat-widget);
   opacity: 0;
   transform: translateY(12px) scale(.98);
   pointer-events: none;
@@ -268,7 +281,7 @@
   overflow-y: auto;
   line-height: var(--line-height-base, 1.5);
 }
-.chat-asistente-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(184,122,0,.12); }
+.chat-asistente-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(106,152,115,.12); }
 
 /* Botón de adjuntar imagen — mismo tamaño/tono que el botón de dictado por
    voz (.chat-asistente-mic), a su lado en el form. */
@@ -387,13 +400,22 @@
 }
 
 @media (max-width: 768px) {
-  /* En el panel admin, bajo 768px aparece la barra mobile inferior fija
-     (60px + safe-area, ver admin/css/nav.css). El botón/panel del chat
-     deben flotar por encima de esa barra en vez de quedar tapados. */
-  .chat-asistente-boton {
+  /* FIX (auditoría responsive, etapa 1): esta regla asumía que TODA
+     pantalla ≤768px que carga chat-widget.css tiene una barra mobile
+     inferior fija de 60px que hay que sortear — cierto en el portal
+     cliente (.nav-bottom, ver tienda-nav.css), pero chat-widget.css
+     también se carga en checkout.html (portal cliente, sin .nav-bottom
+     porque el flujo de compra no muestra el zócalo de navegación) y en
+     todo el portal chofer (que nunca tuvo barra inferior: navegación
+     por header). En esas 3 páginas el botón/panel flotaba con ~72px de
+     hueco vacío hasta el borde en vez de pegarse a la esquina como en
+     desktop. body:has(.nav-bottom) aplica el offset SOLO donde la barra
+     realmente existe en el DOM; el resto conserva el bottom por defecto
+     (var(--space-6), la misma separación de escritorio). */
+  body:has(.nav-bottom) .chat-asistente-boton {
     bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
   }
-  .chat-asistente-panel {
+  body:has(.nav-bottom) .chat-asistente-panel {
     bottom: calc(60px + env(safe-area-inset-bottom) + 56px + 12px);
     max-height: calc(100vh - 60px - env(safe-area-inset-bottom) - 90px);
   }

@@ -107,34 +107,193 @@ body.dash-reportes-financieros-gentelella .btn.btn--ghost:hover {
 }
 
 /* ════════════════════════════════════════════════════════════
-   KPI cards
+   Manifiesto financiero — reemplaza las tarjetas KPI genéricas
+   por un ledger tipo hoja de ruta / remito: renglones numerados,
+   valores en mono como en un manifiesto de carga, "sello" de
+   variación en vez de badge SaaS, y una barra de magnitud real
+   (no decorativa) por renglón. Tipografía Oswald (rótulos) +
+   IBM Plex Mono (datos), sombra plana "hoja sobre hoja".
    ════════════════════════════════════════════════════════════ */
-body.dash-reportes-financieros-gentelella .kpi-card {
+body.dash-reportes-financieros-gentelella .manifiesto {
   background: var(--ge-panel) !important;
   border: 1px solid var(--ge-border) !important;
-  border-left: 4px solid var(--ge-teal) !important;
-  border-radius: var(--ge-radius-card) !important;
-  box-shadow: var(--ge-shadow) !important;
+  border-radius: var(--ge-radius-lg) !important;
+  box-shadow: var(--ge-shadow-lg) !important;
+  margin-bottom: 22px !important;
+  overflow: hidden !important;
 }
-body.dash-reportes-financieros-gentelella .kpi-card h3 {
+body.dash-reportes-financieros-gentelella .manifiesto-head {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 14px 20px !important;
+  border-bottom: 1px dashed var(--ge-border) !important;
+  background:
+    repeating-linear-gradient(135deg, rgba(17,26,23,.015) 0 2px, transparent 2px 8px) !important;
+}
+body.dash-reportes-financieros-gentelella .manifiesto-titulo {
+  margin: 0 !important;
+  font-family: var(--font-family-display) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  color: var(--ge-ink) !important;
+}
+body.dash-reportes-financieros-gentelella .manifiesto-partidas {
+  font-family: var(--font-mono) !important;
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
   color: var(--ge-muted) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: 3px !important;
+  padding: 3px 8px !important;
+  white-space: nowrap !important;
+}
+
+body.dash-reportes-financieros-gentelella .manifiesto-body {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+body.dash-reportes-financieros-gentelella .manifiesto-body--3 {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+body.dash-reportes-financieros-gentelella .linea {
+  position: relative !important;
+  padding: 16px 20px 18px !important;
+  border-left: 1px dashed var(--ge-border) !important;
+  transition: background var(--transition-fast) !important;
+}
+body.dash-reportes-financieros-gentelella .linea:first-child {
+  border-left: none !important;
+}
+body.dash-reportes-financieros-gentelella .linea:hover {
+  background: var(--ge-bg) !important;
+}
+body.dash-reportes-financieros-gentelella .linea-n {
+  display: block !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+  color: var(--ge-muted) !important;
+  opacity: .55 !important;
+  letter-spacing: .04em !important;
+  margin-bottom: 8px !important;
+}
+body.dash-reportes-financieros-gentelella .linea-label {
+  margin: 0 0 6px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-  letter-spacing: .04em !important;
-}
-body.dash-reportes-financieros-gentelella .kpi-value {
-  color: var(--ge-ink) !important;
-  font-weight: 700 !important;
-}
-body.dash-reportes-financieros-gentelella .kpi-change {
-  border-top: 1px solid var(--ge-border) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
   color: var(--ge-muted) !important;
 }
-body.dash-reportes-financieros-gentelella .kpi-change.positive {
+body.dash-reportes-financieros-gentelella .linea-valor {
+  margin: 0 0 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
+  color: var(--ge-ink) !important;
+  letter-spacing: -0.01em !important;
+}
+/* Cifras trascendentales (ganancia neta / deuda vencida): el color vive
+   en el propio valor, no solo en el sello de variación — para que la
+   lectura rápida ("¿estoy ganando o perdiendo?") no dependa de fijarse
+   en el detalle chico. Se aplica solo donde el signo es la noticia
+   (ganancia neta), no en cada renglón del manifiesto. */
+body.dash-reportes-financieros-gentelella .linea-valor.valor-positivo {
   color: var(--ge-teal-dark) !important;
 }
-body.dash-reportes-financieros-gentelella .kpi-change.negative {
+body.dash-reportes-financieros-gentelella .linea-valor.valor-negativo {
   color: var(--ge-red) !important;
+}
+body.dash-reportes-financieros-gentelella .linea--critica .linea-valor {
+  color: var(--ge-red) !important;
+}
+
+body.dash-reportes-financieros-gentelella .linea-delta {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: .02em !important;
+  padding: 2px 7px !important;
+  border-radius: 3px !important;
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-reportes-financieros-gentelella .linea-delta.positive {
+  background: var(--color-success-bg) !important;
+  color: var(--ge-teal-dark) !important;
+}
+body.dash-reportes-financieros-gentelella .linea-delta.negative {
+  background: var(--color-danger-bg) !important;
+  color: var(--ge-red) !important;
+}
+body.dash-reportes-financieros-gentelella .linea-link.linea-delta {
+  text-decoration: none !important;
+  background: transparent !important;
+  color: var(--ge-teal-dark) !important;
+  padding: 2px 0 !important;
+  font-weight: 600 !important;
+}
+body.dash-reportes-financieros-gentelella .linea-link.linea-delta:hover {
+  text-decoration: underline !important;
+}
+body.dash-reportes-financieros-gentelella .linea-caption.linea-delta {
+  background: transparent !important;
+  color: var(--ge-muted) !important;
+  font-style: italic !important;
+  font-weight: 500 !important;
+  padding: 2px 0 !important;
+  text-transform: lowercase !important;
+}
+
+/* Barra de magnitud — ancho real seteado por JS vía --bar (0-100%),
+   nunca decorativo/aleatorio. Track punteado como una regla de medición. */
+body.dash-reportes-financieros-gentelella .linea-bar {
+  position: absolute !important;
+  left: 20px !important; right: 20px !important; bottom: 0 !important;
+  height: 3px !important;
+  background: var(--ge-border) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+body.dash-reportes-financieros-gentelella .linea-bar span {
+  display: block !important;
+  height: 100% !important;
+  width: var(--bar, 0%) !important;
+  background: var(--ge-teal) !important;
+  transition: width .5s cubic-bezier(.4,0,.2,1) !important;
+}
+
+/* Renglón crítico (deuda vencida): acento rojo, sin gritar con fondo sólido */
+body.dash-reportes-financieros-gentelella .linea--critica {
+  background: linear-gradient(180deg, var(--color-danger-bg) 0%, transparent 70%) !important;
+}
+body.dash-reportes-financieros-gentelella .linea--critica .linea-label,
+body.dash-reportes-financieros-gentelella .linea--critica .linea-n {
+  color: var(--ge-red) !important;
+  opacity: 1 !important;
+}
+body.dash-reportes-financieros-gentelella .linea--critica .linea-bar span {
+  background: var(--ge-red) !important;
+}
+body.dash-reportes-financieros-gentelella .linea--critica .linea-delta {
+  background: rgba(184,64,46,.14) !important;
+  color: var(--ge-red) !important;
+}
+
+/* Franja "Rentabilidad neta" — leve tinte para separarla visualmente
+   del resultado bruto sin romper la grilla del manifiesto */
+body.dash-reportes-financieros-gentelella #franjaGananciaNeta {
+  border-color: var(--ge-teal) !important;
+  box-shadow: 0 0 0 1px var(--ge-teal-light), var(--ge-shadow-lg) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -168,10 +327,10 @@ body.dash-reportes-financieros-gentelella .ranking-section h2 {
   font-weight: 700 !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table thead {
+body.dash-reportes-financieros-gentelella .tabla-admin thead {
   background: var(--ge-bg) !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table th {
+body.dash-reportes-financieros-gentelella .tabla-admin th {
   color: var(--ge-muted) !important;
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -179,19 +338,19 @@ body.dash-reportes-financieros-gentelella .ranking-table th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table td {
+body.dash-reportes-financieros-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   font-size: 13px !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table tbody tr:nth-child(even) {
+body.dash-reportes-financieros-gentelella .tabla-admin tbody tr:nth-child(even) {
   background: transparent !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table tbody tr:hover {
+body.dash-reportes-financieros-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
-body.dash-reportes-financieros-gentelella .ranking-table .loading,
-body.dash-reportes-financieros-gentelella .ranking-table .tabla-empty {
+body.dash-reportes-financieros-gentelella .tabla-admin .loading,
+body.dash-reportes-financieros-gentelella .tabla-admin .tabla-empty {
   color: var(--ge-muted) !important;
 }
 
@@ -224,12 +383,37 @@ body.dash-reportes-financieros-gentelella .status-badge.green {
     flex-direction: column !important;
     align-items: stretch !important;
   }
-  body.dash-reportes-financieros-gentelella .kpis-grid {
+  body.dash-reportes-financieros-gentelella .manifiesto-body,
+  body.dash-reportes-financieros-gentelella .manifiesto-body--3 {
     grid-template-columns: 1fr 1fr !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea {
+    border-left: none !important;
+    border-top: 1px dashed var(--ge-border) !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea:nth-child(-n+2) {
+    border-top: none !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea:nth-child(odd) {
+    border-left: none !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea:nth-child(even) {
+    border-left: 1px dashed var(--ge-border) !important;
   }
 }
 @media (max-width: 480px) {
-  body.dash-reportes-financieros-gentelella .kpis-grid {
+  body.dash-reportes-financieros-gentelella .manifiesto-body,
+  body.dash-reportes-financieros-gentelella .manifiesto-body--3 {
     grid-template-columns: 1fr !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea {
+    border-left: none !important;
+    border-top: 1px dashed var(--ge-border) !important;
+  }
+  body.dash-reportes-financieros-gentelella .linea:first-child {
+    border-top: none !important;
+  }
+  body.dash-reportes-financieros-gentelella .manifiesto-valor {
+    font-size: 20px !important;
   }
 }

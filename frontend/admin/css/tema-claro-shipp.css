@@ -55,7 +55,6 @@ body { background: var(--color-bg) !important; }
 }
 
 /* ── Elementos con borde hardcodeado (no usaban var(--color-border)) ── */
-.search-wrap,
 .select-filtro,
 .btn-limpiar,
 .e-pill,
@@ -66,16 +65,19 @@ body { background: var(--color-bg) !important; }
 .btn-exportar, .btn-importar {
   border-color: var(--color-border);
 }
+.search-wrap {
+  border-color: transparent;
+}
 
 /* ── Fondo de sub-superficies (antes gris frío, ahora lavanda claro) ── */
 .search-wrap,
 .modal-estado-row,
-.tabla-pedidos thead,
+.tabla-admin thead,
 .btn-remito {
   background: var(--color-surface-2);
 }
 
-.tabla-pedidos thead { border-bottom-color: var(--color-border); }
+.tabla-admin thead { border-bottom-color: var(--color-border); }
 
 /* ── Filas de tabla: hover y separación más suaves ── */
 .fila-pedido { border-bottom-color: var(--color-border-soft); }
@@ -85,15 +87,15 @@ body { background: var(--color-bg) !important; }
 .e-pill:hover { background: var(--color-surface-2); }
 
 /* ── Paginación: número activo con sombra acorde a la paleta nueva ── */
-.pg-num.activa { box-shadow: 0 2px 10px rgba(184, 122, 0, .28); }
+.pg-num.activa { box-shadow: 0 2px 10px rgba(106,152,115, .28); }
 
 /* ── Upsell card: vira de verde-oscuro a navy-verde para integrar con el navy del resto ── */
 .upsell-card {
   background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 145%);
 }
 
-/* ── Preloader / avatar de marca: navy en vez de negro plano ── */
-.preloader-logo { background: var(--color-text); }
+/* ── Preloader / avatar de marca: logo Fluxo sobre blanco ── */
+.preloader-logo { background: var(--color-surface, #fff); }
 
 /* ── Topbar: separa del fondo lavanda con blanco puro ── */
 .topbar { background: var(--color-surface); border-bottom-color: var(--color-border); }

@@ -44,25 +44,25 @@ const compiledRewrites = rewrites.map(r => ({
   regex: new RegExp('^' + r.source + '$'),
 }));
 
-// ── Cargar el objeto HANDLERS de api/index.js (parseo del bloque, sin import
+// ── Cargar el objeto LOADERS de api/index.js (parseo del bloque, sin import
 //    dinámico, para no necesitar env vars / Supabase real solo para listar
 //    claves) ───────────────────────────────────────────────────────────────
+// FIX v861: HANDLERS (imports estáticos + objeto de referencias) pasó a
+// LOADERS (imports perezosos, `clave: () => import('.../archivo.js')`) para
+// arreglar el cold start del lambda. Cada entrada ahora trae la clave Y el
+// archivo en la misma línea — este check solo necesita la clave.
 const dispatcherSrc = fs.readFileSync(path.join(ROOT, 'api/index.js'), 'utf8');
-const handlersBlockMatch = dispatcherSrc.match(/const HANDLERS = \{([\s\S]*?)\n\};/);
+const handlersBlockMatch = dispatcherSrc.match(/const LOADERS = \{([\s\S]*?)\n\};/);
 if (!handlersBlockMatch) {
-  console.error('[FAIL] No se pudo encontrar el bloque `const HANDLERS = { ... }` en api/index.js');
+  console.error('[FAIL] No se pudo encontrar el bloque `const LOADERS = { ... }` en api/index.js');
   process.exit(1);
 }
 const handlersBlock = handlersBlockMatch[1];
-// Cada entrada es `nombre,` o `'nombre-con-guion': variable,` — capturamos
-// la clave lógica (el string entre comillas, o el identificador si no hay
-// comillas).
+// Cada entrada es `nombre: () => import(...)` o `'nombre-con-guion': () => import(...)`.
 const handlerKeys = new Set();
 for (const line of handlersBlock.split('\n')) {
-  const quoted = line.match(/^\s*['"]([a-z0-9-]+)['"]\s*:/);
-  const bare = line.match(/^\s*([a-zA-Z][a-zA-Z0-9]*)\s*,?\s*(\/\/.*)?$/);
-  if (quoted) handlerKeys.add(quoted[1]);
-  else if (bare) handlerKeys.add(bare[1]);
+  const m = line.match(/^\s*(?:'([a-z0-9-]+)'|([a-zA-Z][a-zA-Z0-9]*))\s*:/);
+  if (m) handlerKeys.add(m[1] || m[2]);
 }
 
 // ── A) frontend fetch → rewrite ─────────────────────────────────────────────

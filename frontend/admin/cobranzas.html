@@ -14,13 +14,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=281" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -31,8 +31,9 @@
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/cobranzas-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/cobranzas-gentelella.css?v=2" />
   <link rel="stylesheet" href="/shared/pagination.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -67,44 +68,38 @@
 
   <main class="main" id="vista-cobranza">
 
-    <!-- "Cobrado hoy" no tiene categoría equivalente en la tabla de abajo →
-         solo lectura. Los otros 3 SÍ coinciden 1:1 con los tabs de "Facturas
-         pendientes" (Vencen hoy / Próximos 7 días / Vencidas) → se fusionan
-         ahí como monto, en vez de repetir la info arriba en una tarjeta aparte. -->
-    <div class="franja-resumen-sololectura">
-      <span>Cobrado hoy: <strong id="kpi-cobrado-hoy">$0</strong> <span id="kpi-cobrado-sub"></span></span>
-    </div>
-
-    <!-- Cobros por medio de pago (hoy) -->
-    <div class="tabla-wrap">
-      <div class="tabla-header">
-        <h2>Cobros de hoy por medio de pago</h2>
-      </div>
-      <div id="medios-pago-grid" class="mp-lista">
-        <div class="mp-vacio">Cargando...</div>
-      </div>
-    </div>
-
     <!-- Tabs: facturas vencidas hoy / próximos 7 días -->
-    <div class="tabla-wrap">
-      <div class="tabla-header">
-        <h2>Facturas pendientes</h2>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div class="tabs" role="tablist" aria-label="Período de cobranza">
-            <button type="button" role="tab" aria-selected="true"  class="tab-btn active" onclick="cambiarTab('priorizada', this)">Priorizada <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></button>
-            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('hoy', this)">Vencen hoy <span class="n" id="tabamt-hoy">$0</span></button>
-            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('semana', this)">Próximos 7 días <span class="n" id="tabamt-semana">$0</span></button>
-            <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('vencidas', this)">Vencidas <span class="n" id="tabamt-vencidas">$0</span></button>
+    <!-- Envoltorio con position:relative para poder "sacar" el botón de
+         Recordatorio masivo por fuera de .tabla-wrap (que tiene overflow
+         recortado para el scroll horizontal de la tabla) y que así pueda
+         asomar por encima del borde superior de la hoja sin quedar cortado
+         (feedback UX 2026-08-20: layout anterior quedaba amontonado). -->
+    <div class="tabla-wrap-flotante" style="position:relative">
+      <div class="tabla-wrap table-responsive-cards">
+        <div class="tabla-header">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <h2>Facturas pendientes</h2>
           </div>
-          <button type="button" class="btn btn--danger" id="btn-recordatorio" onclick="btnAsyncClick(this, enviarRecordatorioMasivo)" aria-live="polite" style="padding:6px 14px;font-size:13px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
-            Recordatorio masivo
-          </button>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div class="tabs" role="tablist" aria-label="Período de cobranza">
+              <button type="button" role="tab" aria-selected="true"  class="tab-btn active" onclick="cambiarTab('priorizada', this)">Priorizada <span aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:0px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></button>
+              <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('hoy', this)">Vencen hoy <span class="n" id="tabamt-hoy">$0</span></button>
+              <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('semana', this)">Próximos 7 días <span class="n" id="tabamt-semana">$0</span></button>
+              <button type="button" role="tab" aria-selected="false" class="tab-btn" onclick="cambiarTab('vencidas', this)">Vencidas <span class="n" id="tabamt-vencidas">$0</span></button>
+            </div>
+            <!-- "Cobrado hoy" no tiene categoría equivalente en la tabla de abajo →
+                 solo lectura. Al ser el último elemento de este grupo (que se
+                 alinea a la derecha) queda justo arriba de la columna Acciones,
+                 porque esta fila y las celdas de la tabla comparten el mismo
+                 padding derecho (20px) — no necesita posicionamiento absoluto. -->
+            <div class="franja-resumen-sololectura" style="margin:0">
+              <div class="dato-sello" data-tono="verde"><div class="dato-sello-valor" id="kpi-cobrado-hoy">$0</div><div class="dato-sello-etiqueta">Cobrado hoy</div><div class="dato-sello-nota" id="kpi-cobrado-sub"></div></div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="tabla-overflow">
-        <table class="tabla table-compact">
-          <!-- El <tr> de abajo es el estado inicial (tab "priorizada"); cambiarTab()
+        <div class="tabla-overflow">
+          <table class="tabla-admin table-compact">
+            <!-- El <tr> de abajo es el estado inicial (tab "priorizada"); cambiarTab()
                reemplaza este contenido por THEAD_FACTURAS o THEAD_PRIORIZADA
                según la tab activa, vía cobranzas.js -->
           <thead id="thead-facturas">
@@ -120,6 +115,16 @@
           <tbody id="tbody-facturas"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
         </table>
       </div>
+      </div>
+
+      <!-- Flotante, fuera de .tabla-wrap para no quedar recortado por su
+           overflow: se apoya sobre el borde superior de la hoja (mitad
+           adentro, mitad afuera) en vez de convivir amontonado en la misma
+           fila que los tabs y la tarjeta de "Cobrado hoy". -->
+      <button type="button" class="btn btn--danger" id="btn-recordatorio" onclick="btnAsyncClick(this, enviarRecordatorioMasivo)" aria-live="polite" style="position:absolute;top:-16px;right:20px;padding:6px 14px;font-size:13px;box-shadow:0 4px 10px rgba(0,0,0,.18);z-index:4;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.7a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
+        Recordatorio masivo
+      </button>
     </div>
 
   </main>
@@ -134,7 +139,7 @@
     <div class="barra-filtros" id="filtro-tabs-saldos"></div>
 
     <!-- Tabla de clientes -->
-    <div class="tabla-wrap">
+    <div class="tabla-wrap table-responsive-cards">
       <div class="tabla-header">
         <h2>Clientes con saldo</h2>
         <div class="filtros-bar">
@@ -148,15 +153,15 @@
         </div>
       </div>
       <div class="tabla-overflow">
-        <table class="tabla table-compact" id="tabla-clientes">
+        <table class="tabla-admin table-compact" id="tabla-clientes">
           <thead>
             <tr>
               <th>Cliente</th>
-              <th>Estado</th>
-              <th>Deuda total</th>
-              <th>Vencido</th>
-              <th>Último pago</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-fit">Deuda total</th>
+              <th class="col-fit">Vencido</th>
+              <th class="col-fit">Último pago</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody-clientes">
@@ -321,15 +326,15 @@
 </script>
 
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/shared/filtro-tabs.js?v=1"></script>

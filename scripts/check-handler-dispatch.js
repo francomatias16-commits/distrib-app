@@ -47,24 +47,23 @@ function parseQueryString(qs) {
   return params;
 }
 
-// ── HANDLERS map (mod → nombre de archivo de handler) ──────────────────────
-// Reconstruimos el mapeo mod→archivo leyendo los imports de api/index.js
-// (mismo criterio que check-api-wiring.js, pero acá necesitamos el PATH del
-// archivo, no solo si la clave existe).
+// ── LOADERS map (mod → nombre de archivo de handler) ────────────────────────
+// FIX v861: HANDLERS (imports estáticos arriba + objeto de referencias)
+// pasó a LOADERS (imports perezosos) para arreglar el cold start del
+// lambda. Ahora clave y archivo viven en la misma línea
+// (`clave: () => import('../lib/handlers/archivo.js')`), así que se
+// resuelve en un solo regex — ya no hace falta el paso intermedio por
+// nombre de variable.
 const dispatcherSrc = fs.readFileSync(path.join(ROOT, 'api/index.js'), 'utf8');
-const importRe = /import\s+(\w+)\s+from\s+['"]\.\.\/lib\/handlers\/([^'"]+)['"]/g;
-const varToFile = {};
-let im;
-while ((im = importRe.exec(dispatcherSrc))) {
-  varToFile[im[1]] = im[2]; // ej: automatizacion -> automatizacion.js
-}
-const handlersBlockMatch = dispatcherSrc.match(/const HANDLERS = \{([\s\S]*?)\n\};/);
+const handlersBlockMatch = dispatcherSrc.match(/const LOADERS = \{([\s\S]*?)\n\};/);
 const modToFile = {};
-for (const line of handlersBlockMatch[1].split('\n')) {
-  const quoted = line.match(/^\s*['"]([a-z0-9-]+)['"]\s*:\s*(\w+)/);
-  const bare = line.match(/^\s*([a-zA-Z][a-zA-Z0-9]*)\s*,?\s*(\/\/.*)?$/);
-  if (quoted && varToFile[quoted[2]]) modToFile[quoted[1]] = varToFile[quoted[2]];
-  else if (bare && varToFile[bare[1]]) modToFile[bare[1]] = varToFile[bare[1]];
+if (handlersBlockMatch) {
+  const loaderRe = /(?:'([a-z0-9-]+)'|([a-zA-Z][a-zA-Z0-9]*))\s*:\s*\(\)\s*=>\s*import\(['"]\.\.\/lib\/handlers\/([^'"]+)['"]\)/g;
+  let lm;
+  while ((lm = loaderRe.exec(handlersBlockMatch[1]))) {
+    const mod = lm[1] || lm[2];
+    modToFile[mod] = lm[3];
+  }
 }
 
 // ── Extraer fetch('/api/...') del frontend, CON su query string completa ──

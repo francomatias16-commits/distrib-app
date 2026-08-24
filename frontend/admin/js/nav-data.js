@@ -122,10 +122,17 @@ window.NAV_WORKSPACES = [
       { label: 'Productos',     href: '/admin/productos',     seccion: 'productos',
         roles: ['dueno', 'admin', 'depositero'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>` },
+      // FIX (pedido del dueño, 2026-08-23): "Combos" dejó de ser una sección
+      // aparte del menú — es una vista chica (mismo patrón visual que la
+      // tabla de Productos) que ahora vive como pestaña "Combos" dentro de
+      // Productos (/admin/productos?tab=combos), al lado de Productos.
+      // Mismo criterio que Zonas dentro de Repartos y Listas de precio
+      // dentro de Clientes. /admin/combos se mantiene como redirect (ver
+      // vercel.json) para no romper accesos guardados.
       { label: 'Stock',         href: '/admin/stock',         seccion: 'stock',        diario: true,
         roles: ['dueno', 'admin', 'depositero'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>` },
-      { label: 'Por vencer y en oferta', href: '/admin/vencimientos', seccion: 'vencimientos',
+      { label: 'Lotes: por vencer y en oferta', href: '/admin/vencimientos', seccion: 'vencimientos',
         roles: ['dueno', 'admin', 'depositero', 'vendedor'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` },
       { label: 'Devoluciones',  href: '/admin/devoluciones',  seccion: 'devoluciones', diario: true,
@@ -134,7 +141,7 @@ window.NAV_WORKSPACES = [
       { label: 'Proveedores', href: '/admin/proveedores',   seccion: 'proveedores',
         roles: ['dueno', 'admin', 'depositero'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/></svg>` },
-      // FIX 092: PENDIENTES #3 marcado ✅ pero entrada faltaba del nav (nav-data.js no fue actualizado)
+      // FIX 092: PENDIENTES #3 marcado [hecho] pero entrada faltaba del nav (nav-data.js no fue actualizado)
       { label: 'Compras',       href: '/admin/compras',       seccion: 'compras',
         roles: ['dueno', 'admin', 'depositero'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>` },
@@ -201,9 +208,6 @@ window.NAV_WORKSPACES = [
       // mantiene solo con acceso desde Ventas (donde vive conceptualmente,
       // ver comentario en esa sección). Sigue siendo la misma pantalla de
       // siempre, no se tocó nada de reglas-precio.html/.js.
-      { label: 'Mercado Pago',   href: '/admin/mercadopago-config', seccion: 'mercadopago-config',
-        roles: ['dueno', 'admin'],
-        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>` },
     ],
   },
   {
@@ -242,6 +246,9 @@ window.NAV_WORKSPACES = [
       { label: 'Finanzas',  href: '/admin/reportes-financieros', seccion: 'reportes-financieros',
         roles: ['dueno', 'admin', 'contador'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
+      { label: 'Gastos generales', href: '/admin/gastos-generales', seccion: 'gastos-generales',
+        roles: ['dueno', 'admin', 'contador'],
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>` },
       { label: 'Stock',     href: '/admin/reportes-stock',       seccion: 'reportes-stock',
         roles: ['dueno', 'admin', 'contador', 'depositero'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>` },
@@ -279,13 +286,13 @@ window.NAV_WORKSPACES = [
       { label: 'Importar mis datos', href: '/admin/migracion',  seccion: 'migracion',
         roles: ['dueno', 'admin'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>` },
-      { label: 'Historial de envíos', href: '/admin/notif-log',  seccion: 'notif-log',
+      { label: 'Mercado Pago',   href: '/admin/mercadopago-config', seccion: 'mercadopago-config',
         roles: ['dueno', 'admin'],
-        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>` },
       { label: 'Suscripciones SaaS', href: '/admin/saas-billing', seccion: 'saas-billing',
         roles: ['dueno'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>` },
-      { label: 'Soporte', href: '/admin/soporte', seccion: 'soporte',
+      { label: 'Soporte técnico', href: '/admin/soporte', seccion: 'soporte',
         roles: ['dueno', 'admin'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>` },
     ],
@@ -311,9 +318,37 @@ window.NAV_WORKSPACES = [
       { label: 'Avisos operativos', href: '/admin/avisos', seccion: 'avisos', diario: true,
         roles: ['dueno', 'admin'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
+      { label: 'Historial de envíos', href: '/admin/notif-log',  seccion: 'notif-log',
+        roles: ['dueno', 'admin'],
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
       { label: 'Salud del sistema', href: '/admin/observabilidad', seccion: 'observabilidad',
         roles: ['dueno', 'admin'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>` },
+    ],
+  },
+  // v961 — Grupo propio para el asistente de IA (antes vivía adentro de
+  // "Configuración"). Un solo ítem adentro con `accion` (no `href`): no
+  // navega, abre el panel de chat-widget.js vía window.abrirAsistenteIA()
+  // (ver el listener de clicks en nav.js/dashboard.html). Sin roles: mismo
+  // criterio que tenía el botón flotante que reemplaza (visible para
+  // cualquier rol con sesión — el propio panel se auto-oculta si no hay
+  // sesión). Se renderiza igual que cualquier otro grupo del menú (mismo
+  // criterio de `color`/`textColor` que ya usan Alertas/Ventas/etc. — ver
+  // renderMenuNavegacion() en nav.js); el único plus es el link un poco
+  // más grande, ver `[data-menu-accion="asistente-ia"]` en nav.css.
+  {
+    id:    'asistente-ia',
+    label: 'Asistente',
+    color: 'var(--nav-ia)',
+    textColor: 'var(--nav-ia-text)',
+    roles: null,
+    icon:  `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2 14.09 8.26 20.5 8.27 15.34 12.14 17.18 18.4 12 14.77 6.82 18.4 8.66 12.14 3.5 8.27 9.91 8.26 12 2z"/>
+            </svg>`,
+    secciones: [
+      { label: 'Trabajar con IA', accion: 'asistente-ia', seccion: 'asistente-ia',
+        roles: null,
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>` },
     ],
   },
 ];

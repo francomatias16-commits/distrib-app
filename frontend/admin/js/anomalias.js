@@ -7,6 +7,22 @@
 // Clave local: "tipo__usuarioId__entidadId" — misma que usa el backend para UPSERT.
 const _revisadas = new Set();  // se puebla en cargarRevisadas() al iniciar
 
+// ── Paginación cliente ("Cargar más") ───────────────────────────────────────
+const ANOM_MOSTRAR_INICIAL = 8;
+const ANOM_PAGINA          = 12;
+let _anomVisibles = ANOM_MOSTRAR_INICIAL;
+
+function piePaginacionHTML(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const hayMas        = total > visibles;
+  const puedeColapsar = visibles > mostrarInicial;
+  if (!hayMas && !puedeColapsar) return '';
+  const restantes = total - visibles;
+  return `<div class="paginar-foot">
+    ${hayMas ? `<button type="button" class="paginar-btn" onclick="${cargarMasFn}()">Cargar ${Math.min(pagina, restantes)} más (quedan ${restantes})</button>` : ''}
+    ${puedeColapsar ? `<button type="button" class="paginar-btn paginar-btn--ghost" onclick="${colapsarFn}()">Ver menos</button>` : ''}
+  </div>`;
+}
+
 const TIPO_LABELS = {
   descuento_repetido_vendedor:            { titulo: 'Descuentos repetidos por vendedor',            icono: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', desc: 'Un vendedor aplicó descuentos en múltiples pedidos distintos en poco tiempo.' },
   descuento_repetido_vendedor_cliente:    { titulo: 'Descuento repetido al mismo cliente',          icono: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 12l3 3 8-8"/><path d="M2 12l4-4 4 4-4 4z"/><path d="M14 8l4-4 4 4-3 3"/></svg>', desc: 'Un vendedor le dio descuento reiterado al mismo cliente. Puede ser un acuerdo informal no registrado.' },
@@ -42,6 +58,7 @@ const DETALLE_LABELS = {
   porcentaje: 'Porcentaje', descuento: 'Descuento', descuento_pct: 'Descuento (%)', precio: 'Precio',
   precio_lista: 'Precio de lista', precio_manual: 'Precio cargado', cantidad: 'Cantidad', caja_id: 'Caja',
   deposito_id: 'Depósito', zona_id: 'Zona', ruta_id: 'Ruta', motivo: 'Motivo', observacion: 'Observación', nota: 'Nota',
+  numero_pedido: 'N° de pedido', numero_factura: 'N° de factura',
 };
 
 function humanizarClave(clave) {
@@ -49,6 +66,23 @@ function humanizarClave(clave) {
   return String(clave)
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// FIX (pedido del dueño, generalizado a cualquier tipo de anomalía): los
+// eventos del detalle traían campos como pedido_id / cliente_id / caja_id
+// con el UUID interno de la base de datos tal cual — un dato que no le
+// dice nada a una persona no técnica y que, además, no se puede traducir
+// a un nombre acá (no hay join disponible del lado del cliente). Antes
+// se mostraba igual porque el diccionario solo traducía la ETIQUETA
+// ("Pedido"), no el VALOR. Regla: cualquier campo que sea un identificador
+// interno (termina en "_id", se llama "id", o su valor tiene forma de
+// UUID) se oculta del todo — si el evento trae un dato humano equivalente
+// (numero_pedido, cliente_nombre, etc.) ese sí se muestra.
+const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function esCampoIdInterno(clave, valor) {
+  if (/(^|_)id$/i.test(clave)) return true;
+  if (typeof valor === 'string' && RE_UUID.test(valor)) return true;
+  return false;
 }
 
 function humanizarValor(valor) {
@@ -64,18 +98,50 @@ function humanizarValor(valor) {
 // Convierte el objeto `detalle` (o un arreglo de eventos) en una lista de
 // HTML legible, en vez de un volcado de JSON crudo con nombres de campo
 // de la base de datos.
+//
+// FIX (pedido del dueño): antes, una lista de eventos (ej. `detalle.pedidos`,
+// un array de 30+ objetos) se insertaba entera dentro del <span> "valor" de
+// una fila flex label/valor — quedaba apretada en la mitad angosta de la
+// fila, con scroll interno, en vez de usar el ancho completo de la tarjeta.
+// Ahora los campos simples (escalares) se siguen mostrando como fila
+// label/valor, pero las listas de eventos se renderizan aparte, en su
+// propia sección de ancho completo con tarjetas en grilla (una por evento).
+function renderFilasEscalares(obj) {
+  return Object.entries(obj)
+    .filter(([k, v]) => v !== null && v !== undefined && v !== '' && !(v && typeof v === 'object'))
+    .filter(([k, v]) => !esCampoIdInterno(k, v))
+    .map(([k, v]) => `<div class="anomalia-detalle-fila"><span class="anomalia-detalle-lbl">${humanizarClave(k)}</span><span>${humanizarValor(v)}</span></div>`)
+    .join('');
+}
+
+function renderListaEventos(arr) {
+  const items = arr.map((item, i) => {
+    const cuerpo = (item && typeof item === 'object' && !Array.isArray(item))
+      ? (renderFilasEscalares(item) || '<div class="anomalia-detalle-fila"><span>Sin datos adicionales para mostrar.</span></div>')
+      : `<div class="anomalia-detalle-fila"><span>${humanizarValor(item)}</span></div>`;
+    return `<div class="anomalia-detalle-evento"><strong>Evento ${i + 1}</strong>${cuerpo}</div>`;
+  }).join('');
+  return `<div class="anomalia-detalle-eventos">${items}</div>`;
+}
+
 function formatearDetalleHumano(detalle) {
   if (Array.isArray(detalle)) {
-    return detalle.map((item, i) => `<div class="anomalia-detalle-evento"><strong>Evento ${i + 1}</strong>${formatearDetalleHumano(item)}</div>`).join('');
+    return renderListaEventos(detalle);
   }
   if (detalle && typeof detalle === 'object') {
-    const filas = Object.entries(detalle)
-      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+    const filasEscalares = renderFilasEscalares(detalle);
+    const gruposLista = Object.entries(detalle)
+      .filter(([, v]) => v && typeof v === 'object')
       .map(([k, v]) => {
-        const valor = (v && typeof v === 'object') ? formatearDetalleHumano(v) : humanizarValor(v);
-        return `<div class="anomalia-detalle-fila"><span class="anomalia-detalle-lbl">${humanizarClave(k)}</span><span>${valor}</span></div>`;
-      });
-    return filas.join('') || '<div class="anomalia-detalle-fila">Sin datos adicionales.</div>';
+        const cantidad = Array.isArray(v) ? ` (${v.length})` : '';
+        const cuerpo = Array.isArray(v) ? renderListaEventos(v) : formatearDetalleHumano(v);
+        return `<div class="anomalia-detalle-grupo">
+          <div class="anomalia-detalle-grupo-titulo">${humanizarClave(k)}${cantidad}</div>
+          ${cuerpo}
+        </div>`;
+      })
+      .join('');
+    return (filasEscalares + gruposLista) || '<div class="anomalia-detalle-fila">Sin datos adicionales.</div>';
   }
   return humanizarValor(detalle);
 }
@@ -127,6 +193,7 @@ async function cargarAnomalias() {
     if (!resp.ok) throw new Error(d.error || resp.statusText);
 
     const anomalias = d.resultados?.[0]?.anomalias || [];
+    _anomVisibles = ANOM_MOSTRAR_INICIAL;
     renderAnomalias(anomalias);
   } catch (err) {
     document.getElementById('skeleton-list').style.display = 'none';
@@ -161,10 +228,29 @@ function renderAnomalias(lista) {
 
   // Guardar lista para referencia por índice desde onclick
   window._anomaliasList = lista;
-  // Cards
-  container.innerHTML = lista.map((a, idx) => buildCard(a, idx)).join('');
+  // Cards — se cortan a _anomVisibles pero conservando el idx original
+  // (0..N-1 dentro de `lista`, que es exactamente window._anomaliasList),
+  // porque marcarRevisada/verDetalle usan ese idx para ubicar el elemento
+  // en window._anomaliasList y para armar ids como card-${idx}.
+  const total    = lista.length;
+  const visibles = lista.slice(0, _anomVisibles);
+  const tarjetas = visibles.map((a, idx) => buildCard(a, idx)).join('');
+  const pie      = piePaginacionHTML(total, _anomVisibles, ANOM_MOSTRAR_INICIAL, ANOM_PAGINA, 'cargarMasAnomalias', 'colapsarAnomalias');
+  container.innerHTML = tarjetas + pie;
   container.style.display = 'flex';
 }
+
+function cargarMasAnomalias() {
+  _anomVisibles = Math.min((window._anomaliasList || []).length, _anomVisibles + ANOM_PAGINA);
+  renderAnomalias(window._anomaliasList || []);
+}
+function colapsarAnomalias() {
+  _anomVisibles = ANOM_MOSTRAR_INICIAL;
+  renderAnomalias(window._anomaliasList || []);
+  document.getElementById('anomalias-lista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.cargarMasAnomalias = cargarMasAnomalias;
+window.colapsarAnomalias  = colapsarAnomalias;
 
 function buildCard(a, idx) {
   const key  = cardKey(a, idx);
@@ -179,6 +265,15 @@ function buildCard(a, idx) {
   const hasta  = a.ultimo_evento ? formatTs(a.ultimo_evento) : '—';
 
   const detalleHumano = a.detalle ? formatearDetalleHumano(a.detalle) : null;
+
+  // FIX (pedido del dueño, generalizado): en anomalías donde el afectado
+  // es el mismo usuario que hizo la acción (ej. descuentos repetidos por
+  // vendedor), "Quién" y "Entidad afectada" traían el mismo nombre — dos
+  // tarjetas mostrando el mismo dato es confuso, no dos datos distintos.
+  // Si coinciden, se omite la tarjeta repetida.
+  const entidadNombre = a.entidad_nombre || a.entidad_tipo || '—';
+  const entidadEsMismaPersona = a.usuario_nombre && entidadNombre &&
+    a.usuario_nombre.trim().toLowerCase() === String(entidadNombre).trim().toLowerCase();
 
   return `<div class="anomalia-card${rev ? ' revisada' : ''}" id="card-${idx}">
     <div class="anomalia-card__header">
@@ -197,10 +292,10 @@ function buildCard(a, idx) {
           <div class="anomalia-meta-item__lbl">Quién</div>
           <div class="anomalia-meta-item__val">${window.sanitize(a.usuario_nombre || '—')}</div>
         </div>
-        <div class="anomalia-meta-item">
+        ${entidadEsMismaPersona ? '' : `<div class="anomalia-meta-item">
           <div class="anomalia-meta-item__lbl">Entidad afectada</div>
-          <div class="anomalia-meta-item__val" style="font-size:13px">${window.sanitize(a.entidad_nombre || a.entidad_tipo || '—')}</div>
-        </div>
+          <div class="anomalia-meta-item__val" style="font-size:13px">${window.sanitize(entidadNombre)}</div>
+        </div>`}
         <div class="anomalia-meta-item">
           <div class="anomalia-meta-item__lbl">Eventos</div>
           <div class="anomalia-meta-item__val">${a.cantidad_eventos}</div>
@@ -293,6 +388,7 @@ window.ejecutarAnalisis = async function() {
     toast(total > 0 ? `${total} patrón${total > 1 ? 'es' : ''} detectado${total > 1 ? 's' : ''}` : 'Sin anomalías detectadas', total > 0 ? 'warn' : 'ok');
     // Renderizar la lista fresca con los datos devueltos
     const anomalias = d.resultados?.[0]?.anomalias || [];
+    _anomVisibles = ANOM_MOSTRAR_INICIAL;
     renderAnomalias(anomalias);
   } catch (err) {
     console.error('[anomalias] analizar:', err);

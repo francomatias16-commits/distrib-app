@@ -25,7 +25,7 @@
      5.52:1, 7.44:1, 7.17:1 y 6.68:1 respectivamente), así que las
      variantes "-text" pasan a apuntar directo al propio token — ya no
      hace falta la indirección a --color-box-*. La única excepción es
-     --nav-hoy (#B87A00, 3.61:1 — falla como texto porque es justamente
+     --nav-hoy (#6A9873 — falla como texto porque es justamente
      el acento vívido de la marca), que sigue resolviéndose con
      --color-primary-dark (5.52:1). */
   --nav-hoy-text:          var(--color-primary-dark);
@@ -36,6 +36,7 @@
   --nav-fidelizacion-text: var(--nav-fidelizacion);
   --nav-reportes-text:     var(--nav-reportes);
   --nav-config-text:       var(--nav-config);
+  --nav-ia-text:           var(--nav-ia);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -64,6 +65,10 @@
 .topbar-left .topbar-divider {
   width: 1px; height: 20px; background: var(--color-border-soft); flex-shrink: 0;
 }
+
+/* v744 había agregado acá un .topbar-logo (logo de empresa junto al botón
+   "Menú principal"), retirado en v907 por redundante con el logo que ya
+   se ve en el chip de usuario (#topbar-avatar-ini). Reglas eliminadas. */
 
 .nav-menu-btn {
   height: 32px; padding: 0 14px; border-radius: var(--radius-full);
@@ -95,14 +100,14 @@
 .nav-back-btn[hidden] { display: none; }
 
 .nav-menu-backdrop {
-  position: fixed; inset: 0; background: rgba(22,24,29,.5); z-index: 400;
+  position: fixed; inset: 0; background: rgba(22,24,29,.5); z-index: var(--z-modal);
   opacity: 0; pointer-events: none; transition: opacity .15s;
   backdrop-filter: blur(1px);
 }
 .nav-menu-backdrop.open { opacity: 1; pointer-events: auto; }
 
 .nav-menu-panel {
-  position: fixed; top: 50%; left: 50%; z-index: 401;
+  position: fixed; top: 50%; left: 50%; z-index: var(--z-nav-panel);
   transform: translate(-50%, -52%) scale(.98);
   width: min(1200px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow-y: auto;
   background: var(--color-surface); border-top: 3px solid var(--color-success-mid);
@@ -161,6 +166,18 @@
 .nav-ws-link:hover::before { color: var(--nav-ws-color, var(--color-text)); }
 .nav-ws-link.is-current { color: var(--nav-ws-color, var(--color-primary)); font-weight: 700; }
 .nav-ws-link.is-current::before { color: var(--nav-ws-color, var(--color-primary)); }
+
+/* ── "Trabajar con IA" — un ítem más del menú, como cualquier otro grupo
+   (mismo .nav-ws de siempre, ya con color propio vía --nav-ws-color en el
+   encabezado). Único plus pedido: el link con su color y un toque más
+   grande que el resto (antes v961 lo pintaba como tarjeta aparte con
+   .nav-ws--destacado — se sacó ese tratamiento). */
+.nav-ws-link[data-menu-accion="asistente-ia"] {
+  color: var(--nav-ia-text);
+  font-size: 14.5px;
+}
+.nav-ws-link[data-menu-accion="asistente-ia"]::before { color: var(--nav-ia-text); }
+.nav-ws-link[data-menu-accion="asistente-ia"]:hover { opacity: .8; }
 
 /* ── Footer del panel: empresa (izq., misma fuente que auth.js llenaba
    antes en el riel — #sidebar-logo/#sidebar-empresa se mantienen para no
@@ -340,7 +357,7 @@ body[data-ws="config"]       .empty-guide-icon { background: var(--nav-config-bg
     width: 40px; height: 40px; border-radius: 12px;
     background: var(--nav-dark-bg); color: var(--color-surface); border: none;
     display: flex; align-items: center; justify-content: center;
-    z-index: 700; cursor: pointer;
+    z-index: var(--z-mnav-toggle); cursor: pointer;
     box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
     -webkit-tap-highlight-color: transparent;
   }
@@ -349,7 +366,7 @@ body[data-ws="config"]       .empty-guide-icon { background: var(--nav-config-bg
 
   .mnav-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-    z-index: 690; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    z-index: var(--z-mnav-overlay); opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   .mnav-overlay.visible { opacity: 1; pointer-events: auto; }
 
@@ -357,7 +374,7 @@ body[data-ws="config"]       .empty-guide-icon { background: var(--nav-config-bg
   .mnav-drawer {
     position: fixed; top: 0; bottom: 0; left: 0;
     width: min(82vw, 300px); background: var(--nav-dark-bg);
-    z-index: 691; display: flex; flex-direction: column;
+    z-index: var(--z-mnav-panel); display: flex; flex-direction: column;
     transform: translateX(-100%);
     transition: transform 0.25s cubic-bezier(0.32,0.72,0,1);
     box-shadow: 4px 0 24px rgba(0,0,0,.35);

@@ -107,36 +107,63 @@
     });
   }
 
-  // Convierte "Marina Torres" en un avatar circular con iniciales ("MT")
-  // delante del nombre — auth.js ya deja el nombre + badge de rol en
-  // #topbar-usuario; acá se agrega el círculo y se activa el menú de cuenta.
+  // Arma las iniciales ("MT" para "Marina Torres") que se usan como avatar
+  // de fallback cuando la empresa no tiene logo_url cargado (o la imagen
+  // falla al cargar). Auditoría Etapa 2 (v232, hallazgo Bajo): antes se
+  // tomaba p[0] crudo, así que un nombre que arrancaba con emoji/número/
+  // símbolo generaba una inicial "basura" visualmente. Se normaliza a la
+  // primera letra Unicode real de cada palabra; si una palabra no tiene
+  // ninguna letra, se descarta en vez de mostrar el símbolo.
+  function _inicialesDe(nombre) {
+    const primeraLetra = (palabra) => {
+      const m = palabra.match(/\p{L}/u);
+      return m ? m[0] : '';
+    };
+    return nombre
+      .split(/\s+/)
+      .map(primeraLetra)
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?';
+  }
+
+  // Convierte el chip "Marina Torres" en un avatar circular delante del
+  // nombre — auth.js ya deja el nombre + badge de rol en #topbar-usuario;
+  // acá se agrega el círculo y se activa el menú de cuenta.
+  //
+  // v906: mismo criterio que #topbar-logo/#sidebar-logo (ver auth.js,
+  // pintarLogoEn) — si la empresa tiene logo_url se muestra el logo en vez
+  // de las iniciales, con fallback automático a iniciales si la imagen no
+  // carga. Antes este avatar quedaba fijo en iniciales sin importar si
+  // había logo, inconsistente con el resto de la topbar/menú.
   function mejorarChipUsuario() {
     const userEl = document.getElementById('topbar-usuario');
     if (!userEl || !userEl.textContent.trim()) return;
 
-    if (!document.getElementById('topbar-avatar-ini')) {
-      const nombre = userEl.textContent.trim();
-      // Auditoría Etapa 2 (v232, hallazgo Bajo): antes se tomaba p[0] crudo,
-      // así que un nombre que arrancaba con emoji/número/símbolo generaba
-      // una inicial "basura" visualmente. Se normaliza a la primera letra
-      // Unicode real de cada palabra; si una palabra no tiene ninguna
-      // letra, se descarta en vez de mostrar el símbolo.
-      const primeraLetra = (palabra) => {
-        const m = palabra.match(/\p{L}/u);
-        return m ? m[0] : '';
-      };
-      const iniciales = nombre
-        .split(/\s+/)
-        .map(primeraLetra)
-        .filter(Boolean)
-        .slice(0, 2)
-        .join('')
-        .toUpperCase() || '?';
-      const avatar = document.createElement('span');
+    const nombre = userEl.textContent.trim();
+    const logoUrl = window.authCtx?.perfil?.empresas?.logo_url || null;
+
+    let avatar = document.getElementById('topbar-avatar-ini');
+    if (!avatar) {
+      avatar = document.createElement('span');
       avatar.id = 'topbar-avatar-ini';
       avatar.className = 'topbar-avatar-ini';
-      avatar.textContent = iniciales;
       userEl.parentElement?.insertBefore(avatar, userEl);
+    }
+
+    if (logoUrl) {
+      avatar.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = logoUrl;
+      img.alt = nombre;
+      img.onerror = () => {
+        avatar.innerHTML = '';
+        avatar.textContent = _inicialesDe(nombre);
+      };
+      avatar.appendChild(img);
+    } else if (!avatar.textContent.trim() && !avatar.querySelector('img')) {
+      avatar.textContent = _inicialesDe(nombre);
     }
 
     if (userEl.parentElement) _armarMenuChip(userEl.parentElement);
@@ -336,7 +363,7 @@
     const filas = visibles.map((it) => {
       const sinVer = it.id && !vistos.has(it.id);
       return `<div class="notif-item" data-href="${it.href ? window.sanitize ? window.sanitize(it.href) : it.href : ''}">
-        <span class="notif-dot" style="${sinVer ? '' : 'background:var(--color-border,#d1d5db)'}"></span>
+        <span class="notif-dot" style="${sinVer ? '' : 'background:var(--color-border,#DDE1DC)'}"></span>
         <div>
           <div class="notif-texto"><strong>${it.titulo || 'Alerta'}</strong>${it.desc ? ' — ' + it.desc : ''}</div>
           <div class="notif-tiempo">${_tiempoRelativo(it.fecha)}</div>

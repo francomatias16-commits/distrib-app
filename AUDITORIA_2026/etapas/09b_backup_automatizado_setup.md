@@ -1,42 +1,78 @@
 # Etapa 9 (cont.) — Setup del backup automatizado (opción 2 de BACKUP-01)
 
-**Estado:** 🟡 Workflow creado, falta que el usuario configure 2 secrets en GitHub y haga push.
+**Estado:** 🟢 Resuelto — workflow corriendo en verde, backups semanales
+automáticos activos. Pendiente solo la prueba de restauración (ver abajo).
 
-Mientras se decide el upgrade a Supabase Pro, se implementó la opción 2 de
-`09_backups_disaster_recovery.md`: backup semanal propio vía GitHub Actions.
+## Qué se hizo (2026-08-15/16)
 
-## Qué hace
+### 1. Backup manual inmediato (red mínima mientras se arreglaba lo automático)
+Export completo de las 121 tablas del schema `public` (18.842 filas, ~8.8 MB)
+vía SQL directo contra producción, verificado fila por fila contra
+`pg_stat_user_tables` (sin desvíos), comprimido y cifrado con GPG (AES256).
+
+⚠️ La passphrase de una corrida anterior de este mismo proceso había quedado
+impresa en texto plano en el historial de otra conversación — se la
+consideró comprometida y no se reutilizó. Recomendado: para backups
+recurrentes, generar la passphrase localmente (`openssl rand -base64 24`) en
+lugar de pedírsela al asistente, así nunca queda en un chat.
+
+### 2. Workflow automatizado (`.github/workflows/backup-supabase.yml`) — 3 bugs encontrados y resueltos
+
+El workflow ya existía desde julio (`#1`–`#15` en el historial de Actions,
+con corridas mezcladas éxito/fallo), pero fallaba de forma intermitente.
+Se reescribió y depuró en 3 iteraciones, cada una diagnosticada con el log
+real de una corrida fallida:
+
+1. **Auth error por password sin URL-encoding.** Antes se armaba a mano una
+   única URL de conexión en el secret `SUPABASE_DB_URL`. Si el password de
+   la base tenía caracteres especiales (`@ / : % ? #`), la URL quedaba mal
+   formada. Fix: se reemplazó ese secret único por 5 secrets separados
+   (`SUPABASE_DB_HOST`, `_PORT`, `_NAME`, `_USER`, `_PASSWORD`) y el
+   workflow arma la URL él mismo, aplicando URL-encoding solo sobre el
+   segmento del password.
+
+2. **`FATAL: Tenant or user not found`.** El host del pooler estaba mal:
+   `aws-0-us-west-2.pooler.supabase.com` en vez del real,
+   `aws-1-us-west-2.pooler.supabase.com` (Supabase tiene varios clusters
+   por región y cada proyecto usa uno específico — solo se ve en el
+   dashboard, Connect → Connection string → Session, no por API). Fix:
+   secret `SUPABASE_DB_HOST` corregido al valor exacto.
+
+3. **`pg_dump: error: aborting because of server version mismatch`.** El
+   runner de GitHub Actions trae preinstalado `pg_dump` 16.x, pero el
+   proyecto corre Postgres 17.6 — `pg_dump` no puede volcar un servidor más
+   nuevo que él mismo. Fix: se suma el repo oficial de PostgreSQL (PGDG)
+   para instalar `postgresql-client-17`, y se antepone su carpeta de
+   binarios al `PATH` (el paquete no pisa el `pg_dump` viejo
+   automáticamente).
+
+**Resultado:** corrida manual de prueba en verde, con `pg_dump --version`
+confirmando 17.x en el log y artifact cifrado generado correctamente.
+
+## Qué hace el workflow (versión final)
 `.github/workflows/backup-supabase.yml`:
 1. Corre todos los domingos 06:00 UTC (03:00 hora Argentina), o a mano desde
-   la pestaña **Actions → Backup Supabase (semanal) → Run workflow**.
-2. `pg_dump -Fc` (formato custom, comprimido, permite restore selectivo).
-3. Cifra el dump con GPG simétrico (AES256).
-4. Lo sube como **artifact** de GitHub Actions, retención 90 días.
+   **Actions → Backup Supabase (semanal) → Run workflow**.
+2. Instala `pg_dump` 17 (matching la versión del servidor).
+3. Arma la cadena de conexión con URL-encoding automático del password.
+4. `pg_dump -Fc` (formato custom, comprimido, permite restore selectivo).
+5. Cifra el dump con GPG simétrico (AES256).
+6. Lo sube como **artifact** de GitHub Actions, retención 90 días.
 
-## Lo que falta que hagas vos (2 secrets en GitHub)
+## Secrets configurados en GitHub (Settings → Secrets and variables → Actions)
 
-Repo → **Settings → Secrets and variables → Actions → New repository secret**:
+| Secret | Valor |
+|---|---|
+| `SUPABASE_DB_HOST` | `aws-1-us-west-2.pooler.supabase.com` |
+| `SUPABASE_DB_PORT` | `5432` (modo Session del pooler) |
+| `SUPABASE_DB_NAME` | `postgres` |
+| `SUPABASE_DB_USER` | `postgres.jgiquzjwoedmzwqgzubr` |
+| `SUPABASE_DB_PASSWORD` | password de la base, sin codificar — el workflow lo codifica solo |
+| `BACKUP_GPG_PASSPHRASE` | passphrase de cifrado, generada localmente y guardada en gestor de contraseñas aparte |
 
-1. **`SUPABASE_DB_URL`** — la cadena de conexión en **modo Session** (puerto
-   `5432`), **no** el pooler en modo transacción (puerto `6543`) — `pg_dump`
-   necesita sesión persistente y `pg_dump` con pooler de transacción falla.
-   - Se consigue en el dashboard de Supabase: **Project Settings → Database →
-     Connection string → URI**, pestaña **Session** (no "Transaction").
-   - Formato: `postgresql://postgres.jgiquzjwoedmzwqgzubr:[TU-PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres`
-   - El password es el de la base (no tu password de login a Supabase) — si no
-     lo tenés a mano, se resetea en la misma pantalla.
+El viejo `SUPABASE_DB_URL` (single-secret) quedó dado de baja.
 
-2. **`BACKUP_GPG_PASSPHRASE`** — cualquier passphrase larga y random que vos
-   elijas (por ejemplo generada con `openssl rand -base64 32`). **Guardala en
-   un lugar seguro aparte** (gestor de contraseñas): sin ella, los backups
-   cifrados no se pueden restaurar. Ni yo ni nadie con acceso solo al repo
-   puede recuperarla si se pierde.
-
-Una vez cargados ambos secrets, con el próximo push el workflow queda activo.
-Podés forzar una corrida de prueba inmediatamente desde la pestaña Actions
-(no hace falta esperar al domingo).
-
-## Cómo restaurar un backup (probar esto ahora, no cuando haya una emergencia)
+## Cómo restaurar un backup (pendiente de probar, no cuando haya una emergencia)
 
 ```bash
 # 1. Descargar el artifact desde la pestaña Actions del run correspondiente
@@ -44,29 +80,29 @@ Podés forzar una corrida de prueba inmediatamente desde la pestaña Actions
 
 # 2. Descifrar
 gpg --batch --yes --passphrase "LA_PASSPHRASE" \
-    --decrypt backup_2026-07-13.dump.gpg > backup_2026-07-13.dump
+    --decrypt backup_2026-08-16.dump.gpg > backup_2026-08-16.dump
 
-# 3. Restaurar contra un proyecto Supabase (idealmente uno nuevo/branch de
-#    prueba, NO directo sobre producción, para no pisar nada por error)
+# 3. Restaurar contra un proyecto Supabase de prueba (NO directo sobre
+#    producción, para no pisar nada por error)
 pg_restore --no-owner --no-privileges \
-    -d "postgresql://postgres.NUEVO_PROYECTO:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres" \
-    backup_2026-07-13.dump
+    -d "postgresql://postgres.NUEVO_PROYECTO:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:5432/postgres" \
+    backup_2026-08-16.dump
 ```
 
 **Pendiente de verificación (marcar cuando se haga):** correr este proceso de
-restauración al menos una vez contra un proyecto Supabase de prueba (se puede
-crear uno gratis nuevo solo para el test) — un backup nunca probado no es un
-backup confiable. Sugerido como parte del cierre real de BACKUP-01.
+restauración al menos una vez contra un proyecto Supabase de prueba — un
+backup nunca probado no es un backup confiable. Es el único punto que falta
+para cerrar BACKUP-01 del todo.
 
 ## Límites de esta solución (por qué no reemplaza el upgrade a Pro)
 - Retención de 90 días en artifacts (no indefinida).
 - Sin PITR — solo se puede volver al punto del último dump semanal (hasta 7
   días de pérdida de datos en el peor caso), no a un segundo específico.
-- El mantenimiento del workflow y la rotación de la passphrase quedan a cargo
-  del usuario, no de Supabase.
-- Sigue sin haber SLA sobre la disponibilidad del proyecto en sí (plan Free
-  se pausa tras 7 días de inactividad — no es un riesgo hoy por actividad
-  constante, pero es otra razón más para el upgrade a Pro a mediano plazo).
+- Mantenimiento del workflow y rotación de la passphrase a cargo del
+  usuario, no de Supabase.
+- Plan Free se pausa tras 7 días de inactividad (no es riesgo hoy por
+  actividad constante, pero es otra razón para el upgrade a Pro a mediano
+  plazo).
 
 Sigue recomendado el upgrade a Pro ($25/mes) como solución definitiva; este
 workflow es la red de seguridad mínima mientras esa decisión se toma.

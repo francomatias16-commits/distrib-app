@@ -54,17 +54,17 @@
       #cs-modal {
         background: var(--color-surface, #fff); border-radius: var(--radius-lg, 8px);
         width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
-        padding: 20px; box-shadow: var(--shadow-xl, 0 10px 40px rgba(0,0,0,.2));
+        padding: 20px; box-shadow: var(--shadow-xl, 4px 6px 0 rgba(22,24,29,.08), 0 0 0 1px #E7E9E4);
         display: flex; flex-direction: column; gap: 12px;
       }
       #cs-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-      #cs-titulo { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--color-text, #16181d); }
+      #cs-titulo { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--color-text, #111A17); }
       #cs-cerrar {
         background: none; border: none; border-radius: var(--radius-md, 4px);
-        padding: 4px; cursor: pointer; color: var(--color-text-muted, #666);
+        padding: 4px; cursor: pointer; color: var(--color-text-muted, #5B6660);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       }
-      #cs-cerrar:hover { background: var(--color-bg, #f2f2f0); }
+      #cs-cerrar:hover { background: var(--color-bg, #F6F7F5); }
       #cs-video-wrap {
         position: relative; width: 100%; aspect-ratio: 4 / 3;
         border-radius: var(--radius-md, 4px); overflow: hidden; background: #000;
@@ -73,12 +73,12 @@
       #cs-marco {
         position: absolute; inset: 14% 8%;
         border: 2px solid rgba(255,255,255,.9); border-radius: var(--radius-md, 4px);
-        box-shadow: 0 0 0 999px rgba(0,0,0,.28); pointer-events: none;
+        box-shadow: 0 0 0 999px rgba(22,24,29,.28); pointer-events: none;
       }
-      #cs-instrucciones { font-size: 0.8rem; color: var(--color-text-muted, #666); margin: 0; text-align: center; }
+      #cs-instrucciones { font-size: 0.8rem; color: var(--color-text-muted, #5B6660); margin: 0; text-align: center; }
       #cs-error {
-        display: none; font-size: 0.8rem; color: var(--color-danger, #7A1E19); margin: 0;
-        background: var(--color-danger-bg, #f3dad8); border-radius: var(--radius-md, 4px);
+        display: none; font-size: 0.8rem; color: var(--color-danger, #7A2820); margin: 0;
+        background: var(--color-danger-bg, #F5DDD8); border-radius: var(--radius-md, 4px);
         padding: 8px 10px;
       }
     `;

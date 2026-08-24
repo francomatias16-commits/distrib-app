@@ -58,8 +58,8 @@ window.inicializarPushAdmin = inicializarPushAdmin;
   }
 
   try {
-    // 1. Registrar el Service Worker del admin
-    swRegistration = await navigator.serviceWorker.register(SW_PATH, { scope: '/' });
+    // 1. Registrar el Service Worker del admin (scope acotado a /admin, ver auth.js)
+    swRegistration = await navigator.serviceWorker.register(SW_PATH, { scope: '/admin/' });
     await swRegistration.update();
 
     // 2. Enviar config de Firebase al SW para que pueda inicializarse
@@ -115,7 +115,7 @@ window.inicializarPushAdmin = inicializarPushAdmin;
       const pedidoId = data.pedido_id;
 
       mostrarToastPush({
-        titulo:    notif.title || '📦 Nuevo pedido',
+        titulo:    notif.title || 'Nuevo pedido',
         cuerpo:    notif.body  || 'Un cliente realizó un nuevo pedido.',
         pedido_id: pedidoId,
         link:      data.link || '/admin/pedidos',
@@ -167,7 +167,7 @@ function mostrarToastPush({ titulo, cuerpo, pedido_id, link }) {
 
   el.innerHTML = `
     <div class="tpa-header">
-      <span class="tpa-icono">📦</span>
+      <span class="tpa-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
       <strong class="tpa-titulo">${escHtml(titulo)}</strong>
       <button class="tpa-cerrar" onclick="this.closest('#toast-push-admin').classList.remove('visible')">✕</button>
     </div>
@@ -190,10 +190,10 @@ function crearToastPushEl() {
     style.textContent = `
       #toast-push-admin {
         position: fixed; top: 16px; right: 16px; z-index: 99999;
-        background: var(--color-surface,#FCFAF5); border: 1px solid var(--color-border-soft,#DAD3C0);
-        border-left: 4px solid var(--color-primary, #B87A00);
+        background: var(--color-surface,#FFFFFF); border: 1px solid var(--color-border-soft,#E7E9E4);
+        border-left: 4px solid var(--color-primary, #6A9873);
         border-radius: 8px; padding: 14px 16px;
-        box-shadow: 0 4px 24px rgba(0,0,0,.12);
+        box-shadow: 0 4px 24px rgba(22,24,29,.12);
         max-width: 320px; min-width: 260px;
         transform: translateX(110%); transition: transform .3s ease;
         font-family: inherit;
@@ -203,12 +203,12 @@ function crearToastPushEl() {
       .tpa-icono  { font-size: 16px; }
       .tpa-titulo { font-size: 13px; font-weight: 600; flex: 1; }
       .tpa-cerrar { border: none; background: none; cursor: pointer;
-                    color: var(--color-text-light,#6B695F); font-size: 14px; padding: 0; }
-      .tpa-body   { font-size: 12px; color: var(--color-text-muted,#4B4A45); margin-bottom: 10px; }
+                    color: var(--color-text-light,#7A857E); font-size: 14px; padding: 0; }
+      .tpa-body   { font-size: 12px; color: var(--color-text-muted,#5B6660); margin-bottom: 10px; }
       .tpa-btn    {
         display: inline-block; padding: 5px 12px; border-radius: 6px;
-        background: var(--color-primary-bg, rgba(232,160,0,.14));
-        color: var(--color-primary, #B87A00);
+        background: var(--color-primary-bg, rgba(106,152,115,.14));
+        color: var(--color-primary, #6A9873);
         font-size: 12px; font-weight: 600;
         border: none; cursor: pointer; text-decoration: none;
       }

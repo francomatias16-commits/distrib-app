@@ -45,6 +45,38 @@ body {
 
 .login-card { position: relative; z-index: 1; }
 
+/* ── Botón "Volver" — mismo lenguaje visual (flecha + history.back con
+   fallback a "/") que .back-btn de completar-registro.html, pero flotante
+   y en la paleta celeste propia del login en vez del top-bar azul sólido. ── */
+.login-back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px 9px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--login-card-border);
+  color: var(--login-text);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(27,58,92,.1);
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.login-back-btn svg { flex-shrink: 0; stroke: var(--login-accent-dark); }
+.login-back-btn:hover {
+  background: rgba(255,255,255,.85);
+  box-shadow: 0 6px 18px rgba(27,58,92,.16);
+  transform: translateX(-1px);
+}
+
 /* ══════ Card centrada, estilo vidrio, con lugar arriba para el avatar ══════ */
 .login-card {
   width: 100%;
@@ -328,7 +360,7 @@ body {
   font-size: 15px; padding: 9px 20px;
   border-radius: var(--radius-full); opacity: 0;
   transition: all .3s; pointer-events: none;
-  white-space: nowrap; z-index: 300;
+  white-space: nowrap; z-index: var(--z-modal-backdrop);
   box-shadow: 0 4px 16px rgba(0,0,0,.2);
   font-family: var(--font);
 }
@@ -354,6 +386,7 @@ body {
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
+  .login-back-btn { top: 14px; left: 14px; padding: 7px 13px 7px 10px; font-size: 12.5px; }
   .login-card { max-width: 400px; padding: 56px 30px 26px; border-radius: 22px; }
   .login-avatar { width: 88px; height: 88px; top: -44px; }
   .login-avatar svg { width: 40px; height: 40px; }
@@ -363,4 +396,52 @@ body {
     white-space: normal; text-align: center; max-width: none;
   }
   .toast.show { transform: translateY(0); }
+}
+
+/* ── Login social (Google/Facebook) — mismo patrón visual que registro.html ── */
+.social-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.btn-social {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: #fff;
+  border: 1px solid var(--border, #E4E2D8);
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--login-text, #1B3A5C);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background .15s, border-color .15s;
+}
+.btn-social:hover { background: #F5F4EF; border-color: #B9B7AC; }
+.btn-social:disabled { opacity: .6; cursor: not-allowed; }
+.btn-social svg { flex-shrink: 0; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: var(--muted, #8A8778);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, #E4E2D8);
 }

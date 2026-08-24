@@ -74,26 +74,38 @@ export class ComprasPage extends PageObjectBase {
   /**
    * Completa la fila `idx` ya agregada con `agregarFilaItem()`.
    *
-   * Los inputs de la fila actualizan `itemsOC` (y recalculan el total) por
-   * `onchange` — evento nativo que el browser dispara recién al perder el
-   * foco, no al tipear. `.fill()` no fuerza ese blur, así que sin el
-   * `.blur()` explícito de acá el ÚLTIMO campo tocado queda sin confirmar
-   * hasta que algo le saca el foco por su cuenta (ej. clickear "Guardar")
-   * — un usuario real tabulando entre campos no lo nota, pero una
-   * aserción sobre `#oc-total` justo después de `completarItem()` sí lee
-   * el valor viejo. Mismo patrón esperable en cualquier fila con
-   * `onchange` en vez de `oninput` (ver también stock.js/pedidos.js).
+   * El selector de producto era antes un `<select>` nativo con TODO el
+   * catálogo (impracticable para buscar entre cientos de productos) —
+   * ahora es un combo con filtro en vivo (`prod-combo-input` +
+   * `prod-combo-lista`). Al enfocar vacío, el combo muestra igual un
+   * primer lote de productos sin necesidad de tipear nada, así que para
+   * el test alcanza con enfocar el input y clickear la opción por su
+   * `data-testid="prod-opt-<id>"` — no hace falta reproducir el tipeo.
+   *
+   * Los inputs de cantidad/costo actualizan `itemsOC` (y recalculan el
+   * total) por `onchange` — evento nativo que el browser dispara recién
+   * al perder el foco, no al tipear. `.fill()` no fuerza ese blur, así
+   * que sin el `.blur()` explícito de acá el ÚLTIMO campo tocado queda
+   * sin confirmar hasta que algo le saca el foco por su cuenta (ej.
+   * clickear "Guardar") — un usuario real tabulando entre campos no lo
+   * nota, pero una aserción sobre `#oc-total` justo después de
+   * `completarItem()` sí lee el valor viejo. Mismo patrón esperable en
+   * cualquier fila con `onchange` en vez de `oninput` (ver también
+   * stock.js/pedidos.js).
    */
   async completarItem(idx, { productoId, cantidad, precioCosto } = {}) {
     const fila = this.filaItem(idx);
-    if (productoId !== undefined) await fila.locator('select').selectOption(productoId);
+    if (productoId !== undefined) {
+      await fila.locator('.prod-combo-input').click();
+      await this.page.locator(`[data-testid="prod-opt-${productoId}"]`).click();
+    }
     if (cantidad !== undefined) {
-      const input = fila.locator('input').nth(0);
+      const input = fila.locator('input[type="number"]').nth(0);
       await input.fill(String(cantidad));
       await input.blur();
     }
     if (precioCosto !== undefined) {
-      const input = fila.locator('input').nth(1);
+      const input = fila.locator('input[type="number"]').nth(1);
       await input.fill(String(precioCosto));
       await input.blur();
     }

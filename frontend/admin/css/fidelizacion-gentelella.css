@@ -153,7 +153,7 @@ body.dash-fidelizacion-gentelella .fidel-tabla-header .btn--primary:hover {
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody) — compartida entre tabs
    ════════════════════════════════════════════════════════════ */
-body.dash-fidelizacion-gentelella .tabla th {
+body.dash-fidelizacion-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -162,47 +162,38 @@ body.dash-fidelizacion-gentelella .tabla th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
+  white-space: nowrap !important; /* preservado del <style> inline pre-reskin quitado al migrar a .tabla-admin (Fase 2) */
 }
-body.dash-fidelizacion-gentelella .tabla td {
+body.dash-fidelizacion-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-fidelizacion-gentelella .tabla tbody tr:last-child td {
+body.dash-fidelizacion-gentelella .tabla-admin tbody tr:last-child td {
   border-bottom: none !important;
 }
-body.dash-fidelizacion-gentelella .tabla tbody tr:hover td {
+body.dash-fidelizacion-gentelella .tabla-admin tbody tr:hover td {
   background: var(--ge-teal-light) !important;
 }
 body.dash-fidelizacion-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-fidelizacion-gentelella .tabla tbody tr:hover .col-sticky-end {
+body.dash-fidelizacion-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips de estado de canje (chip-base + modificadores)
+   Chips de estado de canje — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
+   .chip-base/.chip-aplicado/.chip-expirado ya no se redeclaran acá.
+   .chip-pendiente SÍ sigue local: colisión de nombre con rutas.html
+   (gris = ruta sin asignar allá, amarillo = regla pendiente acá) —
+   no se puede unificar sin cambiar el color de una de las dos páginas.
    ════════════════════════════════════════════════════════════ */
-body.dash-fidelizacion-gentelella .chip-base {
-  display: inline-block !important;
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  padding: 3px 10px !important;
-}
 body.dash-fidelizacion-gentelella .chip-pendiente {
   background: rgba(240,173,78,.15) !important;
   color: var(--ge-warning-text) !important;
-}
-body.dash-fidelizacion-gentelella .chip-aplicado {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-fidelizacion-gentelella .chip-expirado {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
 }
 
 /* ════════════════════════════════════════════════════════════

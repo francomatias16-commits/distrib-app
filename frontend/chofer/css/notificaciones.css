@@ -1,0 +1,48 @@
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    .topbar {
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-row { display: flex; align-items: center; gap: .75rem; }
+    .btn-back {
+      background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center;
+      /* AUDITORIA-RESPONSIVE-ETAPA6: mismo patrón de 24x24 ya visto en el
+         portal cliente (Etapa 5). */
+      min-width: 40px; min-height: 40px; justify-content: center; margin-left: -8px;
+    }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+
+    .contenido { padding: 1rem; max-width: 480px; margin: 0 auto; padding-bottom: 3rem; }
+
+    .card-notif {
+      background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: .85rem 1rem; margin-bottom: .6rem; display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .notif-icono {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-info-bg); color: #2563EB;
+    }
+    .notif-info { flex: 1; min-width: 0; }
+    .notif-tipo { font-size: .88rem; font-weight: 700; color: #111827; }
+    .notif-canal { font-size: .74rem; color: #6b7280; margin-top: .1rem; }
+    .notif-fecha { font-size: .72rem; color: #6b7280; margin-top: .3rem; }
+    .notif-motivo { font-size: .74rem; color: var(--color-danger-mid); margin-top: .25rem; }
+
+    .vacio, .loading { text-align: center; padding: 2.5rem 1rem; color: #6b7280; font-size: .85rem; }
+
+    .btn-cargar-mas {
+      width: 100%; padding: .7rem; border: 1px solid #d1d5db; border-radius: 10px;
+      background: #fff; color: #4b5563; font-size: .85rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: .3rem;
+    }
+    .hidden { display: none; }
+
+    /* AUDITORIA-RESPONSIVE FASE1 (hallazgo 1.7): sin @media propio. */
+    @media (max-width: 360px) {
+      .notif-icono { width: 30px; height: 30px; }
+      .card-notif { padding: .7rem .8rem; gap: .55rem; }
+    }
+  

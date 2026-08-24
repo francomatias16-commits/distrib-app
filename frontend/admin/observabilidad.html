@@ -13,12 +13,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=281" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -27,10 +27,13 @@
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
   <!-- Mismo reskin de "Avisos operativos"/"Movimientos raros": las 3 pantallas
        del grupo "Alertas automáticas" comparten look & feel sin duplicar CSS. -->
   <link rel="stylesheet" href="/frontend/admin/css/anomalias-gentelella.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/observabilidad-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/observabilidad-gentelella.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
   <style>
     .hidden { display: none !important; }
@@ -65,37 +68,26 @@
     .obs-seccion { padding: 18px 20px 4px; }
     .obs-seccion h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--color-text); }
 
-    .obs-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 8px;
+    /* Barra de pills "Eventos totales / Procesados / Pendientes / En error"
+       (frontend/shared/filtro-tabs.css) — mismo componente que ya usan
+       riesgo-cheques, cheques, cobranzas/cta-cte, devoluciones y
+       whatsapp-conversaciones, en vez de la tarjeta genérica .kpi-card que
+       tenía antes esta pantalla. Nota chica debajo (tipos sin listener). */
+    .obs-nota-sin-listener {
+      margin: -4px 0 12px;
+      font-size: 12.5px;
+      color: var(--color-text-muted);
     }
-    .obs-card {
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      background: var(--color-surface);
-      padding: 14px 16px;
-    }
-    .obs-card .valor { font-size: 24px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
-    .obs-card .label { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
-    .obs-card.card-error .valor    { color: #b91c1c; }
-    .obs-card.card-pendiente .valor{ color: #92400e; }
-    .obs-card.card-procesado .valor{ color: #166534; }
 
-    .obs-tabla {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-    .obs-tabla th, .obs-tabla td {
-      text-align: left;
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--color-border);
-    }
-    .obs-tabla th { color: var(--color-text-muted); font-weight: 600; font-size: 12px; }
-    .obs-tabla td.num { text-align: left; font-variant-numeric: tabular-nums; }
+    /* .obs-tabla migrada al canónico .tabla-admin (Fase 3 puntos, ver
+       PLAN_UNIFICACION_UX_ADMIN.md). Ancho/borde-colapsado/tipografía/
+       padding/hover base ya los cubre .tabla-admin (se usa el modificador
+       .table-compact para igualar el padding vertical de 8px que tenía
+       esta tabla). Se conserva solo lo que el canónico no trae: el
+       margin-bottom propio de esta sección y la alineación numérica de
+       la columna td.num. */
+    .obs-seccion .tabla-admin { margin-bottom: 8px; }
+    .tabla-admin td.num { text-align: left; font-variant-numeric: tabular-nums; }
     .badge-estado {
       display: inline-block;
       padding: 2px 8px;
@@ -128,6 +120,13 @@
     @media (max-width: 600px) {
       .obs-toolbar { padding: 12px 14px; }
       .obs-seccion { padding: 14px 14px 4px; }
+
+      /* AUDITORIA-RESPONSIVE-ETAPA4: #tabla-por-tipo tiene 6 columnas
+         (Evento, Total, Pendiente, Procesado, Error, Tiempo promedio) sin
+         wrapper de scroll — en mobile se aprieta o desborda la página.
+         Se habilita scroll horizontal contenido en la sección. */
+      .obs-seccion { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tabla-admin { min-width: 480px; }
     }
   </style>
 </head>
@@ -177,14 +176,15 @@
 
       <div id="bloque-salud" style="display:none">
         <div class="obs-seccion">
-          <div class="obs-cards" id="cards-resumen"></div>
+          <div class="barra-filtros" id="cards-resumen"></div>
+          <div class="obs-nota-sin-listener hidden" id="obs-nota-sin-listener"></div>
         </div>
 
         <div class="obs-seccion">
           <h3>Por tipo de evento</h3>
-          <table class="obs-tabla" id="tabla-por-tipo">
+          <table class="tabla-admin table-compact" id="tabla-por-tipo">
             <thead>
-              <tr><th>Evento</th><th class="num">Total</th><th class="num">Pendiente</th><th class="num">Procesado</th><th class="num">Error</th><th class="num">Tiempo promedio</th></tr>
+              <tr><th>Evento</th><th class="num col-fit">Total</th><th class="num col-fit">Pendiente</th><th class="num col-fit">Procesado</th><th class="num col-fit">Error</th><th class="num col-fit">Tiempo promedio</th></tr>
             </thead>
             <tbody id="tabla-por-tipo-body"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
           </table>
@@ -193,13 +193,13 @@
 
         <div class="obs-seccion">
           <h3>Eventos con error prolongado (más de 2 h sin resolverse)</h3>
-          <table class="obs-tabla" id="tabla-error">
+          <table class="tabla-admin table-compact" id="tabla-error">
             <thead>
-              <tr><th>Evento</th><th>Origen</th><th>Último intento</th></tr>
+              <tr><th>Evento</th><th class="col-fit">Origen</th><th class="col-fit">Último intento</th></tr>
             </thead>
             <tbody id="tabla-error-body"><tr><td colspan="3" class="tabla-loading">Cargando...</td></tr></tbody>
           </table>
-          <div class="obs-vacio hidden" id="tabla-error-vacio">Sin eventos en error prolongado. 👍</div>
+          <div class="obs-vacio hidden" id="tabla-error-vacio">Sin eventos en error prolongado.</div>
         </div>
 
         <div class="obs-seccion">
@@ -210,7 +210,7 @@
 
         <div class="obs-seccion" style="padding-bottom:32px;">
           <h3>Tiempo promedio pedido → facturación</h3>
-          <div class="obs-cards" id="card-tiempo-facturacion"></div>
+          <div class="franja-resumen-sololectura" id="card-tiempo-facturacion"></div>
         </div>
       </div>
 
@@ -223,14 +223,15 @@
 <script src="/frontend/env-config.js?v1782328742714"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>
+<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/shared/filtro-tabs.js?v=1"></script>
 
-<script src="/frontend/admin/js/observabilidad.js?v1"></script>
+<script src="/frontend/admin/js/observabilidad.js?v1786743900000"></script>
 </body>
 </html>

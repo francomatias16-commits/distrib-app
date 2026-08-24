@@ -262,13 +262,13 @@ function renderTabla() {
       : '';
 
     return `<tr class="fila-notif" onclick="abrirModalPayloadPorIndice(${idx})">
-      <td style="white-space:nowrap;">${fecha}</td>
-      <td>${badgeCan}</td>
-      <td>${badgeTip}</td>
-      <td class="destino-cell" title="${dest}">${dest}</td>
-      <td>${pedidoN}</td>
-      <td>${ok}</td>
-      <td class="celda-acciones col-sticky-end">
+      <td data-label="Fecha y hora" style="white-space:nowrap;">${fecha}</td>
+      <td data-label="Canal">${badgeCan}</td>
+      <td data-label="Tipo">${badgeTip}</td>
+      <td class="destino-cell" data-label="Destinatario" title="${dest}">${dest}</td>
+      <td data-label="Pedido">${pedidoN}</td>
+      <td data-label="Estado">${ok}</td>
+      <td class="celda-acciones col-sticky-end" data-label="Detalle">
         <button class="btn btn-sm btn-secondary"
                 onclick="event.stopPropagation(); abrirModalPayloadPorIndice(${idx})">
           Ver
@@ -297,6 +297,20 @@ function actualizarStats() {
   document.getElementById('stat-push').textContent      = push;
   document.getElementById('stat-enviados').textContent  = enviados;
   document.getElementById('stat-fallidos').textContent  = fallidos;
+
+  // Bento: mezcla de canales (barra dentro de la tarjeta Total) y tasa de
+  // entrega (subtítulo de la tarjeta Enviados) — derivados de los mismos
+  // conteos de arriba, no piden datos nuevos al backend.
+  const pct = (n) => total ? Math.round((n / total) * 100) : 0;
+  const mixWa    = document.getElementById('mix-wa');
+  const mixEmail = document.getElementById('mix-email');
+  const mixPush  = document.getElementById('mix-push');
+  if (mixWa)    mixWa.style.width    = pct(wa) + '%';
+  if (mixEmail) mixEmail.style.width = pct(em) + '%';
+  if (mixPush)  mixPush.style.width  = pct(push) + '%';
+
+  const tasaEl = document.getElementById('bento-tasa');
+  if (tasaEl) tasaEl.textContent = pct(enviados) + '% de entrega';
 }
 
 // ── Modal payload ──────────────────────────────────────────────────────────

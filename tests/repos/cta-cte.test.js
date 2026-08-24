@@ -41,17 +41,16 @@ beforeEach(() => {
 });
 
 describe('obtenerUltimoSaldo', () => {
-  it('filtra por empresa_id Y cliente_id, ordena por fecha desc, trae solo el último', async () => {
-    const query = fakeQuery({ data: { saldo: 1500 }, error: null });
+  it('era un test desactualizado: lee saldo_deuda actual de clientes con scope por empresa', async () => {
+    const query = fakeQuery({ data: { saldo_deuda: 1500 }, error: null });
     dbMock.from.mockReturnValue(query);
 
     const saldo = await obtenerUltimoSaldo('empresa-1', 'cliente-1');
 
-    expect(dbMock.from).toHaveBeenCalledWith('cta_cte');
+    expect(dbMock.from).toHaveBeenCalledWith('clientes');
+    expect(query.select).toHaveBeenCalledWith('saldo_deuda');
     expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
-    expect(query.eq).toHaveBeenCalledWith('cliente_id', 'cliente-1');
-    expect(query.order).toHaveBeenCalledWith('fecha', { ascending: false });
-    expect(query.limit).toHaveBeenCalledWith(1);
+    expect(query.eq).toHaveBeenCalledWith('id', 'cliente-1');
     expect(saldo).toBe(1500);
   });
 

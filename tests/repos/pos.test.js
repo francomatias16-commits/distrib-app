@@ -36,12 +36,19 @@ const {
   listarDevolucionesDeVenta,
   obtenerVentaParaDevolucion,
   registrarDevolucionPosRpc,
+  obtenerCajaParaAbrirTurno,
+  asignarDepositoACaja,
+  obtenerTurnoConEmpresa,
+  obtenerTurnoConEstadoYEmpresa,
+  togglePromocion,
 } = await import('../../lib/repos/pos.js');
 
 // Mismo query builder falso que tests/repos/stock.test.js/cta-cte.test.js.
 function fakeQuery(result) {
   const obj = {
     select:      vi.fn(() => obj),
+    update:      vi.fn(() => obj),
+    delete:      vi.fn(() => obj),
     eq:          vi.fn(() => obj),
     order:       vi.fn(() => obj),
     range:       vi.fn(() => obj),
@@ -253,6 +260,52 @@ describe('obtenerVentaParaDevolucion', () => {
     const venta = await obtenerVentaParaDevolucion('venta-ajena', 'empresa-1');
 
     expect(venta).toBeNull();
+  });
+});
+
+describe('POS-001/POS-002 — caja, turno y scope de empresa', () => {
+  it('trae deposito_id al abrir un turno para no reemplazar un depósito no principal', async () => {
+    const query = fakeQuery({ data: { id: 'caja-1', activa: true, deposito_id: 'dep-2' }, error: null });
+    dbMock.from.mockReturnValue(query);
+
+    const caja = await obtenerCajaParaAbrirTurno('caja-1', 'empresa-1');
+
+    expect(query.select).toHaveBeenCalledWith('id, activa, deposito_id');
+    expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
+    expect(caja.deposito_id).toBe('dep-2');
+  });
+
+  it('propaga el error de asignar depósito y scopea el update a la empresa', async () => {
+    const query = fakeQuery({ data: null, error: { code: '42501', message: 'denegado' } });
+    dbMock.from.mockReturnValue(query);
+
+    const result = await asignarDepositoACaja('caja-1', 'dep-2', 'empresa-1');
+
+    expect(query.update).toHaveBeenCalledWith({ deposito_id: 'dep-2' });
+    expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
+    expect(result.error).toEqual({ code: '42501', message: 'denegado' });
+  });
+
+  it('incluye usuario_id al resolver el turno para verificar ownership', async () => {
+    const query = fakeQuery({ data: { id: 'turno-1', usuario_id: 'u1', cajas_pos: { empresa_id: 'empresa-1' } }, error: null });
+    dbMock.from.mockReturnValue(query);
+
+    await obtenerTurnoConEmpresa('turno-1');
+    expect(query.select).toHaveBeenCalledWith('id, usuario_id, cajas_pos!inner(empresa_id)');
+
+    await obtenerTurnoConEstadoYEmpresa('turno-1');
+    expect(query.select).toHaveBeenCalledWith('id, usuario_id, estado, cajas_pos!inner(empresa_id)');
+  });
+
+  it('aplica empresa_id explícito al toggle de una promoción', async () => {
+    const query = fakeQuery({ data: null, error: null });
+    dbMock.from.mockReturnValue(query);
+
+    await togglePromocion('promo-1', 'empresa-1', true);
+
+    expect(query.update).toHaveBeenCalledWith({ activa: true });
+    expect(query.eq).toHaveBeenCalledWith('id', 'promo-1');
+    expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
   });
 });
 

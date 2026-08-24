@@ -30,6 +30,22 @@ let waEstado    = 'desconocido'; // 'conectado' | 'no_conectado' | 'desconocido'
 
 const POLL_MS = 30_000;
 
+// Avatar circular con iniciales (mismo patrón que Pedidos/Clientes) — usado
+// tanto en la celda "Cliente" de la tabla como en el header del modal, para
+// que se lean como el mismo contacto en los dos lugares.
+const _PALETA_AVATAR = ['#00AE70', '#6f42c1', '#17a2b8', '#fd7e14', '#e83e8c', '#0d6efd', '#20a39e'];
+function iniciales(nombre) {
+  const partes = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '?';
+  return (partes[0][0] + (partes[1]?.[0] || '')).toUpperCase();
+}
+function colorAvatar(nombre) {
+  let hash = 0;
+  const s = String(nombre || '');
+  for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
+  return _PALETA_AVATAR[Math.abs(hash) % _PALETA_AVATAR.length];
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await window.authReady.catch(() => {});
@@ -192,13 +208,18 @@ function renderTabla() {
     const accion  = botonAccion(c);
 
     return `<tr class="fila-conv" onclick="abrirDetallePorIndice(${idx})">
-      <td class="cliente-cell" title="${nombre}">${nombre}</td>
+      <td class="cliente-cell" title="${nombre}">
+        <div class="cliente-cell-wrap">
+          <span class="avatar-iniciales" style="background:${colorAvatar(c.cliente_nombre || c.telefono)}">${iniciales(c.cliente_nombre || c.telefono)}<span class="wa-dot"></span></span>
+          <span class="cliente-nombre-txt">${nombre}</span>
+        </div>
+      </td>
       <td>${tel}</td>
-      <td>${estado}</td>
-      <td>${msjs}</td>
-      <td style="white-space:nowrap;">${fecha}</td>
-      <td>${atencion}</td>
-      <td class="col-sticky-end">${accion}</td>
+      <td data-label="Estado">${estado}</td>
+      <td data-label="Mensajes">${msjs}</td>
+      <td data-label="Última interacción" style="white-space:nowrap;">${fecha}</td>
+      <td data-label="Atención">${atencion}</td>
+      <td class="col-sticky-end" data-label="Acción">${accion}</td>
     </tr>`;
   }).join('');
 
@@ -250,7 +271,13 @@ function abrirDetallePorIndice(idx) {
 
 async function abrirDetalle(c) {
   convActual = c;
-  document.getElementById('modal-conv-titulo').textContent = c.cliente_nombre || c.telefono || 'Conversación';
+  const nombreContacto = c.cliente_nombre || c.telefono || 'Conversación';
+  document.getElementById('modal-conv-titulo').textContent = nombreContacto;
+  const elAvatar = document.getElementById('modal-conv-avatar');
+  elAvatar.textContent = iniciales(c.cliente_nombre || c.telefono);
+  elAvatar.style.background = colorAvatar(c.cliente_nombre || c.telefono);
+  document.getElementById('modal-conv-sub').textContent =
+    c.telefono ? c.telefono : (ESTADO_LABEL[c.estado] || '');
   document.getElementById('modal-conv-meta').innerHTML = metaHtml(c);
   document.getElementById('modal-conv-borrador').innerHTML = borradorHtml(c);
   document.getElementById('modal-conv-chat').innerHTML = `<span class="sin-resultados">Cargando mensajes...</span>`;
@@ -364,10 +391,15 @@ function renderChat(mensajes, scrollearAlFondo = true) {
   cont.innerHTML = mensajes.map(m => {
     const clase = m.direccion === 'in' ? 'in' : 'out';
     const hora  = formatFechaHora(m.created_at);
+    // Doble check solo en salientes (del negocio hacia el cliente) — igual
+    // que en el cliente real de WhatsApp, los entrantes nunca lo llevan.
+    const check = clase === 'out'
+      ? '<svg class="check-enviado" width="14" height="10" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6l3.5 3.5L11 2.5"/><path d="M5.5 6L9 9.5 15.5 2.5"/></svg>'
+      : '';
     if (m.tipo && m.tipo !== 'text') {
-      return `<div class="burbuja ${clase} no-soportado">[${esc(m.tipo)} no soportado en este panel]<span class="hora">${hora}</span></div>`;
+      return `<div class="burbuja ${clase} no-soportado">[${esc(m.tipo)} no soportado en este panel]<span class="hora">${hora}${check}</span></div>`;
     }
-    return `<div class="burbuja ${clase}">${esc(m.texto || '')}<span class="hora">${hora}</span></div>`;
+    return `<div class="burbuja ${clase}">${esc(m.texto || '')}<span class="hora">${hora}${check}</span></div>`;
   }).join('');
   // FIX (quedó a medio hacer en el refactor de refrescarChatModal): este
   // parámetro venía siendo pasado desde el poll pero la función lo
@@ -427,8 +459,20 @@ const ESTADO_LABEL = {
   derivada_humano: 'Derivada',
 };
 
+// Un ícono distinto por estado ayuda a escanear la columna de un vistazo
+// sin leer el texto de cada pastilla — mismo criterio que los stat-chips.
+const ESTADO_ICONO = {
+  // robot / asistente automático
+  activa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>',
+  // reloj / a la espera de confirmación
+  esperando_confirmacion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  // flecha hacia una persona / derivada a un vendedor
+  derivada_humano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 8h6M19 5l3 3-3 3"/></svg>',
+};
+
 function badgeEstado(estado) {
-  return `<span class="badge-estado ${esc(estado)}">${esc(ESTADO_LABEL[estado] || estado)}</span>`;
+  const icono = ESTADO_ICONO[estado] || '';
+  return `<span class="badge-estado ${esc(estado)}">${icono}${esc(ESTADO_LABEL[estado] || estado)}</span>`;
 }
 
 function badgeAtencion(c) {

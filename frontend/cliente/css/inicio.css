@@ -1,0 +1,27 @@
+/* Portal cliente — sistema visual compartido con el catálogo. */
+:root { --portal-ink:#17231e; --portal-deep:#19372d; --portal-paper:#f5f6f2; --portal-line:#dfe5df; --portal-mint:#a8d5af; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { min-height:100vh; padding-bottom:6rem; color:var(--portal-ink); background:radial-gradient(circle at 90% 0,rgba(168,213,175,.2),transparent 24rem),var(--portal-paper); font-family:var(--font-family); }
+.topbar { position:relative; padding:1.4rem max(1rem,calc((100vw - 980px)/2)) 1.3rem; color:#f7faf5; background:var(--portal-deep)!important; border-bottom:3px solid var(--portal-mint); }
+.topbar-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.topbar h1 { font-size:clamp(1.4rem,4vw,2rem); font-weight:600; letter-spacing:-.05em; }
+.topbar-sub { margin-top:.4rem; color:rgba(247,250,245,.65); font: .68rem var(--font-mono); letter-spacing:.05em; text-transform:uppercase; }
+.btn-logout { min-height:40px; padding:.55rem .8rem; color:#e8f0e8; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.22); border-radius:4px 12px 4px 12px; cursor:pointer; font:700 .7rem var(--font-family); text-transform:uppercase; }
+.contenido { display:block; width:100%; max-width:980px; min-width:0; margin:0 auto; padding:1.35rem max(1rem,calc((100vw - 980px)/2)) 4rem; }
+.banner-bienvenida { position:relative; overflow:hidden; margin-bottom:1.8rem; padding:1.7rem; color:#f7faf5; background:linear-gradient(130deg,#254f40,#19372d 65%,#2f614b); border-radius:6px 28px 6px 28px; box-shadow:8px 8px 0 rgba(134,183,146,.35); }
+.banner-bienvenida::after { content:"01"; position:absolute; right:1rem; bottom:-1.2rem; color:rgba(255,255,255,.1); font:700 7rem var(--font-mono); }
+.banner-bienvenida h2 { position:relative; z-index:1; font-size:1.45rem; font-weight:600; letter-spacing:-.04em; }
+.banner-bienvenida p { position:relative; z-index:1; max-width:28rem; margin-top:.5rem; color:rgba(247,250,245,.68); font-size:.85rem; }
+.sección-titulo { display:flex; align-items:center; gap:.7rem; margin:1.8rem 0 .7rem; color:#617169; font:700 .67rem var(--font-mono); letter-spacing:.12em; text-transform:uppercase; }
+.sección-titulo::after { content:""; height:1px; flex:1; background:var(--portal-line); }
+.grid-accesos { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; }
+.card-acceso { min-height:142px; padding:1rem; color:inherit; background:#fff; border:1px solid var(--portal-line); border-radius:5px 18px 5px 18px; text-decoration:none; transition:transform .2s,box-shadow .2s; }
+.card-acceso:hover { transform:translateY(-4px); box-shadow:0 12px 24px rgba(25,55,45,.1); }
+.card-acceso-icon { display:flex; align-items:center; justify-content:center; width:42px;height:42px; margin-bottom:1.1rem; border-radius:4px 13px 4px 13px!important; color:var(--portal-deep)!important; background:#e5f1e6!important; }
+.card-acceso:nth-child(2) .card-acceso-icon { background:#f2e5d0!important; }.card-acceso:nth-child(3) .card-acceso-icon { background:#e4ebee!important; }.card-acceso:nth-child(4) .card-acceso-icon { background:#ece5f2!important; }
+.card-acceso-label { color:var(--portal-ink); font-size:.88rem; font-weight:700; }.card-acceso-sub { margin-top:.25rem; color:#77847d; font-size:.7rem; }
+.card-pedido { display:flex; align-items:center; gap:.85rem; margin-bottom:.65rem; padding:1rem; background:#fff; border:1px solid var(--portal-line); border-radius:4px 15px 4px 15px; transition:border-color .2s,transform .2s; }
+.card-pedido:hover { border-color:#a8c9ae; transform:translateX(3px); }.pedido-estado-dot { width:9px;height:32px; border-radius:3px; flex-shrink:0; }.dot-confirmado{background:#75a37d}.dot-preparando{background:#e0a53e}.dot-despachado{background:#33507a}.dot-entregado{background:#718078}.dot-borrador{background:#dfe5df}.dot-cancelado{background:#d1594a}
+.pedido-info{flex:1;min-width:0}.pedido-nro{font-size:.86rem;font-weight:700}.pedido-fecha{margin-top:.18rem;color:#7a877f;font: .68rem var(--font-mono)}.pedido-total{color:var(--portal-deep);font-size:.92rem;font-weight:700;white-space:nowrap}.loading,.empty-state{text-align:center;color:#78857e;padding:3rem 1rem;font-size:.85rem}
+@media(max-width:700px){.grid-accesos{grid-template-columns:repeat(2,1fr)}.card-acceso{min-height:125px}.contenido{padding-top:1rem}}
+@media(max-width:360px){.grid-accesos{gap:.55rem}.card-acceso{padding:.75rem}.banner-bienvenida{padding:1.25rem}}

@@ -26,31 +26,45 @@ vi.mock('../../lib/supabase-lazy.js', () => ({
   crearClienteSupabaseLazy: () => ({
     from: (tabla) => {
       if (tabla !== 'eventos_negocio') throw new Error(`tabla inesperada en el mock: ${tabla}`);
+      const query = {};
+      query.order = vi.fn(() => query);
+      query.limit = vi.fn(() => query);
+      query.eq = vi.fn((_col, empresaId) => {
+        query.empresaId = empresaId;
+        return query;
+      });
+      query.or = vi.fn(() => Promise.resolve({
+        data: dbMock.eventosPendientes.filter((evento) =>
+          (!query.empresaId || evento.empresa_id === query.empresaId) &&
+          ['pendiente', 'error', 'procesando'].includes(evento.estado)
+        ),
+        error: null,
+      }));
+      query.then = (resolve, reject) => Promise.resolve({
+        data: dbMock.eventosPendientes.filter((evento) =>
+          !query.empresaId || evento.empresa_id === query.empresaId
+        ),
+        error: null,
+      }).then(resolve, reject);
       return {
-        select: () => ({
-          in: (_col, estados) => ({
-            order: () => ({
-              limit: () => ({
-                then: (resolve) => resolve({
-                  data: dbMock.eventosPendientes.filter(e => estados.includes(e.estado)),
-                  error: null,
-                }),
-                eq: (_col2, empresaId) => ({
-                  then: (resolve) => resolve({
-                    data: dbMock.eventosPendientes.filter(e => estados.includes(e.estado) && e.empresa_id === empresaId),
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          }),
-        }),
-        update: (cambios) => ({
-          eq: (_col, id) => {
-            dbMock.updates.push({ id, cambios });
-            return Promise.resolve({ error: null });
-          },
-        }),
+        select: vi.fn(() => query),
+        update: (cambios) => {
+          let updateId = null;
+          const updateQuery = {
+            eq: (_col, id) => {
+              updateId = id;
+              dbMock.updates.push({ id, cambios });
+              return updateQuery;
+            },
+            select: vi.fn(() => updateQuery),
+            maybeSingle: vi.fn(async () => ({
+              data: dbMock.eventosPendientes.find((evento) => evento.id === updateId) || { id: updateId, ...cambios },
+              error: null,
+            })),
+            then: (resolve, reject) => Promise.resolve({ error: null }).then(resolve, reject),
+          };
+          return updateQuery;
+        },
       };
     },
   }),

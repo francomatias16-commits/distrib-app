@@ -172,7 +172,13 @@ function renderKpis(filas) {
   const cont = document.getElementById('kpis-grid');
 
   if (!filas.length) {
-    cont.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--color-text-light);">No hay rutas con entregas en el rango seleccionado.</div>`;
+    cont.className = 'kpis-grid kpis-grid--summary kpis-grid--empty';
+    cont.innerHTML = `
+      <div class="kpi-empty-state">
+        <span class="kpi-empty-state__eyebrow">Sin actividad</span>
+        <strong>No hay rutas con entregas en el rango seleccionado.</strong>
+        <span>Probá ampliar el período o quitar el filtro de zona.</span>
+      </div>`;
     return;
   }
 
@@ -189,28 +195,63 @@ function renderKpis(filas) {
   const conKm  = filas.filter(f => (+f.km_recorridos || 0) > 0 && f.margen_neto_por_km != null);
   let peorTxt  = '—';
   let mejorTxt = '—';
+  let peorMargenKm = null;
   if (conKm.length) {
     const peor  = conKm.reduce((a, b) => +a.margen_neto_por_km < +b.margen_neto_por_km ? a : b);
     const mejor = conKm.reduce((a, b) => +a.margen_neto_por_km > +b.margen_neto_por_km ? a : b);
+    peorMargenKm = +peor.margen_neto_por_km;
     peorTxt  = `${peor.zona_nombre  || 'Sin zona'} (${fmtPeso(peor.margen_neto_por_km)}/km)`;
     mejorTxt = `${mejor.zona_nombre || 'Sin zona'} (${fmtPeso(mejor.margen_neto_por_km)}/km)`;
   }
 
   const pctMargen = totalFacturado > 0 ? ((totalMargenNeto / totalFacturado) * 100).toFixed(1) : null;
 
-  cont.className = 'franja-resumen-sololectura';
+  const peorZona = conKm.length ? peorTxt.split(' (')[0] : 'Sin datos';
+  const peorValor = conKm.length ? fmtPeso(peorMargenKm) + '/km' : '—';
+  const mejorZona = conKm.length ? mejorTxt.split(' (')[0] : 'Sin datos';
+  const margenClase = totalMargenNeto >= 0 ? 'kpi-card--positive' : 'kpi-card--negative';
+  const revisionClase = conKm.length && peorMargenKm < 0
+    ? 'kpi-card--negative'
+    : 'kpi-card--attention';
+
+  cont.className = 'kpis-grid kpis-grid--summary';
   cont.innerHTML = `
-    <span title="Con entregas en el período">Rutas analizadas: <strong>${totalRutas}</strong></span>
-    <span class="sep">·</span>
-    <span title="Pedidos entregados en esas rutas">Facturado entregado: <strong>${fmtPeso(totalFacturado)}</strong></span>
-    <span class="sep">·</span>
-    <span title="Facturado menos costo y logística">Margen neto${pctMargen != null ? ` (${pctMargen}%)` : ''}: <strong>${fmtPeso(totalMargenNeto)}</strong></span>
-    <span class="sep">·</span>
-    <span title="Estimado según km y paradas">Costo logístico est.: <strong>${fmtPeso(totalCostoLog)}</strong></span>
-    <span class="sep">·</span>
-    <span title="Rentabilidad por kilómetro recorrido">Margen neto / km promedio: <strong>${margenNetoPorKm != null ? fmtPeso(margenNetoPorKm) : '—'}</strong></span>
-    <span class="sep">·</span>
-    <span title="La zona con peor margen neto por km — priorizá revisarla">Zona a revisar: <strong>${esc(peorTxt)}</strong></span>
+    <article class="kpi-card kpi-card--routes" tabindex="0" title="Con entregas en el período">
+      <span class="kpi-card__eyebrow">Cobertura</span>
+      <strong class="kpi-card__value">${totalRutas}</strong>
+      <span class="kpi-card__label">Rutas analizadas</span>
+      <span class="kpi-card__detail">Con entregas completadas</span>
+    </article>
+    <article class="kpi-card kpi-card--billing" tabindex="0" title="Pedidos entregados en esas rutas">
+      <span class="kpi-card__eyebrow">Volumen</span>
+      <strong class="kpi-card__value">${fmtPeso(totalFacturado)}</strong>
+      <span class="kpi-card__label">Facturado entregado</span>
+      <span class="kpi-card__detail">Ventas del período elegido</span>
+    </article>
+    <article class="kpi-card kpi-card--hero ${margenClase}" tabindex="0" title="Facturado menos costo y logística">
+      <span class="kpi-card__eyebrow">Resultado principal</span>
+      <strong class="kpi-card__value ${claseTamanioValor(fmtPeso(totalMargenNeto))}">${fmtPeso(totalMargenNeto)}</strong>
+      <span class="kpi-card__label">Margen neto${pctMargen != null ? ` <small>(${pctMargen}%)</small>` : ''}</span>
+      <span class="kpi-card__detail">Después del costo logístico</span>
+    </article>
+    <article class="kpi-card kpi-card--cost" tabindex="0" title="Estimado según kilómetros y paradas">
+      <span class="kpi-card__eyebrow">Eficiencia</span>
+      <strong class="kpi-card__value">${fmtPeso(totalCostoLog)}</strong>
+      <span class="kpi-card__label">Costo logístico est.</span>
+      <span class="kpi-card__detail">${totalKm > 0 ? `${Number(totalKm).toLocaleString('es-AR', { maximumFractionDigits: 1 })} km recorridos` : 'Sin kilómetros cargados'}</span>
+    </article>
+    <article class="kpi-card kpi-card--km" tabindex="0" title="Rentabilidad promedio por kilómetro recorrido">
+      <span class="kpi-card__eyebrow">Rendimiento</span>
+      <strong class="kpi-card__value">${margenNetoPorKm != null ? fmtPeso(margenNetoPorKm) : '—'}</strong>
+      <span class="kpi-card__label">Margen neto / km</span>
+      <span class="kpi-card__detail">Promedio del período</span>
+    </article>
+    <article class="kpi-card kpi-card--review ${revisionClase}" tabindex="0" title="La zona con peor margen neto por kilómetro">
+      <span class="kpi-card__eyebrow">Decisión sugerida</span>
+      <strong class="kpi-card__value kpi-card__value--text">${esc(peorZona)}</strong>
+      <span class="kpi-card__label">Zona a revisar</span>
+      <span class="kpi-card__detail">${esc(peorValor)} · Mejor: ${esc(mejorZona)}</span>
+    </article>
   `;
 }
 
@@ -236,8 +277,8 @@ function renderChartZonas(filas) {
   const valores = zonas.map(z => Math.round(z.margen));
 
   const tokens = (typeof inicializarTemaECharts === 'function' && inicializarTemaECharts()) || {};
-  const colorPositivo = tokens.teal || '#B87A00';
-  const colorNegativo = tokens.red  || '#B3261E';
+  const colorPositivo = tokens.teal || '#6A9873';
+  const colorNegativo = tokens.red  || '#B8402E';
 
   _chart = crearGraficoECharts(_chart, 'chart-zonas', {
     tooltip: {
@@ -257,7 +298,7 @@ function renderChartZonas(filas) {
     yAxis: {
       type: 'value',
       axisLabel: { formatter: (v) => fmtPeso(v), fontSize: 11 },
-      splitLine: { lineStyle: { color: 'rgba(0,0,0,.05)' } },
+      splitLine: { lineStyle: { color: 'rgba(22,24,29,.05)' } },
     },
     series: [{
       name: 'Margen neto estimado ($)',
@@ -430,6 +471,14 @@ function exportarCSV() {
 // ── Helpers ───────────────────────────────────────────────────────────────
 function fmtPeso(n) {
   return '$' + Math.round(+n || 0).toLocaleString('es-AR');
+}
+// Elige un tamaño de fuente más chico cuando el número formateado es largo,
+// para que la tarjeta "Resultado principal" nunca corte el valor con "...".
+function claseTamanioValor(texto) {
+  const len = String(texto || '').length;
+  if (len > 13) return 'kpi-card__value--size-sm';
+  if (len > 10) return 'kpi-card__value--size-md';
+  return '';
 }
 function fmtNum(n) {
   return Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });

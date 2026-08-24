@@ -22,41 +22,41 @@
  */
 
 :root {
-  --ge-bg:         #F5F2EA;
-  --ge-panel:      #FCFAF5;
-  --ge-ink:        #16181D;
-  --ge-ink-soft:   #4B4A45;
-  --ge-muted:      #6B695F;
-  --ge-border:     #DAD3C0;
+  --ge-bg:         #F6F7F5;
+  --ge-panel:      #FFFFFF;
+  --ge-ink:        #111A17;
+  --ge-ink-soft:   #3A423E;
+  --ge-muted:      #5B6660;
+  --ge-border:     #DDE1DC;
 
-  /* Acento: antes teal #26B99A → Electric Blue #2563EB → ahora amarillo
-     señalética de depósito (--color-primary en tokens.css). Se conserva el
-     nombre "teal" por compatibilidad con los ~40 archivos que lo consumen. */
-  --ge-teal:       #B87A00;
-  --ge-teal-dark:  #8F5F00;
-  --ge-teal-light: rgba(232,160,0,.14);
-  --ge-blue:       #2E6088;
-  --ge-orange:     #8F5F00;
-  --ge-red:        #B3261E;
+  /* Acento: antes teal #26B99A → Electric Blue #2563EB → amarillo señalética
+     de depósito → ahora verde de la landing (--color-primary en tokens.css).
+     Se conserva el nombre "teal" por compatibilidad con los ~40 archivos que
+     lo consumen. */
+  --ge-teal:       #6A9873;
+  --ge-teal-dark:  #487050;
+  --ge-teal-light: rgba(106,152,115,.14);
+  --ge-blue:       #33507A;
+  --ge-orange:     #8A5F13;
+  --ge-red:        #B8402E;
   --ge-purple:     #5B4A8F;
 
-  /* Sidebar oscura — grafito casi negro, mismo --ink que el resto del
-     sistema, no un navy separado (para que las ~40 pantallas con reskin y
-     las ~12 sin reskin compartan el mismo nav). */
-  --ge-sidebar:    #16181D;
-  --ge-sidebar-2:  #1E2128;
-  --ge-sidebar-text:  #C9C6BA;
-  --ge-sidebar-muted: #8E8C82;
+  /* Sidebar oscura — familia --bg-900/850 de la landing, no el grafito
+     "Hoja de Ruta" anterior. */
+  --ge-sidebar:    #0A1119;
+  --ge-sidebar-2:  #0E1826;
+  --ge-sidebar-text:  #C9CCD3;
+  --ge-sidebar-muted: #8890A0;
 
-  --ge-chip-bg:       #EAE4D6;
-  --ge-warning-text:  #7A4A00;
-  --ge-warning-bg:    #FBEBC7;
+  --ge-chip-bg:       #ECEEEA;
+  --ge-warning-text:  #8A5F13;
+  --ge-warning-bg:    #FBE8C9;
 
   /* Color de marca de WhatsApp — no es parte de la paleta del sistema,
      se mantiene igual porque es una marca externa reconocible. */
   --ge-whatsapp:      #25D366;
 
-  --ge-info-text:     #1E3A52;
+  --ge-info-text:     #1F3555;
 
   /* Radios — documento impreso, no "look 2013 cuadrado" ni soft-SaaS grande. */
   --ge-radius-card: 6px;

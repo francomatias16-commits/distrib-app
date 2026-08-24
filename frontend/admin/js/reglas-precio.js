@@ -13,6 +13,23 @@ let zonasCache          = []; // {id, nombre}
 let modalReglaId        = null; // null = nueva, uuid = edición
 let puedeEscribir       = false;
 
+// ── Paginación cliente ("Cargar más") ───────────────────────────────────────
+const REGLAS_MOSTRAR_INICIAL = 20;
+const REGLAS_PAGINA          = 40;
+let _reglasVisibles = REGLAS_MOSTRAR_INICIAL;
+let _reglasListaActual = [];
+
+function piePaginacionHTML(colspan, total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const hayMas        = total > visibles;
+  const puedeColapsar = visibles > mostrarInicial;
+  if (!hayMas && !puedeColapsar) return '';
+  const restantes = total - visibles;
+  return `<tr class="paginar-fila"><td colspan="${colspan}"><div class="paginar-foot">
+    ${hayMas ? `<button type="button" class="paginar-btn" onclick="${cargarMasFn}()">Cargar ${Math.min(pagina, restantes)} más (quedan ${restantes})</button>` : ''}
+    ${puedeColapsar ? `<button type="button" class="paginar-btn paginar-btn--ghost" onclick="${colapsarFn}()">Ver menos</button>` : ''}
+  </div></td></tr>`;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await window.authReady;
@@ -83,6 +100,7 @@ async function cargarReglas() {
     if (!r.ok) throw new Error(data.error || 'Error al cargar las reglas');
 
     reglasData = data || [];
+    _reglasVisibles = REGLAS_MOSTRAR_INICIAL;
     renderKpis(reglasData);
     filtrarYRenderizar();
   } catch (e) {
@@ -108,32 +126,31 @@ function renderKpis(filas) {
 
   cont.className = 'franja-resumen-sololectura';
   cont.innerHTML = `
-    <span title="Total de reglas configuradas">Reglas cargadas: <strong>${total}</strong></span>
-    <span class="sep">·</span>
-    <span title="Aplicándose en pedidos y catálogo">Activas: <strong>${activas}</strong></span>
-    <span class="sep">·</span>
-    <span title="Desactivadas, no afectan precios">Inactivas: <strong>${inactivas}</strong></span>
-    <span class="sep">·</span>
-    <span title="Dentro de su rango de fechas">Vigentes hoy: <strong>${vigentesHoy}</strong></span>
+    <div class="dato-sello" title="Total de reglas configuradas"><div class="dato-sello-valor">${total}</div><div class="dato-sello-etiqueta">Reglas cargadas</div></div>
+    <div class="dato-sello" data-tono="verde" title="Aplicándose en pedidos y catálogo"><div class="dato-sello-valor">${activas}</div><div class="dato-sello-etiqueta">Activas</div></div>
+    <div class="dato-sello" title="Desactivadas, no afectan precios"><div class="dato-sello-valor">${inactivas}</div><div class="dato-sello-etiqueta">Inactivas</div></div>
+    <div class="dato-sello" data-tono="verde" title="Dentro de su rango de fechas"><div class="dato-sello-valor">${vigentesHoy}</div><div class="dato-sello-etiqueta">Vigentes hoy</div></div>
   `;
 }
 
 // ── Filtro de texto (client-side, sobre lo ya cargado) ──────────────────────
 function filtrarYRenderizar() {
   const b = document.getElementById('filtro-busqueda').value.trim().toLowerCase();
-  if (!b) { renderTabla(reglasData); return; }
+  if (!b) { _reglasVisibles = REGLAS_MOSTRAR_INICIAL; renderTabla(reglasData); return; }
   const filtradas = reglasData.filter(r => {
     return (r.nombre || '').toLowerCase().includes(b) ||
       (r.productos?.nombre || '').toLowerCase().includes(b) ||
       (r.categorias?.nombre || '').toLowerCase().includes(b) ||
       (r.zonas?.nombre || '').toLowerCase().includes(b);
   });
+  _reglasVisibles = REGLAS_MOSTRAR_INICIAL;
   renderTabla(filtradas);
 }
 
 // ── Tabla ─────────────────────────────────────────────────────────────────
 function renderTabla(filas) {
   const tbody = document.getElementById('tbody-reglas');
+  _reglasListaActual = filas;
 
   if (!filas.length) {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--color-text-light);">Sin reglas de precio cargadas</td></tr>`;
@@ -142,7 +159,10 @@ function renderTabla(filas) {
 
   const hoy = fmtFechaInput(new Date());
 
-  tbody.innerHTML = filas.map(f => {
+  const total    = filas.length;
+  const visibles = filas.slice(0, _reglasVisibles);
+
+  const filasHtml = visibles.map(f => {
     const alcance = f.productos?.nombre
       ? `Producto: ${window.sanitize(f.productos.nombre)}${f.productos.codigo ? ' (' + window.sanitize(f.productos.codigo) + ')' : ''}`
       : f.categorias?.nombre
@@ -174,7 +194,7 @@ function renderTabla(filas) {
       <button type="button" class="danger" onclick="btnAsyncClick(this, () => eliminarRegla('${f.id}'), {confirm:true, confirmMsg:'¿Eliminar esta regla de precio?'})">Eliminar</button>
     ` : '';
 
-    return `<tr class="${filaClase}">
+    return `<tr class="${filaClase}${puedeEscribir ? ' fila-clickeable' : ''}" ${puedeEscribir ? `onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${f.id}')"` : ''}>
       <td><strong>${window.sanitize(f.nombre)}</strong></td>
       <td>${alcance}</td>
       <td>${zona}</td>
@@ -183,10 +203,24 @@ function renderTabla(filas) {
       <td style="font-size:12px;">${vigencia}</td>
       <td>${f.prioridad ?? 0}</td>
       <td>${estado}</td>
-      <td class="col-sticky-end"><div class="fila-acciones">${accionesEscritura || '—'}</div></td>
+      <td class="col-sticky-end col-acciones"><div class="fila-acciones">${accionesEscritura || '—'}</div></td>
     </tr>`;
   }).join('');
+
+  const pie = piePaginacionHTML(9, total, _reglasVisibles, REGLAS_MOSTRAR_INICIAL, REGLAS_PAGINA, 'cargarMasReglas', 'colapsarReglas');
+  tbody.innerHTML = filasHtml + pie;
 }
+
+function cargarMasReglas() {
+  _reglasVisibles = Math.min(_reglasListaActual.length, _reglasVisibles + REGLAS_PAGINA);
+  renderTabla(_reglasListaActual);
+}
+function colapsarReglas() {
+  _reglasVisibles = REGLAS_MOSTRAR_INICIAL;
+  renderTabla(_reglasListaActual);
+}
+window.cargarMasReglas = cargarMasReglas;
+window.colapsarReglas  = colapsarReglas;
 
 // ── Modal: alta / edición ────────────────────────────────────────────────
 function poblarSelectsAlcance() {

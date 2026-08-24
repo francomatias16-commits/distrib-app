@@ -52,13 +52,13 @@ body.dash-clientes-gentelella .topbar-contador {
 body.dash-clientes-gentelella .topbar-usuario { color: var(--ge-ink-soft) !important; }
 
 /* Botones topbar */
-body.dash-clientes-gentelella .btn-exportar {
+body.dash-clientes-gentelella .btn.btn--secondary {
   background: var(--ge-panel) !important;
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-ink-soft) !important;
 }
-body.dash-clientes-gentelella .btn-exportar:hover {
+body.dash-clientes-gentelella .btn.btn--secondary:hover {
   background: var(--ge-teal-light) !important;
   border-color: var(--ge-teal) !important;
   color: var(--ge-teal-dark) !important;
@@ -163,7 +163,7 @@ body.dash-clientes-gentelella #vista-clientes .filtros-bar {
 body.dash-clientes-gentelella .search-wrap,
 body.dash-clientes-gentelella #vista-clientes .search-wrap {
   background: var(--ge-bg) !important;
-  border: 1.5px solid var(--ge-border) !important;
+  border: 1.5px solid transparent !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-muted) !important;
   padding: 8px 14px !important;
@@ -216,7 +216,7 @@ body.dash-clientes-gentelella .estado-pills .e-pill.activa {
 body.dash-clientes-gentelella .estado-pills .e-pill.activa::after { content: '' !important; }
 /* Variantes de color semántico para pills */
 body.dash-clientes-gentelella .e-pill-verde.activa {
-  background: rgba(184,122,0,.12) !important;
+  background: rgba(106,152,115,.12) !important;
   border-color: var(--ge-teal) !important;
   color: var(--ge-teal-dark) !important;
 }
@@ -230,6 +230,17 @@ body.dash-clientes-gentelella .e-pill-amarillo.activa {
   border-color: var(--ge-orange) !important;
   color: var(--ge-warning-text) !important;
 }
+body.dash-clientes-gentelella .e-pill-dorado.activa {
+  background: rgba(240,173,78,.15) !important;
+  border-color: var(--ge-orange) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-clientes-gentelella .e-pill-gris.activa {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+}
+body.dash-clientes-gentelella .estado-pills-sep { background: var(--ge-border) !important; }
 
 /* Select de zona / botón limpiar */
 body.dash-clientes-gentelella .select-filtro {
@@ -257,12 +268,12 @@ body.dash-clientes-gentelella #vista-clientes .tabla-wrap {
 }
 
 /* Encabezado */
-body.dash-clientes-gentelella .tabla-clientes thead {
+body.dash-clientes-gentelella .tabla-admin thead {
   background: var(--ge-bg) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-clientes-gentelella .tabla-clientes th,
-body.dash-clientes-gentelella #vista-clientes .tabla-clientes thead th {
+body.dash-clientes-gentelella .tabla-admin th,
+body.dash-clientes-gentelella #vista-clientes .tabla-admin thead th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   border-bottom: 1px solid var(--ge-border) !important;
@@ -272,15 +283,15 @@ body.dash-clientes-gentelella #vista-clientes .tabla-clientes thead th {
 
 /* Filas */
 body.dash-clientes-gentelella .fila-cliente,
-body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente {
+body.dash-clientes-gentelella #vista-clientes .tabla-admin tbody tr.fila-cliente {
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente td {
+body.dash-clientes-gentelella #vista-clientes .tabla-admin tbody tr.fila-cliente td {
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
 }
 body.dash-clientes-gentelella .fila-cliente:hover td,
-body.dash-clientes-gentelella #vista-clientes .tabla-clientes tbody tr.fila-cliente:hover td {
+body.dash-clientes-gentelella #vista-clientes .tabla-admin tbody tr.fila-cliente:hover td {
   background: var(--ge-teal-light) !important;
 }
 body.dash-clientes-gentelella .fila-inactiva { opacity: .55 !important; }
@@ -377,8 +388,14 @@ body.dash-clientes-gentelella .badge-neutro .badge-dot { background: var(--ge-mu
 /* ════════════════════════════════════════════════════════════
    Botones de acciones en tabla
    ════════════════════════════════════════════════════════════ */
-body.dash-clientes-gentelella .btn-editar,
-body.dash-clientes-gentelella #vista-clientes .btn-editar {
+/* "Ver / Editar" de la tabla principal: acento teal propio (distinto del
+   gris neutro que usa .btn-tabla en el resto de páginas), mismo criterio
+   que .btn-ver-catalogo — se mantiene, solo se actualizó el selector de
+   .btn-editar a .btn-tabla (Fase 3, migración de acciones por fila, ver
+   PLAN_UNIFICACION_UX_ADMIN.md). Scopeado a #vista-clientes para no pisar
+   el .btn-tabla gris de las otras 3 tablas de esta pantalla (precios,
+   direcciones, listas). */
+body.dash-clientes-gentelella #vista-clientes .btn-tabla {
   background: transparent !important;
   border: 1px solid var(--ge-teal) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -388,12 +405,43 @@ body.dash-clientes-gentelella #vista-clientes .btn-editar {
   font-size: 12px !important;
   font-weight: 600 !important;
 }
-body.dash-clientes-gentelella .btn-editar:hover,
-body.dash-clientes-gentelella #vista-clientes .btn-editar:hover {
+body.dash-clientes-gentelella #vista-clientes .btn-tabla:hover {
   background: var(--ge-teal) !important;
   color: var(--ge-panel) !important;
   box-shadow: var(--ge-shadow) !important;
   transform: translateY(-1px);
+}
+
+/* Resto de tablas (precios, direcciones, listas): reskin genérico,
+   mismo patrón que proveedores-gentelella.css. Antes usaban .btn-secundario/
+   .btn-primario (botones de tamaño modal, sobredimensionados en una celda
+   de tabla) — migrados a .btn-tabla canónico en esta misma pasada. */
+body.dash-clientes-gentelella .btn-tabla {
+  border: 1px solid var(--ge-border) !important;
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-clientes-gentelella .btn-tabla:hover {
+  background: var(--ge-bg) !important;
+  color: var(--ge-teal-dark) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-clientes-gentelella .btn-tabla.primario {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+  border-color: var(--ge-teal) !important;
+}
+body.dash-clientes-gentelella .btn-tabla.primario:hover {
+  background: var(--ge-teal-dark) !important;
+}
+body.dash-clientes-gentelella .btn-tabla.peligro {
+  background: rgba(231,76,60,.10) !important;
+  color: var(--ge-red) !important;
+  border-color: var(--ge-red) !important;
+}
+body.dash-clientes-gentelella .btn-tabla.peligro:hover {
+  opacity: .85 !important;
 }
 
 /* Botón portal (círculo de acceso) */
@@ -689,4 +737,19 @@ body.dash-clientes-gentelella .modal-header h3 {
 }
 body.dash-clientes-gentelella .tab-panel {
   background: transparent !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Fix z-index: toast tapado por #modal-score-cliente (deuda de v915)
+   ════════════════════════════════════════════════════════════
+   Mismo bug que en riesgo-cheques.html (ver
+   CHANGELOG_v915_fix_toast_tapado_modal_score_riesgo_cheques.md):
+   #modal-score-cliente tiene z-index:1000 inline y #modal-portal-overlay
+   tiene z-index:9999 inline, ambos por encima de --z-toast (600,
+   tokens.css). Al clickear "Recalcular" adentro del modal de nivel de
+   confianza, el toast de resultado se crea y anima igual, pero queda
+   dibujado detrás del overlay del modal: no se ve nada, aunque el
+   recálculo se ejecutó bien en el backend. */
+:root {
+  --z-toast: 10200;
 }

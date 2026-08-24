@@ -129,67 +129,6 @@ body.dash-cobranzas-gentelella [id$="-sub"] {
   font-size: 12px !important;
 }
 
-/* Medios de pago — lista sutil (mp-fila), reemplaza las tarjetas fkpi
-   con ícono centrado sobre fondo pastel: acá cada medio es una fila
-   angosta con ícono chico, nombre, una barra proporcional al total del
-   día y el monto alineado a la derecha, en línea con el resto de filas
-   de tabla de la pantalla. */
-body.dash-cobranzas-gentelella .mp-lista {
-  display: flex !important;
-  flex-direction: column !important;
-}
-body.dash-cobranzas-gentelella .mp-fila {
-  display: flex !important;
-  align-items: center !important;
-  gap: 14px !important;
-  padding: 10px 20px !important;
-  border-bottom: 1px solid var(--ge-border) !important;
-}
-body.dash-cobranzas-gentelella .mp-fila:last-child { border-bottom: none !important; }
-body.dash-cobranzas-gentelella .mp-icono {
-  display: flex !important;
-  flex-shrink: 0 !important;
-  color: var(--ge-muted) !important;
-}
-body.dash-cobranzas-gentelella .mp-icono svg { width: 15px !important; height: 15px !important; }
-body.dash-cobranzas-gentelella .mp-label {
-  flex-shrink: 0 !important;
-  width: 140px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: var(--ge-ink-soft) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-body.dash-cobranzas-gentelella .mp-barra {
-  flex: 1 1 auto !important;
-  height: 6px !important;
-  border-radius: var(--ge-radius-pill) !important;
-  background: var(--ge-bg) !important;
-  overflow: hidden !important;
-}
-body.dash-cobranzas-gentelella .mp-barra-fill {
-  display: block !important;
-  height: 100% !important;
-  border-radius: var(--ge-radius-pill) !important;
-  background: var(--ge-teal) !important;
-}
-body.dash-cobranzas-gentelella .mp-monto {
-  flex-shrink: 0 !important;
-  width: 128px !important;
-  text-align: right !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: var(--ge-ink) !important;
-}
-body.dash-cobranzas-gentelella .mp-vacio {
-  text-align: center !important;
-  color: var(--ge-muted) !important;
-  font-size: 13px !important;
-  padding: 16px 20px !important;
-}
-
 /* ════════════════════════════════════════════════════════════
    Tabs internas (tab-btn / tab-btn.active) — "Priorizada / Vencen hoy /
    Próximos 7 días / Vencidas": mismo look de caja+sombra que filtro-tab.
@@ -303,31 +242,9 @@ body.dash-cobranzas-gentelella .empty-state {
 }
 
 /* ════════════════════════════════════════════════════════════
-   Chips de prioridad de cobro
+   Chips de prioridad de cobro — movido al componente canónico
+   (frontend/shared/componentes-admin.css, Hallazgo #2 del plan).
    ════════════════════════════════════════════════════════════ */
-body.dash-cobranzas-gentelella .chip {
-  display: inline-block !important;
-  border-radius: var(--ge-radius-pill) !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  padding: 3px 10px !important;
-}
-body.dash-cobranzas-gentelella .chip-rojo {
-  background: rgba(231,76,60,.12) !important;
-  color: var(--ge-red) !important;
-}
-body.dash-cobranzas-gentelella .chip-amarillo {
-  background: rgba(240,173,78,.15) !important;
-  color: var(--ge-warning-text) !important;
-}
-body.dash-cobranzas-gentelella .chip-verde {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-cobranzas-gentelella .chip-gris {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-}
 
 /* ════════════════════════════════════════════════════════════
    Semáforo de estado de cliente (vista saldos)
@@ -591,7 +508,7 @@ body.dash-cobranzas-gentelella .toast {
   body.dash-cobranzas-gentelella #panel-cliente {
     position: fixed !important;
     inset: 0 !important;
-    z-index: 999 !important;
+    z-index: var(--z-cobranzas-overlay) !important;
   }
 }
 
@@ -667,20 +584,16 @@ body.dash-cobranzas-gentelella .detalle-panel-footer {
   padding: 14px 20px !important;
 }
 
-/* ── Z-INDEX ESCALADO: confirm por encima de #modal-cobro ────────────
-   BUG REAL (no solo de los tests): #modal-cobro usa la clase
-   .modal-overlay (finanzas.css, z-index:500). window.confirmar() usa
-   --z-modal (default 400, shared/tokens.css). Con #modal-cobro abierto
-   y --z-modal en 400, el diálogo de confirmación de "Registrar cobro"
-   queda VISUALMENTE DETRÁS del modal — su botón "ok" es inclickeable
-   con mouse para cualquier usuario real, no solo para Playwright
-   ("<label>N° comprobante</label> ... subtree intercepts pointer
-   events"). Confirmado corriendo cta-cte.spec.js contra Chromium real.
-   Mismo hallazgo y mismo fix ya aplicado para el caso análogo de
-   #modal-producto en productos-modal-fix.css — acá se replica scopeado
-   a cobranzas.html (que es donde vive #modal-cobro, cargado también por
-   /admin/cta-cte.html vía el stub de redirect a
-   cobranzas.html?vista=saldos). --z-toast ya estaba bien (600 > 500). */
-:root {
-  --z-modal: 10100;
-}
+/* ── Z-INDEX: confirm por encima de #modal-cobro ──────────────────────
+   #modal-cobro usa la clase .modal-overlay (finanzas.css, --z-flyout:500).
+   window.confirmar() usaba --z-modal (400), así que el diálogo de
+   "Registrar cobro" quedaba VISUALMENTE DETRÁS del modal — su botón "ok"
+   era inclickeable con mouse para cualquier usuario real, no solo para
+   Playwright. Afecta también a /admin/cta-cte.html (stub de redirect a
+   cobranzas.html?vista=saldos, mismo #modal-cobro).
+   FIX (2026-08-22): window.confirmar() ahora usa un token propio,
+   --z-confirm-dialog (750, shared/tokens.css), en vez de reutilizar
+   --z-modal (que también hereda el backdrop del "Menú principal" global de
+   admin/nav.css — subirlo acá tapaba ese menú en toda la página). Ver el
+   mismo fix en notas-gentelella.css, cheques-gentelella.css y
+   productos-modal-fix.css. Esta sobreescritura ya no hace falta. */

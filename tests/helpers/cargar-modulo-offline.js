@@ -41,12 +41,17 @@ export function cargarModuloOffline(rutaAbsoluta, opciones = {}) {
       outboxFake = {
         init: vi.fn(async () => {}),
         encolarAccion: vi.fn(async () => 'local-id-fake'),
+        encolarLegacySinTenant: vi.fn(async () => 'legacy-id-fake'),
         sincronizarPendientes: vi.fn(async () => {}),
         getPendientes: vi.fn(async () => []),
         getContadorPendientes: vi.fn(async () => 0),
         getConflictos: vi.fn(async () => []),
         getContadorConflictos: vi.fn(async () => 0),
         resolverConflicto: vi.fn(async () => {}),
+        getCuarentena: vi.fn(async () => []),
+        getContadorCuarentena: vi.fn(async () => 0),
+        confirmarCuarentena: vi.fn(async () => {}),
+        descartarCuarentena: vi.fn(async () => {}),
         estaOnline: vi.fn(() => true),
       };
       return outboxFake;

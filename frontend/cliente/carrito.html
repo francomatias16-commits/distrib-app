@@ -4,128 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="/cliente/manifest.json" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#19372D" />
   <title>Carrito — Fluxo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
   <script src="/shared/responsive-mobile.js?v=699" defer></script>
 
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/tienda-nav.css?v=1" />
+  <link rel="stylesheet" href="/shared/tienda-nav.css?v=2" />
   <script src="/frontend/env-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
   <script src="/shared/offline-core.js?v1"></script>
   <script src="/cliente/cliente-offline.js"></script>
   <script src="/cliente/pwa-init.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
-
-    .topbar {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-      color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
-    }
-    .topbar-row { display: flex; align-items: center; gap: .75rem; }
-    .btn-back { background: none; border: none; color: #fff; cursor: pointer; padding: 0; display: flex; align-items: center; }
-    .topbar h1 { font-size: 1.05rem; font-weight: 700; flex: 1; }
-
-    /* NAV BOTTOM: ver /shared/tienda-nav.css */
-
-    .contenido { padding: .75rem .75rem 9rem; max-width: 480px; margin: 0 auto; }
-
-    /* Ítem carrito */
-    .carrito-item {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: .8rem; display: flex; gap: .75rem; margin-bottom: .6rem;
-    }
-    .item-img {
-      width: 60px; height: 60px; border-radius: var(--radius-md); background: var(--color-surface-2);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
-    }
-    .item-img img { width: 100%; height: 100%; object-fit: cover; }
-    .item-body { flex: 1; min-width: 0; }
-    .item-nombre { font-size: .85rem; font-weight: 600; color: var(--color-text); line-height: 1.2; }
-    .item-unidad { font-size: .72rem; color: var(--color-text-light); margin-top: .1rem; }
-    .item-precio { font-size: .85rem; font-weight: 700; color: var(--color-primary); margin-top: .35rem; }
-    .item-controls { display: flex; align-items: center; gap: .5rem; margin-top: .35rem; }
-    .btn-qty {
-      width: 28px; height: 28px; border-radius: var(--radius-md); border: 1px solid var(--color-border);
-      background: var(--color-surface-2); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 1rem; font-weight: 700; color: var(--color-text-muted);
-    }
-    .qty-value { font-size: .9rem; font-weight: 600; color: var(--color-text); min-width: 24px; text-align: center; }
-    .btn-eliminar {
-      margin-left: auto; background: none; border: none; color: var(--color-text-light);
-      cursor: pointer; display: flex; align-items: center;
-    }
-
-    /* Resumen */
-    .resumen-card {
-      background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: 1rem; margin-top: .5rem;
-    }
-    .resumen-row { display: flex; justify-content: space-between; font-size: .88rem; padding: .35rem 0; color: var(--color-text-muted); }
-    .resumen-row.total { font-weight: 700; font-size: 1rem; color: var(--color-text); border-top: 1px solid var(--color-border-soft); margin-top: .35rem; padding-top: .6rem; }
-
-    /* Notas */
-    .notas-wrap { margin-top: .75rem; }
-    .notas-wrap textarea {
-      width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
-      padding: .65rem .85rem; font-size: .85rem; font-family: inherit;
-      resize: none; outline: none; background: var(--color-surface); color: var(--color-text);
-    }
-    .notas-wrap textarea:focus { border-color: var(--color-primary); }
-    .notas-label { font-size: .78rem; color: var(--color-text-muted); margin-bottom: .35rem; }
-
-    /* Botón confirmar */
-    .footer-confirm {
-      position: fixed; bottom: 56px; left: 0; right: 0;
-      background: var(--color-surface); border-top: 1px solid var(--color-border-soft); padding: .75rem 1rem;
-      box-shadow: 0 -2px 8px rgba(0,0,0,.06); z-index: 50;
-    }
-    .btn-confirmar {
-      width: 100%; padding: .85rem; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      color: #fff; border: none; border-radius: var(--radius-xl); font-size: 1rem; font-weight: 700;
-      cursor: pointer; font-family: inherit; transition: opacity .15s;
-    }
-    .btn-confirmar:disabled { opacity: .55; cursor: not-allowed; }
-    .btn-vaciar {
-      background: none; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
-      padding: .5rem 1rem; font-size: .82rem; color: var(--color-text-muted);
-      cursor: pointer; font-family: inherit; margin-bottom: .5rem;
-    }
-
-    .empty-state { text-align: center; color: var(--color-text-light); padding: 4rem 1rem; }
-    .empty-state svg { margin-bottom: .75rem; opacity: .35; }
-    .empty-state p { font-size: .9rem; margin-bottom: 1rem; }
-    .btn-ir-catalogo {
-      display: inline-block; background: var(--color-primary); color: #fff; padding: .7rem 1.5rem;
-      border-radius: var(--radius-lg); text-decoration: none; font-weight: 600; font-size: .88rem;
-    }
-    .loading { text-align: center; color: var(--color-text-light); padding: 3rem 1rem; font-size: .88rem; }
-
-    /* Modal éxito */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.5);
-      display: flex; align-items: center; justify-content: center; z-index: 200;
-      opacity: 0; pointer-events: none; transition: opacity .2s;
-    }
-    .modal-overlay.visible { opacity: 1; pointer-events: all; }
-    .modal-card {
-      background: var(--color-surface); border-radius: var(--radius-xxl); padding: 2rem 1.5rem;
-      text-align: center; max-width: 300px; width: 90%; margin: 1rem;
-    }
-    .modal-icon { font-size: 2.5rem; margin-bottom: .75rem; }
-    .modal-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--color-text); margin-bottom: .5rem; }
-    .modal-card p { font-size: .85rem; color: var(--color-text-muted); margin-bottom: 1.25rem; }
-    .btn-modal { width: 100%; padding: .75rem; background: var(--color-primary); color: #fff; border: none; border-radius: var(--radius-lg); font-size: .9rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-  </style>
+  <link rel="stylesheet" href="/cliente/css/carrito.css?v=3" />
   <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
 </head>
 <body>
@@ -143,6 +41,25 @@
   <div class="contenido">
     <div id="listaCarrito"><div class="loading">Cargando carrito...</div></div>
     <div id="resumenWrap" style="display:none">
+      <div class="notas-wrap">
+        <div class="notas-label">Forma de pago</div>
+        <div class="forma-pago-wrap" role="radiogroup" aria-label="Forma de pago">
+          <label class="forma-pago-opt">
+            <input type="radio" name="formaPago" id="fpCuentaCorriente" value="cuenta_corriente" checked>
+            <span>
+              <strong>Cuenta corriente</strong>
+              <small>Se suma a tu saldo. Sujeto a tu límite de crédito.</small>
+            </span>
+          </label>
+          <label class="forma-pago-opt">
+            <input type="radio" name="formaPago" id="fpPagoInmediato" value="pago_inmediato">
+            <span>
+              <strong>Pago inmediato</strong>
+              <small>Transferencia, efectivo u otro medio a coordinar con tu vendedor. No afecta tu cuenta corriente.</small>
+            </span>
+          </label>
+        </div>
+      </div>
       <div class="notas-wrap">
         <div class="notas-label">Notas para el pedido (opcional)</div>
         <textarea id="inputNotas" rows="2" placeholder="Ej: Entregar a la tarde, dejar en recepción..."></textarea>
@@ -278,14 +195,14 @@
               : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-light)" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l2-4h14l2 4"/></svg>`}
           </div>
           <div class="item-body">
-            <div class="item-nombre">${esc(it.nombre)}</div>
+            <div class="item-nombre">${esc(it.nombre)} ${it.combo_id ? '<span class="badge-combo">Combo</span>' : ''}</div>
             <div class="item-unidad">${esc(it.unidad || '')}</div>
             <div class="item-precio">${formatPeso(it.precio_snap)} c/u</div>
             <div class="item-controls">
-              <button class="btn-qty" onclick="cambiarCantidad('${it.id}','${it.producto_id}',-1)">−</button>
+              <button class="btn-qty" onclick="cambiarCantidad('${it.id}','${it.producto_id || ''}',-1)">−</button>
               <span class="qty-value" id="qty-${it.id}">${it.cantidad}</span>
-              <button class="btn-qty" onclick="cambiarCantidad('${it.id}','${it.producto_id}',1)">+</button>
-              <button class="btn-eliminar" onclick="eliminarItem('${it.id}','${it.producto_id}')" title="Eliminar">
+              <button class="btn-qty" onclick="cambiarCantidad('${it.id}','${it.producto_id || ''}',1)">+</button>
+              <button class="btn-eliminar" onclick="eliminarItem('${it.id}','${it.producto_id || ''}')" title="Eliminar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>
               </button>
             </div>
@@ -366,10 +283,12 @@
       // siempre la misma idempotency_key para este intento de compra.
       const payload = {
         items: items.map(it => ({
-          producto_id: it.producto_id,
+          producto_id: it.producto_id || null,
+          combo_id: it.combo_id || null,
           cantidad: it.cantidad,
         })),
         notas_cliente: document.getElementById('inputNotas').value.trim() || null,
+        forma_pago: (document.querySelector('input[name="formaPago"]:checked') || {}).value || 'cuenta_corriente',
         canal: 'portal_cliente',
         // Hallazgo 3: misma key en cada intento de este carrito — si este
         // es un reintento tras un fallo de red, el servidor detecta que

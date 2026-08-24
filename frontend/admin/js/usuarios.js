@@ -9,6 +9,25 @@ const ROL_LABEL = {
   depositero: 'Depositero', chofer: 'Chofer', contador: 'Contador',
 };
 
+// Un color por rol (no por nombre) — a diferencia del hash de
+// Clientes/WhatsApp, acá lo que se quiere resaltar de un vistazo es el
+// nivel de acceso de cada usuario interno, así que el mismo rol siempre
+// pinta igual. Reusa la paleta --ge-* ya usada en el resto del panel.
+const ROL_COLOR = {
+  dueno: 'var(--ge-purple)',
+  admin: 'var(--ge-blue)',
+  vendedor: 'var(--ge-teal)',
+  depositero: 'var(--ge-orange)',
+  chofer: 'var(--ge-red)',
+  contador: 'var(--ge-muted)',
+};
+
+function iniciales(nombre) {
+  const partes = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '?';
+  return (partes[0][0] + (partes[1]?.[0] || '')).toUpperCase();
+}
+
 let modalUsuarioId = null;
 
 async function init() {
@@ -63,7 +82,7 @@ function renderTabla() {
   }
 
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="vacio">No hay usuarios que coincidan con el filtro.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="vacio">No hay usuarios que coincidan con el filtro.</td></tr>';
     return;
   }
 
@@ -77,18 +96,29 @@ function renderTabla() {
     // 'dueno' ni a otro 'admin' (el backend ahora lo rechaza también en
     // PATCH y DELETE) — no tiene sentido ofrecer botones que van a fallar.
     const esAjenoIntocable = !esUnoMismo && (u.rol === 'dueno' || u.rol === 'admin') && usuarioActual?.rol !== 'dueno';
+    // Clic en la fila = "Editar" (misma convención que el resto del panel),
+    // salvo cuando ni siquiera se ofrece el botón (esAjenoIntocable).
+    if (!esAjenoIntocable) tr.classList.add('fila-clickeable');
+    const acciones = esAjenoIntocable
+      ? '<span style="font-size:12px;color:var(--color-text-muted,#5B6660);">Solo el dueño</span>'
+      : ComponentesAdmin.renderFilaAcciones([
+          { label: 'Editar', attrs: `data-accion="editar" data-id="${u.id}"` },
+          ...(!esUnoMismo ? [{ label: u.activo ? 'Desactivar' : 'Reactivar', attrs: `data-accion="${u.activo ? 'desactivar' : 'activar'}" data-id="${u.id}"` }] : []),
+        ]);
+    const nombre = u.nombre || '—';
+    const colorRol = ROL_COLOR[u.rol] || 'var(--ge-muted)';
     tr.innerHTML = `
-      <td>${window.sanitize(u.nombre || '—')}${esUnoMismo ? ' <span style="font-size:11px;color:var(--color-text-muted,#4B4A45);border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:1px 7px;">vos</span>' : ''}</td>
-      <td>${window.sanitize(u.email || '—')}</td>
-      <td>${window.sanitize(ROL_LABEL[u.rol] || u.rol)}</td>
-      <td>${window.sanitize(u.telefono || '—')}</td>
-      <td>${u.activo ? '<span class="badge-estado badge-ok">Activo</span>' : '<span class="badge-estado badge-inactivo">Inactivo</span>'}</td>
-      <td class="col-sticky-end">
-        ${esAjenoIntocable ? '<span style="font-size:12px;color:var(--color-text-muted,#4B4A45);">Solo el dueño</span>' : `
-        <button type="button" class="btn-fila-accion" data-accion="editar" data-id="${u.id}">Editar</button>
-        ${!esUnoMismo ? `<button type="button" class="btn-fila-accion" data-accion="${u.activo ? 'desactivar' : 'activar'}" data-id="${u.id}">${u.activo ? 'Desactivar' : 'Reactivar'}</button>` : ''}
-        `}
+      <td class="td-usuario" data-label="Usuario">
+        <div class="usr-avatar" style="background:${colorRol}">${iniciales(nombre)}</div>
+        <div>
+          <div class="usr-nombre">${window.sanitize(nombre)}${esUnoMismo ? ' <span class="usr-pill-vos">vos</span>' : ''}</div>
+          <div class="usr-email">${window.sanitize(u.email || '—')}</div>
+        </div>
       </td>
+      <td data-label="Rol"><span class="badge-rol" style="color:${colorRol};border-color:${colorRol}">${window.sanitize(ROL_LABEL[u.rol] || u.rol)}</span></td>
+      <td data-label="Teléfono">${window.sanitize(u.telefono || '—')}</td>
+      <td data-label="Estado">${u.activo ? ComponentesAdmin.renderBadgeEstado('Activo', 'ok') : ComponentesAdmin.renderBadgeEstado('Inactivo', 'inactivo')}</td>
+      <td class="col-sticky-end" data-label="Acciones">${acciones}</td>
     `;
     frag.appendChild(tr);
   });
@@ -99,13 +129,22 @@ function renderTabla() {
 // Delegación de eventos (mismo patrón que stock.js — evita interpolar
 // texto libre de la base en atributos onclick="").
 document.getElementById('tbody-usuarios')?.addEventListener('click', (ev) => {
-  const btn = ev.target.closest('.btn-fila-accion');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  const accion = btn.dataset.accion;
-  if (accion === 'editar') abrirModalEditar(id);
-  else if (accion === 'desactivar') cambiarEstado(id, false);
-  else if (accion === 'activar') cambiarEstado(id, true);
+  const btn = ev.target.closest('.btn-tabla');
+  if (btn) {
+    const id = btn.dataset.id;
+    const accion = btn.dataset.accion;
+    if (accion === 'editar') abrirModalEditar(id);
+    else if (accion === 'desactivar') cambiarEstado(id, false);
+    else if (accion === 'activar') cambiarEstado(id, true);
+    return;
+  }
+  // Clic en la fila fuera de cualquier control propio (botón/link/select/
+  // input) = acción primaria "Editar" — mismo guard universal que el resto
+  // del panel, adaptado a delegación de eventos.
+  const fila = ev.target.closest('tr.fila-clickeable');
+  if (fila && ev.target.closest('[onclick],a,select,input,textarea,.btn-tabla') === null) {
+    abrirModalEditar(fila.dataset.id);
+  }
 });
 
 function abrirModalNuevo() {

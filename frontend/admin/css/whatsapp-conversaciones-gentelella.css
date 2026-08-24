@@ -129,7 +129,7 @@ body.dash-whatsapp-conversaciones-gentelella .tabla-wrap {
 body.dash-whatsapp-conversaciones-gentelella .tabla-header h2 {
   color: var(--ge-ink) !important;
 }
-body.dash-whatsapp-conversaciones-gentelella table.tabla th {
+body.dash-whatsapp-conversaciones-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -137,18 +137,22 @@ body.dash-whatsapp-conversaciones-gentelella table.tabla th {
   text-transform: uppercase !important;
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  padding: 10px 16px !important; /* valor original de finanzas.css table.tabla th, preservado tras migrar a .tabla-admin */
+  white-space: nowrap !important; /* idem */
 }
-body.dash-whatsapp-conversaciones-gentelella table.tabla td {
+body.dash-whatsapp-conversaciones-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
+  padding: 11px 16px !important; /* valor original de finanzas.css table.tabla td, preservado tras migrar a .tabla-admin */
+  font-size: 13px !important; /* venía del <style> inline (.tabla td), preservado */
 }
-body.dash-whatsapp-conversaciones-gentelella table.tabla tr.fila-conv:hover td {
+body.dash-whatsapp-conversaciones-gentelella .tabla-admin tr.fila-conv:hover td {
   background: var(--ge-teal-light) !important;
 }
 body.dash-whatsapp-conversaciones-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-whatsapp-conversaciones-gentelella table.tabla tr.fila-conv:hover .col-sticky-end {
+body.dash-whatsapp-conversaciones-gentelella .tabla-admin tr.fila-conv:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 body.dash-whatsapp-conversaciones-gentelella .tabla-footer {
@@ -204,20 +208,12 @@ body.dash-whatsapp-conversaciones-gentelella .modal {
   border-radius: var(--ge-radius-lg) !important;
   box-shadow: var(--ge-shadow-lg) !important;
 }
-body.dash-whatsapp-conversaciones-gentelella .modal-header {
-  background: var(--ge-panel) !important;
-  border-bottom: 1px solid var(--ge-border) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .modal-header h3 {
-  color: var(--ge-ink) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .modal-close {
-  color: var(--ge-ink-soft) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .modal-close:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-ink) !important;
-}
+/* NOTA: el header y el botón de cerrar de #modal-conv NO se tokenizan acá
+   a propósito — ese modal es la charla de WhatsApp, con su propio header
+   verde de marca definido inline (ver whatsapp-conversaciones.html). Tokenizar
+   estos selectores con !important pisaría ese header y dejaría el texto
+   blanco ilegible sobre fondo claro. El único modal de esta pantalla es
+   #modal-conv, así que no hace falta cubrir el caso genérico. */
 body.dash-whatsapp-conversaciones-gentelella .modal-footer {
   background: var(--ge-panel) !important;
   border-top: 1px solid var(--ge-border) !important;
@@ -240,23 +236,11 @@ body.dash-whatsapp-conversaciones-gentelella .borrador-box strong {
   color: var(--ge-ink) !important;
 }
 
-/* Chat (.chat-scroll / .burbuja) */
-body.dash-whatsapp-conversaciones-gentelella .chat-scroll {
-  background: var(--ge-bg) !important;
-  border-radius: var(--ge-radius-btn) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .burbuja.in {
-  background: var(--ge-panel) !important;
-  border: 1px solid var(--ge-border) !important;
-  color: var(--ge-ink) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .burbuja.out {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-ink) !important;
-}
-body.dash-whatsapp-conversaciones-gentelella .burbuja .hora {
-  color: var(--ge-muted) !important;
-}
+/* Chat (.chat-scroll / .burbuja): tampoco se tokeniza. El papel tapiz
+   punteado y las burbujas blanco/verde con colita son intencionales — son
+   las que hacen que este panel se sienta un chat real y no una grilla admin
+   más. Solo el estado "no soportado" toma el tono muted del sistema, que
+   no compite con la paleta de las burbujas. */
 body.dash-whatsapp-conversaciones-gentelella .burbuja.no-soportado {
   color: var(--ge-muted) !important;
 }

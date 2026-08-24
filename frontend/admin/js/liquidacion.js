@@ -140,13 +140,13 @@ function renderTablaOfertas(lista) {
     const p = o.productos || {};
     const l = o.lotes || {};
     return `<tr>
-      <td>${window.sanitize(p.nombre || '—')} <span style="color:var(--color-text-light);font-size:11px">(${window.sanitize(p.codigo || '—')})</span></td>
-      <td style="font-family:monospace">${l.numero_lote ? window.sanitize(l.numero_lote) : '—'}</td>
-      <td>${formatPeso(p.precio_base)}</td>
-      <td class="monto monto-verde">${formatPeso(o.precio_oferta)}</td>
-      <td><span class="chip chip-rojo">-${(+o.descuento_pct).toFixed(0)}%</span></td>
-      <td>${o.cantidad_snapshot}</td>
-      <td>${formatFecha(o.vence_oferta_at)}</td>
+      <td data-label="Producto">${window.sanitize(p.nombre || '—')} <span style="color:var(--color-text-light);font-size:11px">(${window.sanitize(p.codigo || '—')})</span></td>
+      <td data-label="Lote" style="font-family:monospace">${l.numero_lote ? window.sanitize(l.numero_lote) : '—'}</td>
+      <td data-label="Precio base">${formatPeso(p.precio_base)}</td>
+      <td class="monto monto-verde" data-label="Precio oferta">${formatPeso(o.precio_oferta)}</td>
+      <td data-label="Descuento"><span class="chip chip-rojo">-${(+o.descuento_pct).toFixed(0)}%</span></td>
+      <td data-label="Cantidad">${o.cantidad_snapshot}</td>
+      <td data-label="Vence la oferta">${formatFecha(o.vence_oferta_at)}</td>
     </tr>`;
   }).join('');
 }

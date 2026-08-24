@@ -45,8 +45,22 @@ window.renderTbody = function (tbody, rows, rowFn, emptyColspan = 8, emptyMessag
 };
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
+// [Fix — "Factura emitida" quedaba congelado] La versión anterior dependía de
+// un único setTimeout para sacar la clase `toast--visible`. Si el mensaje se
+// disparaba justo antes de que la pestaña perdiera foco (cambio de ventana,
+// impresión del ticket, etc.) los navegadores throttlean/pausan los timers en
+// background y el toast podía quedar pegado en pantalla mucho más de lo
+// esperado. Ahora:
+//   1. El cierre se controla con un timestamp absoluto (Date.now() + duración)
+//      en vez de confiar ciegamente en que el setTimeout dispare a tiempo, y
+//      se re-chequea al volver a foco (evento 'visibilitychange').
+//   2. Hay un failsafe: si por lo que sea el timer principal no llegó a
+//      disparar, un segundo timer de seguridad fuerza el cierre.
+//   3. Se agrega una barra de progreso visual (`.toast-progress`) para que
+//      se vea claramente que el mensaje tiene un tiempo de vida y no quedó
+//      trabado — el usuario ve la cuenta regresiva en vez de un cartel fijo.
 (function () {
-  let _toastEl, _toastTimer;
+  let _toastEl, _toastBarEl, _toastTimer, _toastFailsafe, _toastCierraEn = 0;
 
   // [Etapa 3 — hallazgo Alta] Distintos módulos llaman a toast/mostrarToast
   // con sinónimos de tipo ('err', 'error', 'ok', 'exito', 'warn', etc.).
@@ -58,24 +72,72 @@ window.renderTbody = function (tbody, rows, rowFn, emptyColspan = 8, emptyMessag
     warn: 'warning', warning: 'warning',
   };
 
+  function crearElementoToast() {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    const msg = document.createElement('span');
+    msg.className = 'toast-msg';
+    const bar = document.createElement('span');
+    bar.className = 'toast-progress';
+    el.appendChild(msg);
+    el.appendChild(bar);
+    document.body.appendChild(el);
+    return { el, msg, bar };
+  }
+
+  function cerrarToastAhora() {
+    clearTimeout(_toastTimer);
+    clearTimeout(_toastFailsafe);
+    _toastTimer = _toastFailsafe = null;
+    _toastCierraEn = 0;
+    if (_toastEl) _toastEl.classList.remove('toast--visible');
+  }
+
   function toast(mensaje, tipo = 'default', duracionMs = 3000) {
     if (!_toastEl) {
-      _toastEl = document.createElement('div');
-      _toastEl.className = 'toast';
-      document.body.appendChild(_toastEl);
+      const creado = crearElementoToast();
+      _toastEl = creado.el;
+      _toastBarEl = creado.bar;
     }
     const tipoNormalizado = TIPO_ALIAS[tipo] || (tipo === 'default' ? 'default' : tipo);
+
     clearTimeout(_toastTimer);
+    clearTimeout(_toastFailsafe);
+
     _toastEl.className = 'toast';
     if (tipoNormalizado !== 'default') _toastEl.classList.add(`toast--${tipoNormalizado}`);
-    _toastEl.textContent = mensaje;
+    _toastEl.querySelector('.toast-msg').textContent = mensaje;
+
+    // Reinicia la animación de la barra de progreso (sacar/poner la clase
+    // fuerza un reflow para que el navegador la vuelva a correr desde 0).
+    _toastBarEl.style.animation = 'none';
+    void _toastBarEl.offsetHeight;
+    _toastBarEl.style.animation = `toast-progress ${duracionMs}ms linear forwards`;
+
     void _toastEl.offsetHeight;
     _toastEl.classList.add('toast--visible');
-    _toastTimer = setTimeout(() => _toastEl.classList.remove('toast--visible'), duracionMs);
+
+    _toastCierraEn = Date.now() + duracionMs;
+    _toastTimer = setTimeout(cerrarToastAhora, duracionMs);
+    // Failsafe: si el timer principal no disparó a tiempo (tab en background,
+    // throttling del navegador, etc.), este fuerza el cierre igual.
+    _toastFailsafe = setTimeout(cerrarToastAhora, duracionMs + 1200);
   }
+
+  // Al volver a la pestaña, si ya se venció el tiempo del toast actual
+  // (porque el timer se pausó mientras estaba en background) lo cerramos
+  // enseguida en vez de dejarlo colgado hasta que el usuario lo note.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && _toastCierraEn && Date.now() >= _toastCierraEn) {
+      cerrarToastAhora();
+    }
+  });
 
   window.toast = toast;
   window.mostrarToast = toast; // alias usado en stock.js, pedidos.js, etc.
+  window.cerrarToast = cerrarToastAhora; // por si algún flujo necesita cerrarlo a mano
 })();
 
 // ─── Preloader único (Etapa 3 — hallazgo Media: 3 reimplementaciones) ────────
@@ -183,23 +245,30 @@ window.loadingEnd = function (container) {
  *        eliminaciones o acciones que no se pueden deshacer.
  * @returns {Promise<boolean>}
  */
-const SVG_ALERTA = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:.5rem;color:var(--color-danger,#7A1E19)"><path d="M12 9v4"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 17h.01"/></svg>';
+const SVG_ALERTA = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:.5rem;color:var(--color-danger,#7A2820)"><path d="M12 9v4"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 17h.01"/></svg>';
 
 window.confirmar = function (mensaje, opts = {}) {
   const { labelOk = 'Confirmar', labelCancel = 'Cancelar', tipo = 'default' } = opts;
   const esDanger = tipo === 'danger';
+  // ID único para enlazar el diálogo a su texto vía aria-labelledby en vez de
+  // aria-label="${mensaje}". mensaje puede traer HTML (<br>, <strong>) y/o
+  // comillas dobles (ej. nombres entre comillas) — puesto directo dentro de
+  // un atributo, esas comillas cierran el atributo antes de tiempo y el resto
+  // del string (incluido el próximo style="...") se renderiza como texto
+  // visible en la página en vez de quedar oculto en el markup del modal.
+  const tid = 'cnf-txt-' + Math.random().toString(36).slice(2, 9);
 
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.innerHTML = `
-      <div role="dialog" aria-modal="true" aria-label="${mensaje}"
-           style="position:fixed;inset:0;z-index:var(--z-modal,400);
+      <div role="dialog" aria-modal="true" aria-labelledby="${tid}"
+           style="position:fixed;inset:0;z-index:var(--z-confirm-dialog,750);
                   display:flex;align-items:center;justify-content:center;
-                  background:rgba(0,0,0,.45);padding:1rem">
+                  background:rgba(22,24,29,.45);padding:1rem">
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);
                     padding:1.5rem;max-width:360px;width:100%;box-shadow:var(--shadow-xl)">
           ${esDanger ? SVG_ALERTA : ''}
-          <p style="margin:0 0 1.25rem;font-size:.9375rem;color:var(--color-text);line-height:1.45">${mensaje}</p>
+          <p id="${tid}" style="margin:0 0 1.25rem;font-size:.9375rem;color:var(--color-text);line-height:1.45">${mensaje}</p>
           <div style="display:flex;gap:.75rem;justify-content:flex-end">
             <button data-action="cancel" class="btn btn--ghost btn--sm">${labelCancel}</button>
             <button data-action="ok" class="btn ${esDanger ? 'btn--danger' : 'btn--primary'} btn--sm">${labelOk}</button>
@@ -246,21 +315,26 @@ window.confirmarConTexto = function (mensaje, opts = {}) {
     labelOk = 'Confirmar', labelCancel = 'Cancelar',
     placeholder = 'Motivo...', requerido = true,
   } = opts;
+  // Mismo fix que en confirmar(): aria-labelledby en vez de aria-label="${mensaje}",
+  // porque mensaje suele traer comillas dobles (ej. el nombre de la caja entre
+  // comillas) y HTML (<br>) que rompían el atributo y hacían que el resto del
+  // markup del modal (style="...", etc.) se mostrara como texto plano en pantalla.
+  const tid = 'cnf-txt-' + Math.random().toString(36).slice(2, 9);
 
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.innerHTML = `
-      <div role="dialog" aria-modal="true" aria-label="${mensaje}"
-           style="position:fixed;inset:0;z-index:var(--z-modal,400);
+      <div role="dialog" aria-modal="true" aria-labelledby="${tid}"
+           style="position:fixed;inset:0;z-index:var(--z-confirm-dialog,750);
                   display:flex;align-items:center;justify-content:center;
-                  background:rgba(0,0,0,.45);padding:1rem">
+                  background:rgba(22,24,29,.45);padding:1rem">
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);
                     padding:1.5rem;max-width:380px;width:100%;box-shadow:var(--shadow-xl)">
           ${SVG_ALERTA}
-          <p style="margin:0 0 .75rem;font-size:.9375rem;color:var(--color-text);line-height:1.45">${mensaje}</p>
+          <p id="${tid}" style="margin:0 0 .75rem;font-size:.9375rem;color:var(--color-text);line-height:1.45">${mensaje}</p>
           <textarea data-role="motivo" rows="2" maxlength="200" placeholder="${placeholder}"
             style="width:100%;resize:vertical;margin-bottom:1.25rem;padding:.5rem;
-                   border:1px solid var(--color-border,#C7BFA9);border-radius:var(--radius-sm);
+                   border:1px solid var(--color-border,#DDE1DC);border-radius:var(--radius-sm);
                    font-family:inherit;font-size:.875rem;background:var(--color-bg);
                    color:var(--color-text)"></textarea>
           <div style="display:flex;gap:.75rem;justify-content:flex-end">
@@ -306,20 +380,43 @@ window.confirmarConTexto = function (mensaje, opts = {}) {
 window.btnAsyncClick = async function (btn, fn, opts = {}) {
   if (!btn || btn.disabled || btn.classList.contains('btn--loading')) return;
 
+  // FIX BUG-11: el lock se pone ACÁ, antes de abrir la confirmación, no
+  // después. Antes, dos clics rápidos con {confirm:true} pasaban ambos el
+  // guard de arriba (todavía nada disabled) y abrían dos diálogos de
+  // confirmación en paralelo, pudiendo disparar dos mutaciones. Si el
+  // usuario cancela, se libera el lock para poder reintentar.
+  btn.classList.add('btn--loading');
+  btn.disabled = true;
+
   if (opts.confirm) {
     const msg = opts.confirmMsg || '¿Confirmar esta acción?';
     const ok = await window.confirmar(msg, { tipo: opts.confirmTipo || 'danger' });
-    if (!ok) return;
+    if (!ok) {
+      btn.classList.remove('btn--loading');
+      btn.disabled = false;
+      return;
+    }
   }
-
-  btn.classList.add('btn--loading');
-  btn.disabled = true;
 
   try {
     await fn();
   } catch (err) {
     console.error('[btnAsyncClick]', err);
-    if (window.toast) window.toast('Ocurrió un error. Intentá de nuevo.', 'error');
+    // FIX v809: acá se pisaba SIEMPRE el mensaje real del error con el
+    // genérico "Ocurrió un error. Intentá de nuevo.", sin importar que la
+    // función interna hubiera lanzado un Error con un mensaje específico y
+    // útil (ej: "El servidor respondió con un error (500)...", "Ya existe
+    // un cheque con ese número...", etc.). Con 106 botones del admin
+    // usando este wrapper, cualquier error no capturado internamente por
+    // la función llegaba acá y perdía toda la información útil para
+    // diagnosticar qué pasó — tanto para el usuario como en soporte.
+    // Ahora se usa err.message cuando existe y no es un string vacío;
+    // el genérico queda solo como último fallback (ej: errores sin
+    // Error() real, como un `throw 'algo'` o un objeto plano).
+    const mensaje = (err && typeof err.message === 'string' && err.message.trim())
+      ? err.message
+      : 'Ocurrió un error. Intentá de nuevo.';
+    if (window.toast) window.toast(mensaje, 'error');
   } finally {
     btn.classList.remove('btn--loading');
     btn.disabled = false;

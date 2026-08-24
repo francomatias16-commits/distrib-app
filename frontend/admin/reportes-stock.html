@@ -10,12 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
     <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=279">
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -26,11 +26,12 @@
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=1" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/reportes-stock-gentelella.css?v=1" />
   <!-- Estilos del gráfico "Movimientos de stock" + card "Cobertura de catálogo",
        trasladados desde /admin/stock (ver .stock-ov-grid más abajo) -->
-  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=1" />
+  <link rel="stylesheet" href="/frontend/admin/css/stock-overview.css?v=2" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-reportes-stock-gentelella dash-gentelella">
@@ -84,13 +85,10 @@
 
                 <!-- KPIs de Stock -->
                 <div class="franja-resumen-sololectura">
-  <span>Valor Total Stock: <strong id="kpiValorTotal">$0</strong> <span id="kpiCambioValor">+0% vs mes anterior</span></span>
-  <span class="sep">·</span>
-  <span>Productos en Stock: <strong id="kpiProductosStock">0</strong> <span id="kpiCambioProductos">+0 vs mes anterior</span></span>
-  <span class="sep">·</span>
-  <span>Stock Crítico: <strong id="kpiStockCritico">0</strong> <span id="kpiCambioCritico">Requiere atención</span></span>
-  <span class="sep">·</span>
-  <span>Rotación Promedio: <strong id="kpiRotacion">0</strong> <span id="kpiCambioRotacion">Días promedio</span></span>
+  <div class="dato-sello"><div class="dato-sello-valor" id="kpiValorTotal">$0</div><div class="dato-sello-etiqueta">Valor total stock</div><div class="dato-sello-nota" id="kpiCambioValor">+0% vs mes anterior</div></div>
+  <div class="dato-sello"><div class="dato-sello-valor" id="kpiProductosStock">0</div><div class="dato-sello-etiqueta">Productos en stock</div><div class="dato-sello-nota" id="kpiCambioProductos">+0 vs mes anterior</div></div>
+  <div class="dato-sello" data-tono="riesgo"><div class="dato-sello-valor" id="kpiStockCritico">0</div><div class="dato-sello-etiqueta">Stock crítico</div><div class="dato-sello-nota" id="kpiCambioCritico">Requiere atención</div></div>
+  <div class="dato-sello"><div class="dato-sello-valor" id="kpiRotacion">0</div><div class="dato-sello-etiqueta">Rotación promedio</div><div class="dato-sello-nota" id="kpiCambioRotacion">Días promedio</div></div>
 </div>
 
                 <!-- Movimientos de Stock (Ingresos vs Egresos, 6 meses) + Cobertura de catálogo
@@ -144,17 +142,17 @@
                 <!-- Tabla de Stock por Producto -->
                 <div class="ranking-section">
                     <h2>Estado de Stock por Producto</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-stock-estado">
                         <thead>
             <tr>
                                 <th>Producto</th>
-                                <th class="thead-sep">Categoría</th>
-                                <th>Stock Actual</th>
-                                <th>Stock Reservado</th>
-                                <th class="thead-sep">Disponible</th>
-                                <th>Costo Unitario</th>
-                                <th>Valor Total</th>
-                                <th>Estado</th>
+                                <th class="thead-sep col-fit">Categoría</th>
+                                <th class="col-fit">Stock Actual</th>
+                                <th class="col-fit">Stock Reservado</th>
+                                <th class="thead-sep col-fit">Disponible</th>
+                                <th class="col-fit">Costo Unitario</th>
+                                <th class="col-fit">Valor Total</th>
+                                <th class="col-fit">Estado</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyStock">
@@ -180,15 +178,15 @@
                 <!-- Tabla de Productos Críticos -->
                 <div class="ranking-section">
                     <h2>Productos con Stock Crítico</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-stock-criticos">
                         <thead>
                             <tr>
                                 <th>Producto</th>
-                                <th>Stock Actual</th>
-                                <th>Stock Mínimo</th>
-                                <th>Déficit</th>
-                                <th>Última Venta</th>
-                                <th>Acción Recomendada</th>
+                                <th class="col-fit">Stock Actual</th>
+                                <th class="col-fit">Stock Mínimo</th>
+                                <th class="col-fit">Déficit</th>
+                                <th class="col-fit">Última Venta</th>
+                                <th class="col-fit">Acción Recomendada</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyProductosCriticos">
@@ -214,14 +212,14 @@
                 <!-- Tabla de Valorización de Stock -->
                 <div class="ranking-section">
                     <h2>Valorización de Stock por Depósito</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-stock-valorizacion">
                         <thead>
                             <tr>
                                 <th>Depósito</th>
-                                <th>Cantidad Productos</th>
-                                <th>Cantidad Total Unidades</th>
-                                <th>Costo Total</th>
-                                <th>% del Total</th>
+                                <th class="col-fit">Cantidad Productos</th>
+                                <th class="col-fit">Cantidad Total Unidades</th>
+                                <th class="col-fit">Costo Total</th>
+                                <th class="col-fit">% del Total</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyValorizacion">
@@ -233,15 +231,15 @@
                 <!-- Tabla de Movimientos de Stock -->
                 <div class="ranking-section">
                     <h2>Movimientos de Stock (Últimos 30 días)</h2>
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-stock-movimientos">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
+                                <th class="col-fit">Fecha</th>
                                 <th>Producto</th>
-                                <th>Tipo</th>
-                                <th>Cantidad</th>
-                                <th>Depósito</th>
-                                <th>Usuario</th>
+                                <th class="col-fit">Tipo</th>
+                                <th class="col-fit">Cantidad</th>
+                                <th class="col-fit">Depósito</th>
+                                <th class="col-fit">Usuario</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyMovimientos">
@@ -299,11 +297,9 @@
                     </div>
 
                     <div class="franja-resumen-sololectura">
-  <span>Conteos Registrados: <strong id="kpiConteosTotal">0</strong> <span id="kpiConteosTotalSub">En el período filtrado</span></span>
-  <span class="sep">·</span>
-  <span>Conteos con Diferencia: <strong id="kpiConteosConDiferencia">0</strong> <span id="kpiConteosConDiferenciaSub">Sistema ≠ contado</span></span>
-  <span class="sep">·</span>
-  <span>Diferencia Acumulada: <strong id="kpiConteosDiferenciaAcumulada">0</strong> <span id="kpiConteosDiferenciaAcumuladaSub">Unidades (contado − sistema)</span></span>
+  <div class="dato-sello"><div class="dato-sello-valor" id="kpiConteosTotal">0</div><div class="dato-sello-etiqueta">Conteos registrados</div><div class="dato-sello-nota" id="kpiConteosTotalSub">En el período filtrado</div></div>
+  <div class="dato-sello" data-tono="ambar"><div class="dato-sello-valor" id="kpiConteosConDiferencia">0</div><div class="dato-sello-etiqueta">Conteos con diferencia</div><div class="dato-sello-nota" id="kpiConteosConDiferenciaSub">Sistema ≠ contado</div></div>
+  <div class="dato-sello" data-tono="ambar"><div class="dato-sello-valor" id="kpiConteosDiferenciaAcumulada">0</div><div class="dato-sello-etiqueta">Diferencia acumulada</div><div class="dato-sello-nota" id="kpiConteosDiferenciaAcumuladaSub">Unidades (contado − sistema)</div></div>
 </div>
 
                     <div class="chart-section">
@@ -311,17 +307,17 @@
                         <div class="chart-section-wrap"><div id="chartConteosTopProductos" class="chart-section-el"></div></div>
                     </div>
 
-                    <table class="ranking-table">
+                    <table class="tabla-admin" id="tabla-stock-conteos">
                         <thead>
             <tr>
-                                <th>Fecha</th>
-                                <th>Producto</th>
-                                <th class="thead-sep">Depósito</th>
-                                <th>Sistema</th>
-                                <th>Contado</th>
-                                <th class="thead-sep">Diferencia</th>
+                                <th class="col-fit">Fecha</th>
+                                <th class="col-fit">Producto</th>
+                                <th class="thead-sep col-fit">Depósito</th>
+                                <th class="col-fit">Sistema</th>
+                                <th class="col-fit">Contado</th>
+                                <th class="thead-sep col-fit">Diferencia</th>
                                 <th>Motivo</th>
-                                <th>Usuario</th>
+                                <th class="col-fit">Usuario</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyConteos">
@@ -354,15 +350,15 @@
 <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-<script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
     <script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
     <script src="/frontend/admin/js/reportes-stock.js?v1782328742714"></script>

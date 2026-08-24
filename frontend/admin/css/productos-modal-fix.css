@@ -19,7 +19,7 @@
   padding: 0 !important;           /* el padding lo dan header/panel/footer por separado */
   transform: none !important;      /* anula scale(.96) de adminlte-components */
   transition: right .25s cubic-bezier(.4, 0, .2, 1) !important;
-  z-index: 9999 !important;
+  z-index: var(--z-overlay-critical) !important;
   box-sizing: border-box !important;
 }
 #modal-producto.open {
@@ -29,10 +29,13 @@
 /* ── Encabezado (siempre visible, no scrollea) ────────────────── */
 #modal-producto .modal-header {
   flex-shrink: 0 !important;
-  padding: 20px 24px !important;
+  padding: 11px 20px !important;
   border-bottom: 1px solid var(--ge-border, #e5e7eb) !important;
   box-sizing: border-box !important;
+  margin-bottom: 0 !important;
 }
+#modal-producto .modal-titulo    { font-size: 16px !important; }
+#modal-producto .modal-subtitulo { font-size: 11.5px !important; margin-top: 1px !important; }
 
 /* ── Zona de contenido (la única que scrollea) ────────────────── */
 #modal-producto .tab-panel {
@@ -40,22 +43,134 @@
   min-height: 0 !important;        /* sin esto flex no permite scroll interno */
   overflow-y: auto !important;
   overflow-x: hidden !important;   /* corta overflow horizontal sin generar scroll */
-  padding: 20px 24px !important;
+  padding: 11px 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 20px !important;
+  gap: 10px !important;
 }
 
 /* ── Footer de acciones (siempre visible) ─────────────────────── */
 #modal-producto .form-acciones {
   flex-shrink: 0 !important;
-  padding: 14px 24px !important;
+  padding: 8px 20px !important;
   border-top: 1px solid var(--ge-border, #e5e7eb) !important;
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
   box-sizing: border-box !important;
+}
+
+/* ── Compresión general: menos aire entre secciones/campos, sin
+   perder legibilidad, para que el modal entre en una sola pantalla
+   sin scroll en la mayoría de las resoluciones de escritorio (pedido
+   2026-08-23: antes cada .modal-seccion/.form-group tenía el mismo
+   espaciado "cómodo" de un formulario de una sola columna, que sumado
+   a las 5 secciones por columna empujaba el contenido fuera de vista
+   y obligaba a scrollear el panel entero). ────────────────────── */
+#modal-producto .modal-col {
+  gap: 9px !important;
+}
+#modal-producto .modal-seccion {
+  gap: 6px !important;
+}
+#modal-producto .modal-sec-label {
+  padding-bottom: 4px !important;
+  font-size: 10.5px !important;
+}
+#modal-producto .form-group {
+  gap: 3px !important;
+}
+#modal-producto .form-label {
+  font-size: 11.5px !important;
+}
+#modal-producto .form-input,
+#modal-producto .form-select {
+  padding: 5px 9px !important;
+  font-size: 13px !important;
+}
+#modal-producto .foto-preview-wrap {
+  width: 48px !important;
+  height: 48px !important;
+}
+#modal-producto .foto-row {
+  gap: 10px !important;
+}
+#modal-producto .foto-controles {
+  gap: 4px !important;
+}
+#modal-producto .form-nota {
+  font-size: 11px !important;
+}
+
+/* Escaneo: fila más baja (botones y label del renglón, sin achicar el
+   texto de los botones más allá de lo legible). */
+#modal-producto .modal-seccion--scan .modal-sec-label {
+  padding-bottom: 3px !important;
+}
+#modal-producto .scan-row .btn-primario,
+#modal-producto .scan-row .btn-secundario {
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+}
+
+/* Depósitos: filas de checkbox más bajas. */
+#modal-producto .depositos-lista {
+  gap: 0 !important;
+}
+#modal-producto .depositos-lista label {
+  padding: 2px 2px !important;
+  font-size: 13px !important;
+}
+
+
+/* ── Checkbox "Destacado": antes era texto largo envuelto en 3-4
+   líneas dentro de un <label> genérico; ahora una sola fila compacta
+   (checkbox + palabra + ícono de ayuda con la explicación en tooltip,
+   mismo patrón que "Stock mínimo" en la columna de al lado). ─────── */
+#modal-producto .form-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: var(--color-text) !important;
+  cursor: pointer !important;
+  width: fit-content !important;
+}
+#modal-producto .form-check input[type="checkbox"] {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  margin: 0 !important;
+  accent-color: var(--color-primary) !important;
+  cursor: pointer !important;
+}
+#modal-producto .form-check .ayuda-contextual {
+  color: var(--color-text-light) !important;
+}
+
+/* ── Notas internas: es el widget compartido (notas-internas.js, mismo
+   que usan Clientes y Pedidos) y trae su propio padding "cómodo" para
+   una sola nota a la vez — acá, adentro de un modal de dos columnas ya
+   apretado, es la sección que más aire de sobra tenía (24px arriba/
+   abajo en el estado vacío, textarea de 72px mínimo). Se scopea a
+   #modal-producto para no tocar el widget en Clientes/Pedidos. ────── */
+#modal-producto .ni-empty {
+  padding: 6px 0 !important;
+  gap: 3px !important;
+  font-size: 12.5px !important;
+}
+#modal-producto .ni-textarea {
+  min-height: 40px !important;
+  padding: 6px 9px !important;
+  font-size: 12.5px !important;
+}
+#modal-producto .ni-form-footer {
+  margin-top: 5px !important;
+}
+#modal-producto .ni-form {
+  margin-top: 2px !important;
 }
 
 /* ── Sección de escaneo ────────────────────────────────────────── */
@@ -149,7 +264,7 @@
    (.vc2-overlay) usaba z-index:1400 y quedaba detrás.
    Se lo fuerza por encima del panel. ──────────────────────────────── */
 .vc2-overlay {
-  z-index: 10000 !important;
+  z-index: var(--z-modal-anidado-1) !important;
 }
 
 /* ── DEPÓSITOS: checkboxes simples, sin caja bordeada ──────────── */
@@ -200,12 +315,21 @@
 
 /* ── Z-INDEX ESCALADO: confirm y toast por encima del panel ────────
    El panel #modal-producto vive en z-index:9999.
-   window.confirmar usa --z-modal (default 400) y los toasts
-   usan --z-toast (default 600): ambos quedaban detrás del panel.
-   Sobreescribimos los tokens a nivel :root en este CSS (que solo
-   se carga en productos.html) para forzarlos por encima. ────────── */
+   window.confirmar() usa --z-confirm-dialog (default 750, ver
+   shared/tokens.css) y los toasts usan --z-toast (default 600): ambos
+   quedaban detrás del panel.
+   FIX (2026-08-22): acá se sobreescribía --z-modal (a 10100), pero
+   --z-modal también lo usa el backdrop del "Menú principal" global
+   (admin/nav.css) — al subirlo, ese fondo oscuro quedaba por encima de
+   su propio panel en toda la página de productos, igual que pasaba en
+   notas/cheques/cobranzas (mismo patrón, mismo bug). Ahora se sube
+   --z-confirm-dialog en su lugar: es un token dedicado que no comparte
+   nada con el menú, así que este ajuste queda realmente scopeado a
+   productos.html sin tocar otros componentes de la página.
+   --z-toast si necesitaba subir (ningún componente global lo comparte
+   con este panel), así que esa sobreescritura se mantiene. ────────── */
 :root {
-  --z-modal: 10100;
+  --z-confirm-dialog: 10100;
   --z-toast: 10200;
 }
 
@@ -216,13 +340,28 @@
    quedaba oculto detrás del panel de producto en lugar de superpuesto.
    Lo mismo pasa con su backdrop vs. .modal-backdrop-producto (z-index
    base 300). Estas reglas los suben por encima de #modal-producto,
-   pero por debajo de --z-modal/--z-toast (confirm/toast siguen
+   pero por debajo de --z-confirm-dialog/--z-toast (confirm/toast siguen
    ganándole a todo). ────────────────────────────────────────────── */
 #modal-backdrop-receta {
-  z-index: 10000 !important;
+  z-index: var(--z-modal-anidado-1) !important;
 }
 #modal-receta {
-  z-index: 10001 !important;
+  z-index: var(--z-modal-anidado-2) !important;
+}
+
+/* ── Z-INDEX: modal "Administrar categorías" por encima del panel ────
+   Mismo problema que el modal de Receta (BOM) de arriba: el link
+   "(administrar)" junto a Categoría abre #modal-categorias-abm, que
+   también usa la clase genérica .modal (z-index:400 base) y su
+   backdrop #modal-backdrop-cat-abm (z-index:300 base). Sin esta regla
+   el modal SÍ se abre (display:flex se aplica), pero queda renderizado
+   detrás de #modal-producto (z-index:9999) — visualmente parece que
+   "no pasa nada" al hacer click en (administrar). FIX v742. ─────────── */
+#modal-backdrop-cat-abm {
+  z-index: var(--z-modal-anidado-1) !important;
+}
+#modal-categorias-abm {
+  z-index: var(--z-modal-anidado-2) !important;
 }
 
 /* ── FORM ACCIONES: wrap en móvil ≤760px ──────────────────────── */
@@ -244,4 +383,17 @@
     width: 100% !important;
     flex: 0 1 100% !important;
   }
+}
+
+/* ════════════════════════════════════════════════════════════
+   FIX v806: mismo bug detectado en devoluciones — .toast global
+   vive en z-index:600 (--z-toast, tokens.css), pero #modal-producto
+   y sus sub-modales (receta/insumo, etc.) van de 9999 a 10001
+   !important acá arriba. Cualquier toast() de error disparado con
+   el modal de producto abierto (guardar, crear categoría, agregar
+   insumo, etc.) se renderiza pero queda tapado — el usuario no ve
+   feedback y parece que el botón no hizo nada.
+   ════════════════════════════════════════════════════════════ */
+body.dash-productos-gentelella .toast {
+  z-index: var(--z-modal-anidado-3) !important;
 }

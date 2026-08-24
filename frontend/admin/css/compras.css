@@ -108,7 +108,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 .search-wrap input {
   width: 100%;
   padding: 8px 12px 8px 34px;
-  border: 1px solid rgba(0,0,0,.07);
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: 13px;
   background: var(--color-bg);
@@ -168,6 +168,17 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   padding: 0 20px 20px;
 }
 
+/* .tabla-main/.acciones-td (base) migrado a .tabla-admin/.fila-acciones
+   canónico (frontend/shared/componentes-admin.css, cierre del Hallazgo #6,
+   §18 — 2026-08-19). compras.html era el último consumidor real de este
+   bloque base (Proveedores/Vencimientos/Zonas ya habían migrado antes).
+   Se comenta sin borrar, mismo criterio aplicado en el resto del plan.
+   Nota aparte (auditoría §18): productos.js (modal ABM de categorías,
+   línea ~1241) también arma un div.acciones-td, pero productos.html NUNCA
+   cargó compras.css — ese consumidor ya estaba huérfano de estilos antes
+   de esta migración, no es una regresión introducida acá. Fuera de
+   alcance de este cierre (página distinta, sin tocar).
+
 .tabla-main {
   width: 100%;
   border-collapse: collapse;
@@ -209,12 +220,12 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   font-size: 13px;
 }
 
-/* ── Botones de tabla ─────────────────────────────────────────── */
 .acciones-td {
   display: flex;
   gap: 6px;
   align-items: center;
 }
+*/
 
 .btn-tabla {
   display: inline-flex;
@@ -250,7 +261,9 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
    Se retira esa redefinición de forma; cada .badge-* variante solo aporta
    color/borde, la forma la hereda del sello global. */
 .badge-activo   { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
-.badge-inactivo { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+/* .badge-inactivo: retirado en Fase 5 (§32) — este archivo carga antes que
+   componentes-admin.css, así que la variante canónica ya ganaba la cascada
+   (mismo valor, byte-idéntico); redeclararla acá era efectivamente muerta. */
 
 /* Órdenes de compra */
 .badge-borrador          { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
@@ -262,7 +275,11 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 .badge-cancelada         { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); }
 
 /* Notas de crédito */
-.badge-pendiente   { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+/* .badge-pendiente: retirado en Fase 5 (§32) — mismo motivo que
+   .badge-inactivo arriba, con un matiz: esta redeclaración además difería
+   de la canónica (le faltaba `opacity: .85`), pero como igual perdía la
+   cascada contra componentes-admin.css (carga después), esa diferencia
+   nunca se vio en pantalla — no es una corrección visual, es limpieza. */
 .badge-emitida     { background: var(--color-info-bg); color: var(--color-info-mid); border-color: var(--color-info-mid); }
 .badge-aplicada    { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
 .badge-anulada     { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
@@ -292,7 +309,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   position: fixed;
   inset: 0;
   background: rgba(22,24,29,.45);
-  z-index: 200;
+  z-index: var(--z-sticky);
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -403,7 +420,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
-  z-index: 50;
+  z-index: var(--z-panel);
   box-shadow: var(--shadow-fluffy);
 }
 .ayuda-contextual:hover::after,
@@ -464,6 +481,60 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   color: var(--color-text);
 }
 
+/* ── Combo de búsqueda de productos (fila de ítems, OC) ─────────
+   Reemplaza el <select> nativo con todo el catálogo — impracticable
+   para buscar entre cientos/miles de productos. Filtra en vivo por
+   nombre/código con navegación por teclado. */
+.prod-combo {
+  position: relative;
+}
+.prod-combo-input {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.prod-combo-lista {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-popover);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-big, 0 8px 24px rgba(0,0,0,.14));
+  max-height: 230px;
+  overflow-y: auto;
+}
+.prod-combo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border-light, var(--color-border));
+}
+.prod-combo-item:last-child { border-bottom: none; }
+.prod-combo-item:hover,
+.prod-combo-item--activa {
+  background: var(--color-primary-bg);
+}
+.prod-combo-nombre { color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prod-combo-codigo { color: var(--color-text-muted); font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+.prod-combo-vacio,
+.prod-combo-mas {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 /* ── Totales box ─────────────────────────────────────────────── */
 .totales-box {
   display: flex;
@@ -501,7 +572,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 }
 
 /* ── Botones modal footer ────────────────────────────────────── */
-.btn-cancelar {
+.btn--secondary {
   padding: 9px 18px;
   border: 1px solid rgba(0,0,0,.07);
   border-radius: var(--radius-md);
@@ -511,7 +582,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   cursor: pointer;
   transition: background .15s ease;
 }
-.btn-cancelar:hover { background: var(--color-bg); }
+.btn--secondary:hover { background: var(--color-bg); }
 .btn-guardar-modal {
   padding: 9px 18px;
   border: none;
@@ -539,14 +610,19 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 .btn-accion-modal:hover { opacity: .88; }
 
 /* ── Tabla → Tarjetas en mobile (v79-bloque4) ──────────────────── */
-/* Genérico para .tabla-main: aplica a Proveedores y a cualquier otra
-   página de las 5 que comparten este CSS y agregue la clase
-   table-responsive-cards a su .tabla-wrap. */
+/* (Cierre del Hallazgo #6, §18, 2026-08-19) El bloque .table-responsive-cards
+   .tabla-main de acá abajo queda huérfano: compras.html y proveedores.html
+   (las dos páginas de este archivo que usaban table-responsive-cards) ya
+   migraron su tabla a .tabla-admin, y el equivalente responsive para
+   .tabla-admin ya está generalizado en frontend/shared/componentes-admin.css
+   (mismo criterio: primera columna y "Acciones" a ancho completo sin label).
+   Se comenta sin borrar. */
 @media (max-width: 600px) {
   .form-grid,
   .form-grid.cols-3 { grid-template-columns: 1fr; }
 }
 
+/*
 @media (max-width: 768px) {
   .search-wrap { max-width: none; }
 
@@ -592,7 +668,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
     color: var(--color-text-muted);
     font-size: 12px;
   }
-  /* Acciones y la primera celda (nombre/identificación) van a ancho completo sin label */
+  [nota original] Acciones y la primera celda (nombre/identificación) van a ancho completo sin label
   .table-responsive-cards .tabla-main td[data-label="Proveedor"],
   .table-responsive-cards .tabla-main td[data-label="Acciones"] {
     text-align: left;
@@ -605,6 +681,7 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   .table-responsive-cards .acciones-td { flex-wrap: wrap; }
   .table-responsive-cards .btn-tabla { flex: 1; justify-content: center; padding: 8px; }
 }
+*/
 
 /* ── Modal: portal de autogestión del proveedor (#10) ─────────────────── */
 .portal-cargando {
@@ -657,8 +734,6 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   border-bottom-color: var(--color-border-soft);
 }
 
-#vista-compras .search-wrap input,
-#vista-proveedores .search-wrap input,
 #vista-compras .select-filtro,
 #vista-proveedores .select-filtro,
 #vista-compras .input-fecha,
@@ -667,25 +742,40 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   border-color: var(--color-border);
   background: var(--color-surface-2);
 }
+#vista-compras .search-wrap input,
+#vista-proveedores .search-wrap input {
+  border-radius: 999px;
+  border-color: transparent;
+  background: var(--color-surface-2);
+}
 
-#vista-compras .tabla-main th,
-#vista-proveedores .tabla-main th {
+/* #vista-compras .tabla-main th/td/tbody tr:hover — migrado a .tabla-admin
+   canónico (cierre del Hallazgo #6, §18, 2026-08-19). compras.html era el
+   último de los dos que faltaba (#vista-proveedores ya se había comentado
+   en Fase 3); el th transparente, el padding 14px y el hover con
+   --color-primary-bg ya son el comportamiento por defecto del componente
+   canónico (frontend/shared/componentes-admin.css). Se comenta sin borrar.
+#vista-compras .tabla-main th {
   background: transparent;
   color: var(--color-text-muted);
   padding: 14px;
 }
-#vista-compras .tabla-main td,
-#vista-proveedores .tabla-main td {
+#vista-compras .tabla-main td {
   border-bottom-color: var(--color-border-soft);
   padding: 14px;
 }
-#vista-compras .tabla-main tbody tr:hover,
-#vista-proveedores .tabla-main tbody tr:hover {
+#vista-compras .tabla-main tbody tr:hover {
   background: var(--color-primary-bg);
 }
+*/
 
-#vista-compras .badge,
-#vista-proveedores .badge {
+/* #vista-proveedores .badge — huérfano desde el cierre del Hallazgo #6
+   (§17): proveedores.js migró a ComponentesAdmin.renderBadgeEstado
+   (.badge-estado), que no usa la clase .badge plana. #vista-compras .badge
+   SÍ sigue activo — compras.js todavía renderiza su propio sistema de
+   7 variantes (.badge.badge-<estado>, decisión documentada en §18: no se
+   unifica con el canónico por colisión de color real). */
+#vista-compras .badge {
   padding: 5px 13px;
   border-radius: 999px;
   font-weight: 700;
@@ -726,9 +816,10 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   background: var(--color-surface-2);
 }
 
-#vista-cc-proveedores .tabla-main th { background: transparent; color: var(--color-text-muted); padding: 14px; }
-#vista-cc-proveedores .tabla-main td { border-bottom-color: var(--color-border-soft); padding: 14px; }
-#vista-cc-proveedores .tabla-main tbody tr:hover { background: var(--color-primary-bg); }
+/* .tabla-main de cc-proveedores migrado a .tabla-admin canónico
+   (frontend/shared/componentes-admin.css, Fase 0) — las reglas que
+   estaban acá (th transparente, padding 14px, hover primary-bg) ya
+   son el comportamiento por defecto del componente canónico. */
 
 #vista-cc-proveedores .prov-fila {
   display: inline-flex;
@@ -767,13 +858,21 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   --color-primary-dark: var(--color-warning);
 }
 
-#vista-vencimientos .search-wrap input,
 #vista-vencimientos .select-filtro { border-radius: 999px; border-color: var(--color-border); background: var(--color-surface-2); }
+#vista-vencimientos .search-wrap input { border-radius: 999px; border-color: transparent; background: var(--color-surface-2); }
 #vista-vencimientos .tabla-wrap { border-color: var(--color-border-soft); box-shadow: 0 4px 20px rgba(22,24,29,.05); }
+/* #vista-vencimientos .tabla-main/.badge/.badge-warn/.badge-muted —
+   huérfano (cierre del Hallazgo #6, §18, 2026-08-19). lotes.js migró al
+   badge canónico (ComponentesAdmin.renderBadgeEstado, sin generar más
+   badge-warn/badge-muted) y vencimientos.html a .tabla-admin. Nota: esta
+   sesión encontró que este bloque en particular había quedado sin comentar
+   en un pase anterior pese a que el chat de esa sesión decía que sí — ver
+   nota en vencimientos-gentelella.css. Se comenta ahora, sin borrar.
 #vista-vencimientos .tabla-main th { background: transparent; color: var(--color-text-muted); padding: 14px; }
 #vista-vencimientos .tabla-main td { border-bottom-color: var(--color-border-soft); padding: 14px; }
 #vista-vencimientos .tabla-main tbody tr:hover { background: var(--color-primary-bg); }
 #vista-vencimientos .badge { border-radius: 999px; }
 #vista-vencimientos .badge-warn  { background: var(--color-warning-bg); color: var(--color-warning); }
 #vista-vencimientos .badge-muted { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid rgba(0,0,0,.07); }
+*/
 #vista-vencimientos .btn-pag { border-radius: 999px; }

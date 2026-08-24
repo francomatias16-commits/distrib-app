@@ -36,7 +36,6 @@ window.authReady.then(async () => {
 
   if (!user) return;
   (document.getElementById('topbar-usuario') || {}).textContent = user.nombre || user.email;
-  const _elEmp = document.getElementById('sidebar-empresa'); if (_elEmp) _elEmp.textContent = user.empresa_nombre || 'Distribuidora';
 
   try { inyectarControlesPaginacionNotas(); } catch(e) { console.warn('[notas] paginacion init:', e.message); }
 
@@ -116,24 +115,68 @@ function renderTabla(notas) {
     const tipoCls = esCredito ? 'chip-verde' : 'chip-rojo';
     const montoCls = esCredito ? 'monto-verde' : 'monto-rojo';
 
-    return `<tr data-testid="notas-fila" data-id="${n.id}" style="${n.anulado ? 'opacity:.55' : ''}">
-      <td>${formatFecha(n.fecha)}</td>
-      <td style="font-family:monospace">${n.nro_comprobante || '—'}</td>
-      <td><span class="chip ${tipoCls}">${tipoLabel}</span></td>
-      <td>${window.sanitize(n.clientes?.nombre_fantasia || n.clientes?.razon_social || '—')}</td>
-      <td class="monto ${montoCls}">${formatPeso(n.importe)}</td>
-      <td>${n.anulado ? '<span class="chip chip-gris">Anulada</span>' : '<span class="chip chip-azul">Emitida</span>'}</td>
-      <td class="col-sticky-end">
-        <button class="btn-icon" title="Ver detalle" onclick="verDetalleNota('${n.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-        ${!n.anulado ? `<button class="btn-icon" title="Anular" style="color:var(--color-danger,#B02A37)" onclick="anularNota('${n.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
-        </button>` : ''}
+    return `<tr data-testid="notas-fila" data-id="${n.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) verDetalleNota('${n.id}')" style="${n.anulado ? 'opacity:.55' : ''}">
+      <td data-label="Fecha">${formatFecha(n.fecha)}</td>
+      <td data-label="Número" style="font-family:monospace">${n.nro_comprobante || '—'}</td>
+      <td data-label="Tipo"><span class="chip ${tipoCls}">${tipoLabel}</span></td>
+      <td data-label="Cliente">${window.sanitize(n.clientes?.nombre_fantasia || n.clientes?.razon_social || '—')}</td>
+      <td class="monto ${montoCls}" data-label="Monto">${formatPeso(n.importe)}</td>
+      <td data-label="Estado">${n.anulado ? '<span class="chip chip-gris">Anulada</span>' : '<span class="chip chip-azul">Emitida</span>'}</td>
+      <td class="col-sticky-end" data-label="Acciones">
+        <span class="fila-acciones">
+          <button type="button" class="btn-tabla" onclick="verDetalleNota('${n.id}')">Ver</button>
+          ${!n.anulado ? `<button type="button" class="btn-kebab btn-kebab-nota" data-nota-id="${n.id}" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>` : ''}
+        </span>
       </td>
     </tr>`;
   }).join('');
 }
+
+// ── Menú "⋮" de acciones secundarias por fila (Anular) ──────────────────────
+// Mismo patrón de menú flotante compartido que Facturación/Cheques/NC — ver
+// PLAN_UNIFICACION_UX_ADMIN.md §2 y §5.
+(function iniciarMenuAccionesNota() {
+  const menu = document.getElementById('menu-acciones-nota');
+  if (!menu) return;
+
+  const cerrar = () => {
+    menu.hidden = true;
+    document.querySelectorAll('.btn-kebab-nota[aria-expanded="true"]')
+      .forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.btn-kebab-nota');
+    if (!btn) { if (!ev.target.closest('#menu-acciones-nota')) cerrar(); return; }
+    ev.stopPropagation();
+
+    const yaAbiertoParaEsteBtn = !menu.hidden && menu.dataset.notaId === btn.dataset.notaId;
+    cerrar();
+    if (yaAbiertoParaEsteBtn) return;
+
+    const notaId = btn.dataset.notaId;
+    menu.innerHTML = `<button type="button" class="dropdown-item danger" role="menuitem" onclick="anularNota('${notaId}')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+      Anular
+    </button>`;
+    menu.dataset.notaId = notaId;
+
+    const r = btn.getBoundingClientRect();
+    menu.style.top   = `${r.bottom + 4}px`;
+    menu.style.left  = 'auto';
+    menu.style.right = `${window.innerWidth - r.right}px`;
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  });
+
+  menu.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (ev.target.closest('.dropdown-item')) cerrar();
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
+  window.addEventListener('resize', cerrar);
+  document.getElementById('tbody-notas')?.addEventListener('scroll', cerrar);
+})();
 
 // Antes filtraba en memoria sobre `todasNotas` (el recorte fijo de 500).
 // Ahora dispara una nueva carga server-side, resetea a la página 1.

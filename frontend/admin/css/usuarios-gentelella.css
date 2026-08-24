@@ -2,18 +2,30 @@
  * usuarios-gentelella.css — Reskin "Gentelella v4" de la pantalla Usuarios
  * ──────────────────────────────────────────────────────────────────────────────────────
  * Se carga DESPUÉS de /frontend/admin/css/compras.css (CSS base compartido con
- * Proveedores/Cta.Cte.Proveedores/Órdenes de compra, ya reskinado) y de
- * /frontend/shared/gentelella-tokens.css (debe estar linkeado antes en el <head>).
+ * Proveedores/Cta.Cte.Proveedores/Órdenes de compra, ya reskinado), de
+ * /frontend/shared/componentes-admin.css (componente canónico admin — ver
+ * PLAN_UNIFICACION_UX_ADMIN.md) y de /frontend/shared/gentelella-tokens.css
+ * (debe estar linkeado antes en el <head>).
  * Reusa los patrones ya establecidos en compras-gentelella.css/proveedores-gentelella.css
- * para `.tabla-wrap`/`.tabla-main`/`.col-sticky-end`/`.modal-box*`/`.form-*`/`.btn-cancelar`.
+ * para `.tabla-wrap`/`.tabla-admin`/`.col-sticky-end`/`.modal-box*`/`.form-*`/`.btn--secondary`.
  *
- * Nota: `.badge-estado`/`.badge-ok` (generadas por usuarios.js para Activo/Inactivo)
- * no tienen ninguna definición base en compras.css ni en ningún CSS cargado por
- * esta pantalla — sin reskin, renderizan como texto plano sin pastilla. Se les da
- * una forma de pastilla mínima acá (mismo patrón `.badge-estado`/`.badge-dot` usado
- * en `clientes-gentelella.css`) para que se vean intencionales, no por inventar un
- * componente nuevo. Mismo criterio con `.btn-fila-accion` (Editar/Desactivar/Reactivar),
- * que tampoco tiene estilo base en ningún CSS cargado por esta pantalla.
+ * (2026-08-19, migración Fase 3) `.badge-estado`/`.badge-ok`/`.badge-inactivo` y
+ * `.btn-fila-accion` dejaron de redeclararse acá — ahora vienen del componente
+ * canónico (`.badge-estado` y `.btn-tabla`/`.fila-acciones` en
+ * componentes-admin.css), renderizados vía `ComponentesAdmin.renderBadgeEstado`/
+ * `renderFilaAcciones` desde usuarios.js. Antes esta pantalla tenía su propia
+ * pastilla y su propio botón porque no cargaba ningún CSS que los definiera;
+ * ahora sí.
+ *
+ * (2026-08-23) Columnas "Nombre"/"Email" fusionadas en una sola celda
+ * "Usuario" con avatar circular de iniciales (mismo patrón que
+ * Clientes/Pedidos/WhatsApp — ver `.cli-avatar` en `clientes.css`), y la
+ * columna "Rol" pasa de texto plano a una pastilla con borde. El color de
+ * cada usuario (avatar + pastilla de rol) NO es aleatorio por nombre como en
+ * esos otros listados: es fijo por rol (`ROL_COLOR` en usuarios.js), porque
+ * acá lo que importa de un vistazo es el nivel de acceso, no diferenciar
+ * contactos. `usuarios.html`/`usuarios.js` actualizados en el mismo cambio
+ * (colspan 6→5, helper `iniciales()` agregado).
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * No se agrega ningún token nuevo en este archivo.
@@ -83,7 +95,7 @@ body.dash-usuarios-gentelella .filtros-bar {
   border-bottom: 1px solid var(--ge-border) !important;
 }
 body.dash-usuarios-gentelella .search-wrap input {
-  border: 1px solid var(--ge-border) !important;
+  border: 1px solid transparent !important;
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-radius: var(--ge-radius-btn) !important;
@@ -122,7 +134,7 @@ body.dash-usuarios-gentelella .tabla-wrap {
   box-shadow: var(--ge-shadow) !important;
   overflow: hidden !important;
 }
-body.dash-usuarios-gentelella .tabla-main th {
+body.dash-usuarios-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -131,57 +143,73 @@ body.dash-usuarios-gentelella .tabla-main th {
   letter-spacing: .05em !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-usuarios-gentelella .tabla-main td {
+body.dash-usuarios-gentelella .tabla-admin td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-usuarios-gentelella .tabla-main td.vacio {
+body.dash-usuarios-gentelella .tabla-admin td.vacio {
   color: var(--ge-muted) !important;
 }
-body.dash-usuarios-gentelella .tabla-main tbody tr:hover {
+body.dash-usuarios-gentelella .tabla-admin tbody tr:hover {
   background: var(--ge-teal-light) !important;
 }
 body.dash-usuarios-gentelella .col-sticky-end {
   background: var(--ge-panel) !important;
 }
-body.dash-usuarios-gentelella .tabla-main tbody tr:hover .col-sticky-end {
+body.dash-usuarios-gentelella .tabla-admin tbody tr:hover .col-sticky-end {
   background: var(--ge-teal-light) !important;
 }
 
-/* Pastillas de estado (Activo / Inactivo) */
-body.dash-usuarios-gentelella .badge-estado {
-  display: inline-flex !important;
+/* ── Celda "Usuario": avatar + nombre + email ─────────────────────────── */
+body.dash-usuarios-gentelella .td-usuario {
+  display: flex !important;
   align-items: center !important;
-  gap: 5px !important;
-  padding: 3px 10px !important;
+  gap: 12px !important;
+  min-width: 220px !important;
+}
+body.dash-usuarios-gentelella .usr-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  color: var(--ge-panel) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: .02em !important;
+}
+body.dash-usuarios-gentelella .usr-nombre {
+  color: var(--ge-ink) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+}
+body.dash-usuarios-gentelella .usr-email {
+  color: var(--ge-muted) !important;
+  font-size: 12px !important;
+  margin-top: 1px !important;
+}
+body.dash-usuarios-gentelella .usr-pill-vos {
+  font-size: 10.5px !important;
+  color: var(--ge-muted) !important;
+  border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-pill) !important;
+  padding: 1px 7px !important;
+  margin-left: 2px !important;
+}
+
+/* ── Pastilla de Rol — mismo alto/forma que .badge-estado canónico, color
+   fijado inline por fila (ROL_COLOR en usuarios.js) según el rol ────────── */
+body.dash-usuarios-gentelella .badge-rol {
+  display: inline-block !important;
+  background: var(--ge-panel) !important;
+  border: 1.5px solid !important;
+  border-radius: var(--ge-radius-pill) !important;
+  padding: 2px 10px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-}
-body.dash-usuarios-gentelella .badge-ok {
-  background: var(--ge-teal-light) !important;
-  color: var(--ge-teal-dark) !important;
-}
-body.dash-usuarios-gentelella .badge-inactivo {
-  background: var(--ge-chip-bg) !important;
-  color: var(--ge-ink-soft) !important;
-  border: 1px solid var(--ge-border) !important;
-}
-
-/* Botones de acción en fila (Editar / Desactivar / Reactivar) */
-body.dash-usuarios-gentelella .btn-fila-accion {
-  border: 1px solid var(--ge-border) !important;
-  background: var(--ge-panel) !important;
-  color: var(--ge-ink-soft) !important;
-  border-radius: var(--ge-radius-btn) !important;
-  font-size: 12px !important;
-  padding: 4px 10px !important;
-  cursor: pointer !important;
-}
-body.dash-usuarios-gentelella .btn-fila-accion:hover {
-  background: var(--ge-bg) !important;
-  color: var(--ge-teal-dark) !important;
-  border-color: var(--ge-teal) !important;
+  white-space: nowrap !important;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -234,13 +262,13 @@ body.dash-usuarios-gentelella #grupo-password p {
 }
 
 /* Botones de footer de modal */
-body.dash-usuarios-gentelella .btn-cancelar {
+body.dash-usuarios-gentelella .btn--secondary {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
   color: var(--ge-ink-soft) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-usuarios-gentelella .btn-cancelar:hover {
+body.dash-usuarios-gentelella .btn--secondary:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
 }

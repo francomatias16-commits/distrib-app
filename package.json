@@ -1,6 +1,6 @@
 {
   "name": "distrib-app",
-  "version": "1.49.2",
+  "version": "1.49.3",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -26,6 +26,8 @@
     "check-schema": "node --experimental-vm-modules scripts/check-schema.js",
     "check-schema:hints": "node --experimental-vm-modules scripts/check-schema.js --fix-hints",
     "check-schema:json": "node --experimental-vm-modules scripts/check-schema.js --json",
+    "check:migrations": "node scripts/check-migraciones-registro.js",
+    "check-migrations:drift": "node scripts/check-migraciones-registro.js",
     "test:integration": "node scripts/test-integration.js",
     "test:integration:verbose": "node scripts/test-integration.js --verbose",
     "test:integration:no-cleanup": "node scripts/test-integration.js --no-cleanup",

@@ -6,8 +6,9 @@
  * anomalias-gentelella.css (mismo grupo "Alertas automáticas": Avisos
  * operativos / Movimientos raros / Salud del sistema comparten look & feel).
  * observabilidad.html define su estructura en un bloque <style> inline
- * (obs-toolbar, obs-cards, obs-tabla, obs-barras...); este archivo la
- * viste, sin tocar ningún id/clase que lea observabilidad.js.
+ * (obs-toolbar, obs-cards, .tabla-admin canónico desde la migración Fase 3
+ * puntos, obs-barras...); este archivo la viste, sin tocar ningún id/clase
+ * que lea observabilidad.js.
  *
  * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
  * Los colores de estado (error/pendiente/procesado) no son de marca — son el
@@ -111,66 +112,32 @@ body.dash-anomalias-gentelella .obs-seccion h3 {
 }
 
 /* ════════════════════════════════════════════════════════════
-   KPI cards
+   Barra de pills de resumen — reemplaza las .kpi-card genéricas por el
+   componente FiltroTabs (frontend/shared/filtro-tabs.css), mismo look que
+   riesgo-cheques/cheques/cta-cte ("Deuda total · Vencido · Por vencer ·
+   Al día"). El estilo de los pills viene entero de ese CSS compartido —
+   acá solo la nota chica de "sin listener" (aclaración sobre pendientes
+   sin equivalente en el componente genérico) y la franja de solo lectura
+   del tiempo pedido→factura.
    ════════════════════════════════════════════════════════════ */
-body.dash-anomalias-gentelella .obs-card {
-  border: 1px solid var(--ge-border) !important;
-  border-left-width: 3px !important;
-  border-radius: var(--ge-radius-btn) !important;
-  background: var(--ge-bg) !important;
-  box-shadow: var(--ge-shadow) !important;
-  padding: 14px 16px !important;
-  transition: box-shadow .18s ease, transform .18s ease !important;
-}
-body.dash-anomalias-gentelella .obs-card:hover {
-  box-shadow: var(--ge-shadow-lg) !important;
-  transform: translateY(-1px) !important;
-}
-body.dash-anomalias-gentelella .obs-card .valor {
-  color: var(--ge-ink) !important;
-  font-size: 26px !important;
-  font-variant-numeric: tabular-nums !important;
-}
-body.dash-anomalias-gentelella .obs-card .label {
+body.dash-anomalias-gentelella .obs-nota-sin-listener {
   color: var(--ge-muted) !important;
-  font-size: 11.5px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: .03em !important;
 }
-body.dash-anomalias-gentelella .obs-card.card-error {
-  border-left-color: #B3261E !important;
-  background: rgba(179,38,30,.06) !important;
-}
-body.dash-anomalias-gentelella .obs-card.card-error .valor { color: #B3261E !important; }
-body.dash-anomalias-gentelella .obs-card.card-pendiente {
-  border-left-color: var(--ge-warning-text) !important;
-  background: var(--ge-warning-bg) !important;
-}
-body.dash-anomalias-gentelella .obs-card.card-pendiente .valor { color: var(--ge-warning-text) !important; }
-body.dash-anomalias-gentelella .obs-card.card-procesado {
-  border-left-color: #166534 !important;
-  background: rgba(22,101,52,.07) !important;
-}
-body.dash-anomalias-gentelella .obs-card.card-procesado .valor { color: #166534 !important; }
-body.dash-anomalias-gentelella .obs-card-nota {
-  color: var(--ge-muted) !important;
-  font-size: 10.5px !important;
-  line-height: 1.35 !important;
-  margin-top: 4px !important;
+body.dash-anomalias-gentelella .franja-resumen-sololectura {
+  padding-left: 2px !important;
 }
 
 /* ════════════════════════════════════════════════════════════
    Tablas
    ════════════════════════════════════════════════════════════ */
-body.dash-anomalias-gentelella .obs-tabla {
+body.dash-anomalias-gentelella .tabla-admin {
   border: 1px solid var(--ge-border) !important;
   border-radius: var(--ge-radius-btn) !important;
   overflow: hidden !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
-body.dash-anomalias-gentelella .obs-tabla th {
+body.dash-anomalias-gentelella .tabla-admin th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   text-transform: uppercase !important;
@@ -178,12 +145,12 @@ body.dash-anomalias-gentelella .obs-tabla th {
   font-size: 11px !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-anomalias-gentelella .obs-tabla td {
+body.dash-anomalias-gentelella .tabla-admin td {
   color: var(--ge-ink-soft) !important;
   border-bottom: 1px solid var(--ge-border) !important;
 }
-body.dash-anomalias-gentelella .obs-tabla tbody tr:last-child td { border-bottom: none !important; }
-body.dash-anomalias-gentelella .obs-tabla tbody tr:hover td { background: var(--ge-bg) !important; }
+body.dash-anomalias-gentelella .tabla-admin tbody tr:last-child td { border-bottom: none !important; }
+body.dash-anomalias-gentelella .tabla-admin tbody tr:hover td { background: var(--ge-bg) !important; }
 
 body.dash-anomalias-gentelella .badge-estado {
   border-radius: var(--ge-radius-pill) !important;

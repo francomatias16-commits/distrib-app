@@ -14,14 +14,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=196" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=196" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
   <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
   <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=279" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=281" />
   <link rel="stylesheet" href="/shared/pagination.css?v=1" />
   <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1785878603691" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
   <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
   <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
   <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
   <link rel="stylesheet" href="/frontend/admin/css/notas-gentelella.css?v=1" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
@@ -56,7 +57,7 @@
   </div>
 
   <main class="main" id="vista-notas">
-    <div class="tabla-wrap">
+    <div class="tabla-wrap table-responsive-cards">
       <div class="tabla-header">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h2>Historial de Notas</h2>
@@ -72,16 +73,16 @@
         </div>
       </div>
       <div class="tabla-overflow">
-        <table class="tabla">
+        <table class="tabla-admin">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Número</th>
-              <th class="thead-sep">Tipo</th>
+              <th class="col-fit">Fecha</th>
+              <th class="col-fit">Número</th>
+              <th class="thead-sep col-fit">Tipo</th>
               <th>Cliente</th>
-              <th class="thead-sep">Monto</th>
-              <th>Estado</th>
-              <th class="col-sticky-end">Acciones</th>
+              <th class="thead-sep col-fit">Monto</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody-notas"><tr><td colspan="7" class="tabla-loading">Cargando...</td></tr></tbody>
@@ -90,6 +91,8 @@
     </div>
   </main>
 </div>
+
+<div class="dropdown-menu" id="menu-acciones-nota" role="menu" hidden style="position:fixed"></div>
 
 <!-- Modal Nueva Nota -->
 <div class="modal-overlay hidden" id="modal-nota" role="dialog" aria-modal="true" aria-labelledby="modal-nota-titulo">
@@ -181,14 +184,14 @@
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1785878603691"></script>
+  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
   <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
   <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v1782529101223"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v1"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
 <script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
 <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
   <script src="/frontend/admin/js/notas.js?v1782328742714"></script>

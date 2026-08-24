@@ -149,7 +149,7 @@ body.dash-riesgo-cheques-gentelella .filtros-bar label {
 /* ════════════════════════════════════════════════════════════
    Tabla principal
    ════════════════════════════════════════════════════════════ */
-body.dash-riesgo-cheques-gentelella .tabla thead th {
+body.dash-riesgo-cheques-gentelella .tabla-admin thead th {
   background: var(--ge-bg) !important;
   color: var(--ge-muted) !important;
   font-size: 11px !important;
@@ -160,16 +160,16 @@ body.dash-riesgo-cheques-gentelella .tabla thead th {
   padding: 11px 14px !important;
   white-space: nowrap !important;
 }
-body.dash-riesgo-cheques-gentelella .tabla tbody td {
+body.dash-riesgo-cheques-gentelella .tabla-admin tbody td {
   color: var(--ge-ink) !important;
   border-bottom: 1px solid var(--ge-border) !important;
   padding: 12px 14px !important;
   font-size: 13px !important;
 }
-body.dash-riesgo-cheques-gentelella .tabla tbody tr:last-child td { border-bottom: none !important; }
-body.dash-riesgo-cheques-gentelella .tabla tbody tr:hover td { background: var(--ge-teal-light) !important; }
+body.dash-riesgo-cheques-gentelella .tabla-admin tbody tr:last-child td { border-bottom: none !important; }
+body.dash-riesgo-cheques-gentelella .tabla-admin tbody tr:hover td { background: var(--ge-teal-light) !important; }
 body.dash-riesgo-cheques-gentelella .col-sticky-end { background: var(--ge-panel) !important; }
-body.dash-riesgo-cheques-gentelella .tabla tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
+body.dash-riesgo-cheques-gentelella .tabla-admin tbody tr:hover .col-sticky-end { background: var(--ge-teal-light) !important; }
 body.dash-riesgo-cheques-gentelella .monto { font-weight: 600 !important; color: var(--ge-ink) !important; }
 body.dash-riesgo-cheques-gentelella .empty-state {
   color: var(--ge-muted) !important;
@@ -321,7 +321,7 @@ body.dash-riesgo-cheques-gentelella .bcra-panel-icon {
 }
 
 body.dash-riesgo-cheques-gentelella .bcra-panel-icon--cuit {
-  background: rgba(184,122,0,.12) !important;
+  background: rgba(106,152,115,.12) !important;
   color: var(--ge-teal-dark) !important;
 }
 
@@ -463,4 +463,42 @@ body.dash-riesgo-cheques-gentelella .toast {
   border-radius: var(--ge-radius-card) !important;
   box-shadow: var(--ge-shadow-lg) !important;
   font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Ancho de columnas de la tabla — fix: sin esto, col-fit (width:1%)
+   en casi todas las columnas dejaba que "Cliente" (la única sin esa
+   clase) absorbiera todo el ancho sobrante, quedando vacía mientras
+   el resto de las columnas se amontonaba al mínimo. Ver <colgroup>
+   en riesgo-cheques.html con los porcentajes reales.
+   ════════════════════════════════════════════════════════════ */
+.tabla-riesgo-cheques {
+  table-layout: fixed !important;
+}
+.tabla-riesgo-cheques th,
+.tabla-riesgo-cheques td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tabla-riesgo-cheques td.monto,
+.tabla-riesgo-cheques td:nth-child(5),
+.tabla-riesgo-cheques td:nth-child(6) {
+  white-space: normal !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Fix z-index: toast tapado por #modal-score-cliente (v914)
+   ════════════════════════════════════════════════════════════
+   Causa raíz (mismo patrón que v633/v742/v806/etc): el modal
+   #modal-score-cliente, agregado en v914 (copiado de clientes.html),
+   tiene z-index:1000 inline. --z-toast (tokens.css) es 600 — por
+   debajo del modal. Al clickear "Recalcular" adentro del modal, el
+   toast de resultado ("Nivel de confianza recalculado: X/100" o el
+   de error) se crea y se anima igual, pero queda dibujado DETRÁS del
+   overlay del modal: visualmente no pasa nada, ni un mensaje, aunque
+   el recálculo se ejecutó bien en el backend. --z-modal no se toca
+   porque acá no hay un segundo modal (confirm) involucrado, solo el
+   toast quedando atrás del propio modal-score-cliente. */
+:root {
+  --z-toast: 10200;
 }

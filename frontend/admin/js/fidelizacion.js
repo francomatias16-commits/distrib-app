@@ -17,6 +17,53 @@ let historialData   = [];
 let canjesData      = [];
 let editRecompensaId = null;
 
+// ── Paginación cliente ("Cargar más") ───────────────────────────────────────
+// Mismo patrón que stockauto en stock.js: se pide todo de una vez a Supabase
+// (con .limit() de resguardo en los que corresponde) y se corta la lista en
+// el cliente para no renderizar de entrada una lista interminable.
+const RECOMP_MOSTRAR_INICIAL    = 9;
+const RECOMP_PAGINA             = 12;
+const CANJES_MOSTRAR_INICIAL    = 15;
+const CANJES_PAGINA             = 30;
+const CLIENTES_MOSTRAR_INICIAL  = 15;
+const CLIENTES_PAGINA           = 30;
+const HISTORIAL_MOSTRAR_INICIAL = 20;
+const HISTORIAL_PAGINA          = 40;
+
+let _recompVisibles    = RECOMP_MOSTRAR_INICIAL;
+let _canjesVisibles    = CANJES_MOSTRAR_INICIAL;
+let _clientesVisibles  = CLIENTES_MOSTRAR_INICIAL;
+let _historialVisibles = HISTORIAL_MOSTRAR_INICIAL;
+
+// Última lista renderizada de clientes/historial (post-filtro), para que
+// "Cargar más"/"Ver menos" sepan sobre qué lista operar sin recalcular filtros.
+let _clientesListaActual  = [];
+let _historialListaActual = [];
+
+// Genera los botones "Cargar N más (quedan N)" / "Ver menos". Devuelve ''
+// si la lista completa ya entra en la vista actual (no hay nada que plegar
+// ni expandir).
+function piePaginacionHTML(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const hayMas        = total > visibles;
+  const puedeColapsar = visibles > mostrarInicial;
+  if (!hayMas && !puedeColapsar) return '';
+  const restantes = total - visibles;
+  return `
+    ${hayMas ? `<button type="button" class="fidel-paginar-btn" onclick="${cargarMasFn}()">Cargar ${Math.min(pagina, restantes)} más (quedan ${restantes})</button>` : ''}
+    ${puedeColapsar ? `<button type="button" class="fidel-paginar-btn fidel-paginar-btn--ghost" onclick="${colapsarFn}()">Ver menos</button>` : ''}
+  `;
+}
+// Envuelve el pie para usar dentro de un <tbody> (fila con colspan).
+function piePaginacionFila(colspan, total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const pie = piePaginacionHTML(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn);
+  return pie ? `<tr class="fidel-paginar-fila"><td colspan="${colspan}"><div class="fidel-paginar-foot">${pie}</div></td></tr>` : '';
+}
+// Envuelve el pie para usar dentro de un grid (ej. recompensas-grid).
+function piePaginacionGrid(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn) {
+  const pie = piePaginacionHTML(total, visibles, mostrarInicial, pagina, cargarMasFn, colapsarFn);
+  return pie ? `<div class="fidel-paginar-foot" style="grid-column:1/-1">${pie}</div>` : '';
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.authReady.then(async () => {
   const perfil = window.authCtx?.perfil;
@@ -86,14 +133,11 @@ async function cargarKPIs() {
     if (!cont) return;
     cont.className = 'franja-resumen-sololectura';
     cont.innerHTML = `
-      <span>Puntos en circulación: <strong>${totalActivos.toLocaleString('es-AR')}</strong></span>
-      <span class="sep">·</span>
-      <span>Clientes en programa: <strong>${clientesActivos}</strong></span>
-      <span class="sep">·</span>
-      <span>Canjes este mes: <strong>${cantCanjes}</strong> <span>($${valorCanjeado.toLocaleString('es-AR')})</span></span>
-      <span class="sep">·</span>
-      <span>Puntos ganados este mes: <strong>${totalGanados.toLocaleString('es-AR')}</strong></span>
-      ${pendCnt > 0 ? `<span class="sep">·</span><span>Canjes pendientes: <strong>${pendCnt}</strong></span>` : ''}
+      <div class="dato-sello"><div class="dato-sello-valor">${totalActivos.toLocaleString('es-AR')}</div><div class="dato-sello-etiqueta">Puntos en circulación</div></div>
+      <div class="dato-sello"><div class="dato-sello-valor">${clientesActivos}</div><div class="dato-sello-etiqueta">Clientes en programa</div></div>
+      <div class="dato-sello" data-tono="ambar"><div class="dato-sello-valor">${cantCanjes}</div><div class="dato-sello-etiqueta">Canjes este mes</div><div class="dato-sello-nota">$${valorCanjeado.toLocaleString('es-AR')}</div></div>
+      <div class="dato-sello" data-tono="verde"><div class="dato-sello-valor">${totalGanados.toLocaleString('es-AR')}</div><div class="dato-sello-etiqueta">Puntos ganados este mes</div></div>
+      ${pendCnt > 0 ? `<div class="dato-sello" data-tono="ambar"><div class="dato-sello-valor">${pendCnt}</div><div class="dato-sello-etiqueta">Canjes pendientes</div></div>` : ''}
     `;
   } catch (e) { console.error('[fidelizacion] KPIs:', e); }
 }
@@ -246,6 +290,7 @@ async function cargarRecompensas() {
       .eq('empresa_id', empresaId).order('puntos_requeridos', { ascending: true });
     if (error) throw error;
     recompensasData = data || [];
+    _recompVisibles = RECOMP_MOSTRAR_INICIAL;
     renderRecompensas();
   } catch (e) {
     console.error('[fidelizacion] cargarRecompensas:', e);
@@ -264,11 +309,14 @@ function renderRecompensas() {
 
   const TIPOS = { descuento_fijo:'Descuento fijo', descuento_porcentaje:'Descuento %', producto_gratis:'Producto gratis', envio_gratis:'Envío gratis' };
 
-  grid.innerHTML = recompensasData.map(r => `
-    <div class="recomp-card ${r.activa ? '' : 'inactiva'}">
+  const total    = recompensasData.length;
+  const visibles = recompensasData.slice(0, _recompVisibles);
+
+  const tarjetas = visibles.map(r => `
+    <div class="recomp-card ${r.activa ? '' : 'inactiva'}" style="cursor:pointer" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) editarRecompensa('${r.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
         <strong style="font-size:14px;line-height:1.3">${esc(r.nombre)}</strong>
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;background:${r.activa?'var(--color-success-bg,#DCEDE3)':'var(--color-surface-2,#EAE4D6)'};color:${r.activa?'var(--color-success,#17402F)':'var(--color-text-muted,#4B4A45)'}">
+        <span style="font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;background:${r.activa?'var(--color-success-bg,#E2F0E5)':'var(--color-surface-2,#ECEEEA)'};color:${r.activa?'var(--color-success,#487050)':'var(--color-text-muted,#5B6660)'}">
           ${r.activa ? 'Activa' : 'Inactiva'}
         </span>
       </div>
@@ -280,12 +328,25 @@ function renderRecompensas() {
       ${r.cantidad_disponible ? `<div style="font-size:12px;color:var(--color-text-muted)">Stock: ${r.cantidad_disponible - (r.cantidad_canjeada||0)} restantes</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button class="btn btn--ghost" style="font-size:12px;padding:4px 10px;" onclick="editarRecompensa('${r.id}')">Editar</button>
-        <button class="btn btn--ghost" style="font-size:12px;padding:4px 10px;color:${r.activa?'var(--color-danger,#7A1E19)':'var(--color-success,#17402F)'}" onclick="toggleRecompensa('${r.id}',${!r.activa})">
+        <button class="btn btn--ghost" style="font-size:12px;padding:4px 10px;color:${r.activa?'var(--color-danger,#7A2820)':'var(--color-success,#487050)'}" onclick="toggleRecompensa('${r.id}',${!r.activa})">
           ${r.activa ? 'Desactivar' : 'Activar'}
         </button>
       </div>
     </div>
   `).join('');
+
+  const pie = piePaginacionGrid(total, _recompVisibles, RECOMP_MOSTRAR_INICIAL, RECOMP_PAGINA, 'cargarMasRecompensas', 'colapsarRecompensas');
+  grid.innerHTML = tarjetas + pie;
+}
+
+function cargarMasRecompensas() {
+  _recompVisibles = Math.min(recompensasData.length, _recompVisibles + RECOMP_PAGINA);
+  renderRecompensas();
+}
+function colapsarRecompensas() {
+  _recompVisibles = RECOMP_MOSTRAR_INICIAL;
+  renderRecompensas();
+  document.getElementById('recompensas-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function abrirModalRecompensa() {
@@ -401,6 +462,7 @@ async function cargarCanjes() {
     const { data, error } = await q;
     if (error) throw error;
     canjesData = data || [];
+    _canjesVisibles = CANJES_MOSTRAR_INICIAL;
     renderCanjes(canjesData);
 
     // Actualizar badge con pendientes reales
@@ -425,7 +487,10 @@ function renderCanjes(lista) {
   const CHIP_CLASS = { pendiente:'chip-pendiente', aplicado:'chip-aplicado', expirado:'chip-expirado' };
   const ESTADO_LABEL = { pendiente:'Pendiente', aplicado:'Aplicado', expirado:'Expirado' };
 
-  tbody.innerHTML = lista.map(c => {
+  const total    = lista.length;
+  const visibles = lista.slice(0, _canjesVisibles);
+
+  const filas = visibles.map(c => {
     const cliente  = c.clientes;
     const nombCli  = cliente?.razon_social || cliente?.nombre_fantasia || c.cliente_id;
     const nombRec  = c.recompensas?.nombre || '—';
@@ -446,6 +511,18 @@ function renderCanjes(lista) {
       <td class="col-sticky-end" style="white-space:nowrap;">${acciones}</td>
     </tr>`;
   }).join('');
+
+  const pie = piePaginacionFila(6, total, _canjesVisibles, CANJES_MOSTRAR_INICIAL, CANJES_PAGINA, 'cargarMasCanjes', 'colapsarCanjes');
+  tbody.innerHTML = filas + pie;
+}
+
+function cargarMasCanjes() {
+  _canjesVisibles = Math.min(canjesData.length, _canjesVisibles + CANJES_PAGINA);
+  renderCanjes(canjesData);
+}
+function colapsarCanjes() {
+  _canjesVisibles = CANJES_MOSTRAR_INICIAL;
+  renderCanjes(canjesData);
 }
 
 async function actualizarEstadoCanje(id, nuevoEstado) {
@@ -476,6 +553,7 @@ async function cargarClientesPuntos() {
       .order('puntos_disponibles', { ascending: false });
     if (error) throw error;
     clientesPuntosData = data || [];
+    _clientesVisibles = CLIENTES_MOSTRAR_INICIAL;
     renderClientesPuntos(clientesPuntosData);
   } catch (e) {
     console.error('[fidelizacion] cargarClientesPuntos:', e);
@@ -486,11 +564,15 @@ async function cargarClientesPuntos() {
 function renderClientesPuntos(lista) {
   const tbody = document.getElementById('tabla-clientes-puntos');
   if (!tbody) return;
+  _clientesListaActual = lista;
   if (!lista.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--color-text-muted)">Sin clientes con puntos aún</td></tr>';
     return;
   }
-  tbody.innerHTML = lista.map(r => {
+  const total    = lista.length;
+  const visibles = lista.slice(0, _clientesVisibles);
+
+  const filas = visibles.map(r => {
     const c    = r.clientes;
     const name = c?.razon_social || c?.nombre_fantasia || r.cliente_id;
     const ult  = r.ultimo_movimiento ? new Date(r.ultimo_movimiento).toLocaleDateString('es-AR') : '—';
@@ -502,6 +584,18 @@ function renderClientesPuntos(lista) {
       <td style="text-align:center;font-size:12px;color:var(--color-text-muted);">${ult}</td>
     </tr>`;
   }).join('');
+
+  const pie = piePaginacionFila(5, total, _clientesVisibles, CLIENTES_MOSTRAR_INICIAL, CLIENTES_PAGINA, 'cargarMasClientes', 'colapsarClientes');
+  tbody.innerHTML = filas + pie;
+}
+
+function cargarMasClientes() {
+  _clientesVisibles = Math.min(_clientesListaActual.length, _clientesVisibles + CLIENTES_PAGINA);
+  renderClientesPuntos(_clientesListaActual);
+}
+function colapsarClientes() {
+  _clientesVisibles = CLIENTES_MOSTRAR_INICIAL;
+  renderClientesPuntos(_clientesListaActual);
 }
 
 function filtrarClientes() {
@@ -513,6 +607,7 @@ function filtrarClientes() {
                (c?.nombre_fantasia || '').toLowerCase().includes(q);
       })
     : clientesPuntosData;
+  _clientesVisibles = CLIENTES_MOSTRAR_INICIAL;
   renderClientesPuntos(filtrados);
 }
 
@@ -529,6 +624,7 @@ async function cargarHistorial() {
       .limit(200);
     if (error) throw error;
     historialData = data || [];
+    _historialVisibles = HISTORIAL_MOSTRAR_INICIAL;
     renderHistorial(historialData);
   } catch (e) {
     console.error('[fidelizacion] cargarHistorial:', e);
@@ -538,20 +634,25 @@ async function cargarHistorial() {
 
 function filtrarHistorial() {
   const tipo = document.getElementById('filtro-tipo-mov')?.value || '';
+  _historialVisibles = HISTORIAL_MOSTRAR_INICIAL;
   renderHistorial(tipo ? historialData.filter(m => m.tipo === tipo) : historialData);
 }
 
 function renderHistorial(lista) {
   const tbody = document.getElementById('tabla-historial-movimientos');
   if (!tbody) return;
+  _historialListaActual = lista;
   if (!lista.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--color-text-muted)">Sin movimientos</td></tr>';
     return;
   }
-  const CLR = { ganancia:'var(--color-success,#17402F)', canje:'var(--color-danger,#7A1E19)', ajuste:'var(--color-warning,#7A4A00)', bonus:'var(--nav-facturacion,#5B4A8F)' };
+  const CLR = { ganancia:'var(--color-success,#487050)', canje:'var(--color-danger,#7A2820)', ajuste:'var(--color-warning,#8A5F13)', bonus:'var(--nav-facturacion,#5B4A8F)' };
   const LBL = { ganancia:'Ganancia', canje:'Canje', ajuste:'Ajuste', bonus:'Bonus' };
 
-  tbody.innerHTML = lista.map(m => {
+  const total    = lista.length;
+  const visibles = lista.slice(0, _historialVisibles);
+
+  const filas = visibles.map(m => {
     const c     = m.clientes;
     const name  = c?.razon_social || c?.nombre_fantasia || m.cliente_id;
     const fecha = new Date(m.created_at).toLocaleDateString('es-AR');
@@ -565,6 +666,18 @@ function renderHistorial(lista) {
       <td style="font-size:12px;color:var(--color-text-muted);">${esc(m.motivo||'—')}</td>
     </tr>`;
   }).join('');
+
+  const pie = piePaginacionFila(5, total, _historialVisibles, HISTORIAL_MOSTRAR_INICIAL, HISTORIAL_PAGINA, 'cargarMasHistorial', 'colapsarHistorial');
+  tbody.innerHTML = filas + pie;
+}
+
+function cargarMasHistorial() {
+  _historialVisibles = Math.min(_historialListaActual.length, _historialVisibles + HISTORIAL_PAGINA);
+  renderHistorial(_historialListaActual);
+}
+function colapsarHistorial() {
+  _historialVisibles = HISTORIAL_MOSTRAR_INICIAL;
+  renderHistorial(_historialListaActual);
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -602,3 +715,11 @@ window.filtrarCanjes          = filtrarCanjes;
 window.cargarCanjes           = cargarCanjes;
 window.actualizarEstadoCanje  = actualizarEstadoCanje;
 window.filtrarHistorial       = filtrarHistorial;
+window.cargarMasRecompensas   = cargarMasRecompensas;
+window.colapsarRecompensas    = colapsarRecompensas;
+window.cargarMasCanjes        = cargarMasCanjes;
+window.colapsarCanjes         = colapsarCanjes;
+window.cargarMasClientes      = cargarMasClientes;
+window.colapsarClientes       = colapsarClientes;
+window.cargarMasHistorial     = cargarMasHistorial;
+window.colapsarHistorial      = colapsarHistorial;

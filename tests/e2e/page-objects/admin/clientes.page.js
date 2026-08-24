@@ -33,8 +33,12 @@ export class ClientesPage extends PageObjectBase {
   // fila (`onclick="abrirModalEditar('${c.id}')"`) — la fila en sí no tiene
   // listener propio (a diferencia de `tr.fila-pedido`, que sí abre al
   // clickear cualquier punto).
+  // Nota (Fase 3, migración de acciones por fila): la clase pasó de
+  // `.btn-editar` a `.btn-tabla` canónico (mismo criterio que
+  // proveedores.page.js) — se agrega `hasText` porque `.btn-tabla` ya no
+  // es exclusiva de este botón dentro de la fila.
   async abrirDetallePorId(id) {
-    await this.fila(id).locator('button.btn-editar').click();
+    await this.fila(id).locator('button.btn-tabla', { hasText: 'Ver / Editar' }).click();
     await expect(this.page.locator('#modal-titulo')).toBeVisible();
   }
 

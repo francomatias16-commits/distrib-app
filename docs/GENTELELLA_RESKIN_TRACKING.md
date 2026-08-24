@@ -532,3 +532,24 @@ Con esto: **las 4 páginas públicas quedan en el mismo sistema de colores
 y overlay que el resto del proyecto — las 71 pantallas del proyecto
 comparten ya una única fuente de verdad de paleta (`tokens.css` /
 `gentelella-tokens.css`, ambos con el mismo azul `#2563EB` de base).**
+
+## Nota (2026-08-19): unificación de componentes (tabla/badge/acciones) — estado final
+
+Este doc trackea el reskin de **paleta/overlay** (colores, tokens). Aparte, y en paralelo,
+corrió un segundo esfuerzo de unificación **estructural** — mismo componente HTML+CSS+JS de
+tabla, badge de estado, fila de acciones, paginación y filtros en todas las páginas admin,
+reemplazando las 14+ variantes de nombre de clase (`tabla`, `tabla-main`, `tabla-clientes`,
+`prod-tabla`, `ranking-table`, etc.) por una sola (`.tabla-admin` + `.badge-estado` +
+`.fila-acciones`, definidos una vez en `frontend/shared/componentes-admin.css`). Documentado
+completo en `PLAN_UNIFICACION_UX_ADMIN.md` (raíz del proyecto), no en este archivo.
+
+**Estado al cierre de Fase 5 de ese plan:** Fases 0–4 y los 7 hallazgos derivados, cerrados.
+Las ~47 páginas admin en alcance usan el componente canónico, con las excepciones
+documentadas a propósito (workspaces con tabla no-listado como `pos.html`/las 4 `.rutas-table`
+de armado de rutas, `productos.html` como referencia original no migrada, `saas-billing.html`
+con su propio sistema de botones `.btn-prim`/`.btn-sec`, `suspendida.html` con CTA full-width
+propio). Queda pendiente, fuera de este cierre: `automatizacion.html` (migración pospuesta,
+falta decidir criterio de tabla compartida con `productos.html`) y la unificación del sistema
+paralelo de badges `.chip`/`.chip-verde`/etc. de `finanzas.css` (usado por `cheques`,
+`cobranzas`, `auditoria`, `devoluciones`, `notas`, `vencimientos`, `riesgo-cheques` y otras —
+decisión explícita de tratarlo como su propia fase futura, no tocado en esta pasada).
