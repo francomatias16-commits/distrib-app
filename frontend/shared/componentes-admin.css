@@ -1,0 +1,395 @@
+/* frontend/shared/componentes-admin.css
+ * ════════════════════════════════════════════════════════════════════════
+ * Componente canónico del panel admin — Fase 0 de PLAN_UNIFICACION_UX_ADMIN.md
+ *
+ * Fuente de verdad ÚNICA para: tabla, thead ordenable, badge de estado,
+ * fila de acciones (texto + kebab), paginación, barra de filtros, header
+ * de página y estados vacío/cargando.
+ *
+ * Construido combinando lo ya resuelto en productos.css (.prod-tabla,
+ * .prod-th-sort) y stock.css (.tabla-stock, .badge-estado), que son la
+ * pareja de referencia visual del plan. A partir de acá, el CSS de cada
+ * página deja de tener permitido redeclarar estos componentes desde cero
+ * (ver §2 y §5 del plan) — solo puede definir columnas/valores propios
+ * que no aplican a ninguna otra página.
+ *
+ * Se carga DESPUÉS de reskin-patch-v2-shadcn.css (que usa !important) y
+ * con especificidad de clase simple (sin !important) porque es la base,
+ * no un parche sobre un parche — ver riesgo "Regresión visual silenciosa"
+ * en §6 del plan.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor + tabla ─────────────────────────────────────────────── */
+.tabla-wrap {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--color-surface);
+}
+
+.tabla-admin thead {
+  background: transparent;
+}
+
+.tabla-admin thead th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.tabla-admin thead th:first-child { padding-left: 20px; }
+.tabla-admin thead th:last-child  { padding-right: 20px; }
+
+.tabla-admin tbody tr {
+  border-bottom: 1px solid var(--color-border-soft);
+  transition: background .12s ease;
+}
+.tabla-admin tbody tr:hover { background: var(--color-primary-bg); }
+.tabla-admin tbody tr:last-child { border-bottom: none; }
+
+.tabla-admin tbody td {
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+.tabla-admin tbody td:first-child { padding-left: 20px; }
+.tabla-admin tbody td:last-child  { padding-right: 20px; }
+
+/* Modificadores de densidad ya existentes en el reskin, se mantienen */
+.tabla-admin.table-compact tbody td { padding-top: 8px; padding-bottom: 8px; }
+.tabla-admin.table-comfortable tbody td { padding-top: 18px; padding-bottom: 18px; }
+
+/* Columna "a medida de su contenido" — evita que columnas con contenido
+   corto (badges, números de comprobante, fechas, acciones) hereden una
+   porción pareja del 100% de ancho de la tabla y queden con aire de sobra.
+   Se achica al mínimo necesario y el ancho sobrante lo absorbe la/s
+   columna/s que no la tengan (típicamente Cliente/Descripción). Aplicar
+   en el <th> de cabecera de la columna a achicar. */
+.tabla-admin th.col-fit { width: 1%; white-space: nowrap; }
+
+/* El nowrap de arriba solo alcanzaba al <th> — el ancho de columna en
+   layout automático lo termina fijando el contenido más ancho de TODA
+   la columna, y el <td> (con el dato real: CUIT, teléfono, etc.) seguía
+   pudiendo envolver en varias líneas, así que la columna nunca se achicaba
+   de verdad y le robaba aire a la columna flexible (ej. Proveedor/Cliente).
+   Aplicar también la clase .col-fit en el <td> correspondiente de cada
+   fila (mismo criterio que .col-sticky-end, que ya se aplica a th y td). */
+.tabla-admin td.col-fit { white-space: nowrap; }
+
+
+/* Header ordenable — patrón de Productos */
+.th-sort { cursor: pointer; }
+.th-sort:hover { color: var(--color-text-light); }
+
+/* Montos — venía como `table.tabla .monto`/`.monto-rojo`/`.monto-verde` en
+   finanzas.css (Hallazgo #3 del plan), escapado a `.tabla-admin` acá para
+   que cheques.html y notas.html no pierdan el monospace/tamaño base al
+   dejar de usar la clase `.tabla`. El color/peso específico de cada página
+   (cheques/notas ya lo pisan con !important en su *-gentelella.css) sigue
+   funcionando igual, esto solo restituye la base. */
+.monto { font-weight: 700; font-family: monospace; font-size: 13px; }
+.monto-rojo  { color: var(--color-danger); font-weight: 700; }
+.monto-verde { color: var(--color-success); font-weight: 700; }
+
+@media (max-width: 768px) {
+  .tabla-admin { font-size: .82rem; }
+  .tabla-admin thead th { font-size: .65rem; }
+}
+
+/* ── Cards responsive (mobile) — patrón "tabla → tarjetas" con data-label,
+   Hallazgo #5 del plan (2026-08-19): esta regla vivía scopeada a
+   `.tabla-main` solo en compras.css (compartida "por casualidad" por las
+   páginas que cargan ese archivo — mismo tipo de situación que el
+   Hallazgo #1 con `.btn-tabla`). Se generaliza acá para `.tabla-admin` así
+   cualquier página que agregue `table-responsive-cards` a su `.tabla-wrap`
+   la tiene disponible sin depender de qué otro CSS cargue. La versión de
+   `.tabla-main` en compras.css NO se toca — sigue siendo necesaria para
+   `compras`/`proveedores`/`rutas`/`vencimientos`, que aún no migraron su
+   tabla a `.tabla-admin`. La primera columna y la de Acciones van a ancho
+   completo sin label, de forma genérica (por posición / por
+   data-label="Acciones"), en vez de listar valores de texto literales
+   página por página. */
+@media (max-width: 768px) {
+  .table-responsive-cards .tabla-admin,
+  .table-responsive-cards .tabla-admin thead,
+  .table-responsive-cards .tabla-admin tbody,
+  .table-responsive-cards .tabla-admin th,
+  .table-responsive-cards .tabla-admin td,
+  .table-responsive-cards .tabla-admin tr {
+    display: block;
+  }
+  .table-responsive-cards .tabla-admin thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .table-responsive-cards .tabla-admin tbody tr {
+    border: 1px solid var(--color-border-soft);
+    margin: 0 0 12px;
+    border-radius: var(--radius-lg);
+    padding: 4px 14px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-xs);
+  }
+  .table-responsive-cards .tabla-admin tbody tr:hover { background: var(--color-surface); }
+  .table-responsive-cards .tabla-admin td {
+    border: none !important;
+    position: relative;
+    padding: 9px 0 9px 42%;
+    text-align: right;
+    border-bottom: 1px solid var(--color-bg) !important;
+    min-height: 20px;
+  }
+  .table-responsive-cards .tabla-admin td:last-child { border-bottom: none !important; }
+  .table-responsive-cards .tabla-admin td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 40%;
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  /* Primera celda y Acciones van a ancho completo sin label */
+  .table-responsive-cards .tabla-admin td:first-child,
+  .table-responsive-cards .tabla-admin td[data-label="Acciones"] {
+    text-align: left;
+    padding-left: 0;
+  }
+  .table-responsive-cards .tabla-admin td:first-child::before,
+  .table-responsive-cards .tabla-admin td[data-label="Acciones"]::before {
+    display: none;
+  }
+  .table-responsive-cards .fila-acciones { flex-wrap: wrap; }
+  .table-responsive-cards .btn-tabla { flex: 1; justify-content: center; padding: 8px; }
+}
+
+/* ── Badge de estado — fuente única, reemplaza las 11 redefiniciones
+   locales (clientes/facturacion/stock/observabilidad/usuarios/...) ──── */
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px;
+  border-radius: var(--radius-sm);
+  border-width: 3px; border-style: double;
+  font-family: var(--font-family-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.badge-ok       { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.badge-ok .badge-dot { background: var(--color-success); }
+
+.badge-warning,
+.badge-bajo     { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); }
+.badge-warning .badge-dot,
+.badge-bajo .badge-dot { background: var(--color-warning); }
+
+.badge-critico  { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: var(--color-danger); }
+.badge-critico .badge-dot { background: var(--color-danger); }
+
+.badge-info,
+.badge-parcial  { background: var(--color-info-bg);    color: var(--color-info);    border-color: var(--color-info); }
+.badge-info .badge-dot,
+.badge-parcial .badge-dot { background: var(--color-info); }
+
+.badge-pendiente { background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning); opacity: .85; }
+.badge-pendiente .badge-dot { background: var(--color-warning); }
+
+.badge-inactivo { background: var(--color-bg); color: var(--color-text-muted); border-color: var(--color-border); }
+.badge-inactivo .badge-dot { background: var(--color-text-muted); }
+
+/* ── Fila de acciones — texto + kebab, patrón Productos/Stock ────────── */
+.fila-acciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Botón de texto para la acción primaria de fila (ej. "Ver", "Editar").
+   Antes vivía solo en compras.css y llegaba a otras páginas (cc-proveedores)
+   por casualidad, porque cc-proveedores.html también carga compras.css.
+   Facturación (y el resto de la Familia B) no cargan compras.css, así que
+   sin esta definición acá el botón de texto y el kebab quedaban sin estilo.
+   Se centraliza acá como parte del componente canónico — ver
+   PLAN_UNIFICACION_UX_ADMIN.md §2. */
+.btn-tabla {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, transform .1s ease;
+}
+.btn-tabla:hover { background: var(--color-bg); }
+.btn-tabla.primario {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+.btn-tabla.primario:hover { opacity: .88; transform: translateY(-1px); }
+.btn-tabla.peligro {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-tabla.peligro:hover { opacity: .85; transform: translateY(-1px); }
+
+.btn-kebab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all .12s;
+}
+.btn-kebab:hover { background: var(--color-surface-2); color: var(--color-text); }
+.btn-kebab[aria-expanded="true"] { background: var(--color-surface-2); border-color: var(--color-border); }
+
+/* ── Paginación (ya vivía en shared/pagination.css — se referencia
+   acá para que quede documentada como parte del componente canónico,
+   sin duplicar reglas) ───────────────────────────────────────────────
+   Ver frontend/shared/pagination.css: .paginacion-container, .btn-pag,
+   .info-pag */
+
+/* ── Barra de filtros ──────────────────────────────────────────────── */
+.filtros-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* ── Header de página (ya estandarizado en 44/56 páginas) ────────────
+   .topbar / .topbar-title — sin cambios, documentado acá por completitud. */
+
+/* ── Estado vacío / cargando (ya definidos, se mantienen) ────────────
+   .tabla-loading / .tabla-empty */
+
+/* ── Chip — pastilla compacta de estado ───────────────────────────────
+   Hallazgo #2 del plan: `.chip` + sus modificadores de color estaban
+   redeclarados con `!important` en 13 archivos `*-gentelella.css`
+   (cheques, gastos-generales, reglas-precio, rutas, devoluciones,
+   cobranzas, notas, fidelizacion, rentabilidad-producto-vendedor,
+   export-contable, mercadopago-config, facturacion-config,
+   vencimientos), cada uno con el mismo shape y los mismos tokens
+   `--ge-*` pero repetidos letra por letra. Se centraliza acá.
+
+   soporte-gentelella.css también tenía un bloque de chips
+   (.chip-nivel/.chip-critico/.chip-alto/.chip-normal) pero resultó
+   ser CSS muerto — ninguna clase aparece en HTML/JS del proyecto — así
+   que se borró directamente ahí en vez de migrarse acá.
+
+   Se preservan los nombres de clase que ya emite cada `.js`
+   (`chip-verde`, `chip-rojo`, etc.) — no se renombran en este cambio
+   para no tocar HTML/JS de 14 páginas a la vez.
+
+   NO incluye `.chip-pendiente`: significa gris en rutas.html (chip de
+   ruta pendiente de asignar) y amarillo en fidelizacion.html (regla
+   pendiente de aplicar) — es una colisión de nombre real entre dos
+   páginas, no una duplicación. Queda a propósito definida de forma
+   local en cada uno de esos dos archivos (con un comentario que
+   remite acá) hasta que se decida desambiguar el nombre.
+
+   Tampoco incluye la familia de `pedidos-gentelella.css`
+   (chip-borrador/confirmado/preparando/despachado/entregado/cancelado):
+   usa tokens `--color-*` (no `--ge-*`) y conserva el borde doble de
+   `pedidos.css` en vez del pill sólido de acá — es un tercer patrón
+   distinto, no una simple duplicación del mismo componente. Se deja
+   fuera para no forzar un cambio de color real sin confirmarlo antes.
+
+   Dos normalizaciones menores de píxel, ambas intencionales y
+   documentadas (no es regresión silenciosa, ver §6 del plan):
+   - peso de fuente: cheques/cobranzas tenían 700, el resto 600 →
+     se unifica en 600.
+   - `.chip-rojo` en vencimientos usaba alpha .10 en vez de .12 (como
+     el resto de `.chip-rojo`) → se unifica en .12. Diferencia
+     imperceptible (2% de opacidad) pero se deja registrada acá. */
+.chip, .chip-base {
+  display: inline-block;
+  border-radius: var(--ge-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* Info / azul */
+.chip-azul, .chip-en-camino, .chip-desc-pct, .chip-normal, .chip-origen-pedido {
+  background: rgba(52,152,219,.13);
+  color: var(--ge-blue);
+}
+
+/* Warning / amarillo */
+.chip-amarillo, .chip-preparando {
+  background: rgba(240,173,78,.15);
+  color: var(--ge-warning-text);
+}
+
+/* OK / verde (teal) */
+.chip-verde, .chip-activa, .chip-completada, .chip-aplicado, .chip-ok {
+  background: var(--ge-teal-light);
+  color: var(--ge-teal-dark);
+}
+
+/* Danger / rojo */
+.chip-rojo, .chip-vencida, .chip-cancelada {
+  background: rgba(231,76,60,.12);
+  color: var(--ge-red);
+}
+
+/* Neutral / gris */
+.chip-gris, .chip-inactiva, .chip-borrador, .chip-entregado, .chip-expirado {
+  background: var(--ge-chip-bg);
+  color: var(--ge-ink-soft);
+}
+
+/* Alterno / púrpura */
+.chip-desc-fijo, .chip-origen-pos {
+  background: rgba(142,68,173,.13);
+  color: var(--ge-purple);
+}
+
+/* "No" — ámbar con texto naranja, distinto del warning-amarillo de arriba */
+.chip-no {
+  background: rgba(240,173,78,.15);
+  color: var(--ge-orange);
+}
+
+/* Caso único: chip-homo (facturación-config, ícono de homologación AFIP) —
+   usa un azul más oscuro (--ge-info-text) que el resto de la familia
+   info/azul; se mantiene distinto a propósito, no es el mismo color. */
+.chip-homo {
+  background: rgba(52,152,219,.12);
+  color: var(--ge-info-text);
+}
+.chip-homo svg circle { fill: var(--ge-blue); }

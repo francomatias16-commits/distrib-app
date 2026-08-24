@@ -1,0 +1,196 @@
+/* Command center de repartos.
+   Solo redefine la capa visual del resumen: no cambia IDs, eventos ni datos. */
+.dash-rutas-gentelella {
+  --cc-ink: #102b4e;
+  --cc-muted: #71849a;
+  --cc-line: #e3ebf2;
+  --cc-blue: #246bdb;
+  --cc-mint: #36c7a0;
+  background:
+    radial-gradient(circle at 92% 4%, rgba(86, 185, 240, .11), transparent 28%),
+    #f5f8fb;
+}
+
+.dash-rutas-gentelella .rutas-toolbar {
+  top: 10px;
+  padding: 7px;
+  border: 1px solid rgba(185, 205, 222, .72);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .84);
+  box-shadow: 0 12px 30px rgba(28, 72, 111, .07);
+}
+
+.dash-rutas-gentelella .rutas-toolbar .tab-btn {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 9px;
+  letter-spacing: -.01em;
+}
+.dash-rutas-gentelella .rutas-toolbar .tab-btn.active {
+  border-color: #9dc9b9;
+  background: #e9f7f1;
+  color: #18735d;
+  box-shadow: none;
+}
+
+.dash-rutas-gentelella .resumen-dashboard-shell {
+  grid-template-columns: minmax(360px, .78fr) minmax(0, 1.22fr);
+  gap: 18px;
+}
+
+.dash-rutas-gentelella .resumen-operativo-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  border: 0;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 82% 0%, rgba(67, 165, 231, .3), transparent 31%),
+    linear-gradient(145deg, #102d54 0%, #173d68 62%, #155475 100%);
+  box-shadow: 0 22px 42px rgba(21, 59, 99, .22);
+}
+.dash-rutas-gentelella .resumen-operativo-panel::after {
+  content: "";
+  position: absolute;
+  right: -65px;
+  bottom: -95px;
+  width: 260px;
+  height: 260px;
+  border: 1px solid rgba(152, 222, 255, .23);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgba(152, 222, 255, .045), 0 0 0 48px rgba(152, 222, 255, .035);
+  pointer-events: none;
+}
+.dash-rutas-gentelella .resumen-operativo-head {
+  position: relative;
+  z-index: 1;
+  border-bottom-color: rgba(206, 231, 246, .16);
+}
+.dash-rutas-gentelella .resumen-operativo-kicker {
+  color: #82d9c2;
+}
+.dash-rutas-gentelella .resumen-operativo-head h2 {
+  color: #fff;
+  font-size: 22px;
+}
+.dash-rutas-gentelella .resumen-operativo-head p {
+  color: #b2c9dc;
+}
+.dash-rutas-gentelella .resumen-operativo-status {
+  border-color: rgba(105, 225, 188, .28);
+  background: rgba(81, 208, 167, .13);
+  color: #8ae5c9;
+}
+.dash-rutas-gentelella .resumen-operativo-status span {
+  background: #63e0b5;
+  box-shadow: 0 0 0 4px rgba(99, 224, 181, .15);
+}
+
+.dash-rutas-gentelella .resumen-operativo-metrics {
+  position: relative;
+  z-index: 1;
+  gap: 11px;
+  padding-top: 16px;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card {
+  padding: 15px;
+  border-color: rgba(207, 228, 243, .13);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .095);
+  color: #fff;
+  backdrop-filter: blur(5px);
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card:hover {
+  border-color: rgba(142, 221, 255, .45);
+  background: rgba(255, 255, 255, .14);
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-title {
+  color: #f1f8fd;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-sub,
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight span,
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-income-sub {
+  color: #adc4d7;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight {
+  border-top-color: rgba(207, 228, 243, .14);
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight strong,
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-income-val {
+  color: #fff;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-badge {
+  color: #bcecdf;
+  border-color: rgba(113, 218, 184, .28);
+  background: rgba(68, 192, 151, .14);
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-minibar {
+  background: rgba(205, 228, 242, .28);
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-minibar-col.is-today .resumen-minibar {
+  background: #59d8ba;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-minibar-label {
+  color: #abc4d7;
+}
+.dash-rutas-gentelella .resumen-operativo-metrics .resumen-minibar-col.is-today .resumen-minibar-label {
+  color: #7ee5ca;
+}
+
+.dash-rutas-gentelella .resumen-pedidos-focus {
+  padding: 22px;
+  border: 1px solid #dce8f0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 18px 38px rgba(27, 70, 103, .08);
+}
+.dash-rutas-gentelella .resumen-pedidos-focus-head {
+  padding-bottom: 17px;
+  border-bottom-color: #e5edf3;
+}
+.dash-rutas-gentelella .resumen-pedidos-focus-head h2 {
+  color: var(--cc-ink);
+  font-size: 22px;
+}
+.dash-rutas-gentelella .resumen-pedidos-focus-note {
+  color: #72889c;
+}
+.dash-rutas-gentelella .resumen-pedidos-focus .resumen-card {
+  border-color: #e0eaf1;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(30, 79, 111, .045);
+}
+.dash-rutas-gentelella .resumen-card--capacity {
+  padding: 17px;
+  background: linear-gradient(135deg, #f7f4ff, #fbfaff);
+}
+.dash-rutas-gentelella .resumen-card--drivers {
+  padding: 17px;
+  background: linear-gradient(135deg, #f4fbff, #fff);
+}
+.dash-rutas-gentelella .resumen-pedidos-focus .resumen-card-title {
+  color: var(--cc-ink);
+}
+.dash-rutas-gentelella .resumen-pedidos-focus .resumen-card-sub {
+  color: #7890a2;
+}
+.dash-rutas-gentelella .resumen-pedidos-focus .btn-chofer-accion {
+  border-radius: 9px;
+  font-weight: 750;
+}
+
+@media (max-width: 1120px) {
+  .dash-rutas-gentelella .resumen-dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .dash-rutas-gentelella .resumen-operativo-panel,
+  .dash-rutas-gentelella .resumen-pedidos-focus {
+    padding: 16px;
+    border-radius: 17px;
+  }
+}

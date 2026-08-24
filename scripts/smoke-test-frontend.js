@@ -83,6 +83,7 @@ for (const page of htmlFiles) {
 
   // Redirect: saltar
   if (html.includes('window.location.replace') ||
+      html.includes('location.replace') ||
       html.includes('meta http-equiv="refresh"')) {
     log(`  ⏭  ${page.name} (redirect)`);
     continue;

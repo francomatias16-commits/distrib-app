@@ -8,6 +8,8 @@ let _mapaResumen = null;
 let _mapaResumenMarkers = [];
 let _clienteCobroSeleccionado = null;
 let _clientesHoy = [];
+let _rutasResumenHoy = [];
+let _filtroResumenActual = 'all';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await window.authReady?.catch(() => {});
@@ -57,9 +59,21 @@ function restarDias(iso, n) {
 function formatARS(n) {
   return window.formatARS ? window.formatARS(n) : '$' + (n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 });
 }
+function formatNumero(n) {
+  return Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
+}
+function textoFechaCorta(iso) {
+  return new Date(iso + 'T00:00:00')
+    .toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' })
+    .replace('.', '');
+}
 function esc(s) {
   // Consolidado: delega a la única fuente de verdad (ui-utils.js).
   return window.sanitize(s);
+}
+function estadoRutaUi(estado) {
+  // Supabase conserva `en_curso`; la interfaz lo presenta como En tránsito.
+  return estado === 'en_curso' ? 'en_camino' : estado;
 }
 
 // ── 1. Pedidos despachados — últimos 7 días (mini bar chart) ────────────
@@ -91,11 +105,17 @@ async function cargarPedidosSemana() {
   const valores = Object.values(porDia);
   const max = Math.max(1, ...valores);
   const total = valores.reduce((a, b) => a + b, 0);
+  const pico = Math.max(...valores);
+  const fechaPico = Object.entries(porDia).find(([, n]) => n === pico)?.[0];
 
   document.getElementById('resumen-badge-fecha').textContent =
     new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
   document.getElementById('resumen-rutas-semana-sub').textContent =
     `${total} pedido${total !== 1 ? 's' : ''} en 7 días`;
+  document.getElementById('resumen-pedidos-promedio').textContent =
+    `${formatNumero(total / 7)} por día`;
+  document.getElementById('resumen-pedidos-pico').textContent =
+    pico > 0 ? `${textoFechaCorta(fechaPico)} · ${pico}` : 'Sin despachos';
 
   wrap.innerHTML = Object.entries(porDia).map(([fecha, n]) => {
     const pct = Math.max(4, Math.round((n / max) * 100));
@@ -118,11 +138,11 @@ async function cargarDetalleHoy() {
   const [{ data: rutasHoy, error }, { data: rutasAyer }] = await Promise.all([
     sb.from('rutas')
       .select(`
-        id, fecha, estado, created_at, chofer_id,
+        id, fecha, estado, created_at, chofer_id, notas,
         usuarios(nombre),
         entregas(
           id, estado, orden, fecha_confirmacion,
-          pedidos(id, total, clientes(id, razon_social, domicilio, lat, lng))
+          pedidos(id, total, clientes(id, razon_social, domicilio, lat, lng, zonas(nombre)))
         )
       `)
       .eq('empresa_id', empresaId)
@@ -133,8 +153,8 @@ async function cargarDetalleHoy() {
 
   if (error || !rutasHoy) return;
 
+  _rutasResumenHoy = rutasHoy;
   renderGaugeEntregas(rutasHoy);
-  renderCargaChoferes(rutasHoy);
   renderChoferesEnCalle(rutasHoy, rutasAyer?.length || 0);
   renderTrackingHoy(rutasHoy);
   prepararClientesCobroRapido(rutasHoy);
@@ -146,8 +166,14 @@ function renderGaugeEntregas(rutas) {
   const total = todas.length;
   const entregadas = todas.filter(e => e.estado === 'entregado').length;
   const pct = total ? Math.round((entregadas / total) * 100) : 0;
+  const choferes = new Set(rutas.map(r => r.chofer_id).filter(Boolean)).size;
 
   if (typeof inicializarTemaECharts === 'function') inicializarTemaECharts();
+
+  const css = getComputedStyle(document.documentElement);
+  const colorSuccess = css.getPropertyValue('--color-success').trim();
+  const colorBorder = css.getPropertyValue('--color-border').trim();
+  const colorText = css.getPropertyValue('--color-text').trim();
 
   _gaugeEntregasChart = crearGraficoECharts(_gaugeEntregasChart, 'resumen-gauge', {
     tooltip: {
@@ -161,91 +187,130 @@ function renderGaugeEntregas(rutas) {
       silent: false,
       label: { show: false },
       labelLine: { show: false },
-      itemStyle: { borderColor: '#FCFAF5', borderWidth: 2 },
+      itemStyle: { borderColor: css.getPropertyValue('--color-surface').trim(), borderWidth: 2 },
       emphasis: { scaleSize: 4 },
       data: total
         ? [
-            { name: 'Entregadas', value: entregadas, itemStyle: { color: '#B87A00' } },
-            { name: 'Pendientes', value: total - entregadas, itemStyle: { color: '#DAD3C0' } },
+            { name: 'Entregadas', value: entregadas, itemStyle: { color: colorSuccess } },
+            { name: 'Pendientes', value: total - entregadas, itemStyle: { color: colorBorder } },
           ]
-        : [{ name: 'Sin datos', value: 1, itemStyle: { color: '#DAD3C0' } }],
+        : [{ name: 'Sin datos', value: 1, itemStyle: { color: colorBorder } }],
     }],
     graphic: {
       elements: [{
         type: 'text', left: 'center', top: 'center',
-        style: { text: total ? `${pct}%` : '—', fontSize: 20, fontWeight: 800, fill: '#16181D' },
+        style: { text: total ? `${pct}%` : '—', fontSize: 20, fontWeight: 800, fill: colorText },
       }],
     },
   }, { notMerge: true });
 
   document.getElementById('resumen-gauge-ok').textContent = `${entregadas} entregada${entregadas !== 1 ? 's' : ''}`;
   document.getElementById('resumen-gauge-pend').textContent = `${total - entregadas} pendiente${(total - entregadas) !== 1 ? 's' : ''}`;
-}
-
-function renderCargaChoferes(rutas) {
-  const el = document.getElementById('resumen-carga-choferes');
-  if (!rutas.length) {
-    el.innerHTML = '<div class="empty-state" style="padding:12px;">Sin rutas hoy</div>';
-    return;
-  }
-  const cargas = rutas.map(r => ({
-    nombre: r.usuarios?.nombre || 'Sin chofer',
-    n: r.entregas?.length || 0,
-  }));
-  const max = Math.max(1, ...cargas.map(c => c.n));
-
-  el.innerHTML = cargas.slice(0, 5).map(c => {
-    const pct = Math.max(6, Math.round((c.n / max) * 100));
-    return `
-      <div class="resumen-cap-row">
-        <span class="resumen-cap-label" title="${esc(c.nombre)}">${esc(c.nombre)}</span>
-        <div class="resumen-cap-track"><div class="resumen-cap-fill" style="width:${pct}%;"></div></div>
-        <span class="resumen-cap-pct">${c.n}</span>
-      </div>`;
-  }).join('');
+  document.getElementById('resumen-entregas-avance').textContent =
+    total ? `${entregadas}/${total} · ${pct}%` : 'Sin entregas';
+  document.getElementById('resumen-entregas-rutas').textContent =
+    `${rutas.length} ruta${rutas.length !== 1 ? 's' : ''} · ${choferes} chofer${choferes !== 1 ? 'es' : ''}`;
 }
 
 function renderChoferesEnCalle(rutas, ayerCount) {
-  document.getElementById('resumen-choferes-count').textContent = rutas.length;
+  const totalRutas = rutas.length;
+  const enCamino = rutas.filter(r => estadoRutaUi(r.estado) === 'en_camino').length;
+  const pendiente = rutas.filter(r => estadoRutaUi(r.estado) === 'pendiente').length;
+  const completada = rutas.filter(r => estadoRutaUi(r.estado) === 'completada').length;
+  const cancelada = rutas.filter(r => estadoRutaUi(r.estado) === 'cancelada').length;
+  const riesgo = pendiente + cancelada;
 
-  const delta = rutas.length - ayerCount;
+  document.getElementById('resumen-choferes-count').textContent = totalRutas;
+  document.getElementById('resumen-signal-en-ruta')?.replaceChildren(document.createTextNode(enCamino));
+  document.getElementById('resumen-signal-riesgo')?.replaceChildren(document.createTextNode(riesgo));
+  document.getElementById('resumen-signal-completada')?.replaceChildren(document.createTextNode(completada));
+  document.getElementById('resumen-signal-total')?.replaceChildren(document.createTextNode(totalRutas));
+
+  const delta = totalRutas - ayerCount;
   const deltaEl = document.getElementById('resumen-choferes-delta');
-  if (ayerCount === 0 && rutas.length === 0) {
+  if (ayerCount === 0 && totalRutas === 0) {
     deltaEl.textContent = 'Sin datos de ayer';
-    deltaEl.className = 'resumen-choferes-delta';
   } else {
     const signo = delta > 0 ? '▲' : delta < 0 ? '▼' : '—';
-    deltaEl.textContent = `${signo} ${Math.abs(delta)} que ayer`;
-    deltaEl.className = 'resumen-choferes-delta' + (delta >= 0 ? ' pos' : '');
+    deltaEl.textContent = `${signo} ${Math.abs(delta)} ruta${Math.abs(delta) === 1 ? '' : 's'} vs. ayer`;
   }
 
-  const enCamino = rutas.filter(r => r.estado === 'en_camino').length;
-  const pendiente = rutas.filter(r => r.estado === 'pendiente').length;
-  const completada = rutas.filter(r => r.estado === 'completada').length;
   document.getElementById('resumen-leg-en-camino').textContent = `● En ruta ${enCamino}`;
-  document.getElementById('resumen-leg-pendiente').textContent = `● Pendiente ${pendiente}`;
+  document.getElementById('resumen-leg-pendiente').textContent = cancelada ? `● Pendiente ${pendiente} · Cancelada ${cancelada}` : `● Pendiente ${pendiente}`;
   document.getElementById('resumen-leg-completada').textContent = `● Completada ${completada}`;
 
   const listEl = document.getElementById('resumen-chofer-list');
   if (!rutas.length) {
-    listEl.innerHTML = '<div class="empty-state" style="padding:20px;">No hay rutas creadas para hoy</div>';
+    listEl.innerHTML = '<div class="empty-state" style="padding:24px;">No hay rutas creadas para hoy</div>';
+    document.getElementById('resumen-chofer-filter-empty').hidden = true;
     return;
   }
-  const chipMap = { pendiente: 'chip-pendiente', en_camino: 'chip-en-camino', completada: 'chip-completada', cancelada: 'chip-cancelada' };
-  const labelMap = { pendiente: 'Pendiente', en_camino: 'En camino', completada: 'Completada', cancelada: 'Cancelada' };
-  listEl.innerHTML = rutas.map(r => {
-    const n = r.entregas?.length || 0;
-    const hora = new Date(r.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+  const labelMap = { pendiente: 'Pendiente', en_camino: 'En tránsito', completada: 'Completada', cancelada: 'Cancelada' };
+  const stateIcon = { pendiente: '!', en_camino: '→', completada: '✓', cancelada: '×' };
+  listEl.innerHTML = rutas.map((r, index) => {
+    const entregas = r.entregas || [];
+    const n = entregas.length;
+    const entregadas = entregas.filter(e => e.estado === 'entregado').length;
+    const progress = n ? Math.round((entregadas / n) * 100) : (r.estado === 'completada' ? 100 : 0);
+    const hora = r.created_at ? new Date(r.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const zonas = [...new Set(entregas.map(e => e.pedidos?.clientes?.zonas?.nombre).filter(Boolean))];
+    const zonaLabel = zonas.length ? zonas.slice(0, 2).join(' · ') : 'Zona sin asignar';
+    const nota = r.notas ? esc(r.notas) : 'Sin observaciones';
+    const routeId = String(r.id || '').replace(/'/g, "\\'");
+    const estadoUi = estadoRutaUi(r.estado || 'pendiente');
+    const riskClass = estadoUi === 'pendiente' ? ' route-row--risk' : estadoUi === 'cancelada' ? ' route-row--danger' : '';
     return `
-      <div class="resumen-chofer-item">
-        <div class="resumen-chofer-info">
-          <span class="resumen-chofer-nombre">${esc(r.usuarios?.nombre || 'Sin chofer')}</span>
-          <span class="resumen-chofer-sub">${n} pedido${n !== 1 ? 's' : ''}</span>
+      <article class="route-row route-row--${esc(estadoUi)}${riskClass}" data-route-state="${esc(estadoUi)}" data-route-id="${esc(r.id || '')}" role="button" tabindex="0" onclick="seleccionarRutaResumen('${routeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarRutaResumen('${routeId}')}" aria-label="Ver ${labelMap[estadoUi] || 'reparto'} ${esc(r.id?.slice(0, 8) || 'sin ID')}">
+        <span class="route-row-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
+        <div class="route-row-identity">
+          <span class="route-row-eyebrow">Reparto <b>#${esc(r.id?.slice(0, 8) || '—')}</b></span>
+          <strong>${esc(r.usuarios?.nombre || 'Sin repartidor')}</strong>
+          <small>${n} pedido${n !== 1 ? 's' : ''} · Salió ${hora}</small>
         </div>
-        <span class="chip ${chipMap[r.estado] || 'chip-pendiente'}">${labelMap[r.estado] || r.estado}</span>
-        <span class="resumen-chofer-eta">Salió ${hora}</span>
-      </div>`;
+        <div class="route-row-context">
+          <span class="route-row-label">Ruta / zona</span>
+          <strong>${esc(zonaLabel)}</strong>
+          <small>${nota}</small>
+        </div>
+        <div class="route-row-progress">
+          <div class="route-row-progress-head"><span class="route-state route-state--${esc(estadoUi)}"><i>${stateIcon[estadoUi] || '•'}</i>${labelMap[estadoUi] || esc(estadoUi || 'Pendiente')}</span><b>${progress}%</b></div>
+          <div class="route-flow-track" aria-hidden="true"><span style="width:${progress}%;"></span></div>
+          <small>${entregadas}/${n} entregadas${estadoUi === 'cancelada' ? ' · requiere revisión' : ''}</small>
+        </div>
+        <span class="route-row-chevron" aria-hidden="true">↗</span>
+      </article>`;
   }).join('');
+  filtrarResumenRutas(_filtroResumenActual, false);
+}
+
+function filtrarResumenRutas(filtro = 'all', announce = true) {
+  _filtroResumenActual = filtro;
+  const rows = document.querySelectorAll('#resumen-chofer-list .route-row');
+  let visibles = 0;
+  rows.forEach(row => {
+    const show = filtro === 'all' || row.dataset.routeState === filtro || (filtro === 'risk' && ['pendiente', 'cancelada'].includes(row.dataset.routeState));
+    row.hidden = !show;
+    if (show) visibles += 1;
+  });
+  document.querySelectorAll('[data-summary-filter]').forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.dataset.summaryFilter === filtro ? 'true' : 'false');
+  });
+  const empty = document.getElementById('resumen-chofer-filter-empty');
+  if (empty) empty.hidden = visibles !== 0 || rows.length === 0;
+  if (announce && typeof window.toast === 'function') {
+    const label = filtro === 'all' ? 'Todos los repartos' : (filtro === 'en_camino' ? 'En tránsito' : filtro === 'risk' ? 'Riesgo e incidencias' : 'Completados');
+    window.toast(`${label}: ${visibles}`);
+  }
+}
+
+function seleccionarRutaResumen(routeId) {
+  const ruta = _rutasResumenHoy.find(r => String(r.id) === String(routeId));
+  if (!ruta) return;
+  renderTrackingHoy([ruta]);
+  document.querySelectorAll('#resumen-chofer-list .route-row').forEach(row => {
+    row.classList.toggle('is-selected', row.dataset.routeId === String(routeId));
+  });
 }
 
 // ── Tracking / mapa de la ruta más relevante de hoy ─────────────────────
@@ -265,7 +330,8 @@ function renderTrackingHoy(rutas) {
   }
 
   // Preferir una ruta "en_camino"; si no hay, la más reciente
-  const ruta = rutas.find(r => r.estado === 'en_camino') || rutas[0];
+  const ruta = rutas.find(r => estadoRutaUi(r.estado) === 'en_camino') || rutas[0];
+  const estadoRuta = estadoRutaUi(ruta.estado);
   const entregas = ruta.entregas || [];
   const entregadas = entregas.filter(e => e.estado === 'entregado').length;
 
@@ -278,12 +344,12 @@ function renderTrackingHoy(rutas) {
   const primeraConfirmacion = entregas.map(e => e.fecha_confirmacion).filter(Boolean).sort()[0];
   if (primeraConfirmacion) {
     items.push({ done: true, titulo: 'Primera entrega confirmada', sub: new Date(primeraConfirmacion).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) });
-  } else if (ruta.estado === 'en_camino' || ruta.estado === 'completada') {
+  } else if (estadoRuta === 'en_camino' || estadoRuta === 'completada') {
     items.push({ done: true, titulo: 'En tránsito', sub: '—' });
   } else {
     items.push({ done: false, titulo: 'Aún sin salir', sub: '—' });
   }
-  if (ruta.estado === 'completada') {
+  if (estadoRuta === 'completada') {
     items.push({ done: true, titulo: 'Ruta completada', sub: `${entregadas}/${entregas.length} entregadas` });
   } else {
     items.push({ done: false, titulo: 'Ruta en curso', sub: `${entregas.length - entregadas} pendientes` });
@@ -314,13 +380,21 @@ function renderTrackingHoy(rutas) {
   _mapaResumenMarkers.forEach(m => m.remove());
   _mapaResumenMarkers = [];
 
-  const colores = { entregado: '#1F5B4A', no_entregado: '#B3261E', pendiente: '#8F5F00', en_camino: '#2E6088' };
+  const css = getComputedStyle(document.documentElement);
+  const colores = {
+    entregado: css.getPropertyValue('--color-success').trim(),
+    no_entregado: css.getPropertyValue('--color-danger').trim(),
+    pendiente: css.getPropertyValue('--color-warning').trim(),
+    en_camino: css.getPropertyValue('--color-info').trim(),
+  };
+  const surface = css.getPropertyValue('--color-surface').trim();
+  const ink = css.getPropertyValue('--color-text').trim();
   const bounds = [];
   puntos.forEach(({ e, lat, lng }) => {
     const color = colores[e.estado] || colores.pendiente;
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.3);"></div>`,
+      html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid ${surface};box-shadow:0 2px 5px color-mix(in srgb, ${ink} 22%, transparent);"></div>`,
       iconSize: [22, 22], iconAnchor: [11, 11],
     });
     const m = L.marker([lat, lng], { icon }).addTo(_mapaResumen);
@@ -351,7 +425,7 @@ function prepararClientesCobroRapido(rutas) {
   }
   el.innerHTML = _clientesHoy.slice(0, 8).map(c => {
     const iniciales = (c.razon_social || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-    return `<div class="resumen-avatar" data-cliente="${c.id}" title="${esc(c.razon_social)}" onclick="seleccionarClienteCobro('${c.id}')">${iniciales}</div>`;
+    return `<button type="button" class="resumen-avatar" data-cliente="${c.id}" title="${esc(c.razon_social)}" aria-label="Seleccionar cliente ${esc(c.razon_social)}" aria-pressed="false" onclick="seleccionarClienteCobro('${c.id}')">${iniciales}</button>`;
   }).join('');
   btn.disabled = true;
 }
@@ -360,6 +434,7 @@ function seleccionarClienteCobro(clienteId) {
   _clienteCobroSeleccionado = _clientesHoy.find(c => c.id === clienteId) || null;
   document.querySelectorAll('#resumen-avatares .resumen-avatar').forEach(a => {
     a.classList.toggle('selected', a.dataset.cliente === clienteId);
+    a.setAttribute('aria-pressed', a.dataset.cliente === clienteId ? 'true' : 'false');
   });
   const btn = document.getElementById('resumen-cobro-btn');
   btn.disabled = !_clienteCobroSeleccionado;
@@ -429,13 +504,19 @@ async function cargarCobrosSemana() {
 
   const porDia = {};
   for (let i = 0; i <= 6; i++) porDia[restarDias(hoy, 6 - i)] = 0;
-  data.forEach(c => { if (porDia[c.fecha_date] !== undefined) porDia[c.fecha_date] += (c.monto || 0); });
+   data.forEach(c => { if (porDia[c.fecha_date] !== undefined) porDia[c.fecha_date] += (Number(c.monto) || 0); });
 
   const total = Object.values(porDia).reduce((a, b) => a + b, 0);
   const max = Math.max(1, ...Object.values(porDia));
+  const diasConCobros = Object.values(porDia).filter(monto => monto > 0).length;
+  const mejorDia = Object.entries(porDia).find(([, monto]) => monto === max && monto > 0);
 
   valEl.textContent = formatARS(total);
-  subEl.textContent = `${data.length} cobro${data.length !== 1 ? 's' : ''} registrados`;
+  subEl.textContent = `${data.length} cobro${data.length !== 1 ? 's' : ''} · ${diasConCobros} día${diasConCobros !== 1 ? 's' : ''} con actividad`;
+  document.getElementById('resumen-income-promedio').textContent =
+    formatARS(total / 7) + ' por día';
+  document.getElementById('resumen-income-mejor-dia').textContent =
+    mejorDia ? `${textoFechaCorta(mejorDia[0])} · ${formatARS(mejorDia[1])}` : 'Sin cobros';
 
   chartEl.innerHTML = Object.entries(porDia).map(([fecha, monto]) => {
     const pct = Math.max(4, Math.round((monto / max) * 100));
@@ -465,17 +546,31 @@ async function cargarCobrosHoy() {
 
   if (error || !data) {
     gridEl.innerHTML = '<div class="empty-state" style="padding:12px;grid-column:span 2;">No se pudo cargar</div>';
+    document.getElementById('resumen-pago-total-hoy').textContent = '—';
+    document.getElementById('resumen-pago-operaciones').textContent = '—';
+    document.getElementById('resumen-pago-ultimo').textContent = 'No disponible';
     return;
   }
   if (!data.length) {
     gridEl.innerHTML = '<div class="empty-state" style="padding:12px;grid-column:span 2;">Sin cobros hoy</div>';
     listEl.innerHTML = '<div class="resumen-pago-activity-item"><span class="resumen-pago-activity-cliente">Sin actividad hoy</span></div>';
+    document.getElementById('resumen-pago-total-hoy').textContent = '$0';
+    document.getElementById('resumen-pago-operaciones').textContent = '0';
+    document.getElementById('resumen-pago-ultimo').textContent = 'Sin cobros';
     return;
   }
 
   const totales = {};
-  data.forEach(c => { const m = c.medio_pago || 'otro'; totales[m] = (totales[m] || 0) + (c.monto || 0); });
+  data.forEach(c => { const m = c.medio_pago || 'otro'; totales[m] = (totales[m] || 0) + (Number(c.monto) || 0); });
   const labelMedio = { efectivo: 'Efectivo', transferencia: 'Transferencia', cheque: 'Cheque', otro: 'Otro' };
+  const totalHoy = data.reduce((sum, c) => sum + (Number(c.monto) || 0), 0);
+  const ultimo = data[0];
+
+  document.getElementById('resumen-pago-total-hoy').textContent = formatARS(totalHoy);
+  document.getElementById('resumen-pago-operaciones').textContent =
+    `${data.length} cobro${data.length !== 1 ? 's' : ''}`;
+  document.getElementById('resumen-pago-ultimo').textContent =
+    `${new Date(ultimo.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} · ${formatARS(ultimo.monto)}`;
 
   gridEl.innerHTML = Object.entries(totales).map(([medio, monto]) => `
     <div class="resumen-pago-card">
@@ -495,3 +590,5 @@ async function cargarCobrosHoy() {
 window.cargarResumenRepartos = cargarResumenRepartos;
 window.seleccionarClienteCobro = seleccionarClienteCobro;
 window.registrarCobroRapido = registrarCobroRapido;
+window.filtrarResumenRutas = filtrarResumenRutas;
+window.seleccionarRutaResumen = seleccionarRutaResumen;

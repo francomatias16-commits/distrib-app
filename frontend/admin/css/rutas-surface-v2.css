@@ -1,0 +1,189 @@
+/* Ajuste de superficie para toda la página de Repartos.
+   La capa usa únicamente CSS: los componentes conservan sus IDs, eventos
+   inline y contratos de datos con Supabase. */
+body.dash-rutas-gentelella {
+  --rutas-paper: #f7fafc;
+  --rutas-line: #e1eaf0;
+  --rutas-line-strong: #cadbe5;
+  --rutas-card-shadow: 0 1px 2px rgba(23, 58, 79, .025), 0 10px 28px rgba(23, 73, 101, .055);
+  background:
+    linear-gradient(180deg, #fafdff 0, #f7fafc 42%, #f5f9fb 100%);
+  color: #29465c;
+}
+
+body.dash-rutas-gentelella .topbar {
+  min-height: 67px;
+  border-bottom: 1px solid #e4edf2;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 4px 18px rgba(46, 89, 114, .045);
+}
+body.dash-rutas-gentelella .topbar-title {
+  color: #173b5d;
+}
+body.dash-rutas-gentelella .topbar-title::before {
+  background: #5cc6ab;
+  box-shadow: 0 0 0 4px #e4f7f1;
+}
+body.dash-rutas-gentelella .topbar-usuario {
+  color: #71899a;
+}
+
+body.dash-rutas-gentelella .main {
+  padding-top: 22px;
+}
+body.dash-rutas-gentelella .rutas-date-control {
+  border-left-color: #e5eef3;
+}
+body.dash-rutas-gentelella .rutas-date-control input {
+  border-color: #d8e5ec;
+  background: #fbfdff;
+  color: #49667a;
+}
+
+/* El panel principal conserva su identidad, pero baja el contraste para
+   quedar integrado con la superficie blanca y con la operación de la derecha. */
+body.dash-rutas-gentelella .resumen-operativo-panel {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(105, 206, 205, .25), transparent 29%),
+    linear-gradient(145deg, #e9f5f7 0%, #e2f0f4 58%, #dcecf3 100%);
+  box-shadow: 0 16px 34px rgba(56, 114, 139, .11);
+}
+body.dash-rutas-gentelella .resumen-operativo-panel::after {
+  border-color: rgba(72, 156, 184, .18);
+  box-shadow: 0 0 0 22px rgba(72, 156, 184, .035), 0 0 0 48px rgba(72, 156, 184, .025);
+}
+body.dash-rutas-gentelella .resumen-operativo-head {
+  border-bottom-color: rgba(78, 143, 165, .2);
+}
+body.dash-rutas-gentelella .resumen-operativo-kicker {
+  color: #218a80;
+}
+body.dash-rutas-gentelella .resumen-operativo-head h2 {
+  color: #173d5d;
+}
+body.dash-rutas-gentelella .resumen-operativo-head p {
+  color: #6b8796;
+}
+body.dash-rutas-gentelella .resumen-operativo-status {
+  border-color: #b8e2d8;
+  background: #e8f8f2;
+  color: #25856d;
+}
+body.dash-rutas-gentelella .resumen-operativo-status span {
+  background: #3cb996;
+  box-shadow: 0 0 0 4px rgba(60, 185, 150, .13);
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card {
+  border-color: rgba(139, 187, 202, .48);
+  background: rgba(255, 255, 255, .52);
+  color: #2e5268;
+  box-shadow: 0 7px 17px rgba(52, 111, 137, .045);
+  backdrop-filter: none;
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card:hover {
+  border-color: #9bcbd3;
+  background: rgba(255, 255, 255, .74);
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-title,
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight strong,
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-income-val {
+  color: #214761;
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-sub,
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight span,
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-income-sub {
+  color: #78919f;
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-card-insight {
+  border-top-color: rgba(111, 163, 179, .22);
+}
+body.dash-rutas-gentelella .resumen-operativo-metrics .resumen-badge {
+  border-color: #c5e5de;
+  background: #edf9f5;
+  color: #328976;
+}
+
+/* Contenido de operación: blanco cálido, bordes suaves y acentos que siguen
+   la misma paleta menta/azul del panel izquierdo. */
+body.dash-rutas-gentelella .resumen-pedidos-focus,
+body.dash-rutas-gentelella .resumen-secondary-grid > .resumen-card,
+body.dash-rutas-gentelella .panel-pendientes,
+body.dash-rutas-gentelella .panel-ruta,
+body.dash-rutas-gentelella .seguimiento-lista,
+body.dash-rutas-gentelella .mapa-wrap,
+body.dash-rutas-gentelella .reporte-detalle {
+  border-color: #dfebf1;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 12px 30px rgba(32, 81, 106, .055);
+}
+body.dash-rutas-gentelella .resumen-pedidos-focus {
+  border-radius: 22px;
+}
+body.dash-rutas-gentelella .resumen-pedidos-focus-head,
+body.dash-rutas-gentelella .panel-header,
+body.dash-rutas-gentelella .pedidos-panel-header {
+  border-bottom-color: #e5eef3;
+  background: transparent;
+}
+body.dash-rutas-gentelella .resumen-pedidos-focus-head h2,
+body.dash-rutas-gentelella .panel-header h2,
+body.dash-rutas-gentelella .ruta-panel-heading h2 {
+  color: #173d5d;
+}
+body.dash-rutas-gentelella .resumen-pedidos-focus-note {
+  color: #7b919f;
+}
+body.dash-rutas-gentelella .resumen-pedidos-focus .resumen-card {
+  border-color: #e2ebf1;
+  background: #fbfdff;
+  box-shadow: 0 7px 18px rgba(34, 80, 104, .04);
+}
+body.dash-rutas-gentelella .resumen-card--capacity {
+  background: linear-gradient(135deg, #faf8ff, #f7fbff);
+}
+body.dash-rutas-gentelella .resumen-card--drivers {
+  background: linear-gradient(135deg, #f7fcff, #fbfefd);
+}
+
+body.dash-rutas-gentelella .rutas-grid,
+body.dash-rutas-gentelella .seguimiento-grid,
+body.dash-rutas-gentelella .resumen-secondary-grid {
+  gap: 18px;
+}
+body.dash-rutas-gentelella .pedidos-controls,
+body.dash-rutas-gentelella .ruta-form-card,
+body.dash-rutas-gentelella .ruta-seleccion {
+  border-color: #e1ebf1;
+  background: rgba(255, 255, 255, .86);
+}
+body.dash-rutas-gentelella .pedidos-list-toolbar,
+body.dash-rutas-gentelella .pedidos-list-columns {
+  border-color: #e5eef3;
+  background: #f7fbfd;
+}
+body.dash-rutas-gentelella .rutas-table thead th {
+  background: #f2f8fb;
+  color: #668396;
+}
+body.dash-rutas-gentelella .rutas-table tbody tr:hover td {
+  background: #f4fbfa !important;
+}
+body.dash-rutas-gentelella .reporte-kpi-card {
+  border-color: #e0ebf1;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(32, 81, 106, .05);
+}
+
+@media (max-width: 1120px) {
+  body.dash-rutas-gentelella .resumen-dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  body.dash-rutas-gentelella .main {
+    padding-top: 12px;
+  }
+  body.dash-rutas-gentelella .rutas-toolbar {
+    border-radius: 12px;
+  }
+}

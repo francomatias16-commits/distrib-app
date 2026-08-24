@@ -1,0 +1,1047 @@
+/*
+ * Torre de control de Repartos — capa visual final.
+ * Solo presentación y microinteracciones cliente-side. Conserva los IDs,
+ * eventos, datos existentes y las entidades de Supabase.
+ */
+
+body.dash-rutas-gentelella #tab-resumen-content {
+  min-width: 0;
+}
+
+body.dash-rutas-gentelella .control-tower {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+body.dash-rutas-gentelella .control-masthead {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 148px;
+  padding: var(--space-6);
+  overflow: hidden;
+  border: 1px solid var(--color-info);
+  border-radius: var(--radius-lg);
+  background: var(--color-info);
+  color: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+body.dash-rutas-gentelella .control-masthead::after {
+  content: "";
+  position: absolute;
+  right: -54px;
+  bottom: -92px;
+  width: 230px;
+  height: 230px;
+  border: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 20px color-mix(in srgb, var(--color-surface) 7%, transparent), 0 0 0 44px color-mix(in srgb, var(--color-surface) 4%, transparent);
+  pointer-events: none;
+}
+
+body.dash-rutas-gentelella .control-masthead-copy,
+body.dash-rutas-gentelella .control-masthead-readout {
+  position: relative;
+  z-index: 1;
+}
+
+body.dash-rutas-gentelella .control-masthead-copy {
+  max-width: 700px;
+}
+
+body.dash-rutas-gentelella .control-kicker {
+  display: block;
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .control-masthead .control-kicker {
+  color: var(--color-success-mid);
+}
+
+body.dash-rutas-gentelella .control-masthead h2 {
+  max-width: 680px;
+  margin: 10px 0 6px;
+  color: var(--color-surface);
+  font-family: var(--font-family-display);
+  font-size: clamp(25px, 3vw, 38px);
+  font-weight: 600;
+  letter-spacing: -.015em;
+  line-height: .98;
+}
+
+body.dash-rutas-gentelella .control-masthead p {
+  max-width: 600px;
+  margin: 0;
+  color: color-mix(in srgb, var(--color-surface) 76%, var(--color-info));
+  font-size: 13px;
+}
+
+body.dash-rutas-gentelella .control-masthead-readout {
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  min-width: 126px;
+  padding-left: var(--space-4);
+  border-left: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
+  text-align: right;
+}
+
+body.dash-rutas-gentelella .control-masthead-readout > span:not(.control-live-dot) {
+  color: color-mix(in srgb, var(--color-surface) 76%, var(--color-info));
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .control-live-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-bottom: 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-success-mid);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success-mid) 20%, transparent);
+}
+
+body.dash-rutas-gentelella .control-masthead-readout strong {
+  margin-top: 12px;
+  color: var(--color-surface);
+  font-family: var(--font-family-display);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: .9;
+}
+
+body.dash-rutas-gentelella .control-masthead-readout small {
+  margin-top: 5px;
+  color: color-mix(in srgb, var(--color-surface) 70%, var(--color-info));
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .control-signal-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+body.dash-rutas-gentelella .control-signal {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 3px 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 0;
+  border-left: 3px solid var(--signal-color);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+body.dash-rutas-gentelella .control-signal:hover,
+body.dash-rutas-gentelella .control-signal[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--signal-color) 9%, var(--color-surface));
+  box-shadow: inset 0 -3px 0 var(--signal-color);
+}
+
+body.dash-rutas-gentelella .control-signal:focus-visible,
+body.dash-rutas-gentelella .route-row:focus-visible,
+body.dash-rutas-gentelella .control-select:focus-visible,
+body.dash-rutas-gentelella .control-panel input:focus-visible,
+body.dash-rutas-gentelella .control-panel select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 36%, transparent);
+  outline-offset: 2px;
+}
+
+body.dash-rutas-gentelella .control-signal--info { --signal-color: var(--color-info); }
+body.dash-rutas-gentelella .control-signal--warning { --signal-color: var(--color-warning); }
+body.dash-rutas-gentelella .control-signal--success { --signal-color: var(--color-success); }
+body.dash-rutas-gentelella .control-signal--neutral { --signal-color: var(--color-primary); }
+
+body.dash-rutas-gentelella .control-signal-label,
+body.dash-rutas-gentelella .control-signal small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-signal-label {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .control-signal strong {
+  color: var(--signal-color);
+  font-family: var(--font-family-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: .85;
+}
+
+body.dash-rutas-gentelella .control-signal small {
+  grid-column: 1 / -1;
+  color: var(--color-text-light);
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .control-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, .75fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+body.dash-rutas-gentelella .control-queue,
+body.dash-rutas-gentelella .control-panel {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+body.dash-rutas-gentelella .control-queue {
+  overflow: hidden;
+}
+
+body.dash-rutas-gentelella .control-section-head,
+body.dash-rutas-gentelella .control-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+body.dash-rutas-gentelella .control-section-head {
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+body.dash-rutas-gentelella .control-kicker--dark {
+  color: var(--color-primary-dark);
+}
+
+body.dash-rutas-gentelella .control-section-head h2,
+body.dash-rutas-gentelella .control-panel-head h2 {
+  margin: 5px 0 2px;
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+
+body.dash-rutas-gentelella .control-section-head p,
+body.dash-rutas-gentelella .control-panel-help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body.dash-rutas-gentelella .control-queue-note {
+  flex: 0 0 auto;
+  padding-top: 18px;
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: right;
+}
+
+body.dash-rutas-gentelella .control-queue-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-queue-key span,
+body.dash-rutas-gentelella .control-flow-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+body.dash-rutas-gentelella .status-mark {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-light);
+}
+body.dash-rutas-gentelella .status-mark--warning { background: var(--color-warning); }
+body.dash-rutas-gentelella .status-mark--info { background: var(--color-info); }
+body.dash-rutas-gentelella .status-mark--success { background: var(--color-success); }
+body.dash-rutas-gentelella .status-mark--danger { background: var(--color-danger); }
+body.dash-rutas-gentelella .status-mark--neutral { background: var(--color-border); border: 1px solid var(--color-text-light); }
+
+body.dash-rutas-gentelella .control-route-list {
+  display: flex;
+  flex-direction: column;
+}
+
+body.dash-rutas-gentelella .route-row {
+  display: grid;
+  grid-template-columns: 34px minmax(145px, 1.15fr) minmax(130px, .85fr) minmax(170px, 1fr) 20px;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border-soft);
+  border-left: 3px solid transparent;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+body.dash-rutas-gentelella .route-row:last-child {
+  border-bottom: 0;
+}
+
+body.dash-rutas-gentelella .route-row:hover,
+body.dash-rutas-gentelella .route-row.is-selected {
+  background: var(--color-primary-bg);
+  border-left-color: var(--color-primary);
+}
+
+body.dash-rutas-gentelella .route-row--risk {
+  background: var(--color-warning-bg);
+  border-left-color: var(--color-warning);
+}
+
+body.dash-rutas-gentelella .route-row--danger {
+  background: var(--color-danger-bg);
+  border-left-color: var(--color-danger);
+}
+
+body.dash-rutas-gentelella .route-row[hidden] {
+  display: none;
+}
+
+body.dash-rutas-gentelella .route-row-index {
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .route-row-identity,
+body.dash-rutas-gentelella .route-row-context,
+body.dash-rutas-gentelella .route-row-progress {
+  min-width: 0;
+}
+
+body.dash-rutas-gentelella .route-row-eyebrow,
+body.dash-rutas-gentelella .route-row-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .route-row-eyebrow b {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+body.dash-rutas-gentelella .route-row-identity strong,
+body.dash-rutas-gentelella .route-row-context strong {
+  display: block;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .route-row-identity small,
+body.dash-rutas-gentelella .route-row-context small,
+body.dash-rutas-gentelella .route-row-progress small {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .route-row-context small {
+  font-style: italic;
+}
+
+body.dash-rutas-gentelella .route-row-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+body.dash-rutas-gentelella .route-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--state-color);
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .route-state i {
+  display: inline-grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--state-color) 14%, var(--color-surface));
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-style: normal;
+}
+body.dash-rutas-gentelella .route-state--pendiente { --state-color: var(--color-warning); }
+body.dash-rutas-gentelella .route-state--en_camino { --state-color: var(--color-info); }
+body.dash-rutas-gentelella .route-state--completada { --state-color: var(--color-success); }
+body.dash-rutas-gentelella .route-state--cancelada { --state-color: var(--color-danger); }
+
+body.dash-rutas-gentelella .route-row-progress-head > b {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+body.dash-rutas-gentelella .route-flow-track {
+  height: 5px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+body.dash-rutas-gentelella .route-flow-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--state-color);
+  transition: width var(--transition-slow);
+}
+
+body.dash-rutas-gentelella .route-row-chevron {
+  color: var(--color-primary);
+  font-size: 18px;
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+body.dash-rutas-gentelella .route-row:hover .route-row-chevron,
+body.dash-rutas-gentelella .route-row.is-selected .route-row-chevron,
+body.dash-rutas-gentelella .route-row:focus-visible .route-row-chevron {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+body.dash-rutas-gentelella .control-filter-empty {
+  padding: 18px 20px;
+  border-top: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+body.dash-rutas-gentelella .control-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+body.dash-rutas-gentelella .control-panel {
+  padding: 18px;
+}
+
+body.dash-rutas-gentelella .control-panel-head {
+  margin-bottom: 14px;
+}
+
+body.dash-rutas-gentelella .control-panel-tag {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .control-flow-readout {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+body.dash-rutas-gentelella .control-gauge {
+  width: 104px;
+  height: 104px;
+}
+
+body.dash-rutas-gentelella .control-flow-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+body.dash-rutas-gentelella .control-flow-copy strong {
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1;
+}
+
+body.dash-rutas-gentelella .control-flow-copy span,
+body.dash-rutas-gentelella .control-flow-copy small {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .control-flow-copy span {
+  margin-top: 4px;
+}
+
+body.dash-rutas-gentelella .control-flow-copy small {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+}
+
+body.dash-rutas-gentelella .control-flow-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-chart {
+  display: flex;
+  align-items: end;
+  min-width: 0;
+}
+
+body.dash-rutas-gentelella .control-chart--bars {
+  height: 84px;
+  gap: 7px;
+  padding: 7px 2px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+body.dash-rutas-gentelella .control-chart--bars .resumen-minibar-col,
+body.dash-rutas-gentelella .control-chart--income .resumen-income-bar-col {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+  align-self: stretch;
+  gap: 5px;
+}
+
+body.dash-rutas-gentelella .control-chart--bars .resumen-minibar {
+  width: 100%;
+  max-width: 26px;
+  min-height: 4px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--color-border);
+  transition: height var(--transition-slow), background var(--transition-fast);
+}
+body.dash-rutas-gentelella .control-chart--bars .resumen-minibar-col.is-today .resumen-minibar {
+  background: var(--color-primary);
+}
+body.dash-rutas-gentelella .control-chart--bars .resumen-minibar-label,
+body.dash-rutas-gentelella .control-chart--income .resumen-income-bar-label {
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+body.dash-rutas-gentelella .resumen-minibar-tooltip { display: none; }
+
+body.dash-rutas-gentelella .control-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+body.dash-rutas-gentelella .control-insights span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.dash-rutas-gentelella .control-insights small,
+body.dash-rutas-gentelella .control-payment-readout span,
+body.dash-rutas-gentelella .control-payment-last span,
+body.dash-rutas-gentelella .control-mini-label {
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+body.dash-rutas-gentelella .control-insights strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-lower-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .75fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+body.dash-rutas-gentelella .control-tracking-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(190px, .65fr);
+  min-height: 260px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+body.dash-rutas-gentelella .control-map {
+  min-height: 260px;
+  background: var(--color-surface-2);
+}
+
+body.dash-rutas-gentelella .control-map-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 260px;
+  padding: 18px;
+  color: var(--color-text-light);
+  font-size: 12px;
+  text-align: center;
+}
+
+body.dash-rutas-gentelella .control-tracking-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 4px;
+  max-width: 260px;
+  text-align: right;
+}
+
+body.dash-rutas-gentelella .control-tracking-meta span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+body.dash-rutas-gentelella .control-tracking-meta strong {
+  color: var(--color-info);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .control-timeline {
+  padding: 16px;
+  overflow: auto;
+  background: var(--color-bg);
+}
+
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 8px;
+  min-height: 54px;
+  padding-bottom: 13px;
+}
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: var(--color-border);
+}
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-dot {
+  position: relative;
+  z-index: 1;
+  width: 13px;
+  height: 13px;
+  border: 3px solid var(--color-bg);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-item.done .resumen-timeline-dot {
+  background: var(--color-success);
+  box-shadow: 0 0 0 1px var(--color-success);
+}
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-txt {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+body.dash-rutas-gentelella .control-timeline .resumen-timeline-txt strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--color-text);
+  font-size: 11px;
+}
+
+body.dash-rutas-gentelella .control-action-stack {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+body.dash-rutas-gentelella .control-field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+body.dash-rutas-gentelella .control-select,
+body.dash-rutas-gentelella .control-panel input,
+body.dash-rutas-gentelella .control-panel select {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+body.dash-rutas-gentelella .control-action-stack .btn-chofer-accion {
+  width: 100%;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+}
+body.dash-rutas-gentelella .control-action-stack .btn-chofer-accion--ingresar {
+  background: var(--color-info-bg);
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+body.dash-rutas-gentelella .control-action-stack .btn-chofer-accion--invitar {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+body.dash-rutas-gentelella .control-finance-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, .9fr) minmax(260px, .9fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+body.dash-rutas-gentelella .control-money-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+body.dash-rutas-gentelella .control-money-readout strong {
+  color: var(--color-success);
+  font-family: var(--font-family-display);
+  font-size: 29px;
+  font-weight: 600;
+  line-height: 1;
+}
+body.dash-rutas-gentelella .control-money-readout span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-align: right;
+}
+
+body.dash-rutas-gentelella .control-chart--income {
+  height: 63px;
+  gap: 6px;
+  margin-top: 14px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--color-border);
+}
+body.dash-rutas-gentelella .control-chart--income .resumen-income-bar {
+  width: 100%;
+  max-width: 28px;
+  min-height: 3px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--color-success-mid);
+}
+body.dash-rutas-gentelella .control-chart--income .resumen-income-bar-col.is-max .resumen-income-bar {
+  background: var(--color-success);
+}
+
+body.dash-rutas-gentelella .control-payment-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+body.dash-rutas-gentelella .control-payment-readout strong {
+  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 16px;
+}
+body.dash-rutas-gentelella .control-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+body.dash-rutas-gentelella .control-payment-grid .resumen-pago-card {
+  padding: 8px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+body.dash-rutas-gentelella .control-payment-grid .resumen-pago-label {
+  margin-bottom: 3px;
+  color: var(--color-text-light);
+  font-size: 9px;
+}
+body.dash-rutas-gentelella .control-payment-grid .resumen-pago-val {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+body.dash-rutas-gentelella .control-payment-activity {
+  margin-top: 12px;
+}
+body.dash-rutas-gentelella .control-mini-label {
+  display: block;
+  margin-bottom: 5px;
+}
+body.dash-rutas-gentelella .control-payment-activity .resumen-pago-activity-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 7px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  font-size: 10px;
+}
+body.dash-rutas-gentelella .control-payment-activity .resumen-pago-activity-cliente {
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.dash-rutas-gentelella .control-payment-activity .resumen-pago-activity-fecha {
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+}
+body.dash-rutas-gentelella .control-payment-activity .resumen-pago-activity-monto {
+  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+body.dash-rutas-gentelella .control-payment-last {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+body.dash-rutas-gentelella .control-payment-last strong {
+  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-client-picker {
+  min-height: 42px;
+  padding: 7px 0;
+}
+body.dash-rutas-gentelella .control-client-picker .resumen-avatar {
+  display: inline-grid;
+  width: 31px;
+  height: 31px;
+  margin-right: 5px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+body.dash-rutas-gentelella .control-client-picker .resumen-avatar:hover,
+body.dash-rutas-gentelella .control-client-picker .resumen-avatar.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  transform: translateY(-2px);
+}
+body.dash-rutas-gentelella .control-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+body.dash-rutas-gentelella .control-form-grid .control-field-label {
+  margin-top: 0;
+}
+body.dash-rutas-gentelella .control-submit {
+  width: 100%;
+  margin-top: 14px;
+}
+
+@media (max-width: 1180px) {
+  body.dash-rutas-gentelella .control-finance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.dash-rutas-gentelella .control-panel--quickpay {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 980px) {
+  body.dash-rutas-gentelella .control-main-grid,
+  body.dash-rutas-gentelella .control-lower-grid {
+    grid-template-columns: 1fr;
+  }
+  body.dash-rutas-gentelella .control-side-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.dash-rutas-gentelella .control-panel--actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, .8fr);
+    column-gap: 18px;
+  }
+  body.dash-rutas-gentelella .control-panel--actions .control-panel-head,
+  body.dash-rutas-gentelella .control-panel--actions .control-panel-help {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella .control-masthead {
+    flex-direction: column;
+    min-height: 0;
+    padding: 18px;
+  }
+  body.dash-rutas-gentelella .control-masthead-readout {
+    display: flex;
+    align-items: center;
+    justify-items: initial;
+    gap: 8px;
+    padding: 12px 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
+    border-left: 0;
+    text-align: left;
+  }
+  body.dash-rutas-gentelella .control-masthead-readout .control-live-dot { margin: 0; }
+  body.dash-rutas-gentelella .control-masthead-readout strong { margin: 0 0 0 auto; font-size: 26px; }
+  body.dash-rutas-gentelella .control-masthead-readout small { margin: 0; }
+  body.dash-rutas-gentelella .control-signal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dash-rutas-gentelella .route-row {
+    grid-template-columns: 26px minmax(0, 1fr) 18px;
+    gap: 10px;
+  }
+  body.dash-rutas-gentelella .route-row-context { grid-column: 2 / 3; }
+  body.dash-rutas-gentelella .route-row-progress { grid-column: 2 / 3; }
+  body.dash-rutas-gentelella .route-row-chevron { grid-column: 3; grid-row: 1 / span 3; }
+  body.dash-rutas-gentelella .control-side-stack,
+  body.dash-rutas-gentelella .control-finance-grid {
+    grid-template-columns: 1fr;
+  }
+  body.dash-rutas-gentelella .control-panel--quickpay { grid-column: auto; }
+  body.dash-rutas-gentelella .control-panel--actions { display: block; }
+  body.dash-rutas-gentelella .control-tracking-body { grid-template-columns: 1fr; }
+  body.dash-rutas-gentelella .control-timeline { min-height: 190px; }
+}
+
+@media (max-width: 460px) {
+  body.dash-rutas-gentelella .control-signal-strip { grid-template-columns: 1fr; }
+  body.dash-rutas-gentelella .control-panel,
+  body.dash-rutas-gentelella .control-section-head { padding-right: 14px; padding-left: 14px; }
+  body.dash-rutas-gentelella .control-queue-key { padding-right: 14px; padding-left: 14px; }
+  body.dash-rutas-gentelella .route-row { padding-right: 14px; padding-left: 14px; }
+  body.dash-rutas-gentelella .control-flow-readout { grid-template-columns: 88px minmax(0, 1fr); gap: 10px; }
+  body.dash-rutas-gentelella .control-gauge { width: 88px; height: 88px; }
+  body.dash-rutas-gentelella .control-insights { grid-template-columns: 1fr; }
+  body.dash-rutas-gentelella .control-form-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.dash-rutas-gentelella .control-tower *,
+  body.dash-rutas-gentelella .control-tower *::before,
+  body.dash-rutas-gentelella .control-tower *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
