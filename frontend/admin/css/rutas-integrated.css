@@ -1649,3 +1649,86 @@ body.dash-rutas-gentelella .control-context-live small {
     display: none;
   }
 }
+
+
+/* Resumen v6 — navegación explícita de la cola */
+body.dash-rutas-gentelella .control-route-list {
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+}
+
+body.dash-rutas-gentelella .control-route-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+body.dash-rutas-gentelella .control-route-list::-webkit-scrollbar-track {
+  background: var(--color-bg);
+  border-left: 1px solid var(--color-border-soft);
+}
+
+body.dash-rutas-gentelella .control-route-list::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid var(--color-bg);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+body.dash-rutas-gentelella .control-route-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-light);
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-hint {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .025em;
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-hint[hidden] {
+  display: none;
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 13px;
+  line-height: 1;
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-hint strong {
+  margin-left: auto;
+  color: var(--color-text-light);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-hint.is-inner-scroll {
+  color: var(--color-primary-dark);
+}
+
+@media (max-width: 460px) {
+  body.dash-rutas-gentelella .control-queue-scroll-hint {
+    min-height: 32px;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 8px;
+  }
+
+  body.dash-rutas-gentelella .control-queue-scroll-hint strong {
+    font-size: 8px;
+  }
+}

@@ -259,6 +259,7 @@ function renderChoferesEnCalle(rutas, ayerCount) {
   if (!rutas.length) {
     listEl.innerHTML = '<div class="empty-state" style="padding:24px;">No hay rutas creadas para hoy</div>';
     document.getElementById('resumen-chofer-filter-empty').hidden = true;
+    actualizarIndicadorScrollPedidos();
     return;
   }
 
@@ -324,6 +325,34 @@ function renderChoferesEnCalle(rutas, ayerCount) {
       </article>`;
   }).join('');
   filtrarResumenRutas(_filtroResumenActual, false);
+  requestAnimationFrame(actualizarIndicadorScrollPedidos);
+}
+
+function actualizarIndicadorScrollPedidos() {
+  const listEl = document.getElementById('resumen-chofer-list');
+  const hintEl = document.getElementById('resumen-queue-scroll-hint');
+  if (!listEl || !hintEl) return;
+
+  if (!listEl.dataset.scrollHintReady) {
+    listEl.addEventListener('scroll', actualizarIndicadorScrollPedidos, { passive: true });
+    window.addEventListener('scroll', actualizarIndicadorScrollPedidos, { passive: true });
+    window.addEventListener('resize', actualizarIndicadorScrollPedidos, { passive: true });
+    listEl.dataset.scrollHintReady = 'true';
+  }
+
+  const hasInnerScroll = listEl.scrollHeight > listEl.clientHeight + 1;
+  const pageContinues = listEl.getBoundingClientRect().bottom > window.innerHeight + 4 &&
+    document.documentElement.scrollHeight > window.innerHeight + 4;
+  const copyEl = hintEl.querySelector('[data-scroll-copy]');
+  const countEl = document.getElementById('resumen-queue-scroll-count');
+  const orderCount = listEl.querySelectorAll('.pedido-line').length;
+
+  hintEl.hidden = !(hasInnerScroll || pageContinues);
+  hintEl.classList.toggle('is-inner-scroll', hasInnerScroll);
+  if (copyEl) copyEl.textContent = hasInnerScroll
+    ? 'Deslizá dentro de la cola para ver más pedidos'
+    : 'Deslizá la página para seguir viendo pedidos';
+  if (countEl) countEl.textContent = orderCount ? `${orderCount} pedido${orderCount !== 1 ? 's' : ''} en la cola` : '';
 }
 
 function filtrarResumenRutas(filtro = 'all', announce = true) {

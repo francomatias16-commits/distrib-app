@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/frontend/admin/css/rutas-professional.css?v=20260819-3" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-command-center.css?v=20260822-1" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-surface-v2.css?v=20260822-2" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-3" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-4" />
   <!-- compras.css: define .select-filtro/.btn-tabla/.modal-box/.form-* que usa la pestaña "Zonas" (antes vivían en zonas.html); la tabla en sí usa .tabla-admin canónico desde la migración Fase 3 -->
   <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
   <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
@@ -119,6 +119,11 @@
               <span><i class="status-mark status-mark--info"></i> En tránsito</span>
               <span><i class="status-mark status-mark--success"></i> Entregado</span>
               <span><i class="status-mark status-mark--danger"></i> No entregado / cancelado</span>
+            </div>
+            <div class="control-queue-scroll-hint" id="resumen-queue-scroll-hint" hidden aria-live="polite">
+              <span class="control-queue-scroll-icon" aria-hidden="true">↕</span>
+              <span data-scroll-copy>Deslizá dentro de la cola para ver más pedidos</span>
+              <strong id="resumen-queue-scroll-count"></strong>
             </div>
             <div class="control-route-list" id="resumen-chofer-list" aria-live="polite">
               <div class="empty-state" style="padding:24px;">Cargando rutas de hoy...</div>
