@@ -1732,3 +1732,58 @@ body.dash-rutas-gentelella .control-queue-scroll-hint.is-inner-scroll {
     font-size: 8px;
   }
 }
+
+
+/* Resumen v7 — el contenido completo debe ser alcanzable
+   `rutas-compact.css` fijaba body/layout/main/tab en 100vh + overflow:hidden.
+   Eso funcionaba para una vista de tablero de un viewport, pero en Resumen
+   recortaba la cola y todos los módulos que vienen después del mapa. La
+   cola conserva scroll propio cuando excede su altura; el resto de la página
+   vuelve a poder desplazarse normalmente. */
+@media (min-width: 721px) {
+  body.dash-rutas-gentelella {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+  }
+
+  body.dash-rutas-gentelella .layout {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+  }
+
+  body.dash-rutas-gentelella .main {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  body.dash-rutas-gentelella #tab-resumen-content {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  body.dash-rutas-gentelella #tab-resumen-content .control-route-list {
+    max-height: min(650px, calc(100vh - 390px));
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella #tab-resumen-content {
+    overflow: visible !important;
+  }
+}
+
+body.dash-rutas-gentelella .control-route-list {
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+body.dash-rutas-gentelella .control-queue-scroll-hint {
+  position: relative;
+  z-index: 1;
+}
