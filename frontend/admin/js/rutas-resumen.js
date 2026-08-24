@@ -228,6 +228,33 @@ function renderGaugeEntregas(rutas) {
     `${rutas.length} ruta${rutas.length !== 1 ? 's' : ''} · ${choferes} chofer${choferes !== 1 ? 'es' : ''}`;
 }
 
+function renderColaVaciaOperativa(listEl) {
+  const fecha = document.getElementById('filtro-fecha')?.value || '';
+  const esHoy = fecha === hoyISO();
+  const fechaLabel = fecha
+    ? new Date(`${fecha}T00:00:00`).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'la fecha seleccionada';
+  const titulo = esHoy ? 'Todavía no hay rutas para hoy' : 'No hay rutas para esta fecha';
+  const copy = esHoy
+    ? 'La operación se activa cuando asignás pedidos y confirmás una ruta.'
+    : `No se encontraron rutas operativas para el ${esc(fechaLabel)}.`;
+
+  listEl.innerHTML = `
+    <div class="control-empty-state control-empty-state--queue" data-empty-state>
+      <span class="control-empty-state-icon" aria-hidden="true">◎</span>
+      <strong>${titulo}</strong>
+      <p>${copy}</p>
+      <div class="control-empty-state-meta" aria-label="Resumen vacío">
+        <span><b>0</b> rutas</span>
+        <span><b>0</b> pedidos en operación</span>
+      </div>
+      <button type="button" class="control-empty-state-action" onclick="mostrarTab('armar')">
+        Armar una ruta
+        <span aria-hidden="true">↗</span>
+      </button>
+    </div>`;
+}
+
 function renderChoferesEnCalle(rutas, ayerCount) {
   const totalRutas = rutas.length;
   const enCamino = rutas.filter(r => estadoRutaUi(r.estado) === 'en_camino').length;
@@ -257,7 +284,7 @@ function renderChoferesEnCalle(rutas, ayerCount) {
 
   const listEl = document.getElementById('resumen-chofer-list');
   if (!rutas.length) {
-    listEl.innerHTML = '<div class="empty-state" style="padding:24px;">No hay rutas creadas para hoy</div>';
+    renderColaVaciaOperativa(listEl);
     document.getElementById('resumen-chofer-filter-empty').hidden = true;
     actualizarIndicadorScrollPedidos();
     return;
@@ -406,7 +433,12 @@ function renderTrackingHoy(rutas, focusEntregaId = null) {
     idEl.textContent = 'Ruta #—';
     timelineEl.innerHTML = '<div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">No hay rutas creadas para hoy</div></div>';
     if (_mapaResumen) { _mapaResumen.remove(); _mapaResumen = null; }
-    mapaDiv.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:13px;">Sin ruta activa hoy</div>';
+    mapaDiv.innerHTML = `
+      <div class="control-map-empty control-map-empty--state">
+        <span class="control-empty-state-icon" aria-hidden="true">⌖</span>
+        <strong>${rutas.length ? 'Sin coordenadas registradas' : 'Sin ruta activa'}</strong>
+        <span>${rutas.length ? 'La ruta seleccionada no tiene ubicaciones disponibles.' : 'El mapa se habilita al seleccionar una ruta de la fecha.'}</span>
+      </div>`;
     return;
   }
 

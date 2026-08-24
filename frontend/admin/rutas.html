@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/frontend/admin/css/rutas-professional.css?v=20260819-3" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-command-center.css?v=20260822-1" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-surface-v2.css?v=20260822-2" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-5" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-6" />
   <!-- compras.css: define .select-filtro/.btn-tabla/.modal-box/.form-* que usa la pestaña "Zonas" (antes vivían en zonas.html); la tabla en sí usa .tabla-admin canónico desde la migración Fase 3 -->
   <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
   <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
@@ -126,7 +126,11 @@
               <strong id="resumen-queue-scroll-count"></strong>
             </div>
             <div class="control-route-list" id="resumen-chofer-list" aria-live="polite">
-              <div class="empty-state" style="padding:24px;">Cargando rutas de hoy...</div>
+              <div class="control-empty-state control-empty-state--queue" data-empty-state>
+                <span class="control-empty-state-icon" aria-hidden="true">◎</span>
+                <strong>Preparando la operación</strong>
+                <p>Consultando las rutas de la fecha seleccionada.</p>
+              </div>
             </div>
             <div class="control-filter-empty" id="resumen-chofer-filter-empty" hidden>No hay repartos con este filtro.</div>
           </section>
@@ -145,7 +149,11 @@
               </div>
               <div class="control-tracking-body">
                 <div id="mapa-resumen" class="control-map">
-                  <div class="control-map-empty">Sin ruta activa hoy</div>
+                  <div class="control-map-empty control-map-empty--state">
+                    <span class="control-empty-state-icon" aria-hidden="true">⌖</span>
+                    <strong>Sin ruta activa</strong>
+                    <span>El mapa se habilita al seleccionar una ruta de la fecha.</span>
+                  </div>
                 </div>
                 <div class="control-timeline" id="resumen-timeline">
                   <div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">Sin datos aún</div></div>
@@ -886,7 +894,7 @@
   <script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
   <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
   <script type="module" src="/frontend/admin/js/rutas.js?v=20260820-2"></script>
-  <script type="module" src="/frontend/admin/js/rutas-resumen.js?v=20260818-2"></script>
+  <script type="module" src="/frontend/admin/js/rutas-resumen.js?v=20260824-1"></script>
   <script src="/frontend/admin/js/remito.js?v1786978189156"></script>
   <script>
   // Bridge: expone el pedidoId activo al botón de remito en rutas

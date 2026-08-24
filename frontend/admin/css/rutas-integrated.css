@@ -1787,3 +1787,147 @@ body.dash-rutas-gentelella .control-queue-scroll-hint {
   position: relative;
   z-index: 1;
 }
+
+
+/* Resumen v8 — estados vacíos operativos, no espacios muertos */
+body.dash-rutas-gentelella .control-route-list:has(.control-empty-state) {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 300px;
+  max-height: none;
+  overflow: visible;
+  place-items: center;
+}
+
+body.dash-rutas-gentelella .control-empty-state {
+  display: flex;
+  width: min(100%, 460px);
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  padding: 38px 24px;
+  flex-direction: column;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg) 72%, var(--color-surface));
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+body.dash-rutas-gentelella .control-empty-state-icon {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 13px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-family: var(--font-family-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+body.dash-rutas-gentelella .control-empty-state strong {
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+body.dash-rutas-gentelella .control-empty-state p {
+  max-width: 360px;
+  margin: 7px 0 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+body.dash-rutas-gentelella .control-empty-state-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-empty-state-meta span {
+  padding: 5px 8px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+body.dash-rutas-gentelella .control-empty-state-meta b {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+body.dash-rutas-gentelella .control-empty-state-action {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 8px 13px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-bg);
+  color: var(--color-primary-dark);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+body.dash-rutas-gentelella .control-empty-state-action:hover,
+body.dash-rutas-gentelella .control-empty-state-action:focus-visible {
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  outline-offset: 2px;
+}
+
+body.dash-rutas-gentelella .control-map-empty--state {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 28px 18px;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--color-bg) 82%, var(--color-surface-2));
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+body.dash-rutas-gentelella .control-map-empty--state .control-empty-state-icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 4px;
+  font-size: 19px;
+}
+
+body.dash-rutas-gentelella .control-map-empty--state strong {
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+body.dash-rutas-gentelella .control-map-empty--state > span:last-child {
+  max-width: 180px;
+  color: var(--color-text-light);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella .control-route-list:has(.control-empty-state) {
+    min-height: 270px;
+  }
+
+  body.dash-rutas-gentelella .control-empty-state {
+    min-height: 230px;
+    padding: 30px 18px;
+  }
+}
