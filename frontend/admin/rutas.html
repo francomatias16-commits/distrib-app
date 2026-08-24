@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/frontend/admin/css/rutas-professional.css?v=20260819-3" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-command-center.css?v=20260822-1" />
   <link rel="stylesheet" href="/frontend/admin/css/rutas-surface-v2.css?v=20260822-2" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260823-2" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-3" />
   <!-- compras.css: define .select-filtro/.btn-tabla/.modal-box/.form-* que usa la pestaña "Zonas" (antes vivían en zonas.html); la tabla en sí usa .tabla-admin canónico desde la migración Fase 3 -->
   <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
   <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
@@ -76,19 +76,10 @@
     <div id="tab-resumen-content" role="tabpanel" aria-labelledby="tab-resumen" aria-hidden="false">
       <div class="control-tower">
 
-        <header class="control-masthead">
-          <div class="control-masthead-copy">
-            <span class="control-kicker">Torre de control · <span id="resumen-badge-fecha">—</span></span>
-            <h2>Decidir antes de que la demora llegue al cliente.</h2>
-            <p>La operación se ordena por urgencia, avance de entrega y capacidad de respuesta.</p>
-          </div>
-          <div class="control-masthead-readout" aria-label="Estado de sincronización">
-            <span class="control-live-dot" aria-hidden="true"></span>
-            <span>Operación en vivo</span>
-            <strong id="resumen-choferes-count">—</strong>
-            <small>rutas cargadas</small>
-          </div>
-        </header>
+        <div class="control-context-line" aria-label="Contexto de la operación">
+          <span class="control-kicker control-kicker--dark">Resumen de repartos · <span id="resumen-badge-fecha">—</span></span>
+          <span class="control-context-live"><i class="control-live-dot" aria-hidden="true"></i>Operación en vivo <strong id="resumen-choferes-count">—</strong><small>rutas cargadas</small></span>
+        </div>
 
         <section class="control-signal-strip" aria-label="Señales operativas">
           <button type="button" class="control-signal control-signal--info" data-summary-filter="en_camino" onclick="filtrarResumenRutas('en_camino')" aria-pressed="false">
@@ -118,16 +109,16 @@
             <div class="control-section-head">
               <div>
                 <span class="control-kicker control-kicker--dark">Cola priorizada</span>
-                <h2 id="resumen-pedidos-titulo">Repartos que requieren lectura</h2>
-                <p>Seleccioná un reparto para llevarlo al seguimiento.</p>
+                <h2 id="resumen-pedidos-titulo">Pedidos en operación</h2>
+                <p>Cada pedido queda visible. Seleccioná uno para llevar su reparto al seguimiento.</p>
               </div>
               <span class="control-queue-note" id="resumen-choferes-delta" aria-live="polite">—</span>
             </div>
             <div class="control-queue-key" aria-label="Filtros de estado">
-              <span><i class="status-mark status-mark--warning"></i> Pendiente / riesgo</span>
+              <span><i class="status-mark status-mark--warning"></i> Pedido pendiente</span>
               <span><i class="status-mark status-mark--info"></i> En tránsito</span>
               <span><i class="status-mark status-mark--success"></i> Entregado</span>
-              <span><i class="status-mark status-mark--danger"></i> Cancelado</span>
+              <span><i class="status-mark status-mark--danger"></i> No entregado / cancelado</span>
             </div>
             <div class="control-route-list" id="resumen-chofer-list" aria-live="polite">
               <div class="empty-state" style="padding:24px;">Cargando rutas de hoy...</div>
@@ -136,6 +127,27 @@
           </section>
 
           <aside class="control-side-stack">
+            <section class="control-panel control-panel--tracking control-panel--map-rail" aria-labelledby="resumen-tracking-title">
+              <div class="control-panel-head">
+                <div>
+                  <span class="control-kicker control-kicker--dark">Contexto de calle</span>
+                  <h2 id="resumen-tracking-title">Mapa de la operación</h2>
+                </div>
+                <div class="control-tracking-meta">
+                  <span id="resumen-tracking-sub" aria-live="polite">Última posición registrada</span>
+                  <strong id="resumen-tracking-id">Ruta #—</strong>
+                </div>
+              </div>
+              <div class="control-tracking-body">
+                <div id="mapa-resumen" class="control-map">
+                  <div class="control-map-empty">Sin ruta activa hoy</div>
+                </div>
+                <div class="control-timeline" id="resumen-timeline">
+                  <div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">Sin datos aún</div></div>
+                </div>
+              </div>
+            </section>
+
             <section class="control-panel control-panel--flow" aria-labelledby="resumen-flow-title">
               <div class="control-panel-head">
                 <div>
@@ -177,28 +189,7 @@
           </aside>
         </div>
 
-        <div class="control-lower-grid">
-          <section class="control-panel control-panel--tracking" aria-labelledby="resumen-tracking-title">
-            <div class="control-panel-head">
-              <div>
-                <span class="control-kicker control-kicker--dark">Contexto de calle</span>
-                <h2 id="resumen-tracking-title">Seguimiento del reparto seleccionado</h2>
-              </div>
-              <div class="control-tracking-meta">
-                <span id="resumen-tracking-sub" aria-live="polite">Última posición registrada</span>
-                <strong id="resumen-tracking-id">Ruta #—</strong>
-              </div>
-            </div>
-            <div class="control-tracking-body">
-              <div id="mapa-resumen" class="control-map">
-                <div class="control-map-empty">Sin ruta activa hoy</div>
-              </div>
-              <div class="control-timeline" id="resumen-timeline">
-                <div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">Sin datos aún</div></div>
-              </div>
-            </div>
-          </section>
-
+        <div class="control-lower-grid control-lower-grid--actions">
           <section class="control-panel control-panel--actions" aria-labelledby="resumen-actions-title">
             <div class="control-panel-head">
               <div>

@@ -1045,3 +1045,607 @@ body.dash-rutas-gentelella .control-submit {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Resumen v2 — foco operativo en pedidos, no en tarjetas
+   ═══════════════════════════════════════════════════════════════════════════ */
+body.dash-rutas-gentelella .control-main-grid {
+  grid-template-columns: minmax(0, 1.82fr) minmax(270px, .62fr);
+  gap: var(--space-4);
+}
+
+body.dash-rutas-gentelella .control-queue {
+  display: flex;
+  min-height: 520px;
+  flex-direction: column;
+}
+
+body.dash-rutas-gentelella .control-route-list {
+  max-height: 650px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--color-border) var(--color-surface);
+  scrollbar-width: thin;
+}
+
+body.dash-rutas-gentelella .route-row {
+  display: block;
+  padding: 0;
+  border-left: 0;
+  background: var(--color-surface);
+}
+
+body.dash-rutas-gentelella .route-row:hover,
+body.dash-rutas-gentelella .route-row.is-selected {
+  border-left-color: transparent;
+  background: var(--color-surface);
+}
+
+body.dash-rutas-gentelella .route-row--risk > .route-group-head {
+  background: var(--color-warning-bg);
+}
+
+body.dash-rutas-gentelella .route-row--danger > .route-group-head {
+  background: var(--color-danger-bg);
+}
+
+body.dash-rutas-gentelella .route-group-head {
+  display: grid;
+  grid-template-columns: minmax(165px, 1.15fr) minmax(125px, .82fr) minmax(155px, 1fr) 20px;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+body.dash-rutas-gentelella .route-group-select {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+body.dash-rutas-gentelella .route-group-select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+body.dash-rutas-gentelella .route-group-identity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+body.dash-rutas-gentelella .route-group-identity strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .route-group-identity small {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .route-group-order-count {
+  color: var(--color-primary-dark);
+  font-family: var(--font-mono);
+}
+
+body.dash-rutas-gentelella .route-order-list {
+  margin: 0 20px 14px 54px;
+  overflow: hidden;
+  border-left: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-soft);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--color-bg);
+}
+
+body.dash-rutas-gentelella .pedido-line {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1.45fr) minmax(130px, .9fr) auto 24px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 55px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+body.dash-rutas-gentelella .pedido-line:last-child {
+  border-bottom: 0;
+}
+
+body.dash-rutas-gentelella .pedido-line:hover,
+body.dash-rutas-gentelella .pedido-line:focus-visible,
+body.dash-rutas-gentelella .pedido-line.is-selected {
+  background: var(--color-primary-bg);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+  outline: none;
+}
+
+body.dash-rutas-gentelella .pedido-line-seq {
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+}
+
+body.dash-rutas-gentelella .pedido-line-main,
+body.dash-rutas-gentelella .pedido-line-zone {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+body.dash-rutas-gentelella .pedido-line-main strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .pedido-line-main small {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .pedido-line-zone small {
+  overflow: hidden;
+  color: var(--color-text-light);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .pedido-line-zone strong {
+  overflow: hidden;
+  color: var(--state-color);
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .pedido-line--pendiente { --state-color: var(--color-warning); }
+body.dash-rutas-gentelella .pedido-line--en_camino { --state-color: var(--color-info); }
+body.dash-rutas-gentelella .pedido-line--entregado { --state-color: var(--color-success); }
+body.dash-rutas-gentelella .pedido-line--no_entregado,
+body.dash-rutas-gentelella .pedido-line--cancelado { --state-color: var(--color-danger); }
+
+body.dash-rutas-gentelella .pedido-line-total {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .pedido-line-mark {
+  display: inline-grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--state-color) 42%, var(--color-border));
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--state-color) 12%, var(--color-surface));
+  color: var(--state-color);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+body.dash-rutas-gentelella .pedido-line-empty {
+  padding: 14px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+  body.dash-rutas-gentelella .control-main-grid {
+    grid-template-columns: minmax(0, 1.65fr) minmax(260px, .75fr);
+  }
+}
+
+@media (max-width: 980px) {
+  body.dash-rutas-gentelella .control-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.dash-rutas-gentelella .control-route-list {
+    max-height: 720px;
+  }
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella .route-group-head {
+    grid-template-columns: 26px minmax(0, 1fr) 20px;
+    gap: 10px;
+    padding: 13px 16px 10px;
+  }
+
+  body.dash-rutas-gentelella .route-group-select {
+    grid-column: 1 / 3;
+  }
+
+  body.dash-rutas-gentelella .route-group-select .route-row-index {
+    flex: 0 0 26px;
+  }
+
+  body.dash-rutas-gentelella .route-row-context {
+    grid-column: 2 / 3;
+  }
+
+  body.dash-rutas-gentelella .route-row-progress {
+    grid-column: 2 / 3;
+  }
+
+  body.dash-rutas-gentelella .route-row-chevron {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+  }
+
+  body.dash-rutas-gentelella .route-order-list {
+    margin-left: 42px;
+    margin-right: 16px;
+  }
+
+  body.dash-rutas-gentelella .pedido-line {
+    grid-template-columns: 24px minmax(0, 1fr) auto 21px;
+    gap: 8px;
+    min-height: 65px;
+    padding: 9px 10px;
+  }
+
+  body.dash-rutas-gentelella .pedido-line-zone {
+    grid-column: 2 / 3;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  body.dash-rutas-gentelella .pedido-line-total {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  body.dash-rutas-gentelella .pedido-line-mark {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 460px) {
+  body.dash-rutas-gentelella .route-order-list {
+    margin-right: 12px;
+    margin-left: 26px;
+  }
+
+  body.dash-rutas-gentelella .pedido-line {
+    grid-template-columns: 21px minmax(0, 1fr) auto 19px;
+    gap: 6px;
+  }
+
+  body.dash-rutas-gentelella .pedido-line-main small {
+    font-size: 9px;
+  }
+}
+
+/* Resumen v3 — eliminar superficie introductoria, ampliar datos accionables */
+body.dash-rutas-gentelella .control-masthead--compact {
+  min-height: 72px;
+  padding: 13px 18px;
+  align-items: center;
+  gap: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+body.dash-rutas-gentelella .control-masthead--compact::after {
+  right: -62px;
+  bottom: -118px;
+  width: 190px;
+  height: 190px;
+  opacity: .55;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-masthead-copy {
+  display: flex;
+  min-width: 0;
+  max-width: none;
+  align-items: baseline;
+  gap: 12px;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-kicker {
+  flex: 0 0 auto;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact h2 {
+  margin: 0;
+  font-size: clamp(19px, 2vw, 25px);
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout {
+  display: flex;
+  min-width: auto;
+  align-items: center;
+  gap: 8px;
+  padding-left: 14px;
+  border-left: 1px solid color-mix(in srgb, var(--color-surface) 20%, transparent);
+  text-align: right;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-live-dot {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout > span:not(.control-live-dot) {
+  font-size: 9px;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout strong {
+  margin: 0 0 0 3px;
+  font-size: 24px;
+}
+
+body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout small {
+  margin: 0;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-queue {
+  min-height: 0;
+}
+
+body.dash-rutas-gentelella .control-route-list {
+  max-height: min(760px, calc(100vh - 190px));
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella .control-masthead--compact {
+    flex-direction: row;
+    min-height: 64px;
+    padding: 11px 14px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-masthead-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact h2 {
+    font-size: 19px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout {
+    margin-left: auto;
+    padding-left: 10px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout > span:not(.control-live-dot) {
+    display: none;
+  }
+}
+
+@media (max-width: 460px) {
+  body.dash-rutas-gentelella .control-masthead--compact h2 {
+    font-size: 17px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-kicker {
+    font-size: 8px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout strong {
+    font-size: 21px;
+  }
+
+  body.dash-rutas-gentelella .control-masthead--compact .control-masthead-readout small {
+    font-size: 9px;
+  }
+}
+
+/* Resumen v4 — mapa visible junto a la cola, sin columna vacía */
+body.dash-rutas-gentelella .control-panel--map-rail .control-panel-head {
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-tracking-meta {
+  width: 100%;
+  max-width: none;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-tracking-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-tracking-body {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-map {
+  min-height: 224px;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-map-empty {
+  min-height: 224px;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-timeline {
+  display: grid;
+  max-height: 112px;
+  min-height: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  overflow: auto;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-item {
+  min-height: 0;
+  padding: 0;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-item:not(:last-child)::before {
+  display: none;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-txt {
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-txt strong {
+  font-size: 10px;
+}
+
+body.dash-rutas-gentelella .control-lower-grid--actions {
+  grid-template-columns: minmax(280px, 1fr);
+}
+
+@media (max-width: 720px) {
+  body.dash-rutas-gentelella .control-panel--map-rail .control-map,
+  body.dash-rutas-gentelella .control-panel--map-rail .control-map-empty {
+    min-height: 245px;
+  }
+
+  body.dash-rutas-gentelella .control-panel--map-rail .control-timeline {
+    max-height: none;
+    grid-template-columns: 1fr;
+  }
+
+  body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-item {
+    min-height: 42px;
+    padding-bottom: 8px;
+  }
+
+  body.dash-rutas-gentelella .control-panel--map-rail .control-timeline .resumen-timeline-item:not(:last-child)::before {
+    display: block;
+  }
+}
+
+/* Resumen v5 — contexto mínimo en lugar del banner */
+body.dash-rutas-gentelella .control-context-line {
+  display: flex;
+  min-width: 0;
+  min-height: 28px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: -6px;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+body.dash-rutas-gentelella .control-context-line .control-kicker {
+  overflow: hidden;
+  color: var(--color-primary-dark);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-context-live {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.dash-rutas-gentelella .control-context-live .control-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success-mid) 18%, transparent);
+}
+
+body.dash-rutas-gentelella .control-context-live strong {
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+body.dash-rutas-gentelella .control-context-live small {
+  color: var(--color-text-light);
+  font-size: 8px;
+}
+
+@media (max-width: 460px) {
+  body.dash-rutas-gentelella .control-context-line {
+    min-height: 24px;
+    gap: 8px;
+    padding: 0 2px;
+  }
+
+  body.dash-rutas-gentelella .control-context-line .control-kicker {
+    font-size: 8px;
+  }
+
+  body.dash-rutas-gentelella .control-context-live {
+    gap: 5px;
+    font-size: 8px;
+  }
+
+  body.dash-rutas-gentelella .control-context-live strong {
+    font-size: 16px;
+  }
+
+  body.dash-rutas-gentelella .control-context-live small {
+    display: none;
+  }
+}

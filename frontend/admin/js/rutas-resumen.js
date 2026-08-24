@@ -75,6 +75,22 @@ function estadoRutaUi(estado) {
   // Supabase conserva `en_curso`; la interfaz lo presenta como En tránsito.
   return estado === 'en_curso' ? 'en_camino' : estado;
 }
+function estadoPedidoUi(estado) {
+  if (estado === 'en_curso') return 'en_camino';
+  return estado || 'pendiente';
+}
+function entregasOrdenadas(entregas) {
+  return [...(entregas || [])].sort((a, b) => {
+    const ordenA = Number.isFinite(Number(a?.orden)) ? Number(a.orden) : Number.MAX_SAFE_INTEGER;
+    const ordenB = Number.isFinite(Number(b?.orden)) ? Number(b.orden) : Number.MAX_SAFE_INTEGER;
+    return ordenA - ordenB;
+  });
+}
+function nombreClientePedido(entrega) {
+  return entrega?.pedidos?.clientes?.razon_social ||
+    entrega?.pedidos?.clientes?.nombre_fantasia ||
+    'Cliente sin nombre';
+}
 
 // ── 1. Pedidos despachados — últimos 7 días (mini bar chart) ────────────
 async function cargarPedidosSemana() {
@@ -141,8 +157,8 @@ async function cargarDetalleHoy() {
         id, fecha, estado, created_at, chofer_id, notas,
         usuarios(nombre),
         entregas(
-          id, estado, orden, fecha_confirmacion,
-          pedidos(id, total, clientes(id, razon_social, domicilio, lat, lng, zonas(nombre)))
+          id, pedido_id, estado, orden, fecha_confirmacion,
+          pedidos(id, total, clientes(id, razon_social, nombre_fantasia, domicilio, lat, lng, zonas(nombre)))
         )
       `)
       .eq('empresa_id', empresaId)
@@ -252,33 +268,59 @@ function renderChoferesEnCalle(rutas, ayerCount) {
     const entregas = r.entregas || [];
     const n = entregas.length;
     const entregadas = entregas.filter(e => e.estado === 'entregado').length;
-    const progress = n ? Math.round((entregadas / n) * 100) : (r.estado === 'completada' ? 100 : 0);
+    const estadoUi = estadoRutaUi(r.estado || 'pendiente');
+    const progress = n ? Math.round((entregadas / n) * 100) : (estadoUi === 'completada' ? 100 : 0);
     const hora = r.created_at ? new Date(r.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '—';
     const zonas = [...new Set(entregas.map(e => e.pedidos?.clientes?.zonas?.nombre).filter(Boolean))];
     const zonaLabel = zonas.length ? zonas.slice(0, 2).join(' · ') : 'Zona sin asignar';
     const nota = r.notas ? esc(r.notas) : 'Sin observaciones';
     const routeId = String(r.id || '').replace(/'/g, "\\'");
-    const estadoUi = estadoRutaUi(r.estado || 'pendiente');
     const riskClass = estadoUi === 'pendiente' ? ' route-row--risk' : estadoUi === 'cancelada' ? ' route-row--danger' : '';
+    const pedidosOrdenados = entregasOrdenadas(entregas);
     return `
-      <article class="route-row route-row--${esc(estadoUi)}${riskClass}" data-route-state="${esc(estadoUi)}" data-route-id="${esc(r.id || '')}" role="button" tabindex="0" onclick="seleccionarRutaResumen('${routeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarRutaResumen('${routeId}')}" aria-label="Ver ${labelMap[estadoUi] || 'reparto'} ${esc(r.id?.slice(0, 8) || 'sin ID')}">
-        <span class="route-row-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
-        <div class="route-row-identity">
-          <span class="route-row-eyebrow">Reparto <b>#${esc(r.id?.slice(0, 8) || '—')}</b></span>
-          <strong>${esc(r.usuarios?.nombre || 'Sin repartidor')}</strong>
-          <small>${n} pedido${n !== 1 ? 's' : ''} · Salió ${hora}</small>
+      <article class="route-row route-row--${esc(estadoUi)}${riskClass}" data-route-state="${esc(estadoUi)}" data-route-id="${esc(r.id || '')}">
+        <div class="route-group-head">
+          <button type="button" class="route-group-select" onclick="seleccionarRutaResumen('${routeId}')" aria-label="Seguir ${labelMap[estadoUi] || 'reparto'} ${esc(r.id?.slice(0, 8) || 'sin ID')}">
+            <span class="route-row-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
+            <span class="route-group-identity">
+              <span class="route-row-eyebrow">Reparto <b>#${esc(r.id?.slice(0, 8) || '—')}</b></span>
+              <strong>${esc(r.usuarios?.nombre || 'Sin repartidor')}</strong>
+              <small><b class="route-group-order-count">${n}</b> pedido${n !== 1 ? 's' : ''} · Salió ${hora}</small>
+            </span>
+          </button>
+          <div class="route-row-context">
+            <span class="route-row-label">Ruta / zona</span>
+            <strong>${esc(zonaLabel)}</strong>
+            <small>${nota}</small>
+          </div>
+          <div class="route-row-progress">
+            <div class="route-row-progress-head"><span class="route-state route-state--${esc(estadoUi)}"><i>${stateIcon[estadoUi] || '•'}</i>${labelMap[estadoUi] || esc(estadoUi || 'Pendiente')}</span><b>${progress}%</b></div>
+            <div class="route-flow-track" aria-hidden="true"><span style="width:${progress}%;"></span></div>
+            <small>${entregadas}/${n} entregadas${estadoUi === 'cancelada' ? ' · requiere revisión' : ''}</small>
+          </div>
+          <span class="route-row-chevron" aria-hidden="true">↗</span>
         </div>
-        <div class="route-row-context">
-          <span class="route-row-label">Ruta / zona</span>
-          <strong>${esc(zonaLabel)}</strong>
-          <small>${nota}</small>
+        <div class="route-order-list" aria-label="Pedidos del reparto ${esc(r.id?.slice(0, 8) || 'sin ID')}">
+          ${pedidosOrdenados.map((e, orderIndex) => {
+            const pedido = e.pedidos || {};
+            const pedidoId = pedido.id || e.pedido_id || '';
+            const orderState = estadoPedidoUi(e.estado);
+            const orderLabelMap = { pendiente: 'Pendiente', en_camino: 'En tránsito', entregado: 'Entregado', no_entregado: 'No entregado', cancelado: 'Cancelado' };
+            const orderIconMap = { pendiente: '!', en_camino: '→', entregado: '✓', no_entregado: '×', cancelado: '×' };
+            const cliente = pedido.clientes || {};
+            const domicilio = cliente.domicilio || 'Domicilio sin registrar';
+            const zona = cliente.zonas?.nombre || 'Zona sin asignar';
+            const monto = pedido.total == null ? '—' : formatARS(Number(pedido.total));
+            return `
+              <button type="button" class="pedido-line pedido-line--${esc(orderState)}" data-order-state="${esc(orderState)}" data-entrega-id="${esc(String(e.id || pedidoId || ''))}" onclick="seleccionarPedidoResumen('${routeId}', '${String(e.id || pedidoId || '').replace(/'/g, "\\'")}')" aria-label="Pedido ${esc(String(pedidoId).slice(0, 8) || 'sin ID')} de ${esc(nombreClientePedido(e))}, ${esc(orderLabelMap[orderState] || orderState)}">
+                <span class="pedido-line-seq" aria-hidden="true">${String(orderIndex + 1).padStart(2, '0')}</span>
+                <span class="pedido-line-main"><strong>${esc(nombreClientePedido(e))}</strong><small>#${esc(String(pedidoId).slice(0, 8) || 'sin ID')} · ${esc(domicilio)}</small></span>
+                <span class="pedido-line-zone"><small>${esc(zona)}</small><strong>${esc(orderLabelMap[orderState] || orderState)}</strong></span>
+                <strong class="pedido-line-total">${esc(monto)}</strong>
+                <span class="pedido-line-mark" aria-hidden="true">${orderIconMap[orderState] || '•'}</span>
+              </button>`;
+          }).join('') || '<div class="pedido-line-empty">Sin pedidos asociados a este reparto.</div>'}
         </div>
-        <div class="route-row-progress">
-          <div class="route-row-progress-head"><span class="route-state route-state--${esc(estadoUi)}"><i>${stateIcon[estadoUi] || '•'}</i>${labelMap[estadoUi] || esc(estadoUi || 'Pendiente')}</span><b>${progress}%</b></div>
-          <div class="route-flow-track" aria-hidden="true"><span style="width:${progress}%;"></span></div>
-          <small>${entregadas}/${n} entregadas${estadoUi === 'cancelada' ? ' · requiere revisión' : ''}</small>
-        </div>
-        <span class="route-row-chevron" aria-hidden="true">↗</span>
       </article>`;
   }).join('');
   filtrarResumenRutas(_filtroResumenActual, false);
@@ -305,16 +347,26 @@ function filtrarResumenRutas(filtro = 'all', announce = true) {
 }
 
 function seleccionarRutaResumen(routeId) {
+  seleccionarPedidoResumen(routeId, null);
+}
+
+function seleccionarPedidoResumen(routeId, entregaId = null) {
   const ruta = _rutasResumenHoy.find(r => String(r.id) === String(routeId));
   if (!ruta) return;
-  renderTrackingHoy([ruta]);
+  renderTrackingHoy([ruta], entregaId);
   document.querySelectorAll('#resumen-chofer-list .route-row').forEach(row => {
     row.classList.toggle('is-selected', row.dataset.routeId === String(routeId));
   });
+  document.querySelectorAll('#resumen-chofer-list .pedido-line').forEach(line => {
+    line.classList.toggle('is-selected', entregaId !== null && line.dataset.entregaId === String(entregaId));
+  });
+  if (entregaId !== null) {
+    document.querySelector('.control-panel--tracking')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 // ── Tracking / mapa de la ruta más relevante de hoy ─────────────────────
-function renderTrackingHoy(rutas) {
+function renderTrackingHoy(rutas, focusEntregaId = null) {
   const sub = document.getElementById('resumen-tracking-sub');
   const idEl = document.getElementById('resumen-tracking-id');
   const timelineEl = document.getElementById('resumen-timeline');
@@ -334,8 +386,16 @@ function renderTrackingHoy(rutas) {
   const estadoRuta = estadoRutaUi(ruta.estado);
   const entregas = ruta.entregas || [];
   const entregadas = entregas.filter(e => e.estado === 'entregado').length;
+  const focusEntrega = focusEntregaId !== null
+    ? entregas.find(e => String(e.id || e.pedido_id) === String(focusEntregaId))
+    : null;
+  const focusPedido = focusEntrega?.pedidos || {};
+  const focusPedidoId = focusPedido.id || focusEntrega?.pedido_id || 'sin ID';
+  const choferNombre = ruta.usuarios?.nombre || 'Sin chofer';
 
-  sub.textContent = `${esc(ruta.usuarios?.nombre || 'Sin chofer')} · ${entregadas}/${entregas.length} entregadas`;
+  sub.textContent = focusEntrega
+    ? `${choferNombre} · Pedido #${String(focusPedidoId).slice(0, 8)} · ${entregadas}/${entregas.length} entregadas`
+    : `${choferNombre} · ${entregadas}/${entregas.length} entregadas`;
   idEl.innerHTML = `Ruta <strong>#${ruta.id.slice(0, 8)}</strong>`;
 
   // Timeline basado en eventos reales
@@ -364,7 +424,8 @@ function renderTrackingHoy(rutas) {
   // Mapa con las posiciones de los clientes de la ruta
   const puntos = entregas
     .map(e => ({ e, lat: e.pedidos?.clientes?.lat, lng: e.pedidos?.clientes?.lng }))
-    .filter(p => p.lat && p.lng);
+    .filter(p => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)))
+    .map(p => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) }));
 
   if (!puntos.length || typeof L === 'undefined') {
     if (_mapaResumen) { _mapaResumen.remove(); _mapaResumen = null; }
@@ -383,25 +444,35 @@ function renderTrackingHoy(rutas) {
   const css = getComputedStyle(document.documentElement);
   const colores = {
     entregado: css.getPropertyValue('--color-success').trim(),
-    no_entregado: css.getPropertyValue('--color-danger').trim(),
     pendiente: css.getPropertyValue('--color-warning').trim(),
     en_camino: css.getPropertyValue('--color-info').trim(),
+    no_entregado: css.getPropertyValue('--color-danger').trim(),
+    cancelado: css.getPropertyValue('--color-danger').trim(),
   };
   const surface = css.getPropertyValue('--color-surface').trim();
   const ink = css.getPropertyValue('--color-text').trim();
   const bounds = [];
   puntos.forEach(({ e, lat, lng }) => {
-    const color = colores[e.estado] || colores.pendiente;
+    const estadoPedido = estadoPedidoUi(e.estado);
+    const pedido = e.pedidos || {};
+    const pedidoId = pedido.id || e.pedido_id || 'sin ID';
+    const color = colores[estadoPedido] || colores.pendiente;
     const icon = L.divIcon({
       className: '',
       html: `<div style="width:22px;height:22px;border-radius:50%;background:${color};border:2px solid ${surface};box-shadow:0 2px 5px color-mix(in srgb, ${ink} 22%, transparent);"></div>`,
       iconSize: [22, 22], iconAnchor: [11, 11],
     });
     const m = L.marker([lat, lng], { icon }).addTo(_mapaResumen);
+    m.bindTooltip(`#${esc(String(pedidoId).slice(0, 8))} · ${esc(nombreClientePedido(e))}`, { direction: 'top', offset: [0, -10] });
     _mapaResumenMarkers.push(m);
     bounds.push([lat, lng]);
+    if (focusEntregaId !== null && String(e.id || e.pedido_id) === String(focusEntregaId)) {
+      m.openTooltip();
+    }
   });
-  if (bounds.length === 1) _mapaResumen.setView(bounds[0], 13);
+  const focusedPoint = puntos.find(({ e }) => focusEntregaId !== null && String(e.id || e.pedido_id) === String(focusEntregaId));
+  if (focusedPoint) _mapaResumen.setView([focusedPoint.lat, focusedPoint.lng], 15);
+  else if (bounds.length === 1) _mapaResumen.setView(bounds[0], 13);
   else _mapaResumen.fitBounds(bounds, { padding: [24, 24] });
   setTimeout(() => _mapaResumen.invalidateSize(), 150);
 }
@@ -592,3 +663,4 @@ window.seleccionarClienteCobro = seleccionarClienteCobro;
 window.registrarCobroRapido = registrarCobroRapido;
 window.filtrarResumenRutas = filtrarResumenRutas;
 window.seleccionarRutaResumen = seleccionarRutaResumen;
+window.seleccionarPedidoResumen = seleccionarPedidoResumen;
