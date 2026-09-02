@@ -337,11 +337,11 @@ function renderTabla(lista) {
     const registroCorto = (!esSistema && r.registro_id) ? r.registro_id.substring(0, 8).toUpperCase() : '—';
 
     return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalDetalle(${idxReal})">
-      <td data-label="Fecha">${formatFechaHora(r.created_at)}</td>
+      <td class="col-fit" data-label="Fecha">${formatFechaHora(r.created_at)}</td>
       <td data-label="Qué pasó"><span class="chip ${accionInfo.clase}">${sanitize(accionInfo.texto)}</span> ${esc(resumirQuePaso(r))}</td>
-      <td data-label="Referencia" style="font-family:monospace">${registroCorto}</td>
-      <td data-label="Usuario">${esc(usuario)}</td>
-      <td class="col-sticky-end" data-label="Detalle">
+      <td class="col-fit" data-label="Referencia" style="font-family:monospace">${registroCorto}</td>
+      <td class="col-fit" data-label="Usuario">${esc(usuario)}</td>
+      <td class="col-fit col-sticky-end" data-label="Detalle">
         <span class="fila-acciones">
           <button type="button" class="btn-tabla" onclick="abrirModalDetalle(${idxReal})">Ver</button>
         </span>
@@ -506,11 +506,11 @@ function renderTablaEventos() {
     const tipoLabel = TIPO_EVENTO_LABELS[ev.tipo_evento] || ev.tipo_evento;
 
     return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalDetalleEvento(${idx})">
-      <td data-label="Fecha">${formatFechaHora(ev.creado_en)}</td>
+      <td class="col-fit" data-label="Fecha">${formatFechaHora(ev.creado_en)}</td>
       <td data-label="Tipo de evento">${esc(tipoLabel)}</td>
-      <td data-label="Estado"><span class="chip ${estadoInfo.clase}">${esc(estadoInfo.texto)}</span></td>
-      <td data-label="Origen">${esc(ev.origen || '—')}</td>
-      <td class="col-sticky-end" data-label="Detalle">
+      <td class="col-fit" data-label="Estado"><span class="chip ${estadoInfo.clase}">${esc(estadoInfo.texto)}</span></td>
+      <td class="col-fit" data-label="Origen">${esc(ev.origen || '—')}</td>
+      <td class="col-fit col-sticky-end" data-label="Detalle">
         <span class="fila-acciones">
           <button type="button" class="btn-tabla" onclick="abrirModalDetalleEvento(${idx})">Ver</button>
         </span>

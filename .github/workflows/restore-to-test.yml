@@ -52,6 +52,65 @@ jobs:
           echo "src_url=$SRC_URL" >> "$GITHUB_OUTPUT"
           echo "dst_url=$DST_URL" >> "$GITHUB_OUTPUT"
 
+      # --- Fix de errores "type/operator class ... does not exist" ---
+      # Prod usa extensiones que viven en el schema "extensions" (como hace
+      # Supabase por defecto): pgvector para tipos vectoriales, pg_trgm para
+      # los índices GIN de búsqueda por similitud de texto. El dump con
+      # --schema=public no incluye la creación de extensiones, así que si el
+      # proyecto de prueba no las tenía habilitadas, el restore falla apenas
+      # encuentra el tipo o el operator class correspondiente. Se habilitan
+      # acá antes de restaurar (si ya están, el IF NOT EXISTS no hace nada).
+      # Si en el futuro aparece otro error "does not exist" de este mismo
+      # estilo con el nombre de otra extensión, se agrega una línea más acá.
+      - name: Asegurar extensiones necesarias en destino
+        env:
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists vector with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_trgm with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pgcrypto with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists "uuid-ossp" with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_net with schema extensions;'
+
+      # --- Fix definitivo: destino garantizado limpio en cada corrida ---
+      # Los intentos fallidos anteriores dejaron el proyecto de prueba en
+      # estados intermedios distintos cada vez (a veces con tipos de más,
+      # a veces con tablas de menos) — por eso --clean/--if-exists seguía
+      # rompiendo: un DROP TRIGGER/POLICY "IF EXISTS x ON tabla" falla
+      # igual si la tabla en sí no existe, sin importar el IF EXISTS.
+      # En vez de perseguir cada combinación posible de estado a medias,
+      # se borra el schema public completo y se recrea vacío con los
+      # permisos estándar de Supabase (anon/authenticated/service_role)
+      # ANTES de restaurar. Así cada corrida parte de exactamente el mismo
+      # punto de partida, sin importar cómo terminó la anterior.
+      - name: Resetear schema public en destino (estado limpio garantizado)
+        env:
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          psql "$DST_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          DROP SCHEMA IF EXISTS public CASCADE;
+          CREATE SCHEMA public;
+          GRANT ALL ON SCHEMA public TO postgres;
+          GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres, anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+          SQL
+
+      # El schema ya quedó vacío por el paso anterior, así que ya no hace
+      # falta --clean/--if-exists: no hay nada previo con qué chocar.
+      #
+      # --- Fix definitivo: FKs que apuntan a auth.users ---
+      # --schema=public no incluye (a propósito) el schema "auth" de
+      # Supabase, así que ningún usuario real de Auth se copia al proyecto
+      # de prueba. Si alguna tabla (ej. audit_log) tiene una FK contra un
+      # usuario de auth.users que en prod existe pero en el proyecto de
+      # prueba nunca se creó, el ALTER TABLE ... ADD CONSTRAINT que agrega
+      # esa FK falla al validar los datos ya cargados. Como este restore es
+      # para probar el proceso de backup/restore y contar filas — no para
+      # verificar integridad de usuarios reales — se agrega " NOT VALID" a
+      # cada FK que trae el dump: la constraint queda definida (rige para
+      # datos nuevos) pero no revalida lo que ya se cargó.
       - name: Dump de prod → restore directo al proyecto de prueba
         env:
           SRC_URL: ${{ steps.buildurl.outputs.src_url }}
@@ -61,6 +120,9 @@ jobs:
             --schema=public \
             --no-owner \
             --no-privileges \
+          | sed -e '/^CREATE SCHEMA public;/d' \
+                -e '/^COMMENT ON SCHEMA public IS/d' \
+                -E '/FOREIGN KEY/ s/;$/ NOT VALID;/' \
           | psql "$DST_URL" -v ON_ERROR_STOP=1
 
       - name: Chequeo de integridad (conteo de filas por tabla)
