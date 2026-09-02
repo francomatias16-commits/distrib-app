@@ -65,13 +65,19 @@ jobs:
         run: |
           psql "$DST_URL" -v ON_ERROR_STOP=1 -c "create extension if not exists vector with schema extensions;"
 
-      # --- Fix del error "schema public already exists" ---
-      # Desde Postgres 15+, pg_dump ya no asume que "public" existe de forma
-      # implícita: lo trata como un schema más y emite "CREATE SCHEMA public;"
-      # (más su COMMENT) al principio del dump. Como todo proyecto Supabase
-      # ya trae el schema public creado de fábrica, esa línea rompe el
-      # restore apenas arranca. Se filtra con sed antes de pasarle el dump
-      # a psql — el resto del contenido (tablas, datos, índices) no se toca.
+      # --- Fix definitivo: restore idempotente ---
+      # Cualquier corrida anterior que haya fallado a mitad de camino deja
+      # objetos a medio crear en el proyecto de prueba (tipos, funciones,
+      # tablas). Si el restore no es idempotente, cada corrida nueva choca
+      # contra lo que dejó la anterior con errores tipo "already exists".
+      # --clean hace que pg_dump emita un DROP antes de cada CREATE, y
+      # --if-exists evita que ese DROP falle si el objeto no existe todavía
+      # (por ejemplo la primera vez que se corre contra un proyecto nuevo).
+      # Con esto el workflow siempre parte de limpio, sea la 1ra corrida o
+      # la enésima. Se sigue filtrando con sed el CREATE/COMMENT/DROP del
+      # schema "public" en sí (Supabase ya lo trae de fábrica con sus
+      # permisos propios para anon/authenticated/service_role — no hay que
+      # tocarlo, solo lo que hay adentro).
       - name: Dump de prod → restore directo al proyecto de prueba
         env:
           SRC_URL: ${{ steps.buildurl.outputs.src_url }}
@@ -81,7 +87,12 @@ jobs:
             --schema=public \
             --no-owner \
             --no-privileges \
-          | sed -e '/^CREATE SCHEMA public;/d' -e '/^COMMENT ON SCHEMA public IS/d' \
+            --clean \
+            --if-exists \
+          | sed -e '/^CREATE SCHEMA public;/d' \
+                -e '/^COMMENT ON SCHEMA public IS/d' \
+                -e '/^DROP SCHEMA IF EXISTS public;/d' \
+                -e '/^DROP SCHEMA public;/d' \
           | psql "$DST_URL" -v ON_ERROR_STOP=1
 
       - name: Chequeo de integridad (conteo de filas por tabla)
