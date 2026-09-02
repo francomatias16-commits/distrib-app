@@ -270,6 +270,7 @@
     if (!userEl || !userEl.parentElement) return null;
 
     const wrap = document.createElement('div');
+    wrap.className = 'topbar-notif-wrap';
     wrap.style.position = 'relative';
     wrap.style.display = 'inline-flex';
 
@@ -311,7 +312,14 @@
       _actualizarBadge();
     });
     document.addEventListener('click', cerrar);
-    dropdown.addEventListener('click', (ev) => ev.stopPropagation());
+    dropdown.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      // Cruz de cerrar (visible en mobile, ver .notif-close en
+      // adminlte-components.css): el dropdown queda fixed pegado al
+      // borde de la pantalla y tocar "afuera" para cerrarlo no siempre
+      // es cómodo con el pulgar, así que se suma una forma explícita.
+      if (ev.target.closest('.notif-close')) cerrar();
+    });
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
 
     _bellBtn = btn; _bellBadge = badge; _bellDropdown = dropdown;
@@ -354,7 +362,7 @@
     if (!_bellDropdown) return;
     if (!_bellItems.length) {
       _bellDropdown.innerHTML =
-        '<div class="notif-header">Avisos</div>' +
+        '<div class="notif-header"><span>Avisos</span><button type="button" class="notif-close" aria-label="Cerrar avisos">&times;</button></div>' +
         '<div class="notif-item" style="cursor:default"><div class="notif-texto" style="color:var(--color-text-muted)">Sin novedades por ahora.</div></div>';
       return;
     }
@@ -371,7 +379,8 @@
       </div>`;
     }).join('');
     const footer = `<div class="notif-footer" data-href="${HREF_VER_TODAS}">Ver más notificaciones</div>`;
-    _bellDropdown.innerHTML = `<div class="notif-header">Avisos</div>${filas}${footer}`;
+    const header = '<div class="notif-header"><span>Avisos</span><button type="button" class="notif-close" aria-label="Cerrar avisos">&times;</button></div>';
+    _bellDropdown.innerHTML = `${header}${filas}${footer}`;
     _bellDropdown.querySelectorAll('[data-href]').forEach((el) => {
       const href = el.getAttribute('data-href');
       if (!href) return;

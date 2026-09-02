@@ -44,11 +44,11 @@ window.presupuestos_init = function () {
 
 // ── Carga auxiliar ────────────────────────────────────────────────────────
 async function pres_cargarClientes() {
-  const { data } = await _sb.from('clientes')
+  const { data } = await window.conTimeoutRed(_sb.from('clientes')
     .select('id, razon_social, nombre_fantasia, direccion, zona_id, zonas(nombre), saldo_deuda, limite_credito')
     .eq('empresa_id', _empresa.id)
     .eq('activo', true)
-    .order('razon_social');
+    .order('razon_social'), 10000);
   _clientes = data || [];
 
   const sel = document.getElementById('pres-f-cliente');
@@ -126,11 +126,11 @@ async function pres_actualizarPreciosParaCliente(clienteId) {
 }
 
 async function pres_cargarProductos() {
-  const { data } = await _sb.from('productos')
+  const { data } = await window.conTimeoutRed(_sb.from('productos')
     .select('id, codigo, nombre, precio_base, unidad')
     .eq('empresa_id', _empresa.id)
     .eq('activo', true)
-    .order('nombre');
+    .order('nombre'), 10000);
   _productos = data || [];
 }
 
@@ -222,11 +222,11 @@ function pres_renderTabla() {
 
     let acciones = `<button class="btn-acc" onclick="pres_verDetalle('${p.id}')">Ver</button>`;
     if (esAdmin && p.estado === 'borrador')
-      acciones += ` <button class="btn-acc btn-primary" onclick="pres_enviarYNotificar('${p.id}')">Enviar por WhatsApp</button>`;
+      acciones += ` <button class="btn-acc btn-primary btn--primary" onclick="pres_enviarYNotificar('${p.id}')">Enviar por WhatsApp</button>`;
     if (esAdmin && p.estado === 'enviado')
       acciones += ` <button class="btn-acc" onclick="pres_enviarWhatsApp('${p.id}')">Reenviar WhatsApp</button>`;
     if (esAdmin && p.estado === 'borrador')
-      acciones += ` <button class="btn-acc btn-danger" onclick="pres_eliminarPresupuesto('${p.id}')">Eliminar</button>`;
+      acciones += ` <button class="btn-acc btn-danger btn--danger" onclick="pres_eliminarPresupuesto('${p.id}')">Eliminar</button>`;
     if (p.estado === 'aceptado')
       acciones += ` <span class="badge badge-ok" style="font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Pedido generado</span>`;
 
@@ -304,14 +304,14 @@ window.pres_verDetalle = async function(id) {
 
     const botonesAccion = p.estado === 'borrador'
       ? `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-           <button class="btn-acc btn-primary" onclick="pres_enviarYNotificar('${p.id}')">Enviar por WhatsApp</button>
-           <button class="btn-acc btn-danger" onclick="pres_eliminarPresupuesto('${p.id}');pres_cerrarPanel()">Eliminar</button>
+           <button class="btn-acc btn-primary btn--primary" onclick="pres_enviarYNotificar('${p.id}')">Enviar por WhatsApp</button>
+           <button class="btn-acc btn-danger btn--danger" onclick="pres_eliminarPresupuesto('${p.id}');pres_cerrarPanel()">Eliminar</button>
          </div>`
       : (p.estado === 'enviado'
           ? `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
                <button class="btn-acc" onclick="pres_enviarWhatsApp('${p.id}')">Reenviar WhatsApp</button>
-               <button class="btn-acc btn-danger" onclick="pres_rechazar('${p.id}')">Rechazar</button>
-               <button class="btn-acc btn-primary" onclick="pres_aceptarYGenerarPedido('${p.id}')">Aceptar y generar pedido</button>
+               <button class="btn-acc btn-danger btn--danger" onclick="pres_rechazar('${p.id}')">Rechazar</button>
+               <button class="btn-acc btn-primary btn--primary" onclick="pres_aceptarYGenerarPedido('${p.id}')">Aceptar y generar pedido</button>
              </div>`
           : '');
 

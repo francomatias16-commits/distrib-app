@@ -75,7 +75,7 @@ async function cargarNotifLog(resetear = true) {
     if (desde)  q = q.gte('created_at', desde + 'T00:00:00');
     if (hasta)  q = q.lte('created_at', hasta + 'T23:59:59');
 
-    const { data, error } = await q;
+    const { data, error } = await window.conTimeoutRed(q, 10000);
     if (error) {
       console.error('[NOTIF-LOG] Error cargando notif_log:', error);
       mostrarToast('Error al cargar el historial');
@@ -104,7 +104,7 @@ async function cargarNotifLog(resetear = true) {
     if (desde) qe = qe.gte('created_at', desde + 'T00:00:00');
     if (hasta) qe = qe.lte('created_at', hasta + 'T23:59:59');
 
-    const { data, error } = await qe;
+    const { data, error } = await window.conTimeoutRed(qe, 10000);
     if (error) {
       console.error('[NOTIF-LOG] Error cargando email_log:', error);
       // No cortamos el flujo — mostramos igual lo que se pudo traer de notif_log.
@@ -255,7 +255,7 @@ function renderTabla() {
     const esReintentable = r.canal === 'email' && !r.message_id &&
       !String(r.id).startsWith('email:') && TIPOS_REINTENTABLES.includes(r.tipo);
     const btnReintentar = esReintentable
-      ? `<button class="btn btn-sm btn-secondary" id="btn-reintentar-${esc(r.id)}"
+      ? `<button class="btn btn-sm btn-secondary btn--secondary" id="btn-reintentar-${esc(r.id)}"
                  onclick="event.stopPropagation(); reintentarEmail('${esc(r.id)}', this)">
            Reintentar
          </button>`
@@ -269,7 +269,7 @@ function renderTabla() {
       <td data-label="Pedido">${pedidoN}</td>
       <td data-label="Estado">${ok}</td>
       <td class="celda-acciones col-sticky-end" data-label="Detalle">
-        <button class="btn btn-sm btn-secondary"
+        <button class="btn btn-sm btn-secondary btn--secondary"
                 onclick="event.stopPropagation(); abrirModalPayloadPorIndice(${idx})">
           Ver
         </button>

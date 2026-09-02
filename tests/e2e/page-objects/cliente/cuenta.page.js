@@ -39,13 +39,13 @@ export class ClienteCuentaPage {
 
   async goto() {
     await this.page.goto(`${this.baseURL}/frontend/cliente/cuenta.html`);
-    await expect(this.contenido.locator('.loading')).toHaveCount(0, { timeout: 10_000 });
+    await expect(this.contenido.locator('.cta-loading')).toHaveCount(0, { timeout: 10_000 });
   }
 
-  get contenido()        { return this.page.locator('#contenidoCuenta'); }
-  get perfilCard()        { return this.contenido.locator('.perfil-card'); }
-  get puntosValor()       { return this.contenido.locator('.puntos-valor'); }
-  get puntosSub()         { return this.contenido.locator('.puntos-sub'); }
+  get contenido()        { return this.page.locator('#cta-root'); }
+  get perfilCard()        { return this.contenido.locator('.cta-perfil-card'); }
+  get puntosValor()       { return this.contenido.locator('.cta-puntos-valor'); }
+  get puntosSub()         { return this.contenido.locator('.cta-puntos-sub'); }
   get recompensasLista()  { return this.page.locator('#recompensasLista'); }
   get recompensasMsg()    { return this.page.locator('#recompensasMsg'); }
   get btnActivarPush()    { return this.page.locator('#btnActivarPush'); }
@@ -55,15 +55,15 @@ export class ClienteCuentaPage {
   // genéricas `.info-row` con un label + un valor — se ubican por texto
   // del label en vez de por id (no tienen id individual).
   infoRow(labelTexto) {
-    return this.contenido.locator('.info-row', { hasText: labelTexto });
+    return this.contenido.locator('.cta-info-row', { hasText: labelTexto });
   }
 
   recompensaCard(nombre) {
-    return this.recompensasLista.locator('.recompensa-card', { hasText: nombre });
+    return this.recompensasLista.locator('.cta-recompensa-card', { hasText: nombre });
   }
 
   botonCanjear(nombreRecompensa) {
-    return this.recompensaCard(nombreRecompensa).locator('button.btn-canjear');
+    return this.recompensaCard(nombreRecompensa).locator('button.cta-btn-canjear');
   }
 
   /** Acepta el `confirm()` nativo que dispara `canjearRecompensa()`. */

@@ -1,0 +1,52 @@
+/*
+  CSS crítico del fallback SSR (#ssr-fallback), extraído a archivo externo.
+
+  IMPORTANTE - por qué existe este archivo separado:
+  El header Content-Security-Policy que Vercel sirve para "/" (vercel.json)
+  es `style-src 'self' https://fonts.googleapis.com` — SIN 'unsafe-inline'.
+  Un <style> inline en el <head> queda bloqueado por el navegador bajo esa
+  política (visible como "Refused to apply inline style..." en consola), lo
+  que anulaba por completo esta regla, incluida `#ssr-fallback{visibility:
+  hidden}`. Resultado: el bloque de respaldo se veía sin estilos un
+  instante antes de que React montara, porque el CSS que debía ocultarlo
+  nunca llegaba a aplicarse. Como archivo externo cargado con <link>, cae
+  bajo 'self' y el CSP lo permite sin tocar la política.
+
+  Todas las reglas van con el prefijo #ssr-fallback (NUNCA #root), porque
+  #root es el mismo contenedor donde React monta la página real. Si se
+  usara "#root header", "#root main", etc., esas reglas seguirían
+  aplicando después del montaje sobre el <header>, <main>, <footer> reales
+  de React (que reutilizan las mismas etiquetas semánticas), aplastando el
+  ancho de todo el sitio. Escopeado a #ssr-fallback, solo afectan al
+  bloque de respaldo.
+*/
+body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f7f8fb; color: #0f172a; }
+#ssr-fallback header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+#ssr-fallback header a { text-decoration: none; color: #0540AD; font-weight: 800; font-size: 1.25rem; letter-spacing: .02em; }
+#ssr-fallback header nav { display: flex; gap: 20px; flex-wrap: wrap; }
+#ssr-fallback header nav a { text-decoration: none; color: #0540AD; font-weight: 600; font-size: .9rem; }
+#ssr-fallback main { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+#ssr-fallback section#inicio { text-align: center; padding: 40px 16px; }
+#ssr-fallback section#inicio h1 { font-size: 2rem; margin: .5rem 0; }
+#ssr-fallback section#inicio p { color: #4b5563; }
+#ssr-fallback section#inicio > a { display: inline-block; margin-top: 1rem; background: #0540AD; color: #fff; padding: .75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
+#ssr-fallback section#producto { padding: 24px 0; }
+#ssr-fallback section#producto ul { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+#ssr-fallback section#producto li { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+#ssr-fallback section#producto li h3 { margin: 0 0 8px; font-size: 1rem; color: #0540AD; }
+#ssr-fallback section#producto li p { margin: 0; color: #4b5563; font-size: .9rem; }
+#ssr-fallback section#preguntas { padding: 24px 0; }
+#ssr-fallback section#preguntas dt { font-weight: 700; margin-top: 16px; }
+#ssr-fallback section#preguntas dd { margin: 4px 0 0; color: #4b5563; }
+#ssr-fallback footer { text-align: center; padding: 32px 16px; margin-top: 32px; color: #6b7280; font-size: .85rem; border-top: 1px solid #e5e7eb; }
+#ssr-fallback footer a { color: #0540AD; margin: 0 8px; }
+/*
+  El bloque de respaldo (#ssr-fallback) queda oculto por defecto. Así el
+  "instante" entre el primer paint y el montaje de React nunca se ve.
+  Como React reemplaza TODO el contenido de #root al montar, el contenido
+  real nunca hereda esta regla (ya no existe el id ssr-fallback en el
+  DOM). Si JS está deshabilitado (o falla), noscript-fallback.css (ver
+  <noscript> más abajo) vuelve a mostrar el fallback para que la página
+  siga siendo utilizable e indexable.
+*/
+#ssr-fallback { visibility: hidden; }

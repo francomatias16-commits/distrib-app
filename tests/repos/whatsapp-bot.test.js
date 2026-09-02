@@ -20,7 +20,7 @@ const {
   marcarConversacionDerivada, obtenerConversacionEmpresaTelefono,
   obtenerConversacionParaAccion, tomarConversacion, liberarConversacion,
   registrarMensajeWhatsapp, obtenerHistorialMensajes, contarMensajesEntrantes,
-  obtenerClienteParaPedidoWhatsapp, obtenerStockParaPedidoWhatsapp,
+  obtenerClienteParaPedidoWhatsapp,
   resolverPreciosClienteRpc, crearPedidoClienteRpc, obtenerNumeroPedido,
   obtenerSalientesPendientes, marcarSalienteEnviado, marcarSalienteFallido,
   MAX_INTENTOS_SALIENTE,
@@ -392,8 +392,8 @@ describe('contarMensajesEntrantes', () => {
 // ── Creación de pedido desde el bot ──────────────────────────────────────
 
 describe('obtenerClienteParaPedidoWhatsapp', () => {
-  it('filtra por id y empresa_id, devuelve { data, error }', async () => {
-    const query = fakeQuery({ data: { id: 'c1', activo: true, limite_credito: 1000, saldo_deuda: 0 }, error: null });
+  it('filtra por id y empresa_id, devuelve { data, error } con deposito_id', async () => {
+    const query = fakeQuery({ data: { id: 'c1', activo: true, limite_credito: 1000, saldo_deuda: 0, deposito_id: 'd1' }, error: null });
     dbMock.from.mockReturnValue(query);
 
     const res = await obtenerClienteParaPedidoWhatsapp('c1', 'e1');
@@ -402,25 +402,13 @@ describe('obtenerClienteParaPedidoWhatsapp', () => {
     expect(query.eq).toHaveBeenCalledWith('id', 'c1');
     expect(query.eq).toHaveBeenCalledWith('empresa_id', 'e1');
     expect(res.data.activo).toBe(true);
+    expect(res.data.deposito_id).toBe('d1');
   });
 });
 
-describe('obtenerStockParaPedidoWhatsapp', () => {
-  it('trae stock con depositos embebido, filtrando por lote de producto_id', async () => {
-    const query = fakeQuery({ data: [{ producto_id: 'p1', cantidad: 10, cantidad_reservada: 2, depositos: { es_principal: true } }], error: null });
-    dbMock.from.mockReturnValue(query);
-
-    const res = await obtenerStockParaPedidoWhatsapp(['p1']);
-
-    expect(query.in).toHaveBeenCalledWith('producto_id', ['p1']);
-    expect(res).toEqual([{ producto_id: 'p1', cantidad: 10, cantidad_reservada: 2, depositos: { es_principal: true } }]);
-  });
-
-  it('devuelve [] si no hay data', async () => {
-    dbMock.from.mockReturnValue(fakeQuery({ data: null, error: null }));
-    expect(await obtenerStockParaPedidoWhatsapp(['p1'])).toEqual([]);
-  });
-});
+// obtenerStockParaPedidoWhatsapp (miraba solo es_principal) fue reemplazada
+// por resolverDepositoParaPedido + obtenerStockPorDeposito en
+// lib/repos/depositos.js — ver tests/repos/depositos.test.js.
 
 describe('resolverPreciosClienteRpc', () => {
   it('llama al rpc con los p_ params esperados', async () => {

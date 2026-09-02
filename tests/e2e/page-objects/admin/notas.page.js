@@ -68,6 +68,15 @@ export class NotasPage extends PageObjectBase {
 
   async filtrarPorTipo(valor) {
     await this.filtroTipo.selectOption(valor);
+    // FIX (test): a diferencia de buscar() (debounce de 250ms, con su
+    // propia espera de 350ms), el `onchange="filtrarNotas()"` inline
+    // dispara cargarNotas() de una sin debounce — pero sigue siendo
+    // async (la RPC mockeada no resuelve en el mismo tick). Un spec que
+    // chequea `ultimosParams` justo después de `filtrarPorTipo()` está
+    // leyendo una variable JS plana (no un locator con auto-retry de
+    // Playwright), así que sin esta espera puede leer el valor de la
+    // llamada ANTERIOR. Mismo margen que buscar() para curarse en salud.
+    await this.page.waitForTimeout(350);
   }
 
   // ── Paginación (inyectada por JS — ver inyectarControlesPaginacionNotas) ──
@@ -76,7 +85,11 @@ export class NotasPage extends PageObjectBase {
   get infoPagina() { return this.page.locator('#info-pag-notas'); }
 
   // ── Ver detalle (onclick inline, ver renderTabla()) ─────────────────────
-  botonVerDetalle(id) { return this.fila(id).locator('button.btn-icon[title="Ver detalle"]'); }
+  // FIX: el botón real es `<button class="btn-tabla">Ver</button>` (ver
+  // renderTabla() en notas.js) — nunca tuvo clase `btn-icon` ni atributo
+  // `title="Ver detalle"` (ese title es del kebab de "Más acciones", que
+  // es un botón aparte). El selector viejo nunca matcheaba nada.
+  botonVerDetalle(id) { return this.fila(id).getByRole('button', { name: 'Ver' }); }
 
   async abrirDetalle(id) {
     await this.botonVerDetalle(id).click();
@@ -114,6 +127,14 @@ export class NotasPage extends PageObjectBase {
   async abrirModalNueva() {
     await this.btnNuevaNota.click();
     await expect(this.modal).toBeVisible();
+    // FIX: cargarClientes() corre en paralelo con cargarNotas() dentro del
+    // mismo `Promise.all` (notas.html tampoco tiene `#app-preloader`) — el
+    // modal se puede abrir antes de que `#nota-cliente` tenga sus
+    // `<option>` reales (arranca completamente vacío en el HTML, ver
+    // notas.html). `selectOption()` no reintenta si la opción todavía no
+    // existe — falla al toque en vez de colgarse, pero sigue siendo una
+    // carrera real. Se espera a que el select deje de estar vacío.
+    await expect(this.selectCliente.locator('option')).not.toHaveCount(0);
   }
 
   async completarFormulario({ tipo, clienteId, monto, fecha, motivo } = {}) {

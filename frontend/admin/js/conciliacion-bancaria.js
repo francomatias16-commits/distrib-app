@@ -380,13 +380,13 @@ function renderMovimientos() {
 
   tbody.innerHTML = movimientosData.map(m => `
     <tr data-testid="mov-fila" data-id="${m.id}">
-      <td>${fmtFecha(m.fecha)}</td>
-      <td>${window.sanitize(m.descripcion || '—')}</td>
-      <td><span class="badge-tipo ${m.tipo}">${m.tipo === 'credito' ? 'Crédito' : 'Débito'}</span></td>
-      <td>${fmtPeso(m.monto)}</td>
-      <td><span class="badge-estado ${m.estado}">${capitalizar(m.estado)}</span></td>
+      <td data-label="Fecha">${fmtFecha(m.fecha)}</td>
+      <td data-label="Descripción">${window.sanitize(m.descripcion || '—')}</td>
+      <td data-label="Tipo"><span class="badge-tipo ${m.tipo}">${m.tipo === 'credito' ? 'Crédito' : 'Débito'}</span></td>
+      <td data-label="Monto">${fmtPeso(m.monto)}</td>
+      <td data-label="Estado"><span class="badge-estado ${m.estado}">${capitalizar(m.estado)}</span></td>
       <td data-label="Candidatos / Match" class="td-candidatos">${renderCandidatosOMatch(m)}</td>
-      <td class="fila-acciones col-sticky-end">${renderAcciones(m)}</td>
+      <td class="fila-acciones col-sticky-end" data-label="Acciones">${renderAcciones(m)}</td>
     </tr>
   `).join('');
 }

@@ -111,7 +111,7 @@ test.describe('Facturación (admin) — Fase 1 P0', () => {
     });
 
     await facturacionPage.goto();
-    await facturacionPage.btnReintentarFila(FACTURA_ERROR_ID).click();
+    await facturacionPage.reintentarFila(FACTURA_ERROR_ID);
 
     await expect(facturacionPage.toast).toContainText('Factura emitida correctamente');
     expect(contadores['/api/facturas/reintentar']).toBe(1);

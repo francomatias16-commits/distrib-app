@@ -7,19 +7,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
   <link rel="manifest" href="/chofer/manifest.json" />
   <meta name="theme-color" content="#F5F2EA" />
-  <script src="/frontend/env-config.js"></script>
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <link rel="stylesheet" href="/chofer/css/login.css?v=2" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/chofer/css/login.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/shared/a11y-focus.css?v=1" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/a11y-focus.css?v=mtcen4r4" />
 </head>
 <body>
   <div class="login-card">
@@ -194,6 +194,21 @@
       document.getElementById('formLogin')?.insertAdjacentElement('beforebegin', aviso);
     }
 
+    // FIX (29/8, mismo patrón que frontend/admin/login.html — incidente
+    // Supabase Auth "Increased response times"): sin esto, signInWithPassword()
+    // puede colgarse para siempre si Supabase Auth está degradado.
+    const TIMEOUT_LOGIN_MS = 8000;
+    function conTimeout(promesa, ms = TIMEOUT_LOGIN_MS) {
+      return Promise.race([
+        promesa,
+        new Promise((_, reject) => setTimeout(() => {
+          const err = new Error('timeout');
+          err.esTimeoutLogin = true;
+          reject(err);
+        }, ms)),
+      ]);
+    }
+
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('btnIngresar');
@@ -205,15 +220,15 @@
 
       btn.disabled = true; btn.textContent = 'Ingresando...';
       try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        const { data, error } = await conTimeout(sb.auth.signInWithPassword({ email, password }));
         if (error) throw new Error('Email o contraseña incorrectos');
 
         // Verificar que el usuario tenga un rol habilitado para el portal del chofer
-        const { data: perfil, error: errPerfil } = await sb
+        const { data: perfil, error: errPerfil } = await conTimeout(sb
           .from('usuarios')
           .select('rol')
           .eq('id', data.user.id)
-          .single();
+          .single());
 
         const ROLES_CHOFER = ['chofer', 'dueno', 'admin'];
         if (errPerfil || !perfil || !ROLES_CHOFER.includes(perfil.rol)) {
@@ -223,12 +238,14 @@
 
         window.location.href = '/chofer';
       } catch (err) {
-        alerta.textContent = err.message || 'No se pudo iniciar sesión';
+        alerta.textContent = err?.esTimeoutLogin
+          ? 'El servicio de autenticación está lento. Probá de nuevo en unos segundos.'
+          : (err.message || 'No se pudo iniciar sesión');
         alerta.style.display = 'block';
         btn.disabled = false; btn.textContent = 'Ingresar';
       }
     });
   </script>
-  <script src="/chofer/pwa-init.js"></script>
+  <script src="/chofer/pwa-init.js?v=mtcen4r4"></script>
 </body>
 </html>

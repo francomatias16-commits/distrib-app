@@ -62,9 +62,23 @@ function die(msg)     { console.error(`${C.r}[FAIL] Error: ${msg}${C.x}`); proce
 async function fetchRealSchema(supabase) {
   log(`\n${C.c}Conectando a Supabase para obtener schema real...${C.x}`);
 
-  const { data: cols, error } = await supabase.rpc('check_schema_columns');
+  // PostgREST devuelve como máximo ~1000 filas por respuesta (db-max-rows).
+  // check_schema_columns() es 1 fila POR COLUMNA (no por tabla), así que en
+  // un schema grande supera ese límite fácil y se trunca en silencio, sin
+  // error — hay que paginar con .range() hasta agotar los resultados.
+  const PAGE_SIZE = 1000;
+  const cols = [];
+  for (let page = 0; ; page++) {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await supabase.rpc('check_schema_columns').range(from, to);
 
-  if (error) die(`No se pudo leer el schema via RPC check_schema_columns: ${error.message}`);
+    if (error) die(`No se pudo leer el schema via RPC check_schema_columns: ${error.message}`);
+    if (!data || data.length === 0) break;
+
+    cols.push(...data);
+    if (data.length < PAGE_SIZE) break; // última página
+  }
 
   // { tableName: Set<columnName> }
   const schema = {};
@@ -73,16 +87,26 @@ async function fetchRealSchema(supabase) {
     schema[col.table_name].add(col.column_name);
   }
 
-  log(`${C.g}[OK] Schema obtenido: ${Object.keys(schema).length} tablas${C.x}`);
+  log(`${C.g}[OK] Schema obtenido: ${Object.keys(schema).length} tablas (${cols.length} columnas)${C.x}`);
   return schema;
 }
 
 // También obtener RPCs disponibles
 async function fetchRealFunctions(supabase) {
-  const { data, error } = await supabase.rpc('check_schema_functions');
+  const PAGE_SIZE = 1000;
+  const names = [];
+  for (let page = 0; ; page++) {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await supabase.rpc('check_schema_functions').range(from, to);
 
-  if (error) return new Set();
-  return new Set((data || []).map(r => r.routine_name));
+    if (error) return new Set();
+    if (!data || data.length === 0) break;
+
+    names.push(...data.map(r => r.routine_name));
+    if (data.length < PAGE_SIZE) break;
+  }
+  return new Set(names);
 }
 
 
@@ -112,8 +136,20 @@ function collectFiles(dir) {
  *
  * kind: 'select' | 'insert' | 'update' | 'upsert' | 'eq' | 'rpc' | 'from'
  */
-function extractReferences(src, filepath) {
+function extractReferences(rawSrc, filepath) {
   const refs = [];
+
+  // Neutralizar líneas que son 100% comentario (// ...) antes de escanear:
+  // un ejemplo de uso en un comentario de documentación (ej. "// Uso:
+  // rpc('fn_x', {})") no es una llamada real y no debería reportarse como
+  // tal. Solo se vacía la línea (se preserva el salto de línea) para no
+  // correr los números de línea del resto del archivo. No se tocan
+  // comentarios al final de una línea de código real, para no arriesgar
+  // falsos negativos por strings que contengan "//" (URLs, etc.).
+  const src = rawSrc.split('\n').map(line =>
+    /^\s*\/\//.test(line) ? '' : line
+  ).join('\n');
+
   const lines = src.split('\n');
 
   // ── .from('table') ──────────────────────────────────────────────────────
@@ -127,8 +163,17 @@ function extractReferences(src, filepath) {
     // Skip auth/storage pseudo-tables
     if (table.includes('.')) continue;
 
-    // Buscar el .select() más cercano DESPUÉS del .from()
-    const after = src.slice(m.index);
+    // Ventana de búsqueda: SOLO hasta el próximo .from() (inicio de otra
+    // cadena) o un límite duro, lo que venga primero. Sin esto, un .from()
+    // sin .select()/.insert()/.update()/.upsert() propio (ej. un UPDATE
+    // simple) terminaba "robándose" el próximo match de esos métodos en
+    // CUALQUIER cadena posterior del archivo, atribuyéndole columnas de
+    // una tabla completamente distinta.
+    const HARD_CAP = 800;
+    const restFull = src.slice(m.index);
+    const nextFrom = restFull.slice(m[0].length).search(/\.from\(\s*['"`]/);
+    const windowEnd = nextFrom === -1 ? HARD_CAP : Math.min(HARD_CAP, m[0].length + nextFrom);
+    const after = restFull.slice(0, windowEnd);
 
     // .select('col1, col2, rel(...)') — puede ser multi-línea entre backticks/quotes
     const selMatch = after.match(/\.select\(\s*(`[^`]*`|'[^']*'|"[^"]*")/);
@@ -138,28 +183,21 @@ function extractReferences(src, filepath) {
       refs.push({ file: filepath, line: lineNum, kind: 'select', table, columns: cols, raw });
     }
 
-    // .insert({ key: val, ... }) — objeto literal
-    const insMatch = after.match(/\.insert\(\s*\{([^}]{0,800})\}/s);
-    if (insMatch) {
-      const cols = parseObjectKeys(insMatch[1]);
+    // .insert({ key: val, ... }) / .update({...}) / .upsert({...})
+    // Objeto literal extraído con conteo de llaves balanceado (no con
+    // regex `[^}]`), para no cortar en la primera `}` que aparece —
+    // que puede ser el cierre de un valor anidado (ej. un jsonb literal
+    // como `bonus_pct_categoria: { premium: 1, ... }`) y no el cierre
+    // real del objeto completo.
+    for (const kind of ['insert', 'update', 'upsert']) {
+      const callMatch = after.match(new RegExp(`\\.${kind}\\(\\s*\\{`));
+      if (!callMatch) continue;
+      const openIdx = callMatch.index + callMatch[0].length - 1; // posición de la '{'
+      const body = extractBalancedBraces(after, openIdx);
+      if (body === null) continue;
+      const cols = parseObjectKeys(body);
       if (cols.length > 0)
-        refs.push({ file: filepath, line: lineNum, kind: 'insert', table, columns: cols, raw: insMatch[1] });
-    }
-
-    // .update({ key: val }) 
-    const updMatch = after.match(/\.update\(\s*\{([^}]{0,800})\}/s);
-    if (updMatch) {
-      const cols = parseObjectKeys(updMatch[1]);
-      if (cols.length > 0)
-        refs.push({ file: filepath, line: lineNum, kind: 'update', table, columns: cols, raw: updMatch[1] });
-    }
-
-    // .upsert({ key: val })
-    const upsMatch = after.match(/\.upsert\(\s*\{([^}]{0,800})\}/s);
-    if (upsMatch) {
-      const cols = parseObjectKeys(upsMatch[1]);
-      if (cols.length > 0)
-        refs.push({ file: filepath, line: lineNum, kind: 'upsert', table, columns: cols, raw: upsMatch[1] });
+        refs.push({ file: filepath, line: lineNum, kind, table, columns: cols, raw: body.slice(0, 200) });
     }
 
     // .eq('col', val) — solo capturar la columna del .eq encadenado al mismo from
@@ -215,15 +253,45 @@ function parseSelectCols(raw) {
   }).filter(Boolean);
 }
 
-/** Extraer keys de un objeto JS literal */
+/** Dado un string y el índice de una '{' de apertura, devuelve el contenido
+ *  entre esa llave y su cierre balanceado correspondiente (sin las llaves),
+ *  o null si no cierra dentro del string. */
+function extractBalancedBraces(str, openIdx) {
+  let depth = 0;
+  for (let i = openIdx; i < str.length; i++) {
+    const ch = str[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return str.slice(openIdx + 1, i);
+    }
+  }
+  return null; // no cerró dentro de la ventana
+}
+
+/** Extraer keys de PRIMER NIVEL de un objeto JS literal — las keys dentro
+ *  de un valor anidado (otro objeto/array, ej. un jsonb literal) NO son
+ *  columnas de la tabla y se ignoran. */
 function parseObjectKeys(objBody) {
   const keys = [];
-  // Matchear "key:" o "'key':" o `"key":`
-  const KEY_RE = /(?:^|,|\{)\s*(?:['"`]([^'"`]+)['"`]|([a-zA-Z_][a-zA-Z0-9_]*))\s*:/gm;
-  let m;
-  while ((m = KEY_RE.exec(objBody)) !== null) {
-    const key = (m[1] || m[2] || '').trim();
-    if (key && !key.startsWith('//')) keys.push(key);
+  // Partir por comas de nivel superior, igual criterio que parseSelectCols.
+  let depth = 0, cur = '';
+  const segments = [];
+  for (const ch of objBody) {
+    if (ch === '{' || ch === '[' || ch === '(') { depth++; cur += ch; }
+    else if (ch === '}' || ch === ']' || ch === ')') { depth--; cur += ch; }
+    else if (ch === ',' && depth === 0) { segments.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  if (cur.trim()) segments.push(cur);
+
+  const KEY_RE = /^\s*(?:['"`]([^'"`]+)['"`]|([a-zA-Z_][a-zA-Z0-9_]*))\s*:/;
+  for (const seg of segments) {
+    const m = seg.match(KEY_RE);
+    if (m) {
+      const key = (m[1] || m[2] || '').trim();
+      if (key && !key.startsWith('//')) keys.push(key);
+    }
   }
   return [...new Set(keys)];
 }

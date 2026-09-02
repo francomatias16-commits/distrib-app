@@ -7,6 +7,13 @@ let filtros = { proveedor_id: '', estado: '', desde: '', hasta: '' };
 let modalOrdenId = null;
 let itemsOC = []; // items en construcción
 
+// ── 543, Etapa 3: oferta de "Imprimir etiquetas de esta recepción" ─────
+// Guarda lo realmente recibido (producto_id + cantidad física recibida,
+// SIN capar a lo pendiente de la OC — para etiquetas interesa cuánto
+// entró físicamente, no cuánto quedó acreditado a la orden) para
+// precargar la cantidad de copias al abrir la vista previa.
+let _itemsUltimaRecepcion = []; // [{producto_id, cantidad_recibida}]
+
 // Paginación (el backend /api/compras ya soporta page/limit/total)
 let paginaActualOC   = 1;
 const itemsPorPaginaOC = 50;
@@ -138,10 +145,10 @@ window.guardarProveedorRapido       = guardarProveedorRapido;
 
 async function cargarProductos() {
   try {
-    const { data, error } = await sb.from('productos')
+    const { data, error } = await window.conTimeoutRed(sb.from('productos')
       .select('id, nombre, codigo, costo, unidad')
       .eq('activo', true)
-      .order('nombre');
+      .order('nombre'), 10000);
     if (error) throw error;
     productosData = data || [];
   } catch (err) {
@@ -396,10 +403,7 @@ function renderAccionesOC(o) {
     menu.innerHTML = items.join('');
     menu.dataset.ocId = ocId;
 
-    const r = btn.getBoundingClientRect();
-    menu.style.top   = `${r.bottom + 4}px`;
-    menu.style.left  = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -411,6 +415,13 @@ function renderAccionesOC(o) {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
   window.addEventListener('resize', cerrar);
   document.getElementById('tbody-compras')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en la tabla,
+  // pero en mobile (vista de tarjetas) el contenedor de la tabla no tiene
+  // su propio scroll interno — quien scrollea es la página completa
+  // (window/body). Sin este listener, al scrollear la página el menú se
+  // queda "flotando" en la posición vieja (donde estaba el botón "⋮"
+  // cuando se abrió), ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 function labelEstado(e) {
@@ -874,6 +885,7 @@ async function confirmarConExcedente() {
   const numero  = modal?.dataset.numero || '';
 
   const items = [];
+  const itemsParaEtiquetas = []; // 543, Etapa 3 — cantidad real recibida, sin capar a lo pendiente
   filas.forEach(fila => {
     const productoId = fila.dataset.producto;
     const pendiente  = parseFloat(fila.dataset.pendiente || 0);
@@ -882,6 +894,7 @@ async function confirmarConExcedente() {
     if (cantRecib <= 0) return;
     const aRecepcionar = Math.min(cantRecib, pendiente);
     if (aRecepcionar > 0) items.push({ producto_id: productoId, cantidad_recibida: aRecepcionar, precio_costo: costo });
+    itemsParaEtiquetas.push({ producto_id: productoId, cantidad_recibida: cantRecib });
   });
 
   const btn = document.getElementById('btn-confirmar-excedente');
@@ -902,14 +915,14 @@ async function confirmarConExcedente() {
     const depositoId = resultado.deposito_id;
     let excedentesOk = true, ultimoError = null;
     for (const e of excesos) {
-      const { data, error } = await sb.rpc('ajustar_stock', {
+      const { data, error } = await window.conTimeoutRed(sb.rpc('ajustar_stock', {
         p_producto_id: e.producto_id,
         p_deposito_id: depositoId,
         p_delta: e.exceso,
         p_tipo: 'ingreso',
         p_motivo: 'excedente_proveedor',
         p_notas: `Excedente de proveedor — OC ${numero || ''} (recibido por encima de lo pedido)`,
-      });
+      }), 10000);
       if (error || !data?.ok) { excedentesOk = false; ultimoError = error?.message || data?.error; }
     }
 
@@ -927,6 +940,9 @@ async function confirmarConExcedente() {
 
     modal.style.display = 'none';
     await cargarOrdenes();
+    // 543, Etapa 3 — acá sí con la cantidad real recibida (incluido el
+    // excedente), no la capada a lo pendiente que se mandó a la OC.
+    ofrecerEtiquetasRecepcion(itemsParaEtiquetas);
   } catch (err) {
     if (btn) { btn.disabled = false; btn.textContent = 'Confirmar de todos modos'; }
     mostrarToast(err.message || 'No se pudo procesar la recepción con excedente.', 'error');
@@ -966,6 +982,11 @@ async function _enviarRecepcion(items, silencioso = false) {
       mostrarToast(`Recepcionados ${data.items_procesados} producto(s). Stock actualizado.`, 'exito');
       modal.style.display = 'none';
       await cargarOrdenes();
+      // 543, Etapa 3 — ofrecer imprimir etiquetas de lo que se acaba de
+      // recibir. No aplica al flujo con excedente (confirmarConExcedente
+      // llama a esta misma función con silencioso=true y hace su propia
+      // oferta, con la cantidad real sin capar a lo pendiente).
+      ofrecerEtiquetasRecepcion(items);
     }
     return { ok: true, ...data };
   } catch (err) {
@@ -973,6 +994,42 @@ async function _enviarRecepcion(items, silencioso = false) {
     mostrarToast(err.message || 'No se pudo registrar la recepción', 'error');
     return { ok: false };
   }
+}
+
+// ── 543, Etapa 3: "Imprimir etiquetas de esta recepción" ───────────────
+// Se llama después de que la recepción ya quedó confirmada (stock
+// actualizado) — es un paso aparte y opcional, nunca bloquea la
+// recepción en sí. `items` es la lista con producto_id/cantidad_recibida
+// realmente recibida (ver los dos call sites, más abajo).
+function ofrecerEtiquetasRecepcion(items) {
+  const validos = (items || []).filter(it => it.producto_id && Number(it.cantidad_recibida) > 0);
+  if (!validos.length) return;
+
+  _itemsUltimaRecepcion = validos;
+
+  const n = validos.length;
+  const texto = document.getElementById('oferta-etiquetas-texto');
+  if (texto) {
+    texto.textContent = `Stock actualizado — ${n} producto${n === 1 ? '' : 's'} recibido${n === 1 ? '' : 's'}. ` +
+      '¿Querés imprimir sus etiquetas de precio/código de barras?';
+  }
+  const modal = document.getElementById('modal-oferta-etiquetas-recepcion');
+  if (modal) modal.style.display = 'flex';
+}
+
+// Abre la vista previa (etiquetas-preview.js, compartida con Productos)
+// con copias precargadas = cantidad física recibida de cada producto —
+// redondeada porque no tiene sentido "1.5 copias" (productos por peso
+// pueden recibirse con decimales, pero la copia de etiqueta es entera).
+async function imprimirEtiquetasDeRecepcion() {
+  document.getElementById('modal-oferta-etiquetas-recepcion').style.display = 'none';
+  if (!_itemsUltimaRecepcion.length || !window.EtiquetasPreview) return;
+
+  const ids = _itemsUltimaRecepcion.map(it => it.producto_id);
+  const copiasPorId = Object.fromEntries(
+    _itemsUltimaRecepcion.map(it => [it.producto_id, Math.max(1, Math.round(Number(it.cantidad_recibida) || 1))])
+  );
+  await window.EtiquetasPreview.abrir(ids, copiasPorId);
 }
 
 function cancelarExcedenteRecepcion() {

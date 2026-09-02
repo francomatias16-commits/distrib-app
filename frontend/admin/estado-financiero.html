@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado Financiero Integral - Distribuidora</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4">
+    <link rel="stylesheet" href="/frontend/admin/css/reportes.css?v=mtcen4r4">
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/estado-financiero-gentelella.css?v=mtcen4r4" />
+<script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-estado-financiero-gentelella dash-gentelella">
+    <!-- Sidebar -->
+        <div id="nav-root"></div>
+
+        <!-- Main Content -->
+        <div class="layout">
+              <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Estado financiero integral</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+  Ingresos por canal, egresos por categoría, resultado del período y patrimonio neto aproximado — todo en una sola vista, con vista Día / Mes / Año.
+</div>
+
+            <div class="content-area">
+                <!-- Filtros -->
+                <div class="filtros-section">
+                    <div class="filtro-group">
+                        <label>Vista:</label>
+                        <select id="filtroAgrupacion">
+                            <option value="dia">Día</option>
+                            <option value="mes" selected>Mes</option>
+                            <option value="anio">Año</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Desde:</label>
+                        <input type="date" id="filtroFechaInicio" aria-label="Fecha inicio">
+                    </div>
+                    <div class="filtro-group">
+                        <label>Hasta:</label>
+                        <input type="date" id="filtroFechaFin" aria-label="Fecha fin">
+                    </div>
+                    <div class="filtro-group filtro-group--btn">
+                        <label>&nbsp;</label>
+                        <button type="button" id="btnAplicarFiltros" class="btn btn--primary">Aplicar</button>
+                    </div>
+                </div>
+
+                <!-- Resultado del período -->
+                <section class="manifiesto">
+                  <header class="manifiesto-head">
+                    <h2 class="manifiesto-titulo">Resultado del período</h2>
+                    <span class="manifiesto-partidas">03 partidas</span>
+                  </header>
+                  <div class="manifiesto-body manifiesto-body--3">
+                    <div class="linea">
+                      <span class="linea-n">01</span>
+                      <h3 class="linea-label">Ingresos Totales</h3>
+                      <p class="linea-valor dato-mono" id="kpiIngresos">$0</p>
+                      <span class="linea-delta linea-caption">todos los canales</span>
+                      <div class="linea-bar"><span id="kpiBarIngresos"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">02</span>
+                      <h3 class="linea-label">Egresos Totales</h3>
+                      <p class="linea-valor dato-mono" id="kpiEgresos">$0</p>
+                      <span class="linea-delta linea-caption">gastos + pagos a proveedores</span>
+                      <div class="linea-bar"><span id="kpiBarEgresos"></span></div>
+                    </div>
+                    <div class="linea" id="lineaResultado">
+                      <span class="linea-n">03</span>
+                      <h3 class="linea-label">Resultado Neto</h3>
+                      <p class="linea-valor dato-mono" id="kpiResultado">$0</p>
+                      <span class="linea-delta linea-caption">ingresos - egresos</span>
+                      <div class="linea-bar"><span id="kpiBarResultado"></span></div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Patrimonio Neto -->
+                <section class="manifiesto" id="franjaPatrimonio">
+                  <header class="manifiesto-head">
+                    <h2 class="manifiesto-titulo">Patrimonio neto (foto aproximada)</h2>
+                    <span class="manifiesto-partidas">03 partidas</span>
+                  </header>
+                  <div class="manifiesto-body manifiesto-body--3">
+                    <div class="linea">
+                      <span class="linea-n">01</span>
+                      <h3 class="linea-label">Activo</h3>
+                      <p class="linea-valor dato-mono" id="kpiActivo">$0</p>
+                      <span class="linea-delta linea-caption">caja + por cobrar + stock</span>
+                      <div class="linea-bar"><span id="kpiBarActivo"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">02</span>
+                      <h3 class="linea-label">Pasivo</h3>
+                      <p class="linea-valor dato-mono" id="kpiPasivo">$0</p>
+                      <span class="linea-delta linea-caption">deuda a proveedores</span>
+                      <div class="linea-bar"><span id="kpiBarPasivo"></span></div>
+                    </div>
+                    <div class="linea">
+                      <span class="linea-n">03</span>
+                      <h3 class="linea-label">Patrimonio Neto</h3>
+                      <p class="linea-valor dato-mono" id="kpiPatrimonioNeto">$0</p>
+                      <span class="linea-delta linea-caption">activo - pasivo</span>
+                      <div class="linea-bar"><span id="kpiBarPatrimonioNeto"></span></div>
+                    </div>
+                  </div>
+                  <details class="patrimonio-detalle">
+                    <summary>Ver detalle de activo y pasivo</summary>
+                    <div class="patrimonio-detalle-tabla" id="patrimonioDetalleTabla"></div>
+                  </details>
+                  <p class="patrimonio-nota">Foto gerencial aproximada a la fecha de corte, no es un balance contable de partida doble — no reemplaza a tu contador.</p>
+                </section>
+
+                <!-- Gráfico de evolución -->
+                <div class="chart-section">
+                    <h2>Evolución de ingresos, egresos y resultado</h2>
+                    <div class="chart-section-wrap">
+                        <div id="chartEvolucion" class="chart-section-el"></div>
+                    </div>
+                </div>
+
+                <!-- Ingresos por canal -->
+                <div class="ranking-section">
+                    <h2>Ingresos por canal</h2>
+                    <div class="tabla-wrap table-responsive-cards">
+                    <table class="tabla-admin" id="tabla-fin-canal">
+                        <thead>
+                            <tr>
+                                <th>Canal</th>
+                                <th class="col-fit">Cantidad</th>
+                                <th class="col-fit">Total</th>
+                                <th class="col-fit">% del total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCanal">
+                            <tr><td colspan="4" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    </div><!-- /tabla-wrap -->
+                </div>
+
+                <!-- Egresos por categoría -->
+                <div class="ranking-section">
+                    <h2>Egresos por categoría</h2>
+                    <div class="tabla-wrap table-responsive-cards">
+                    <table class="tabla-admin" id="tabla-fin-egresos-categoria">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th class="col-fit">Total</th>
+                                <th class="col-fit">% del total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyEgresosCategoria">
+                            <tr><td colspan="3" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    </div><!-- /tabla-wrap -->
+                </div>
+
+                <!-- Detalle por período (día/mes/año, según la vista elegida) -->
+                <div class="ranking-section">
+                    <h2>Detalle por período</h2>
+                    <div class="tabla-wrap table-responsive-cards">
+                    <table class="tabla-admin" id="tabla-fin-serie">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th class="col-fit">Cant. Ventas</th>
+                                <th class="col-fit">Ingresos</th>
+                                <th class="col-fit">Egresos</th>
+                                <th class="col-fit">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodySerie">
+                            <tr><td colspan="5" class="loading">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                    </div><!-- /tabla-wrap -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/frontend/env-config.js?v=mtcen4r4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="/frontend/shared/echarts-gentelella-theme.js?v=mtcen4r4"></script>
+    <script src="/frontend/shared/echarts-wrapper.js?v=mtcen4r4"></script>
+    <script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'contador'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
+    <!-- api-client.js: hasta ahora solo lo cargaba dashboard.html (ver nota en
+         el propio archivo); esta página también pega contra el backend
+         (/api/admin/estado-financiero, migración 564) así que lo suma. -->
+    <script src="/frontend/admin/js/api-client.js?v=mtcen4r4"></script>
+    <script src="/frontend/admin/js/estado-financiero.js?v=mtcen4r4"></script>
+</body>
+</html>

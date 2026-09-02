@@ -105,18 +105,24 @@ function resumirResultado(path, r) {
     .filter(([codigo]) => Number(codigo) >= 500)
     .reduce((acc, [, stats]) => acc + stats.count, 0);
   const timeouts = r.timeouts || 0;
+  const errores = r.errors || 0;
   const p99 = r.latency?.p99 ?? 0;
 
-  const problema = timeouts > 0 || status5xx > 0 || p99 > UMBRAL_LATENCIA_P99_MS;
+  // errores > 0 cubre fallas de conexión (ECONNREFUSED, ECONNRESET, socket
+  // hang up, etc.) que autocannon cuenta aparte de los 5xx y de los
+  // timeouts — sin este chequeo, un servidor caído (0 requests completados,
+  // miles de conexiones rechazadas) pasaba como "OK" porque no había ni
+  // 5xx ni timeouts ni latencia que evaluar.
+  const problema = timeouts > 0 || status5xx > 0 || errores > 0 || p99 > UMBRAL_LATENCIA_P99_MS;
 
   console.log(
     `${problema ? '✗' : '✓'} ${path}\n` +
     `    req/s: ${r.requests?.average?.toFixed(1) ?? '-'}` +
     `  |  latencia p50/p99: ${r.latency?.p50 ?? '-'}ms / ${p99}ms` +
-    `  |  errores: ${r.errors || 0}  |  timeouts: ${timeouts}  |  5xx: ${status5xx}`
+    `  |  errores: ${errores}  |  timeouts: ${timeouts}  |  5xx: ${status5xx}`
   );
   if (problema) {
-    console.log(`    → revisar: ${timeouts > 0 ? 'hubo timeouts. ' : ''}${status5xx > 0 ? `${status5xx} respuestas 5xx. ` : ''}${p99 > UMBRAL_LATENCIA_P99_MS ? `p99 (${p99}ms) supera el umbral de ${UMBRAL_LATENCIA_P99_MS}ms.` : ''}`);
+    console.log(`    → revisar: ${errores > 0 ? `${errores} errores de conexión (¿servidor caído en BASE_URL?). ` : ''}${timeouts > 0 ? 'hubo timeouts. ' : ''}${status5xx > 0 ? `${status5xx} respuestas 5xx. ` : ''}${p99 > UMBRAL_LATENCIA_P99_MS ? `p99 (${p99}ms) supera el umbral de ${UMBRAL_LATENCIA_P99_MS}ms.` : ''}`);
   }
 
   return !problema;

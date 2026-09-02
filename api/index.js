@@ -87,6 +87,7 @@ const LOADERS = {
   ciclos:                  () => import('../lib/handlers/ciclos.js'),
   clientes:                () => import('../lib/handlers/clientes.js'),
   empresa:                 () => import('../lib/handlers/empresa.js'),
+  etiquetas:               () => import('../lib/handlers/etiquetas.js'), // 543 — config del generador de etiquetas de precio/código de barras
   facturas:                () => import('../lib/handlers/facturas.js'),
   importar:                () => import('../lib/handlers/importar.js'),
   'auto-imagenes':         () => import('../lib/handlers/auto-imagenes.js'), // Auto-carga de fotos de productos (barcode → banco de fotos → ícono fallback en frontend)
@@ -108,14 +109,18 @@ const LOADERS = {
   usuarios:                () => import('../lib/handlers/usuarios.js'), // Etapa 14 (auditoría UX) — alta/gestión de usuarios internos
   'chofer-invitacion':     () => import('../lib/handlers/chofer_invitacion.js'), // Repartos — invitación de choferes por link/WhatsApp
   saas:                    () => import('../lib/handlers/saas.js'), // §3 Panel superadmin SaaS
+  'saas-alertas':          () => import('../lib/handlers/saas-alertas.js'), // Aviso por email al dueño de la plataforma cuando se registra un tenant nuevo (trigger 548)
   'export-contable':       () => import('../lib/handlers/export-contable.js'), // Etapa 6 — export contable (Tango/Bejerman/Contabilium)
   'reglas-precio':         () => import('../lib/handlers/reglas-precio.js'), // Etapa 2: CRUD de reglas_precio (243)
   'gastos-generales':      () => import('../lib/handlers/gastos-generales.js'), // CRUD de gastos_generales (479) — Ganancia Neta
   'reglas-automatizacion': () => import('../lib/handlers/reglas-automatizacion.js'), // Fase 6 (plan ERP de sincronización)
   'conciliacion-bancaria': () => import('../lib/handlers/conciliacion-bancaria.js'), // Etapa 3 — conciliación bancaria (248)
+  retencion:               () => import('../lib/handlers/retencion.js'), // Etapa 2 del plan de robustez/escalabilidad — archivado+purga de notif_log/eventos_negocio/audit_log
   fidelizacion:            () => import('../lib/handlers/fidelizacion.js'), // Etapa 13 (auditoría UX) H1 — canje de recompensas desde el portal cliente
   maestros:                () => import('../lib/handlers/maestros.js'), // ABM de zonas, depósitos, listas de precio y categorías
   'banco-codigos':         () => import('../lib/handlers/banco-codigos.js'), // 440 — banco de códigos de barras compartido entre empresas
+  'captura-competencia':   () => import('../lib/handlers/captura-competencia.js'), // 551/552 — Fase 1 (PLAN_CAPTURA_COMPETENCIA.md): captura y comparación de factura de competencia en el mostrador
+  'prospectos-competencia': () => import('../lib/handlers/prospectos-competencia.js'), // 557 — Fase 3 (PLAN_CAPTURA_COMPETENCIA.md, Capa 1): prospección geográfica sobre rutas existentes
 };
 
 // Cache de módulos ya cargados en ESTE lambda (sobrevive entre invocaciones
@@ -136,39 +141,99 @@ async function cargarHandler(mod) {
   return fn;
 }
 
+// Umbral de alerta de duración (Etapa 6, plan de robustez): 45s sobre un
+// límite de función de 60s (Hobby/Pro). La idea es ver en los logs los
+// candidatos a 504 ANTES de que efectivamente truncen, no solo contar los
+// 504 que ya pasaron. 45s = 75% del límite, deja margen para reaccionar.
+const UMBRAL_ALERTA_DURACION_MS = 45_000;
+
+// Nombres de query param usados en distintos handlers para sub-rutear
+// dentro de un mismo módulo (ver comentario de cabecera del archivo).
+// Se listan en orden de prioridad; el primero que aparezca en la request
+// se usa como "sub-ruta" en el log de duración.
+const PARAMS_SUB_RUTA = ['_ruta', '_svc', 'accion', 'recurso', 'tipo'];
+
+function obtenerSubRuta(req) {
+  for (const p of PARAMS_SUB_RUTA) {
+    if (req.query[p]) return req.query[p];
+  }
+  return null;
+}
+
+// [PERF] Etapa 6 (plan de robustez/escalabilidad) — instrumentación mínima
+// de duración por request. Objetivo: acumular tráfico real para poder medir
+// p95/p99 por módulo/sub-ruta y detectar qué endpoints se acercan al límite
+// de 60s de Vercel, algo que hoy no se podía calcular (sin esto, no había
+// ningún dato de duración en los logs — ver Runtime Logs de Vercel, que solo
+// tienen texto de errores/console.log puntuales, nada de timing).
+// Formato de línea pensado para ser grepeable: query="[PERF]" en
+// get_runtime_logs, o group_by no aplica acá porque duration_ms es
+// continuo — hay que traer líneas crudas y calcular percentiles aparte.
+function logDuracion(req, res, mod, inicioMs) {
+  const duration_ms = Date.now() - inicioMs;
+  const subRuta = obtenerSubRuta(req);
+  const linea = `[PERF] mod=${mod ?? '(none)'} ruta=${subRuta ?? '-'} method=${req.method} status=${res.statusCode} duration_ms=${duration_ms}`;
+
+  if (duration_ms >= UMBRAL_ALERTA_DURACION_MS) {
+    // console.warn en vez de console.log a propósito: separa esto de las
+    // ~5000 líneas de ruido de [PERF] normal cuando alguien filtre por
+    // level=warning en get_runtime_logs.
+    console.warn(`${linea} ⚠️ cerca del límite de 60s (umbral ${UMBRAL_ALERTA_DURACION_MS}ms)`);
+  } else {
+    console.log(linea);
+  }
+}
+
 export default async function handler(req, res) {
+  const inicioMs = Date.now();
   const mod = req.query._mod;
 
-  const fn = await cargarHandler(mod);
+  try {
+    const fn = await cargarHandler(mod);
 
-  if (!fn) {
-    // Sin CORS wildcard — applyCorsHeaders ya aplicó el origen correcto arriba
-    return res.status(404).json({ error: `Módulo de API desconocido: ${mod ?? '(sin especificar)'}` });
-  }
-
-  // Body manual: con bodyParser desactivado (ver arriba), a nadie le llega
-  // req.body salvo que lo armemos acá. Métodos sin body (GET/HEAD) se
-  // saltean directamente. req.rawBody queda disponible para quien necesite
-  // los bytes exactos (hoy: la validación de firma del webhook de WhatsApp).
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    try {
-      const raw = await leerRawBody(req);
-      req.rawBody = raw; // Buffer — notif.js lo usa tal cual para el HMAC
-      req.body = raw.length ? JSON.parse(raw.toString('utf8')) : {};
-    } catch (err) {
-      return res.status(400).json({ error: 'Body inválido: se esperaba JSON' });
+    if (!fn) {
+      // Sin CORS wildcard — applyCorsHeaders ya aplicó el origen correcto arriba
+      res.status(404).json({ error: `Módulo de API desconocido: ${mod ?? '(sin especificar)'}` });
+      return;
     }
 
-    // 456 — Usuario demo (solo_lectura=true, ver migración 456): corta acá
-    // cualquier mutación ANTES de llegar al handler, sin tener que tocar
-    // los ~35 handlers uno por uno. bloquearSiSoloLectura ya responde el
-    // 403 por su cuenta cuando corresponde.
-    if (await bloquearSiSoloLectura(req, res)) return;
-  }
+    // Body manual: con bodyParser desactivado (ver arriba), a nadie le llega
+    // req.body salvo que lo armemos acá. Métodos sin body (GET/HEAD) se
+    // saltean directamente. req.rawBody queda disponible para quien necesite
+    // los bytes exactos (hoy: la validación de firma del webhook de WhatsApp).
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      try {
+        const raw = await leerRawBody(req);
+        req.rawBody = raw; // Buffer — notif.js lo usa tal cual para el HMAC
+        req.body = raw.length ? JSON.parse(raw.toString('utf8')) : {};
+      } catch (err) {
+        res.status(400).json({ error: 'Body inválido: se esperaba JSON' });
+        return;
+      }
 
-  try {
+      // 456 — Usuario demo (solo_lectura=true, ver migración 456): corta acá
+      // cualquier mutación ANTES de llegar al handler, sin tener que tocar
+      // los ~35 handlers uno por uno. bloquearSiSoloLectura ya responde el
+      // 403 por su cuenta cuando corresponde.
+      if (await bloquearSiSoloLectura(req, res)) return;
+    }
+
     return await fn(req, res);
   } catch (err) {
+    // FIX — ver lib/auth-helpers.js (verificarToken): un timeout real del
+    // servicio de Auth de Supabase ahora llega hasta acá como excepción
+    // (antes se confundía con "token inválido" y respondía 401, disparando
+    // un logout falso en el frontend). Se responde 503 — mismo criterio y
+    // mismo mensaje que ya usa admin.js para este caso — en vez de caer en
+    // el 500 genérico de abajo.
+    if (err?.esTimeoutAuth) {
+      if (!res.headersSent) {
+        res.status(503).json({ error: err.message, codigo: 'TIMEOUT_AUTH' });
+      }
+      logDuracion(req, res, mod, inicioMs);
+      return;
+    }
+
     // BUG-03 (auditoría v194, P0): antes se mandaba err?.message directo al
     // cliente en el 500. Eso puede filtrar detalles internos (nombres de
     // tabla, fragmentos de query SQL, stack de librerías) a cualquiera que
@@ -189,5 +254,10 @@ export default async function handler(req, res) {
     if (!res.headersSent) {
       res.status(500).json({ error: 'Error interno del servidor', correlation_id: correlationId });
     }
+  } finally {
+    // finally corre siempre: éxito, 404, 400 de body inválido, bloqueo por
+    // solo-lectura, o el catch de arriba. Un solo punto de log, sin
+    // duplicar la línea [PERF] en cada return posible.
+    logDuracion(req, res, mod, inicioMs);
   }
 }

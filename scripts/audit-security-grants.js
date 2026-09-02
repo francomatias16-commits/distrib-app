@@ -76,14 +76,21 @@ async function main() {
   log(`Vistas encontradas: ${(vistas || []).length}\n`);
 
   if (funcionesRiesgo.length) {
-    log(`${C.r}⚠  ${funcionesRiesgo.length} función(es) SECURITY DEFINER de riesgo — invocable(s) por anon/authenticated sin evidencia de filtro por empresa_id:${C.x}`);
+    log(`${C.r}⚠  ${funcionesRiesgo.length} función(es) SECURITY DEFINER de riesgo:${C.x}`);
     for (const f of funcionesRiesgo) {
-      log(`   - ${f.funcion}(${f.argumentos})`);
-      log(`     anon=${f.anon_puede_ejecutar} authenticated=${f.authenticated_puede_ejecutar} search_path_fijo=${f.tiene_search_path_fijo}`);
+      const motivo = f.muta_datos && !f.parece_verificar_rol
+        ? 'muta datos y NO verifica rol (patrón fn_crear_producto, 2026-08-28)'
+        : 'sin evidencia de filtro por empresa_id ni verificación de rol';
+      log(`   - ${f.funcion}(${f.argumentos}) — ${motivo}`);
+      log(`     anon=${f.anon_puede_ejecutar} authenticated=${f.authenticated_puede_ejecutar} muta_datos=${f.muta_datos} filtra_tenant=${f.parece_filtrar_por_tenant} verifica_rol=${f.parece_verificar_rol} search_path_fijo=${f.tiene_search_path_fijo}`);
     }
-    log('   → Si nada en el código llama estas RPCs directo desde el cliente (solo desde handlers con');
-    log('     SUPABASE_SERVICE_ROLE_KEY), lo más simple es: REVOKE EXECUTE ... FROM anon, authenticated;');
-    log('     Mismo patrón que las migraciones 135/136/142.\n');
+    log('   → Si es una mutación sin verificación de rol, agregar el chequeo');
+    log('     (mismo patrón que fn_guardar_combo / fn_combo_set_activo). Si no debería');
+    log('     ser invocable desde el cliente: REVOKE EXECUTE ... FROM anon, authenticated;');
+    log('   → Si es un falso positivo revisado (helper de RLS, panel superadmin, o');
+    log('     mutación donde "cualquier empleado de la empresa" es la política de negocio');
+    log('     intencional), agregarlo al array en_allowlist_revisado dentro de la RPC');
+    log('     audit_security_definer_grants (migración audit_security_grants_v3).\n');
   } else {
     log(`${C.g}[OK] Ninguna función SECURITY DEFINER de riesgo evidente.${C.x}\n`);
   }

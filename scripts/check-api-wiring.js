@@ -81,11 +81,25 @@ const jsFiles = findJsFiles(path.join(ROOT, 'frontend')).sort();
 // Matchea fetch('/api/...'), fetch("/api/..."), fetch(`/api/...`)
 const FETCH_RE = /fetch\(\s*[`'"](\/api\/[^`'"]*)[`'"]/g;
 
+// Encontrado en producción (2026-08-28): un comentario en sw-admin.js que
+// menciona literalmente `fetch('/api/...')` como ejemplo de texto se
+// detectaba como llamada real y tiraba un falso [FAIL]. Se despoja el
+// contenido de comentarios `//` y `/* */` antes de escanear — heurística
+// simple (no distingue un `//` dentro de un string), suficiente para este
+// check estático, cuyo alcance ya está documentado como no exhaustivo.
+function despojarComentarios(codigo) {
+  return codigo
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .map(linea => linea.replace(/\/\/.*$/, ''))
+    .join('\n');
+}
+
 const frontendCalls = []; // { file, raw, normalized }
 
 for (const jsFile of jsFiles) {
   const relJs = '/' + path.relative(ROOT, jsFile).replace(/\\/g, '/');
-  const src = fs.readFileSync(jsFile, 'utf8');
+  const src = despojarComentarios(fs.readFileSync(jsFile, 'utf8'));
   let m;
   FETCH_RE.lastIndex = 0;
   while ((m = FETCH_RE.exec(src))) {

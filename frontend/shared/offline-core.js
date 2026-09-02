@@ -708,6 +708,30 @@ var OfflineCore = (function () {
       return true;
     }
 
+    // Etapa 5 (OFFLINE-03) — progreso parcial dentro de una acción en curso.
+    // Algunas acciones hacen más de una llamada de red antes de completarse
+    // (ej. chofer: subir firma/foto a Storage y RECIÉN DESPUÉS hacer el
+    // PATCH de entrega, que es el que el servidor deduplica por
+    // offline_local_id). Si la conexión se corta entre esos dos pasos, un
+    // reintento ingenuo desde cero repite la subida de los mismos archivos:
+    // no rompe nada (el PATCH sigue siendo idempotente), pero con mala
+    // señal — el escenario típico de estas acciones — esto acumula archivos
+    // huérfanos en el bucket en cada intento fallido a mitad de camino.
+    // guardarProgresoParcial() deja que procesarAccion persista lo que ya
+    // logró (ej. las URLs ya subidas) directo en el registro de la cola,
+    // ANTES de intentar el resto — así el próximo intento puede leerlo de
+    // `accion.progreso` y no repetir el trabajo ya hecho. Se mergea (no
+    // reemplaza) para que llamadas sucesivas de la misma acción puedan ir
+    // sumando progreso sin pisarse.
+    async function guardarProgresoParcial(local_id, progresoParcial) {
+      const reg = await db.outbox.get(local_id);
+      if (!reg) return;
+      await db.outbox.update(local_id, {
+        progreso:   { ...(reg.progreso || {}), ...(progresoParcial || {}) },
+        updated_at: new Date().toISOString(),
+      });
+    }
+
     async function _marcarSincronizado(local_id, resultado) {
       await db.outbox.update(local_id, {
         estado:     'sincronizado',
@@ -897,6 +921,8 @@ var OfflineCore = (function () {
       confirmarCuarentena,
       descartarCuarentena,
       estaOnline: () => _estado.online,
+      // Etapa 5 (OFFLINE-03) — ver definición arriba.
+      guardarProgresoParcial,
     };
   }
 

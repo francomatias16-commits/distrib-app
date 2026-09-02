@@ -194,11 +194,11 @@ class ProductoPicker {
   // ── Cargar datos ─────────────────────────────────────────────────────────
   async _cargarCategorias() {
     try {
-      const { data, error } = await this._sb.from('categorias')
+      const { data, error } = await window.conTimeoutRed(this._sb.from('categorias')
         .select('id, nombre')
         .eq('empresa_id', this._empresaId)
         .eq('activa', true)
-        .order('orden');
+        .order('orden'), 10000);
       if (error) { console.warn('[ProductoPicker] categorias:', error.message); return; }
       this._categorias = data || [];
       this._pintarChips();
@@ -220,11 +220,11 @@ class ProductoPicker {
         </div>`;
     }
     try {
-      const { data, error } = await this._sb.from('productos')
+      const { data, error } = await window.conTimeoutRed(this._sb.from('productos')
         .select('id, codigo, nombre, unidad, precio_base, categoria_id, foto_url, activo')
         .eq('empresa_id', this._empresaId)
         .eq('activo', true)
-        .order('nombre');
+        .order('nombre'), 10000);
       if (error) throw error;
       this._productos = data || [];
       this._pintarGrid();
@@ -248,11 +248,11 @@ class ProductoPicker {
   // carga no debe romper el picker de productos sueltos.
   async _cargarCombos() {
     try {
-      const { data, error } = await this._sb.from('combos')
+      const { data, error } = await window.conTimeoutRed(this._sb.from('combos')
         .select('id, nombre, descripcion, precio, foto_url, activo, combo_items(producto_id, cantidad, productos(nombre))')
         .eq('empresa_id', this._empresaId)
         .eq('activo', true)
-        .order('nombre');
+        .order('nombre'), 10000);
       if (error) { console.warn('[ProductoPicker] combos:', error.message); return; }
       this._combos = data || [];
       this._pintarChips();

@@ -20,7 +20,7 @@ window.ENV = {
   // configuración ya creada en el panel de Meta. El App Secret NUNCA va
   // acá, vive solo como variable de entorno del backend (WA_APP_SECRET).
   WA_APP_ID:             '2765961223784707',    // app "empresa" (Business-type, confirmada Etapa 7.1)
-  WA_EMBEDDED_CONFIG_ID: '28288615890741251',   // "ES Config", creada 11 jul 2026 (corregido v288: tenía un dígito "8" de más)
+  WA_EMBEDDED_CONFIG_ID: '1408147427895687',    // migración a Embedded Signup v4 (config con plantilla "60 Expiration Token", creada 29 ago 2026 — reemplaza la v2/v3 previa por el deprecation del 15/10/2026)
 
   // ── Sentry (Fase 4.1, plan de acción) — error tracking del frontend ──
   // Igual que el resto de las claves de este archivo, el DSN de Sentry no

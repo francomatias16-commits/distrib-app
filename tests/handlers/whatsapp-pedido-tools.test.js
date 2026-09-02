@@ -200,7 +200,7 @@ describe('agregar_item / quitar_item', () => {
     const r = await ejecutarToolPedidoWhatsApp('agregar_item', {
       empresaId: EMPRESA_ID,
       conversacionId: CONVERSACION_ID,
-      args: { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 },
+      args: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }] },
     });
 
     expect(r.items).toEqual([{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }]);
@@ -221,10 +221,97 @@ describe('agregar_item / quitar_item', () => {
     const r = await ejecutarToolPedidoWhatsApp('agregar_item', {
       empresaId: EMPRESA_ID,
       conversacionId: CONVERSACION_ID,
-      args: { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 1, precio: 100 },
+      args: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 1, precio: 100 }] },
     });
 
     expect(r.items).toEqual([{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }]);
+  });
+
+  // FIX (2026-08-30, batch): antes se necesitaba una tool call por
+  // producto — ver comentario de cabecera de agregar_item en
+  // whatsapp-pedido-tools.js. Este test es el caso que motivó el cambio:
+  // "2 aceites y 3 harinas" en un solo mensaje del cliente, resuelto en
+  // UN solo llamado a la tool con dos elementos en `items`.
+  it('agrega varios productos en un solo llamado (batch), incluyendo uno que ya estaba en el borrador', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) {
+          return { data: { pedido_borrador: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 2, precio: 100 }] } }, error: null };
+        }
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('agregar_item', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: {
+        items: [
+          { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 1, precio: 100 }, // suma sobre lo existente
+          { producto_id: 'p2', nombre: 'Harina 1kg', cantidad: 3, precio: 50 }, // nuevo
+        ],
+      },
+    });
+
+    expect(r.items).toEqual([
+      { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 },
+      { producto_id: 'p2', nombre: 'Harina 1kg', cantidad: 3, precio: 50 },
+    ]);
+  });
+
+  it('suma correctamente si el batch trae dos veces el mismo producto_id', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) return { data: { pedido_borrador: { items: [] } }, error: null };
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('agregar_item', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: {
+        items: [
+          { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 2, precio: 100 },
+          { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 1, precio: 100 },
+        ],
+      },
+    });
+
+    expect(r.items).toEqual([{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }]);
+  });
+
+  // Red de seguridad: un modelo (sobre todo los gratuitos de Groq/
+  // OpenRouter) puede no seguir el schema nuevo al pie de la letra y
+  // seguir mandando el shape viejo (producto_id suelto, sin envolver en
+  // items). No debería romper la tool call entera.
+  it('acepta el shape viejo (producto_id suelto, sin items) como fallback defensivo', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) return { data: { pedido_borrador: { items: [] } }, error: null };
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('agregar_item', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 },
+    });
+
+    expect(r.items).toEqual([{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }]);
+  });
+
+  it('rechaza si no viene ningún producto (ni items ni el shape viejo)', async () => {
+    await expect(
+      ejecutarToolPedidoWhatsApp('agregar_item', { empresaId: EMPRESA_ID, conversacionId: CONVERSACION_ID, args: {} })
+    ).rejects.toThrow('agregar_item: no se recibió ningún producto en items');
   });
 
   it('quita un producto del borrador', async () => {
@@ -246,6 +333,102 @@ describe('agregar_item / quitar_item', () => {
     });
 
     expect(r.items).toEqual([]);
+  });
+});
+
+// FIX (2026-08-30): antes, "dejar en N unidades" un producto ya agregado
+// requería encadenar quitar_item + agregar_item (agregar_item SUMA, no
+// reemplaza) — el modelo no siempre lo resolvía bien ante un pedido
+// ambiguo del cliente (ej. tras un "Stock insuficiente", el cliente
+// contesta "dejalo en 3" y el modelo no tiene forma directa de fijar la
+// cantidad exacta). modificar_cantidad la fija en un solo llamado.
+describe('modificar_cantidad', () => {
+  it('cambia la cantidad a un valor exacto (no suma) para un producto existente', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) {
+          return { data: { pedido_borrador: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 5, precio: 100 }] } }, error: null };
+        }
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('modificar_cantidad', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: { producto_id: 'p1', cantidad: 3 },
+    });
+
+    expect(r.items).toEqual([{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 }]);
+  });
+
+  it('quita el producto si la cantidad nueva es 0 o menor (mismo resultado que quitar_item)', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) {
+          return { data: { pedido_borrador: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 5, precio: 100 }] } }, error: null };
+        }
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('modificar_cantidad', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: { producto_id: 'p1', cantidad: 0 },
+    });
+
+    expect(r.items).toEqual([]);
+  });
+
+  it('no toca otros productos del borrador', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = (() => {
+      let llamada = 0;
+      return () => {
+        llamada += 1;
+        if (llamada === 1) {
+          return {
+            data: {
+              pedido_borrador: {
+                items: [
+                  { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 5, precio: 100 },
+                  { producto_id: 'p2', nombre: 'Harina 1kg', cantidad: 2, precio: 50 },
+                ],
+              },
+            },
+            error: null,
+          };
+        }
+        return { error: null };
+      };
+    })();
+
+    const r = await ejecutarToolPedidoWhatsApp('modificar_cantidad', {
+      empresaId: EMPRESA_ID,
+      conversacionId: CONVERSACION_ID,
+      args: { producto_id: 'p1', cantidad: 3 },
+    });
+
+    expect(r.items).toEqual([
+      { producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 3, precio: 100 },
+      { producto_id: 'p2', nombre: 'Harina 1kg', cantidad: 2, precio: 50 },
+    ]);
+  });
+
+  it('rechaza si el producto no está en el borrador actual', async () => {
+    dbMock.fromResponses.whatsapp_conversaciones = { data: { pedido_borrador: { items: [] } }, error: null };
+
+    await expect(
+      ejecutarToolPedidoWhatsApp('modificar_cantidad', {
+        empresaId: EMPRESA_ID,
+        conversacionId: CONVERSACION_ID,
+        args: { producto_id: 'p1', cantidad: 3 },
+      })
+    ).rejects.toThrow('modificar_cantidad: ese producto no está en el borrador actual');
   });
 });
 

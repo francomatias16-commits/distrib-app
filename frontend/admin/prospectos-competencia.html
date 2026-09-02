@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redirigiendo...</title>
+  <!-- FIX: Favicon para evitar 404 -->
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <meta http-equiv="refresh" content="0; url=/admin/captura-competencia?vista=prospeccion" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
+</head>
+<body>
+  <!--
+    Fusión UX (mismo criterio que cta-cte.html → cobranzas): "Captura de
+    competencia" y "Prospección de competencia" (Fase 3, Capa 1 de
+    PLAN_CAPTURA_COMPETENCIA.md) dejaron de ser dos páginas/secciones de
+    menú separadas — son dos pestañas de la misma puerta de entrada
+    (/admin/captura-competencia, ver cambiarVistaPrincipal). Este archivo
+    queda solo como redirección para no romper links viejos (nav-data.js,
+    api/index.js) y bookmarks guardados por el equipo.
+  -->
+  <script>window.location.replace('/admin/captura-competencia?vista=prospeccion' + window.location.search.replace(/^\?/, '&'));</script>
+  <p>Redirigiendo a <a href="/admin/captura-competencia?vista=prospeccion">Captura y prospección de competencia</a>...</p>
+</body>
+</html>

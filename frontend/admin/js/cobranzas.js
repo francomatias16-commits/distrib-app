@@ -46,12 +46,12 @@ async function cargarDatos() {
 
   try {
     // Cobros de hoy (ya acotado por fecha, no necesita cambios)
-    const { data: cobrosData } = await _sb
+    const { data: cobrosData } = await window.conTimeoutRed(_sb
       .from('cta_cte')
       .select('*,clientes(razon_social,nombre_fantasia)')
       .eq('empresa_id', window.authCtx?.perfil?.empresa_id)
       .eq('tipo', 'cobro')
-      .eq('fecha_date', hoyStr);
+      .eq('fecha_date', hoyStr), 10000);
     cobrosHoy = cobrosData || [];
 
     // migración 268: antes traía TODAS las facturas emitida/parcial con
@@ -59,7 +59,7 @@ async function cargarDatos() {
     // tenant superaba las 500 facturas abiertas, "Vence hoy" y "Total
     // vencido" subcontaban. fn_cobranzas_kpis() agrega los 3 baldes en
     // SQL sin tope.
-    const { data: kpisData, error: kpisErr } = await _sb.rpc('fn_cobranzas_kpis');
+    const { data: kpisData, error: kpisErr } = await window.conTimeoutRed(_sb.rpc('fn_cobranzas_kpis'), 10000);
     if (kpisErr) throw kpisErr;
     const kpis = kpisData?.[0] || {};
     ultimosKpisCob = kpis;
@@ -136,11 +136,11 @@ async function renderFacturas(tab) {
   tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr>`;
 
   const desde = (paginaActualCob - 1) * ITEMS_POR_PAGINA_COB;
-  const { data, error } = await _sb.rpc('fn_cobranzas_facturas', {
+  const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_cobranzas_facturas', {
     p_bucket: tab,
     p_limit:  ITEMS_POR_PAGINA_COB,
     p_offset: desde,
-  });
+  }), 10000);
 
   if (error) {
     console.error('[cobranzas] Error cargando facturas:', error);
@@ -173,7 +173,7 @@ async function renderFacturas(tab) {
       <td class="monto monto-rojo" data-label="Pendiente">${formatPeso(f.pendiente)}</td>
       <td data-label="Vencimiento">${formatFecha(f.vencimiento)}</td>
       <td class="col-sticky-end" data-label="Acciones">
-        <button class="btn btn-sm btn-primary" onclick="abrirCobroFacturaIdx(${idx})">Cobrar</button>
+        <button class="btn btn-sm btn-primary btn--primary" onclick="abrirCobroFacturaIdx(${idx})">Cobrar</button>
       </td>
     </tr>`;
   }).join('');
@@ -184,7 +184,15 @@ async function renderFacturas(tab) {
 // ── Paginación (tabs hoy/semana/vencidas — no aplica a priorizada) ────
 function inyectarControlesPaginacionCob() {
   if (document.getElementById('paginacion-cob')) return;
-  const contenedor = document.querySelectorAll('#vista-cobranza .tabla-wrap')[1]; // "Facturas pendientes"
+  // FIX (e2e cobranzas.spec.js): con la fusión cobranzas.html + cta-cte.html,
+  // "Saldos por cliente" pasó a ser un <main id="vista-saldos"> HERMANO de
+  // #vista-cobranza, no un segundo bloque adentro. El selector de acá
+  // asumía 2 `.tabla-wrap` dentro de #vista-cobranza (índice [1] = "Facturas
+  // pendientes"), pero hoy hay uno solo — el índice [1] siempre daba
+  // `undefined` y esta función cortaba en silencio, así que los controles
+  // de paginación nunca llegaban a crearse (nadie lo notó porque solo un
+  // test con más de 50 resultados ejercita este código).
+  const contenedor = document.querySelector('#vista-cobranza .tabla-wrap'); // "Facturas pendientes"
   if (!contenedor) return;
   const div = document.createElement('div');
   div.id = 'paginacion-cob';
@@ -235,13 +243,13 @@ function renderPriorizada() {
   tbody.innerHTML = lista.map((f, idx) => {
     const chip = PRIORIDAD_CHIP[f.prioridad] || { cls: 'chip-gris', label: f.prioridad || '—' };
     return `<tr data-testid="cobranza-priorizada-fila" data-cliente-id="${f.cliente_id}">
-      <td data-label="N° Factura" style="font-family:monospace">${f.numero_factura || '—'}</td>
-      <td data-label="Cliente">${f.cliente_nombre || '—'}</td>
+      <td data-label="N° Factura" style="font-family:monospace">${window.sanitize(f.numero_factura || '—')}</td>
+      <td data-label="Cliente">${window.sanitize(f.cliente_nombre || '—')}</td>
       <td class="monto monto-rojo" data-label="Pendiente">${formatPeso(f.saldo_pendiente)}</td>
       <td data-label="Días vencida">${f.dias_vencida > 0 ? f.dias_vencida + ' días' : '—'}</td>
-      <td data-label="Prioridad"><span class="chip ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${chip.label}</span></td>
+      <td data-label="Prioridad"><span class="chip ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${window.sanitize(chip.label)}</span></td>
       <td class="col-sticky-end" data-label="Acciones">
-        <button class="btn btn-sm btn-primary" onclick="abrirCobroPriorizadaIdx(${idx})">Cobrar</button>
+        <button class="btn btn-sm btn-primary btn--primary" onclick="abrirCobroPriorizadaIdx(${idx})">Cobrar</button>
       </td>
     </tr>`;
   }).join('');
@@ -341,13 +349,13 @@ async function refrescarKPIsCobranzas() {
     const hoyStr = hoy.toISOString().split('T')[0];
 
     const [cobrosRes, kpisRes] = await Promise.all([
-      _sb
+      window.conTimeoutRed(_sb
         .from('cta_cte')
         .select('*,clientes(razon_social,nombre_fantasia)')
         .eq('empresa_id', window.authCtx?.perfil?.empresa_id)
         .eq('tipo', 'cobro')
-        .eq('fecha_date', hoyStr),
-      _sb.rpc('fn_cobranzas_kpis'),
+        .eq('fecha_date', hoyStr), 10000),
+      window.conTimeoutRed(_sb.rpc('fn_cobranzas_kpis'), 10000),
     ]);
 
     if (cobrosRes.error || kpisRes.error) return; // silencioso — el toast ya lo mostró cta-cte.js

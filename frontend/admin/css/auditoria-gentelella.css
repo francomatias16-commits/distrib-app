@@ -265,12 +265,8 @@ body.dash-auditoria-gentelella .auditoria-tab.activo {
    Responsive (mobile)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  body.dash-auditoria-gentelella .filtros-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  body.dash-auditoria-gentelella .filtros-bar input,
-  body.dash-auditoria-gentelella .filtros-bar select {
-    width: 100% !important;
-  }
+  /* .filtros-bar en columna/100% en mobile: ya lo hace el canónico de
+     componentes-admin.css (Fase 1, 2026-08-25) desde --bp-md (640px).
+     Esto quedaba en 768px, un breakpoint distinto sin escala común —
+     justo la inconsistencia que documenta la auditoría. No redeclarar. */
 }

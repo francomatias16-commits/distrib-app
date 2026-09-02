@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canales de venta — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=canv1" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=canv1" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=canv1" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=canv1">
+  <script src="/frontend/env-config.js?v=canv1"></script>
+  <style>
+    .cv-wrap { max-width: 1080px; margin: 0 auto; padding: 14px 24px 40px; }
+
+    /* ── Pantalla de bloqueo (plan no elegible) ─────────────────────── */
+    .cv-lock {
+      background: var(--color-surface); border: 1px solid var(--color-border-soft);
+      border-radius: var(--radius-xl); padding: 36px 32px; text-align: center;
+      max-width: 620px; margin: 40px auto 0;
+    }
+    .cv-lock-icono {
+      width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-warning-bg); color: var(--color-warning);
+    }
+    .cv-lock h2 { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+    .cv-lock p { font-size: 13.5px; color: var(--color-text-muted); line-height: 1.55; margin: 0 0 18px; }
+    .cv-lock-feats { text-align: left; background: var(--color-surface-2); border-radius: var(--radius-md);
+      padding: 14px 18px; margin: 0 0 20px; }
+    .cv-lock-feats li { font-size: 13px; color: var(--color-text); line-height: 1.7; }
+    .cv-lock-acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Pantalla desbloqueada (plan Platinum) ──────────────────────── */
+    .cv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 760px) { .cv-grid { grid-template-columns: 1fr; } }
+    .cv-card {
+      background: var(--color-surface); border: 1px solid var(--color-border-soft);
+      border-radius: var(--radius-xl); padding: 20px;
+    }
+    .cv-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .cv-logo {
+      width: 40px; height: 40px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-surface-2); color: var(--color-text);
+    }
+    .cv-card h2 { font-size: 15.5px; font-weight: 600; margin: 0; }
+    .cv-card .sub { font-size: 12.5px; color: var(--color-text-muted); margin: 2px 0 0; }
+    .cv-card p.desc { font-size: 13px; color: var(--color-text); line-height: 1.55; margin: 12px 0 16px; }
+    .cv-card .acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .cv-roadmap { background: var(--color-surface); border: 1px solid var(--color-border-soft);
+      border-radius: var(--radius-xl); padding: 20px; }
+    .cv-roadmap h2 { font-size: 15.5px; font-weight: 600; margin: 0 0 3px; }
+    .cv-roadmap .sub { font-size: 12.5px; color: var(--color-text-muted); margin: 0 0 12px; }
+    .paso { display: flex; gap: 11px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+    .paso:last-child { border-bottom: none; }
+    .paso-n { width: 22px; height: 22px; border-radius: 50%; background: var(--color-primary); color: var(--color-surface);
+      font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .paso-t { font-size: 12.5px; color: var(--color-text); line-height: 1.5; }
+    .paso-t b { color: var(--color-text); }
+  </style>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=canv1" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=canv1" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=canv1" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=canv1" />
+  <script src="/shared/responsive-mobile.js?v=canv1" defer></script>
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=canv1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=canv1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=canv1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=canv1" />
+  <link rel="stylesheet" href="/frontend/admin/css/canales-venta-gentelella.css?v=canv1" />
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+</head>
+<body class="dash-canales-venta-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Canales de venta</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario"></span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+    Próximamente vas a poder sincronizar tus pedidos y tu stock con Tienda Nube y Mercado Libre desde un solo lugar. Función exclusiva del plan Platinum.
+  </div>
+
+  <main class="main">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--color-text-muted)">Cargando…</div>
+
+    <!-- Vista bloqueada: plan actual no es Platinum -->
+    <div id="vista-bloqueada" class="cv-wrap" style="display:none">
+      <div class="cv-lock">
+        <div class="cv-lock-icono">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2>Canales de venta es una función del plan Platinum</h2>
+        <p>Con Platinum vas a poder traer automáticamente tus pedidos de Tienda Nube y Mercado Libre a Fluxo, y mantener el stock sincronizado entre canales sin cargar todo a mano.</p>
+        <ul class="cv-lock-feats">
+          <li>Pedidos de Tienda Nube y Mercado Libre creados automáticamente en Fluxo</li>
+          <li>Actualización automática del stock hacia los canales cuando vendés en el local o en el POS</li>
+          <li>Todo desde un panel único, sin depender de planillas ni carga manual</li>
+        </ul>
+        <div class="cv-lock-acciones">
+          <a href="/admin/saas-billing" class="btn btn--primary">Ver planes</a>
+          <a href="mailto:soporte@mfweb.com.ar?subject=Consulta%20plan%20Platinum%20-%20Canales%20de%20venta" class="btn btn--secondary">Hablar con nosotros</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista desbloqueada: plan Platinum. La sincronización real todavía no
+         está desarrollada — esta pantalla es la interfaz, a la espera de que
+         se implemente la integración (ver docs/planes/PLAN_ERP_SINCRONIZACION_2026.md
+         o el que corresponda una vez que se arme). -->
+    <div id="vista-platinum" class="cv-wrap" style="display:none">
+
+      <div class="cv-grid">
+
+        <!-- Tienda Nube -->
+        <div class="cv-card">
+          <div class="cv-card-head">
+            <div class="cv-logo">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div>
+              <h2>Tienda Nube</h2>
+              <p class="sub">Próximamente: importar pedidos y sincronizar stock</p>
+            </div>
+          </div>
+          <span class="chip chip-gris" id="chip-tn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Próximamente
+          </span>
+          <p class="desc">Cuando esté disponible, vas a autorizar el acceso a tu cuenta de Tienda Nube una única vez (no por cada pedido); a partir de ahí, cada pedido nuevo de tu tienda va a crearse solo en Fluxo, y el stock que vendas por otros canales se va a descontar automáticamente allá.</p>
+          <div class="acciones">
+            <button type="button" class="btn btn--primary" disabled title="Todavía no disponible">Autorizar cuenta</button>
+            <button type="button" class="btn btn--ghost" onclick="avisarme('Tienda Nube')">Avisenme cuando esté</button>
+          </div>
+        </div>
+
+        <!-- Mercado Libre -->
+        <div class="cv-card">
+          <div class="cv-card-head">
+            <div class="cv-logo">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div>
+              <h2>Mercado Libre</h2>
+              <p class="sub">Próximamente: importar pedidos y sincronizar stock</p>
+            </div>
+          </div>
+          <span class="chip chip-gris" id="chip-ml">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Próximamente
+          </span>
+          <p class="desc">Cuando esté disponible, vas a autorizar el acceso a tu cuenta de Mercado Libre una única vez (no por cada pedido); a partir de ahí, tus ventas van a llegar solas a Fluxo y vas a poder empujar tu stock hacia tus publicaciones sin entrar a Mercado Libre a mano.</p>
+          <div class="acciones">
+            <button type="button" class="btn btn--primary" disabled title="Todavía no disponible">Autorizar cuenta</button>
+            <button type="button" class="btn btn--ghost" onclick="avisarme('Mercado Libre')">Avisenme cuando esté</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cv-roadmap">
+        <h2>Cómo se va a ir habilitando</h2>
+        <p class="sub">La sincronización se activa en etapas, no todo junto — así el riesgo de una sobreventa (vender la misma unidad dos veces en distintos canales) queda lo más acotado posible.</p>
+        <div class="paso"><span class="paso-n">1</span><p class="paso-t"><b>Import de pedidos.</b> Cada pedido nuevo del canal se crea automáticamente en Fluxo. No toca stock hacia el canal, solo trae información.</p></div>
+        <div class="paso"><span class="paso-n">2</span><p class="paso-t"><b>Actualización de stock hacia el canal.</b> Cuando el stock baja en Fluxo (venta en el local, en el POS, o en otro canal), se actualiza también en Tienda Nube / Mercado Libre.</p></div>
+        <div class="paso"><span class="paso-n">3</span><p class="paso-t"><b>Reserva de stock en tiempo real (opcional).</b> Solo si el volumen de ventas lo justifica — es la etapa de mayor riesgo de sobreventa entre canales.</p></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=canv1"></script>
+<script src="/frontend/admin/js/nav.js?v=canv1"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=canv1"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=canv1"></script>
+<script src="/frontend/admin/js/auth.js?v=canv1"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=canv1"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=canv1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v=canv1"></script>
+<script>
+let NOMBRE_EMPRESA = '';
+
+async function init() {
+  await window.authReady;
+  const perfil = window.authCtx?.perfil;
+  if (!perfil || !['dueno', 'admin'].includes(perfil.rol)) {
+    window.location.href = '/admin/dashboard';
+    return;
+  }
+  if (window.authCtx?.perfil?.empresas) {
+    const nombre = window.authCtx.perfil.empresas.nombre || 'Admin';
+    NOMBRE_EMPRESA = nombre;
+    const sidebar = document.getElementById('sidebar-empresa');
+    if (sidebar) sidebar.textContent = nombre;
+    const logo = document.getElementById('sidebar-logo');
+    if (logo) logo.textContent = nombre[0].toUpperCase();
+  }
+  if (perfil.nombre) document.getElementById('topbar-usuario').textContent = perfil.nombre;
+
+  await mostrarSegunPlan();
+}
+
+// El gate real (plan Platinum = tier 'enterprise') se resuelve acá contra
+// la RPC saas_mi_plan_tier() (la misma que usa "Mi suscripción" en
+// saas-billing.html) — no hay todavía un endpoint propio para esta
+// pantalla porque el backend de sincronización no está desarrollado, solo
+// la interfaz. Si falla la consulta, se prioriza NO mostrar la función
+// (fail-closed acá, al revés que plan-limits.js: esto es una pantalla
+// comercial, no un bloqueo de una operación real, así que no hay drama en
+// pedir que refresque).
+async function mostrarSegunPlan() {
+  const loading   = document.getElementById('loading');
+  const bloqueada = document.getElementById('vista-bloqueada');
+  const platinum  = document.getElementById('vista-platinum');
+
+  try {
+    const { data: tier, error } = await window.authCtx.sb.rpc('saas_mi_plan_tier');
+    if (error) throw error;
+
+    loading.style.display = 'none';
+    if (tier === 'enterprise') {
+      platinum.style.display = 'block';
+    } else {
+      bloqueada.style.display = 'block';
+    }
+  } catch (e) {
+    console.error('[canales-venta] saas_mi_plan_tier:', e);
+    loading.style.display = 'none';
+    bloqueada.style.display = 'block';
+  }
+}
+
+// Sin backend todavía: el botón "Avisenme cuando esté" abre un mail a
+// soporte en vez de guardar nada — cuando se implemente la sincronización
+// de verdad, esto se reemplaza por el flujo de conexión real (OAuth,
+// como en mercadopago-config.html).
+function avisarme(plataforma) {
+  const asunto = encodeURIComponent(`Interés en sincronización con ${plataforma}`);
+  const cuerpo = encodeURIComponent(`Hola, somos ${NOMBRE_EMPRESA || 'una empresa'} y usamos el plan Platinum. Nos interesa que habiliten la sincronización con ${plataforma} apenas esté disponible.`);
+  window.location.href = `mailto:soporte@mfweb.com.ar?subject=${asunto}&body=${cuerpo}`;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -317,3 +317,18 @@ body.dash-proveedores-gentelella .modal-box-body {
   padding: 18px 22px !important;
   overflow-y: auto !important;
 }
+
+/* ════════════════════════════════════════════════════════════
+   FIX v994 — "Portal" del menú "⋮" no respondía al toque en mobile
+   ════════════════════════════════════════════════════════════
+   #menu-acciones-proveedor (Compras/Portal) se pintaba visualmente
+   encima de la tarjeta siguiente (z-index:100 de .dropdown-menu,
+   componentes-admin.css), pero el toque terminaba cayendo en esa
+   tarjeta de abajo — mismo síntoma ya diagnosticado y resuelto antes
+   para #vista-clientes .dropdown-menu (ver clientes.css, "quedaba
+   tapado por la tarjeta de la tabla de abajo"). Mismo fix acá: forzar
+   un z-index generoso en vez de perseguir qué regla puntual le gana
+   el stacking en el layout de tarjetas de proveedores. */
+body.dash-proveedores-gentelella #menu-acciones-proveedor {
+  z-index: var(--z-overlay-critical) !important;
+}

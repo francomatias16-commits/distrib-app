@@ -294,6 +294,14 @@ input[type="search"],
 input[type="password"],
 select,
 textarea {
+  /* Antes sin padding propio: heredaban el padding mínimo del navegador
+     (~1px), lo que los hacía ver angostos/apretados y dificultaba leer
+     el contenido tipeado. Se define acá, en la regla global, para que
+     quede parejo en todas las pantallas del admin que usan este mismo
+     bloque (POS, pedidos, compras, prospección, etc.). */
+  padding: 9px 12px !important;
+  min-height: 40px !important;
+  box-sizing: border-box !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md) !important;
   font-family: var(--font-family) !important;
@@ -366,6 +374,7 @@ input::placeholder, textarea::placeholder { color: var(--color-text-light) !impo
    8. BOTONES LEGACY — azul corporativo
    ══════════════════════════════════════════════════ */
 .btn-primary, button.btn-primary,
+.btn.btn--primary, button.btn.btn--primary,
 .boton-primario, .boton-primary,
 .btn-nuevo-pres, .btn-nuevo-pedido,
 .btn-guardar, .btn-confirmar, .btn-aplicar {
@@ -387,7 +396,9 @@ input::placeholder, textarea::placeholder { color: var(--color-text-light) !impo
   white-space: nowrap !important;
 }
 .btn-primary:hover:not(:disabled),
-button.btn-primary:hover:not(:disabled) {
+button.btn-primary:hover:not(:disabled),
+.btn.btn--primary:hover:not(:disabled),
+button.btn.btn--primary:hover:not(:disabled) {
   background: var(--color-primary-dark) !important;
   border-color: var(--color-primary-dark) !important;
   box-shadow: var(--shadow-glow), 0 4px 12px rgba(37,99,235,.20) !important;
@@ -395,6 +406,7 @@ button.btn-primary:hover:not(:disabled) {
 }
 
 .btn-secondary, button.btn-secondary,
+.btn.btn--secondary, button.btn.btn--secondary,
 .btn-exportar, .btn-importar,
 .btn-outline, .boton-secundario,
 .btn-cancelar, .btn-limpiar {
@@ -416,6 +428,8 @@ button.btn-primary:hover:not(:disabled) {
 }
 .btn-secondary:hover:not(:disabled),
 button.btn-secondary:hover:not(:disabled),
+.btn.btn--secondary:hover:not(:disabled),
+button.btn.btn--secondary:hover:not(:disabled),
 .btn-exportar:hover, .btn-importar:hover {
   background: var(--color-surface-2) !important;
   border-color: var(--color-border) !important;
@@ -423,6 +437,7 @@ button.btn-secondary:hover:not(:disabled),
 }
 
 .btn-danger, button.btn-danger,
+.btn.btn--danger, button.btn.btn--danger,
 .btn-peligro, .boton-peligro {
   background: transparent !important;
   color: var(--color-danger) !important;
@@ -434,7 +449,8 @@ button.btn-secondary:hover:not(:disabled),
   transition: all var(--transition-base) !important;
   cursor: pointer !important;
 }
-.btn-danger:hover:not(:disabled) { background: var(--color-danger-bg) !important; }
+.btn-danger:hover:not(:disabled),
+.btn.btn--danger:hover:not(:disabled) { background: var(--color-danger-bg) !important; }
 
 .btn-sm { padding: 5px 12px !important; font-size: var(--font-size-xs) !important; }
 .btn:disabled, button:disabled { opacity: .45 !important; cursor: not-allowed !important; }

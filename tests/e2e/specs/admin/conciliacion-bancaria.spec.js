@@ -19,7 +19,7 @@
 import { test, expect } from '@playwright/test';
 import { startStaticServer } from '../../helpers/static-server.js';
 import { loguearComoAdmin } from '../../helpers/auth-helper.js';
-import { mockearRestGenerico, mockearApiGenerico } from '../../helpers/supabase-rest-mock.js';
+import { mockearRestGenerico, mockearApiGenerico, mockearAuthGenerico } from '../../helpers/supabase-rest-mock.js';
 import { vendorizarSupabase, vendorizarPapaparse, filtrarRuidoRed, mockApi } from '../../helpers/mock-network.js';
 import { ConciliacionBancariaPage } from '../../page-objects/admin/conciliacion-bancaria.page.js';
 
@@ -56,6 +56,33 @@ test.afterAll(async () => { staticServer.server.close(); });
 async function armarPagina(page, { rol = 'admin', lista = movimientos() } = {}) {
   mockearRestGenerico(page);
   mockearApiGenerico(page);
+  // Hallazgo real (bug del test, no de la app): el catch-all de
+  // mockearApiGenerico devuelve `[]` para cualquier GET a `/api/**`,
+  // incluido `/api/setup/status` — que admin/login.html sí llega a pedir
+  // apenas carga (antes incluso de mirar la sesión). Ese endpoint no
+  // devuelve un listado sino `{ inicializado: boolean }`; con `[]`,
+  // `data.inicializado` da `undefined` y login.html interpreta "sistema
+  // no inicializado" y redirige de una a `/setup`. Eso solo importa para
+  // el test de "rol fuera de PAGINA_ROLES_PERMITIDOS" (único que termina
+  // navegando a /admin/login de verdad): la URL pasa por `/admin/login`
+  // y se va a `/setup` casi en el mismo tick, así que
+  // `waitForURL('**/admin/login**')` nunca llega a capturarla asentada
+  // ahí y cuelga hasta el timeout — no es contención de paralelismo.
+  // Se registra DESPUÉS del catch-all para pisarlo (Playwright prioriza
+  // el último route que matchea).
+  await page.route('**/api/setup/status', (route) => {
+    route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify({ inicializado: true }) });
+  });
+  // Mismo test: una vez que login.html ve `inicializado:true`, sigue de
+  // largo y encuentra la sesión sembrada por `sembrarSesion` (localStorage
+  // persiste entre navegaciones dentro del mismo `page`) — como no está en
+  // modo demo, dispara `sb.auth.signOut()` con el SDK real. Sin este mock,
+  // esa llamada le pega a `/auth/v1/logout` de verdad, bloqueada en el
+  // sandbox, y nunca resuelve. No rompe la URL en sí, pero es la otra
+  // mitad de por qué este flujo de logout necesita `mockearAuthGenerico`
+  // (ver su doc en supabase-rest-mock.js) igual que cuenta.spec.js y
+  // chofer/index.spec.js.
+  mockearAuthGenerico(page);
   await vendorizarSupabase(page);
   await vendorizarPapaparse(page); // necesario para el test de importar CSV — ver nota en mock-network.js
 

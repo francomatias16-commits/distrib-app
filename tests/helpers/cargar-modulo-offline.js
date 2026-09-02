@@ -41,18 +41,25 @@ export function cargarModuloOffline(rutaAbsoluta, opciones = {}) {
       outboxFake = {
         init: vi.fn(async () => {}),
         encolarAccion: vi.fn(async () => 'local-id-fake'),
-        encolarLegacySinTenant: vi.fn(async () => 'legacy-id-fake'),
         sincronizarPendientes: vi.fn(async () => {}),
         getPendientes: vi.fn(async () => []),
         getContadorPendientes: vi.fn(async () => 0),
         getConflictos: vi.fn(async () => []),
         getContadorConflictos: vi.fn(async () => 0),
         resolverConflicto: vi.fn(async () => {}),
+        estaOnline: vi.fn(() => true),
+        // OFFLINE-03 (offline-core.js real) — progreso parcial dentro de
+        // una acción en curso (ej. chofer-offline.js no re-sube firma/foto
+        // ya subidas en un intento anterior).
+        guardarProgresoParcial: vi.fn(async () => {}),
+        // SYNC-04 (offline-core.js real) — cuarentena de registros legacy
+        // sin tenant verificable; pos-offline.js la usa en su migración
+        // one-shot desde pos_offline_db v1. Faltaba en este mock.
+        encolarLegacySinTenant: vi.fn(async () => 'local-id-fake-legacy'),
         getCuarentena: vi.fn(async () => []),
         getContadorCuarentena: vi.fn(async () => 0),
-        confirmarCuarentena: vi.fn(async () => {}),
-        descartarCuarentena: vi.fn(async () => {}),
-        estaOnline: vi.fn(() => true),
+        confirmarCuarentena: vi.fn(async () => true),
+        descartarCuarentena: vi.fn(async () => true),
       };
       return outboxFake;
     },
@@ -87,6 +94,15 @@ export function cargarModuloOffline(rutaAbsoluta, opciones = {}) {
     addEventListener: () => {},
     removeEventListener: () => {},
     authCtx: undefined,
+    // ui-utils.js (cargado en toda pantalla real del admin) define este
+    // global — stock-offline.js/cobros-offline.js dependen de él para
+    // envolver sus llamadas a Supabase con timeout. Mismo comportamiento
+    // real (Promise.race contra un timeout que rechaza con Error('timeout')),
+    // sin duplicar el setTimeout real en los tests: acá alcanza con
+    // reenviar la promesa tal cual, ya que estos tests no ejercitan el
+    // camino de timeout en sí (eso es cobertura de ui-utils.js, no de
+    // los módulos offline).
+    conTimeoutRed: vi.fn((promesa) => promesa),
     ...windowExtra,
   };
   // Los mocks de vi.fn() para alert deben poder verificarse con expect().

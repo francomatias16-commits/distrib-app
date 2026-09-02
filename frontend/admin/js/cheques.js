@@ -84,7 +84,7 @@ window.authReady.then(async () => {
 // ni sobre lo que había antes como recorte de 500 filas.
 async function cargarContadoresCheques() {
   try {
-    const { data, error } = await _sb.rpc('fn_cheques_contadores').single();
+    const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_cheques_contadores').single(), 10000);
     if (error) throw error;
     actualizarKPIs(data);
     mostrarAlertasVencimiento(data);
@@ -102,14 +102,14 @@ async function cargarCheques() {
     const soloVencidos = !!document.getElementById('filtro-vencidos-cheque')?.checked;
     const desde = (paginaActualCheques - 1) * ITEMS_POR_PAGINA_CHEQUES;
 
-    const { data, error } = await _sb.rpc('fn_cheques_lista', {
+    const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_cheques_lista', {
       p_busqueda: busq || null,
       p_estado: est || null,
       p_solo_vencidos: soloVencidos,
       p_limit: ITEMS_POR_PAGINA_CHEQUES,
       p_offset: desde,
       p_solo_proximos: filtroProximosActivo,
-    });
+    }), 10000);
     if (error) throw error;
 
     todosCheques = (data || []).map(c => ({
@@ -129,11 +129,11 @@ async function cargarCheques() {
 }
 
 async function cargarClientes() {
-  const { data: cliData } = await _sb
+  const { data: cliData } = await window.conTimeoutRed(_sb
       .from('clientes')
       .select('id,razon_social,nombre_fantasia')
       .eq('activo', true)
-      .order('razon_social');
+      .order('razon_social'), 10000);
     clientes = cliData || [];
   const sel = document.getElementById('cheque-cliente');
   sel.innerHTML = '<option value="">Seleccionar cliente...</option>' +
@@ -304,9 +304,9 @@ function renderTabla(cheques) {
     const vtoStr = vto ? `<span ${vencido ? 'style="color:var(--color-danger);font-weight:600"' : ''}>${formatFecha(c.vencimiento)}${vencido ? ' <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : ''}</span>` : '—';
 
     return `<tr data-testid="cheque-fila" data-id="${c.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) editarCheque('${c.id}')">
-      <td data-label="N° Cheque" style="font-family:monospace;font-size:12px">${c.numero || '—'}</td>
+      <td data-label="N° Cheque" style="font-family:monospace;font-size:12px">${window.sanitize(c.numero || '—')}</td>
       <td data-label="Cliente">${window.sanitize(nombre)}</td>
-      <td data-label="Banco" style="font-size:12px">${c.banco || '—'}</td>
+      <td data-label="Banco" style="font-size:12px">${window.sanitize(c.banco || '—')}</td>
       <td class="monto" data-label="Monto">${formatPeso(c.monto)}</td>
       <td data-label="Vencimiento">${vtoStr}</td>
       <td data-label="Estado"><span class="chip ${chip.cls}">${chip.label}</span></td>
@@ -467,7 +467,7 @@ async function guardarCheque() {
 // (volver a "En cartera") desde el mismo botón si fue un error.
 async function eliminarCheque(id) {
   const c = todosCheques.find(x => x.id === id);
-  const mensaje = `¿Anular el cheque${c?.numero ? ' N° ' + c.numero : ''}? Podés reactivarlo después si fue un error.`;
+  const mensaje = `¿Anular el cheque${c?.numero ? ' N° ' + window.sanitize(c.numero) : ''}? Podés reactivarlo después si fue un error.`;
 
   let motivo = null;
   let confirmado = false;
@@ -510,7 +510,7 @@ window.eliminarCheque = eliminarCheque;
 async function reactivarCheque(id) {
   const c = todosCheques.find(x => x.id === id);
   const ok = await (window.confirmar
-    ? window.confirmar(`¿Reactivar el cheque${c?.numero ? ' N° ' + c.numero : ''}? Vuelve a "En cartera".`, { labelOk: 'Reactivar' })
+    ? window.confirmar(`¿Reactivar el cheque${c?.numero ? ' N° ' + window.sanitize(c.numero) : ''}? Vuelve a "En cartera".`, { labelOk: 'Reactivar' })
     : Promise.resolve(confirm('¿Reactivar este cheque?')));
   if (!ok) return;
 

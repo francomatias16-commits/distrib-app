@@ -52,7 +52,17 @@ const C = FLAG_JSON ? { r: '', g: '', y: '', x: '' } : {
 };
 
 function log(...args) { if (!FLAG_JSON) console.log(...args); }
-function die(msg) { console.error(`${C.r}[FAIL] Error: ${msg}${C.x}`); process.exit(1); }
+function die(msg) {
+  console.error(`${C.r}[FAIL] Error: ${msg}${C.x}`);
+  // No usar process.exit() acá: forzar la salida mientras el cliente de
+  // supabase-js (fetch/undici) todavía tiene sockets/handles en proceso de
+  // cierre gatilla, en Windows, "Assertion failed:
+  // !(handle->flags & UV_HANDLE_CLOSING)" — un crash nativo del proceso,
+  // no un error de JS. Con exitCode + return el event loop drena solo y
+  // Node sale limpio con el código correcto una vez que no queda nada
+  // pendiente.
+  process.exitCode = 1;
+}
 
 // Funciones internas de Postgres/Supabase que nunca van a tener un CREATE
 // FUNCTION propio en el repo (triggers de extensiones, helpers de sistema
@@ -65,7 +75,7 @@ const IGNORAR = new Set([
 ]);
 
 function extraerNombresDeMigraciones() {
-  if (!fs.existsSync(DIR_MIGRATIONS)) die(`No existe ${DIR_MIGRATIONS}`);
+  if (!fs.existsSync(DIR_MIGRATIONS)) { die(`No existe ${DIR_MIGRATIONS}`); return new Set(); }
   const archivos = fs.readdirSync(DIR_MIGRATIONS).filter(f => f.endsWith('.sql'));
   const nombres = new Set();
   // CREATE FUNCTION nombre(  |  CREATE OR REPLACE FUNCTION public.nombre(
@@ -84,13 +94,14 @@ async function main() {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     die('Faltan env vars: SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY son requeridas.\n' +
         'Uso: SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=eyJhb... node scripts/audit-funciones-fantasma.js');
+    return;
   }
 
   const trackeadas = extraerNombresDeMigraciones();
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: vivas, error } = await supabase.rpc('audit_funciones_vivas');
-  if (error) die(`audit_funciones_vivas: ${error.message}`);
+  if (error) { die(`audit_funciones_vivas: ${error.message}`); return; }
 
   const fantasmas = (vivas || []).filter(f =>
     !IGNORAR.has(f.funcion.toLowerCase()) &&
@@ -103,7 +114,8 @@ async function main() {
       total_trackeadas: trackeadas.size,
       fantasmas,
     }, null, 2));
-    process.exit(fantasmas.length > 0 ? 1 : 0);
+    process.exitCode = fantasmas.length > 0 ? 1 : 0;
+    return;
   }
 
   log('────────────────────────────────────────────────────────────');
@@ -124,7 +136,11 @@ async function main() {
     log(`${C.g}[OK] Ninguna función fantasma — todo lo que vive en la base tiene un CREATE FUNCTION rastreable en el repo.${C.x}`);
   }
 
-  process.exit(fantasmas.length > 0 ? 1 : 0);
+  // No usar process.exit() acá — ver comentario en die(). Con exitCode el
+  // proceso termina solo, prolijo, apenas el event loop queda vacío (los
+  // handles de red del cliente de supabase-js ya se cerraron para
+  // entonces en vez de estar cerrándose a mitad de camino).
+  process.exitCode = fantasmas.length > 0 ? 1 : 0;
 }
 
 main().catch(err => die(err.message));

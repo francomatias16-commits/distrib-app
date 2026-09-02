@@ -2560,7 +2560,7 @@ async function cargarSuperadminMig() {
 
   try {
     const sb = window.authCtx?.sb;
-    const { data, error } = await sb.rpc('migracion_superadmin_resumen');
+    const { data, error } = await window.conTimeoutRed(sb.rpc('migracion_superadmin_resumen'), 10000);
     if (error) throw error;
 
     const filas = data || [];
@@ -2617,7 +2617,7 @@ async function cargarSuperadminMig() {
   // Si el usuario es superadmin, mostrar el panel de todos los tenants
   try {
     const sb = window.authCtx?.sb;
-    const { data: esOwner } = await sb.rpc('is_saas_owner');
+    const { data: esOwner } = await window.conTimeoutRed(sb.rpc('is_saas_owner'), 10000);
     if (esOwner === true) {
       const panel = document.getElementById('panel-superadmin-mig');
       if (panel) {

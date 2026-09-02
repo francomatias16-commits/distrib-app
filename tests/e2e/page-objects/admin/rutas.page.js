@@ -48,7 +48,12 @@ export class RutasPage extends PageObjectBase {
   get listaPendientes() { return this.page.locator('#lista-pendientes'); }
 
   pedidoCard(pedidoId) {
-    return this.page.locator(`.pedido-card[data-id="${pedidoId}"]`);
+    // FIX: la card de pedido pasó de `.pedido-card` a `.pedido-row`
+    // (rediseño de la cola de pendientes — ver cardPedidoHtml() en
+    // rutas.js, ya usa onclick="agregarALaRuta(...)" en vez del handler
+    // anterior). El selector viejo nunca matcheaba nada — timeout de 30s
+    // clickeando una card que en los hechos nunca aparecía.
+    return this.page.locator(`.pedido-row[data-id="${pedidoId}"]`);
   }
 
   /** Header del grupo de zona que contiene una card (agruparZona=true, el
@@ -64,7 +69,9 @@ export class RutasPage extends PageObjectBase {
   }
 
   // ── Panel derecho: ruta en construcción ───────────────────────────────
-  get dropEmpty() { return this.page.locator('#drop-empty'); }
+  // FIX: el estado vacío del panel es `#ruta-seleccion-vacio`, no
+  // `#drop-empty` (nunca existió ese id — ver renderRuta() en rutas.js).
+  get dropEmpty() { return this.page.locator('#ruta-seleccion-vacio'); }
   get listaRuta() { return this.page.locator('#lista-ruta'); }
   get statPedidos() { return this.page.locator('#stat-pedidos'); }
   get statTotal() { return this.page.locator('#stat-total'); }

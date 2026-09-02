@@ -510,7 +510,72 @@ body.dash-cobranzas-gentelella .toast {
     inset: 0 !important;
     z-index: var(--z-cobranzas-overlay) !important;
   }
+
+  /* ── FIX v991: "Recordatorio masivo" tapaba las pestañas de arriba ──
+     El botón usa position:absolute;top:-16px (pensado para "asomar" sobre
+     el borde de la tabla en desktop, donde sí hay margen vertical libre
+     entre .vista-principal-tabs y la tabla). En mobile ese margen no
+     existe, así que el botón terminaba flotando literalmente encima de
+     "Saldos por cliente", tapándolo a medias — ver captura reportada.
+     Se vuelve al flujo normal del documento: .tabla-wrap-flotante pasa a
+     columna y el botón (con order:-1) se ubica primero, ancho completo,
+     como una acción clara arriba de la tabla en vez de superpuesto. */
+  body.dash-cobranzas-gentelella .tabla-wrap-flotante {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  body.dash-cobranzas-gentelella #btn-recordatorio {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    order: -1 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    margin: 0 0 14px !important;
+  }
+
+  /* ── FIX v991: pestañas de período (Priorizada / Vencen hoy / Próximos
+     7 días / Vencidas) se cortaban contra el borde de la pantalla ──
+     .tabla-header las ponía en la misma fila que la tarjeta "Cobrado
+     hoy" (flex-wrap:wrap en el contenedor inline), y sin scroll propio
+     dependían del safety-net global (html,body{overflow-x:hidden}) que
+     directamente las recortaba — "Vencidas" quedaba inalcanzable. Ahora
+     el encabezado se apila en columna y las pestañas de período scrollean
+     horizontalmente en su propia franja, sin arrastrar al resto de la
+     página ni perder ninguna. */
+  body.dash-cobranzas-gentelella #vista-cobranza .tabla-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+  body.dash-cobranzas-gentelella #vista-cobranza .tabla-header > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.dash-cobranzas-gentelella #vista-cobranza .tabla-header .tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-bottom: 2px !important;
+  }
+  body.dash-cobranzas-gentelella .tabla-header .tab-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  body.dash-cobranzas-gentelella .franja-resumen-sololectura {
+    margin: 0 !important;
+  }
 }
+
 
 /* ════════════════════════════════════════════════════════════
    Modal interior + panel lateral de cliente

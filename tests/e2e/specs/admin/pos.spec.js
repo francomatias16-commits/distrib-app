@@ -105,7 +105,7 @@ test.describe('POS (admin) — Fase 1', () => {
 
   test('alta: abrir turno, agregar un producto por código y cobrar en efectivo emite el ticket', async ({ page }) => {
     let bodyVenta = null;
-    const { pos } = await abrirPos(page, {
+    const { pos, erroresConsola } = await abrirPos(page, {
       venta: (call) => { bodyVenta = call.request.postDataJSON(); return { json: { ok: true, venta_id: 'venta-1', numero: '0001' } }; },
     });
 
@@ -121,8 +121,14 @@ test.describe('POS (admin) — Fase 1', () => {
 
     await pos.abrirModalCobro();
     await expect(pos.modalCobroTotal).toContainText('1.210');
-    // La primera línea de pago ya viene precargada con el total exacto
-    // (ver pos.js::abrirModalCobro → agregarLineaPago(total)).
+    // La primera línea de pago viene precargada con el total exacto pero
+    // con medio 'qr' por default (ver cliente-cobro.js::abrirModalCobro).
+    // Cualquier medio tarjeta/qr pasa por PosTerminal.cobrarConTerminal(),
+    // que con el driver 'manual' (default de config-hardware) abre un
+    // diálogo real y espera a que alguien confirme/rechace — sin esto el
+    // test queda esperando un click que nunca llega. Como acá queremos
+    // testear el camino de efectivo (no terminal), lo seleccionamos.
+    await pos.setMedioPrimeraLineaPago('efectivo');
     await pos.confirmarCobro();
 
     await expect(pos.modalTicketOverlay).toBeVisible();
@@ -187,6 +193,12 @@ test.describe('POS (admin) — Fase 1', () => {
     await pos.agregarProductoPorEnter(PRODUCTO.codigo);
 
     await pos.abrirModalCobro();
+    // Ver nota en el test de "alta": el medio por default es 'qr', que
+    // dispara PosTerminal.cobrarConTerminal() y cuelga el test esperando
+    // un diálogo manual que nadie confirma. Vamos por efectivo, que es
+    // la rama que este test realmente quiere ejercitar (la venta llega
+    // al backend y éste la rechaza).
+    await pos.setMedioPrimeraLineaPago('efectivo');
     await pos.confirmarCobro(); // la línea precargada ya cierra el total exacto
 
     await expect(pos.cobroError).toBeVisible();

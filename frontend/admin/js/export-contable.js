@@ -182,12 +182,12 @@ async function cargarHistorial() {
 
     tbody.innerHTML = historial.map(h => `
       <tr>
-        <td>${formatFechaHora(h.created_at)}</td>
-        <td>${nombreProveedor(h.proveedor)}</td>
-        <td>${nombreTipo(h.tipo)}</td>
-        <td>${esc(h.fecha_desde)} → ${esc(h.fecha_hasta)}</td>
-        <td>${h.cantidad_registros ?? 0}</td>
-        <td>${esc(h.archivo_nombre || '—')}</td>
+        <td data-label="Fecha">${formatFechaHora(h.created_at)}</td>
+        <td data-label="Proveedor">${nombreProveedor(h.proveedor)}</td>
+        <td data-label="Tipo">${nombreTipo(h.tipo)}</td>
+        <td data-label="Rango">${esc(h.fecha_desde)} → ${esc(h.fecha_hasta)}</td>
+        <td data-label="Registros">${h.cantidad_registros ?? 0}</td>
+        <td data-label="Archivo">${esc(h.archivo_nombre || '—')}</td>
       </tr>
     `).join('');
   } catch (e) {

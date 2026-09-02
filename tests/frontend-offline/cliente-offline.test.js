@@ -72,6 +72,36 @@ describe('cliente-offline.js — procesarAccion', () => {
     );
   });
 
+  it('403 cliente_bloqueado marca conflicto (no reintenta a ciegas)', async () => {
+    const fetchMock = fetchConRespuesta(403, {
+      error: 'cliente_bloqueado',
+      mensaje: 'Tu cuenta tiene deuda vencida de $5000.',
+    });
+    const { outboxOpts } = cargar({ windowExtra: { fetch: fetchMock } });
+
+    await expect(
+      outboxOpts.procesarAccion({ payload }, 'token-1')
+    ).rejects.toMatchObject({
+      conflicto: true,
+      tipoConflicto: 'cliente_bloqueado',
+      datosConflicto: { error: 'Tu cuenta tiene deuda vencida de $5000.' },
+    });
+  });
+
+  it('403 con otro motivo (no cliente_bloqueado) NO marca conflicto', async () => {
+    const fetchMock = fetchConRespuesta(403, { error: 'no_autorizado' });
+    const { outboxOpts } = cargar({ windowExtra: { fetch: fetchMock } });
+
+    let capturado;
+    try {
+      await outboxOpts.procesarAccion({ payload }, 'token-1');
+    } catch (e) {
+      capturado = e;
+    }
+    expect(capturado.conflicto).toBeUndefined();
+    expect(capturado.message).toBe('no_autorizado');
+  });
+
   it('409 sin tipo stock_insuficiente NO marca conflicto (error transitorio normal)', async () => {
     const fetchMock = fetchConRespuesta(409, { error: 'Conflicto genérico' });
     const { outboxOpts } = cargar({ windowExtra: { fetch: fetchMock } });
@@ -124,6 +154,26 @@ describe('cliente-offline.js — badge.formatoConflicto', () => {
     const { outboxOpts } = cargar();
     const { detalle } = outboxOpts.badge.formatoConflicto({ conflicto_datos: {} });
     expect(detalle).toContain('ya no tienen stock suficiente');
+  });
+
+  it('cliente_bloqueado usa título y detalle distintos de stock', () => {
+    const { outboxOpts } = cargar();
+    const { titulo, detalle } = outboxOpts.badge.formatoConflicto({
+      conflicto_tipo: 'cliente_bloqueado',
+      conflicto_datos: { error: 'Tu cuenta tiene deuda vencida de $5000.' },
+    });
+    expect(titulo).toBe('Pedido: la cuenta quedó con deuda vencida mientras esperaba sin conexión');
+    expect(detalle).toContain('Tu cuenta tiene deuda vencida de $5000.');
+    expect(detalle).toContain('Regularizá con tu vendedor');
+  });
+
+  it('cliente_bloqueado usa un mensaje default si no hay error puntual', () => {
+    const { outboxOpts } = cargar();
+    const { detalle } = outboxOpts.badge.formatoConflicto({
+      conflicto_tipo: 'cliente_bloqueado',
+      conflicto_datos: {},
+    });
+    expect(detalle).toContain('Tu cuenta tiene deuda vencida.');
   });
 });
 

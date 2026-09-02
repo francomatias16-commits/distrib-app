@@ -62,10 +62,10 @@
       const { tipo, payload, offline_local_id } = accion;
       const nombreRpc = RPC_POR_TIPO[tipo];
 
-      const { data, error } = await sb.rpc(nombreRpc, {
+      const { data, error } = await window.conTimeoutRed(sb.rpc(nombreRpc, {
         ...payload,
         p_offline_local_id: offline_local_id,
-      });
+      }), 10000);
 
       if (error) throw error;
 
@@ -173,6 +173,21 @@
       window.mostrarToast('Sin internet. Los movimientos de stock que registres ahora se guardan en el dispositivo y se envían solos al reconectar.', 'warning', 5000);
     }
   });
+
+  // Defensa en profundidad: OfflineCore.crearOutbox() NO tira excepción si
+  // Dexie no está cargado — devuelve `null` a propósito (ver offline-core.js,
+  // rama `typeof Dexie === 'undefined'`), para que un módulo pueda decidir
+  // su propio fallback. Sin este guard, cualquier uso de outbox.* de más
+  // abajo tira un TypeError síncrono DENTRO de este IIFE y
+  // window.StockOffline nunca llega a asignarse — la página queda sin
+  // ningún rastro de por qué (mismo síntoma que "el script no cargó", pero
+  // mucho más difícil de diagnosticar porque el resto de la página sigue
+  // funcionando normal). Mismo fix que ya tenía proveedor-offline.js
+  // (OFFLINE-02).
+  if (!outbox) {
+    console.error('[StockOffline] OfflineCore.crearOutbox() devolvió null — Dexie no estaba disponible. Sin soporte offline en esta carga.');
+    return;
+  }
 
   async function init({ getSb } = {}) {
     if (typeof getSb === 'function') _getSb = getSb;

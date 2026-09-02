@@ -114,12 +114,20 @@ FROM (SELECT c2.id,
       FROM cta_cte c2 WHERE c2.empresa_id = :'empresa_demo') d
 WHERE c.id = d.id;
 
+-- NOTA (post-546): notas_credito puede existir sin factura_id (nota
+-- standalone). Igual que cta_cte arriba, se necesita un fallback con
+-- hash propio sobre el id de la nota; sin esto, md5(NULL::text) es
+-- NULL y esas filas quedan con delta NULL (no se corrigen, y en el
+-- peor caso el UPDATE les pone fecha_emision en NULL).
 UPDATE notas_credito nc
 SET fecha_emision = fecha_emision - (d.delta || ' days')::interval,
     cae_vto       = CASE WHEN cae_vto IS NOT NULL THEN (cae_vto - (d.delta||' days')::interval)::date END,
     updated_at    = updated_at - (d.delta || ' days')::interval,
     created_at    = created_at - (d.delta || ' days')::interval
-FROM (SELECT n2.id, (('x'||substr(md5(n2.factura_id::text),1,8))::bit(32)::bigint % 216) AS delta FROM notas_credito n2 WHERE n2.empresa_id = :'empresa_demo') d
+FROM (SELECT n2.id,
+             COALESCE((('x'||substr(md5(n2.factura_id::text),1,8))::bit(32)::bigint % 216),
+                      (('x'||substr(md5(n2.id::text),1,8))::bit(32)::bigint % 216)) AS delta
+      FROM notas_credito n2 WHERE n2.empresa_id = :'empresa_demo') d
 WHERE nc.id = d.id;
 
 UPDATE pagos_proveedor pp

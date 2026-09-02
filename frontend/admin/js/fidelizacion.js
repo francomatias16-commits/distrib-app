@@ -98,11 +98,11 @@ async function cargarKPIs() {
       { data: canjesMes },
       { data: ganadosMes },
     ] = await Promise.all([
-      sb.from('saldo_puntos').select('puntos_disponibles, puntos_canjeados').eq('empresa_id', empresaId),
+      window.conTimeoutRed(sb.from('saldo_puntos').select('puntos_disponibles, puntos_canjeados').eq('empresa_id', empresaId), 10000),
       (() => {
         const ini = new Date(); ini.setDate(1); ini.setHours(0,0,0,0);
-        return sb.from('movimientos_puntos').select('cantidad').eq('empresa_id', empresaId)
-          .eq('tipo', 'canje').gte('created_at', ini.toISOString());
+        return window.conTimeoutRed(sb.from('movimientos_puntos').select('cantidad').eq('empresa_id', empresaId)
+          .eq('tipo', 'canje').gte('created_at', ini.toISOString()), 10000);
       })(),
       // FIX (auditoría de módulos, etapa 10, Hallazgo 5): el KPI anterior
       // ("Puntos bonus este mes") filtraba tipo='bonus', un valor que
@@ -112,8 +112,8 @@ async function cargarKPIs() {
       // reemplaza por un dato real: total de puntos ganados en el mes.
       (() => {
         const ini = new Date(); ini.setDate(1); ini.setHours(0,0,0,0);
-        return sb.from('movimientos_puntos').select('cantidad').eq('empresa_id', empresaId)
-          .eq('tipo', 'ganancia').gte('created_at', ini.toISOString());
+        return window.conTimeoutRed(sb.from('movimientos_puntos').select('cantidad').eq('empresa_id', empresaId)
+          .eq('tipo', 'ganancia').gte('created_at', ini.toISOString()), 10000);
       })(),
     ]);
 
@@ -124,9 +124,9 @@ async function cargarKPIs() {
     const totalGanados    = ganadosMes?.reduce((s,r)=>s+Number(r.cantidad||0),0)||0;
 
     // Canjes pendientes para el badge
-    const { count: pendCnt } = await sb.from('canjes_recompensas')
+    const { count: pendCnt } = await window.conTimeoutRed(sb.from('canjes_recompensas')
       .select('id', { count: 'exact', head: true })
-      .eq('empresa_id', empresaId).eq('estado', 'pendiente');
+      .eq('empresa_id', empresaId).eq('estado', 'pendiente'), 10000);
     actualizarBadgeCanjes(pendCnt || 0);
 
     const cont = document.getElementById('kpis-fidel');
@@ -156,8 +156,8 @@ function actualizarBadgeCanjes(n) {
 // ── Config del programa ───────────────────────────────────────────────────────
 async function cargarConfig() {
   try {
-    const { data } = await sb.from('programas_fidelizacion')
-      .select('*').eq('empresa_id', empresaId).maybeSingle();
+    const { data } = await window.conTimeoutRed(sb.from('programas_fidelizacion')
+      .select('*').eq('empresa_id', empresaId).maybeSingle(), 10000);
     if (!data) return;
 
     setVal('config-nombre',          data.nombre || 'Programa de Puntos');
@@ -182,14 +182,14 @@ async function guardarConfig(e) {
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true; btn.textContent = 'Guardando…';
   try {
-    const { error } = await sb.from('programas_fidelizacion').upsert({
+    const { error } = await window.conTimeoutRed(sb.from('programas_fidelizacion').upsert({
       empresa_id:           empresaId,
       nombre:               getVal('config-nombre'),
       puntos_por_peso:      parseFloat(getVal('config-puntos-por-peso')) || 1.0,
       puntos_minimos_canje: parseInt(getVal('config-puntos-minimos'))   || 100,
       activo:               document.getElementById('config-activo')?.checked ?? true,
       updated_at:           new Date().toISOString(),
-    }, { onConflict: 'empresa_id' });
+    }, { onConflict: 'empresa_id' }), 10000);
     if (error) throw error;
     window.toast('Configuración guardada', 'ok');
   } catch (e) {
@@ -205,7 +205,7 @@ async function guardarBonus(e) {
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true; btn.textContent = 'Guardando…';
   try {
-    const { error } = await sb.from('programas_fidelizacion').upsert({
+    const { error } = await window.conTimeoutRed(sb.from('programas_fidelizacion').upsert({
       empresa_id: empresaId,
       bonus_pct_categoria: {
         premium:   parseInt(getVal('bonus-premium'))   || 0,
@@ -215,7 +215,7 @@ async function guardarBonus(e) {
         bloqueado: parseInt(getVal('bonus-bloqueado')) || 0,
       },
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'empresa_id' });
+    }, { onConflict: 'empresa_id' }), 10000);
     if (error) throw error;
     window.toast('Bonus por nivel de confianza guardado', 'ok');
   } catch (e) {
@@ -227,8 +227,8 @@ async function guardarBonus(e) {
 // ── Reglas de Score ───────────────────────────────────────────────────────────
 async function cargarReglaScore() {
   try {
-    const { data } = await sb.from('reglas_score')
-      .select('*').eq('empresa_id', empresaId).maybeSingle();
+    const { data } = await window.conTimeoutRed(sb.from('reglas_score')
+      .select('*').eq('empresa_id', empresaId).maybeSingle(), 10000);
     if (!data) return;
 
     setVal('rs-umbral-premium', data.umbral_premium  ?? 80);
@@ -270,8 +270,8 @@ async function guardarReglaScore(e) {
       dias_cred_normal:     parseInt(getVal('rs-dias-normal')),
       dias_cred_riesgo:     parseInt(getVal('rs-dias-riesgo')),
     };
-    const { error } = await sb.from('reglas_score')
-      .upsert(payload, { onConflict: 'empresa_id' });
+    const { error } = await window.conTimeoutRed(sb.from('reglas_score')
+      .upsert(payload, { onConflict: 'empresa_id' }), 10000);
     if (error) throw error;
     window.toast('Reglas del nivel de confianza guardadas', 'ok');
   } catch (e) {
@@ -286,8 +286,8 @@ async function cargarRecompensas() {
   if (!grid) return;
   grid.innerHTML = '<p style="padding:16px;color:var(--color-text-muted)">Cargando recompensas…</p>';
   try {
-    const { data, error } = await sb.from('recompensas').select('*')
-      .eq('empresa_id', empresaId).order('puntos_requeridos', { ascending: true });
+    const { data, error } = await window.conTimeoutRed(sb.from('recompensas').select('*')
+      .eq('empresa_id', empresaId).order('puntos_requeridos', { ascending: true }), 10000);
     if (error) throw error;
     recompensasData = data || [];
     _recompVisibles = RECOMP_MOSTRAR_INICIAL;
@@ -380,9 +380,9 @@ function editarRecompensa(id) {
 
 async function toggleRecompensa(id, activa) {
   try {
-    const { error } = await sb.from('recompensas')
+    const { error } = await window.conTimeoutRed(sb.from('recompensas')
       .update({ activa, updated_at: new Date().toISOString() })
-      .eq('id', id).eq('empresa_id', empresaId);
+      .eq('id', id).eq('empresa_id', empresaId), 10000);
     if (error) throw error;
     recompensasData = recompensasData.map(r => r.id === id ? { ...r, activa } : r);
     renderRecompensas();
@@ -415,9 +415,9 @@ async function guardarRecompensa(e) {
     };
     let error;
     if (editRecompensaId) {
-      ({ error } = await sb.from('recompensas').update(payload).eq('id', editRecompensaId).eq('empresa_id', empresaId));
+      ({ error } = await window.conTimeoutRed(sb.from('recompensas').update(payload).eq('id', editRecompensaId).eq('empresa_id', empresaId), 10000));
     } else {
-      ({ error } = await sb.from('recompensas').insert(payload));
+      ({ error } = await window.conTimeoutRed(sb.from('recompensas').insert(payload), 10000));
     }
     if (error) throw error;
     cerrarModal();
@@ -459,7 +459,7 @@ async function cargarCanjes() {
       .limit(150);
     if (estado) q = q.eq('estado', estado);
 
-    const { data, error } = await q;
+    const { data, error } = await window.conTimeoutRed(q, 10000);
     if (error) throw error;
     canjesData = data || [];
     _canjesVisibles = CANJES_MOSTRAR_INICIAL;
@@ -529,8 +529,8 @@ async function actualizarEstadoCanje(id, nuevoEstado) {
   try {
     const patch = { estado: nuevoEstado };
     if (nuevoEstado === 'aplicado') patch.aplicado_at = new Date().toISOString();
-    const { error } = await sb.from('canjes_recompensas')
-      .update(patch).eq('id', id).eq('empresa_id', empresaId);
+    const { error } = await window.conTimeoutRed(sb.from('canjes_recompensas')
+      .update(patch).eq('id', id).eq('empresa_id', empresaId), 10000);
     if (error) throw error;
     window.toast(nuevoEstado === 'aplicado' ? 'Canje aplicado' : 'Canje expirado', 'ok');
     await cargarCanjes();
@@ -547,10 +547,10 @@ async function cargarClientesPuntos() {
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--color-text-muted)">Cargando…</td></tr>';
   try {
-    const { data, error } = await sb.from('saldo_puntos')
+    const { data, error } = await window.conTimeoutRed(sb.from('saldo_puntos')
       .select('puntos_disponibles, puntos_canjeados, puntos_totales, ultimo_movimiento, cliente_id, clientes(razon_social, nombre_fantasia)')
       .eq('empresa_id', empresaId)
-      .order('puntos_disponibles', { ascending: false });
+      .order('puntos_disponibles', { ascending: false }), 10000);
     if (error) throw error;
     clientesPuntosData = data || [];
     _clientesVisibles = CLIENTES_MOSTRAR_INICIAL;
@@ -617,11 +617,11 @@ async function cargarHistorial() {
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--color-text-muted)">Cargando…</td></tr>';
   try {
-    const { data, error } = await sb.from('movimientos_puntos')
+    const { data, error } = await window.conTimeoutRed(sb.from('movimientos_puntos')
       .select('*, clientes(razon_social, nombre_fantasia)')
       .eq('empresa_id', empresaId)
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(200), 10000);
     if (error) throw error;
     historialData = data || [];
     _historialVisibles = HISTORIAL_MOSTRAR_INICIAL;

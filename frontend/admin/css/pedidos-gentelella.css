@@ -698,11 +698,13 @@ body.dash-pedidos-gentelella .btn-acc:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
 }
-body.dash-pedidos-gentelella .btn-acc.btn-danger {
+body.dash-pedidos-gentelella .btn-acc.btn-danger,
+body.dash-pedidos-gentelella .btn-acc.btn--danger {
   border-color: var(--ge-red) !important;
   color: var(--ge-red) !important;
 }
-body.dash-pedidos-gentelella .btn-acc.btn-danger:hover {
+body.dash-pedidos-gentelella .btn-acc.btn-danger:hover,
+body.dash-pedidos-gentelella .btn-acc.btn--danger:hover {
   background: rgba(231,76,60,.10) !important;
 }
 

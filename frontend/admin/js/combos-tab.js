@@ -55,10 +55,10 @@ async function cb_cargarContadorCombos() {
   const badge = document.getElementById('combos-badge');
   if (!badge || !sb) return;
   try {
-    const { count, error } = await sb
+    const { count, error } = await window.conTimeoutRed(sb
       .from('combos')
       .select('id', { count: 'exact', head: true })
-      .eq('activo', true);
+      .eq('activo', true), 10000);
     if (error) throw error;
     if (count > 0) {
       badge.textContent = count;
@@ -76,10 +76,10 @@ async function cb_cargarCombos() {
   if (!sb) { combosAll = []; cb_render(); return; }
 
   try {
-    const { data, error } = await sb
+    const { data, error } = await window.conTimeoutRed(sb
       .from('combos')
       .select('id, nombre, descripcion, precio, foto_url, activo, combo_items(producto_id, cantidad, productos(nombre))')
-      .order('nombre');
+      .order('nombre'), 10000);
 
     if (error) throw error;
     combosAll = data || [];
@@ -116,7 +116,7 @@ function cb_render() {
 
     return `
       <tr>
-        <td>
+        <td data-label="Combo">
           <div class="cb-combo-cell">
             <div class="cb-combo-thumb">
               ${c.foto_url
@@ -126,14 +126,14 @@ function cb_render() {
             <span class="cb-combo-nombre">${cb_esc(c.nombre)}</span>
           </div>
         </td>
-        <td><span class="cb-combo-composicion" title="${cb_esc(composicion)}">${composicion}</span></td>
-        <td class="prod-num">${cb_formatPeso(c.precio)}</td>
-        <td>
+        <td data-label="Composición"><span class="cb-combo-composicion" title="${cb_esc(composicion)}">${composicion}</span></td>
+        <td class="prod-num" data-label="Precio">${cb_formatPeso(c.precio)}</td>
+        <td data-label="Estado">
           <span class="cb-estado-badge ${c.activo ? 'cb-estado-badge--activo' : 'cb-estado-badge--inactivo'}">
             ${c.activo ? 'Activo' : 'Inactivo'}
           </span>
         </td>
-        <td class="col-sticky-end">
+        <td class="col-sticky-end" data-label="Acciones">
           <div style="display:flex;gap:6px;justify-content:flex-end">
             <button type="button" class="cb-btn-toggle" onclick="btnAsyncClick(this, () => cb_toggleActivo('${c.id}', ${!c.activo}))">
               ${c.activo ? 'Desactivar' : 'Activar'}
@@ -151,7 +151,7 @@ function cb_render() {
 async function cb_toggleActivo(comboId, nuevoValor) {
   if (!sb) { toast('No hay conexión con la base de datos.', 'warning'); return; }
   try {
-    const { data, error } = await sb.rpc('fn_combo_set_activo', { p_combo_id: comboId, p_activo: nuevoValor });
+    const { data, error } = await window.conTimeoutRed(sb.rpc('fn_combo_set_activo', { p_combo_id: comboId, p_activo: nuevoValor }), 10000);
     if (error) throw error;
     if (!data?.ok) { toast(data?.error || 'No se pudo actualizar el combo.', 'error'); return; }
 
@@ -265,7 +265,7 @@ async function cb_guardar() {
   if (!sb) { toast('No hay conexión con la base de datos.', 'warning'); return; }
 
   try {
-    const { data, error } = await sb.rpc('fn_guardar_combo', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('fn_guardar_combo', {
       p_combo_id:    modalComboId,
       p_nombre:      nombre,
       p_descripcion: descripcion,
@@ -273,7 +273,7 @@ async function cb_guardar() {
       p_foto_url:    fotoUrl,
       p_activo:      activo,
       p_items:       itemsModal.map(it => ({ producto_id: it.producto_id, cantidad: it.cantidad })),
-    });
+    }), 10000);
 
     if (error) throw error;
     if (!data?.ok) { toast(data?.error || 'No se pudo guardar el combo.', 'error'); return; }

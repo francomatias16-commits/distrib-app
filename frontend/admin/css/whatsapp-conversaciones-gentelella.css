@@ -185,6 +185,10 @@ body.dash-whatsapp-conversaciones-gentelella .badge-estado.derivada_humano {
   background: rgba(231,76,60,.1) !important;
   color: var(--ge-red) !important;
 }
+body.dash-whatsapp-conversaciones-gentelella .badge-estado.cerrada {
+  background: var(--ge-teal-light) !important;
+  color: var(--ge-teal-dark) !important;
+}
 
 /* Pastillas de atención (.badge-tomada / .badge-libre) */
 body.dash-whatsapp-conversaciones-gentelella .badge-tomada {

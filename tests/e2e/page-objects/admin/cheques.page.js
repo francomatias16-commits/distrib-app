@@ -78,11 +78,16 @@ export class ChequesPage extends PageObjectBase {
   }
 
   botonEditar(chequeId) {
-    return this.fila(chequeId).getByTitle('Editar');
+    // FIX: los botones de la fila (cheques.js::renderTabla) nunca tuvieron
+    // atributo `title` — son <button>Editar</button> / <button>Verificar
+    // BCRA</button> simples. getByTitle() nunca resolvía nada y el test
+    // quedaba esperando 30s hasta el timeout. Van por texto/rol, que es lo
+    // que realmente existe en el DOM.
+    return this.fila(chequeId).getByRole('button', { name: 'Editar' });
   }
 
   botonVerificarBcra(chequeId) {
-    return this.fila(chequeId).getByTitle('Verificar denuncia en BCRA');
+    return this.fila(chequeId).getByRole('button', { name: 'Verificar BCRA' });
   }
 
   selectEstadoFila(chequeId) {

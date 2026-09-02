@@ -69,6 +69,12 @@ const htmlFiles = fs.readdirSync(ADMIN_DIR)
     name:     f.replace('.html', ''),
     htmlPath: path.join(ADMIN_DIR, f),
     jsPath:   path.join(ADMIN_DIR, 'js', f.replace('.html', '.js')),
+    // 25/08/2026: si el JS de la página se partió en varios archivos (ver
+    // pos.js → js/pos/*.js), el "JS propio" vive en un directorio con el
+    // nombre de la página en vez de un único archivo — sin esto, el check
+    // de globals se saltea en silencio para esas páginas (falso "sin JS
+    // propio"), igual que pasó antes con el falso positivo de liquidacion.html.
+    jsDirPath: path.join(ADMIN_DIR, 'js', f.replace('.html', '')),
   }));
 
 log(`\nSmoke test: ${htmlFiles.length} páginas en ${ADMIN_DIR}\n`);
@@ -96,13 +102,25 @@ for (const page of htmlFiles) {
 
   const loadsUiUtils = html.includes('ui-utils.js');
 
+  // JS propio partido en varios archivos (directorio js/<page>/*.js):
+  // concatenar todos para el check de globals, igual que si fuera un
+  // único archivo.
+  let js = null;
+  if (fs.existsSync(page.jsPath)) {
+    js = fs.readFileSync(page.jsPath, 'utf8');
+  } else if (fs.existsSync(page.jsDirPath) && fs.statSync(page.jsDirPath).isDirectory()) {
+    js = fs.readdirSync(page.jsDirPath)
+      .filter(f => f.endsWith('.js'))
+      .map(f => fs.readFileSync(path.join(page.jsDirPath, f), 'utf8'))
+      .join('\n');
+  }
+
   // Sin JS propio: saltar check de globals
-  if (!fs.existsSync(page.jsPath)) {
+  if (js === null) {
     log(`  ⏭  ${page.name} (sin JS propio)`);
     continue;
   }
 
-  const js          = fs.readFileSync(page.jsPath, 'utf8');
   const usesGlobals = GLOBALS_REGEX.test(js);
 
   if (!usesGlobals) {

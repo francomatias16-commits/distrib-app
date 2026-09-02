@@ -223,7 +223,7 @@ async function cargarPagina(pagina) {
       .order('created_at', { ascending: false })
       .range(desde, hasta);
     if (tabla) q = q.eq('tabla', tabla);
-    const { data, error, count } = await q;
+    const { data, error, count } = await window.conTimeoutRed(q, 10000);
     if (error) throw new Error(error.message);
 
     registros = data || [];
@@ -295,9 +295,9 @@ async function resolverUsuarios(data) {
   if (!ids.length) return;
 
   try {
-    const { data: usuarios = [] } = await _sb.from('usuarios')
+    const { data: usuarios = [] } = await window.conTimeoutRed(_sb.from('usuarios')
       .select('id,nombre,email')
-      .in('id', ids);
+      .in('id', ids), 10000);
     if (!usuarios.length) return;
     usuarios.forEach(u => { cacheUsuarios[u.id] = u.nombre || u.email; });
   } catch (e) {
@@ -478,7 +478,7 @@ async function cargarPaginaEventos(pagina) {
     if (tipo)   q = q.eq('tipo_evento', tipo);
     if (estado) q = q.eq('estado', estado);
 
-    const { data, error, count } = await q;
+    const { data, error, count } = await window.conTimeoutRed(q, 10000);
     if (error) throw new Error(error.message);
 
     eventos = data || [];
@@ -588,7 +588,7 @@ async function exportarEventosCSV() {
   if (tipo)   q = q.eq('tipo_evento', tipo);
   if (estado) q = q.eq('estado', estado);
 
-  const { data, error } = await q;
+  const { data, error } = await window.conTimeoutRed(q, 10000);
   if (error) {
     console.error(error);
     mostrarToast('Error al exportar los eventos', 'err');

@@ -15,16 +15,52 @@
 
 'use strict';
 
-const SW_VERSION   = 'chofer-v163';
+const SW_VERSION   = 'chofer-mtcen4q1';
 const CACHE_STATIC = `${SW_VERSION}-static`;
 const CACHE_DATA   = `${SW_VERSION}-data`;
 let SESSION_SCOPE  = 'anonymous';
 
+// OFFLINE-06 (mismo objetivo y mismo criterio que sw-admin.js: "que ninguna
+// pantalla quede en blanco NI siquiera en la primera visita sin conexión").
+// Antes acá solo había 5 URLs (2 páginas + 1 JS + 1 CSS), así que notificaciones,
+// invitación y restablecer-password nunca visitadas quedaban en blanco offline.
+// Lista generada recorriendo frontend/chofer/*.html y extrayendo cada
+// <script src>/<link href> local — las 6 páginas reales del chofer (según
+// vercel.json, sin el "/chofer/index" que no es una ruta registrada) + sus
+// 22 assets propios (JS/CSS).
+//
+// Van SIN el query string "?v=..." de cache-busting a propósito, mismo
+// motivo que sw-admin.js: cacheFirst() de abajo matchea con
+// { ignoreSearch: true } así que no importa qué versión pida el HTML del
+// deploy actual, encuentra la entrada igual.
 const PRECACHE_URLS = [
   '/chofer',
   '/chofer/login',
+  '/chofer/restablecer-password',
   '/chofer/remito',
+  '/chofer/invitacion',
+  '/chofer/notificaciones',
+  '/chofer/chofer-offline.js',
+  '/chofer/css/index.css',
+  '/chofer/css/invitacion.css',
+  '/chofer/css/login.css',
+  '/chofer/css/notificaciones.css',
+  '/chofer/css/remito.css',
+  '/chofer/css/restablecer-password.css',
   '/chofer/gps-tracker.js',
+  '/chofer/pwa-init.js',
+  '/frontend/env-config.js',
+  '/frontend/js/push-init.js',
+  '/frontend/shared/chat-widget.css',
+  '/frontend/shared/chat-widget.js',
+  '/frontend/shared/realtime.js',
+  '/shared/a11y-focus.css',
+  '/shared/microinteracciones.css',
+  '/shared/offline-core.js',
+  '/shared/reskin-patch-v2-shadcn.css',
+  '/shared/reskin-patch.css',
+  '/shared/responsive-mobile.css',
+  '/shared/responsive-mobile.js',
   '/shared/tokens.css',
 ];
 
@@ -44,12 +80,25 @@ const NETWORK_ONLY_PATTERNS = [
   /\/api\/auth/,
 ];
 
+// FIX (precache resiliente): antes era cache.addAll(PRECACHE_URLS), que es
+// atómico — si UNA sola URL de la lista daba 404/error de red durante el
+// install (ej. el "/chofer/index" que colaba antes y no es una ruta real),
+// addAll() rechazaba COMPLETO y no se cacheaba nada de nada (el .catch()
+// de abajo solo logueaba, pero el daño ya estaba hecho: precache vacío).
+// Ahora cada URL se cachea con su propio try/catch vía Promise.allSettled:
+// si alguna falla, el resto se cachea igual — degradación parcial en vez
+// de precache total en cero. Mismo fix que sw-admin.js.
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_STATIC)
-      .then((c) => c.addAll(PRECACHE_URLS))
-      .catch((err) => console.warn('[SW-chofer] Precache parcial:', err))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_STATIC).then((c) =>
+      Promise.allSettled(
+        PRECACHE_URLS.map((url) =>
+          c.add(url).catch((err) => {
+            console.warn('[SW-chofer] No se pudo precachear', url, err.message);
+          })
+        )
+      ).then(() => self.skipWaiting())
+    )
   );
 });
 
@@ -124,6 +173,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // OFFLINE-05: catch-all — cualquier otro GET a /api/chofer/* (o similar)
+  // que no haya matcheado NETWORK_ONLY_PATTERNS arriba (devolución/foto de
+  // entrega/GPS/auth, que siguen siempre yendo a la red sin caché) también
+  // se sirve con Network-First + último dato conocido, en vez de explotar
+  // sin handler y dejar la pantalla del chofer en blanco.
+  if (url.pathname.startsWith('/api/')) {
+    e.respondWith(networkFirst(req));
+    return;
+  }
+
   if (
     url.pathname.startsWith('/chofer') ||
     url.pathname.startsWith('/frontend/chofer/') ||
@@ -134,14 +193,29 @@ self.addEventListener('fetch', (e) => {
   }
 });
 
+// FIX (ignoreSearch): PRECACHE_URLS se guarda SIN el query string "?v=..."
+// de cache-busting, pero en runtime las páginas/assets se piden CON ese
+// query (bump-asset-versions.js lo agrega a todos los <link>/<script> del
+// deploy actual). Sin ignoreSearch, caches.match(req) nunca encontraba la
+// entrada precacheada — el query distinto la hacía invisible — así que la
+// primera visita offline a una pantalla nunca visitada antes igual rompía.
+// Ahora matchea ignorando el query, y al guardar una respuesta de red
+// normaliza la key sacándole el query también (sinQuery), para que quede
+// bajo el mismo nombre que usó el precache. Mismo fix que sw-admin.js.
+function sinQuery(req) {
+  const url = new URL(req.url);
+  url.search = '';
+  return new Request(url.toString(), { method: 'GET' });
+}
+
 async function cacheFirst(req) {
-  const cached = await caches.match(req);
+  const cached = await caches.match(req, { ignoreSearch: true });
   if (cached) return cached;
   try {
     const resp = await fetch(req);
     if (resp.ok) {
       const c = await caches.open(CACHE_STATIC);
-      c.put(req, resp.clone());
+      c.put(sinQuery(req), resp.clone());
     }
     return resp;
   } catch {

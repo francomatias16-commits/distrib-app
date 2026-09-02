@@ -84,6 +84,23 @@ test.afterAll(async () => { staticServer.server.close(); });
 async function armarPagina(page, { pedidosIniciales = [pedidoDespachable()], rutasIniciales = [rutaExistente()] } = {}) {
   mockearRestGenerico(page);
   mockearApiGenerico(page);
+  // FIX: el catch-all de mockearApiGenerico responde `{ ok: true }` a
+  // cualquier POST, pero notificarChofer() (rutas.js) exige
+  // `result.enviadas > 0` en la respuesta de /api/notif/push-chofer para
+  // considerar la notificación exitosa (`pushOk`). Como CHOFERES no trae
+  // `telefono`, el camino de WhatsApp ni siquiera se intenta (`waOk`
+  // queda en false), así que sin este mock específico `waOk||pushOk` da
+  // false siempre y el toast real es "No se pudo enviar la notificación
+  // al chofer" — nunca "<chofer> notificado", que es lo que espera el
+  // test de armado de ruta. Registrado después del catch-all para
+  // pisarlo (mismo criterio ya documentado arriba con `usuarios`).
+  await page.route('**/api/notif/push-chofer**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({ enviadas: 1 }),
+    });
+  });
   await vendorizarSupabase(page);
 
   const { perfil } = await loguearComoAdmin(page);
@@ -153,10 +170,12 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
     // para reflejar ese rediseño intencional en vez de esperar el texto
     // suelto en la card.
     await expect(rutasPage.grupoZonaDe(PEDIDO_ID)).toContainText('Zona Norte');
-    // Singular correcto: renderPendientes() pluraliza "pedido"/"disponible"
-    // según libres.length (ver rutas.js) y agrega el monto total con
-    // formatARS — con 1 pedido el texto queda "1 pedido disponible · $X".
-    await expect(rutasPage.labelPendientes).toContainText('1 pedido disponible');
+    // FIX: el label pasó de "N pedido(s) disponible(s) · $monto" a "N
+    // disponible(s) · M seleccionado(s)" (rediseño que sumó selección
+    // múltiple por zona — ver renderPendientes() en rutas.js, ya no
+    // pluraliza "pedido" ni muestra el monto acá). Con 1 pedido cargado y
+    // ninguno todavía agregado a la ruta: "1 disponible · 0 seleccionado".
+    await expect(rutasPage.labelPendientes).toContainText('1 disponible · 0 seleccionado');
 
     await expect(rutasPage.tablaRutasDia).toContainText('Pedro Otro Chofer');
     await expect(rutasPage.tablaRutasDia).toContainText('Pendiente');
@@ -192,7 +211,11 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
 
     await rutasPage.rutaFecha.fill('2026-08-10');
     await rutasPage.rutaChofer.selectOption(CHOFER_ID);
-    await rutasPage.rutaNotas.fill('Zona norte AM');
+    // FIX: "Notas" se sacó del formulario visible en v964 (ver comentario
+    // en rutas.html) y quedó como <input type="hidden"> solo por
+    // compatibilidad con rutas.js — ya no es .fill()-eable, y rutas.js
+    // manda `notas: null` cuando el campo queda vacío (ver
+    // `document.getElementById('ruta-notas').value || null`).
 
     await rutasPage.confirmarRuta();
 
@@ -202,7 +225,7 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
       chofer_id: CHOFER_ID,
       fecha: '2026-08-10',
       estado: 'pendiente',
-      notas: 'Zona norte AM',
+      notas: null,
     });
     expect(bodyEntregas).toEqual([
       expect.objectContaining({ pedido_id: PEDIDO_ID, orden: 1, estado: 'pendiente' }),

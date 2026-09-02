@@ -227,7 +227,11 @@ test.describe('Devoluciones (admin) — Fase 2 P1', () => {
     await devolucionesPage.abrirDetalle(DEV_PENDIENTE_ID);
     await devolucionesPage.aprobar();
 
-    await devolucionesPage.esperarToastExito('No se pudo registrar la revisión');
+    // revisarDevolucion() usa directamente el mensaje que devuelve el
+    // backend (data.error) cuando viene presente — el fallback genérico
+    // "No se pudo registrar la revisión." solo aplica si la respuesta no
+    // trae `error` (ver devoluciones.js::revisarDevolucion()).
+    await devolucionesPage.esperarToastExito('No hay stock suficiente en el depósito elegido');
 
     // El panel sigue mostrando la devolución (no se descartó el estado
     // activo) y los botones vuelven a habilitarse tras el error.

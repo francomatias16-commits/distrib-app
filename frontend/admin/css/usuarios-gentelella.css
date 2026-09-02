@@ -167,6 +167,16 @@ body.dash-usuarios-gentelella .td-usuario {
   gap: 12px !important;
   min-width: 220px !important;
 }
+/* FIX (auditoría mobile 2026-08): el div que envuelve nombre+email es un
+   item flex de .td-usuario y por default un flex item no encoge por
+   debajo de su contenido (min-width:auto), así que un email largo
+   desbordaba la celda y se veía cortado a mitad de palabra, sin "...".
+   min-width:0 le permite encogerse; el ellipsis en .usr-nombre/.usr-email
+   hace el resto. */
+body.dash-usuarios-gentelella .td-usuario > div:last-child {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
 body.dash-usuarios-gentelella .usr-avatar {
   width: 36px !important;
   height: 36px !important;
@@ -184,11 +194,17 @@ body.dash-usuarios-gentelella .usr-nombre {
   color: var(--ge-ink) !important;
   font-weight: 600 !important;
   font-size: 14px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 body.dash-usuarios-gentelella .usr-email {
   color: var(--ge-muted) !important;
   font-size: 12px !important;
   margin-top: 1px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 body.dash-usuarios-gentelella .usr-pill-vos {
   font-size: 10.5px !important;

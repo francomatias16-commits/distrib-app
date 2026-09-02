@@ -2,7 +2,7 @@
 /**
  * scripts/generar-embeddings-asistente.js
  *
- * Lee todos los .md de docs/ayuda/, genera el embedding de cada uno
+ * Lee todos los .md de docs/producto/ayuda/, genera el embedding de cada uno
  * con el modelo gemini-embedding-001 (768 dims) y los sube (upsert)
  * a la tabla asistente_articulos en Supabase (ver
  * supabase/migrations/195_asistente_ayuda.sql).
@@ -23,7 +23,7 @@ import matter from 'gray-matter';
 import { createClient } from '@supabase/supabase-js';
 
 const ROOT = process.cwd();
-const DOCS_DIR = path.join(ROOT, 'docs', 'ayuda');
+const DOCS_DIR = path.join(ROOT, 'docs', 'producto', 'ayuda');
 const EMBEDDING_MODEL = 'gemini-embedding-001';
 const EMBEDDING_DIMS = 768;
 
@@ -108,7 +108,7 @@ function leerArticulos() {
 
 async function main() {
   const articulos = leerArticulos();
-  console.log(`Encontrados ${articulos.length} artículos en docs/ayuda/`);
+  console.log(`Encontrados ${articulos.length} artículos en docs/producto/ayuda/`);
 
   let ok = 0;
   let fallidos = 0;

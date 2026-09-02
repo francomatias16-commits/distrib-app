@@ -1,0 +1,102 @@
+# Etapa 6 — Consistencia y robustez end-to-end
+
+**Estado:** 🟢 Cerrada — CONS-01/02/03/04 corregidos y verificados contra producción (CONS-04 agregado 2026-08-24; cita de migración de CONS-01/02/03 corregida el mismo día).
+
+> **Nota:** este archivo se reconstruyó a partir del historial de la sesión
+> que cerró esta etapa — el ZIP de partida traía un stub sin contenido
+> ("No iniciada"), desactualizado respecto al trabajo ya hecho.
+
+## CONS-02 (el más grave) — 3 funciones desbloqueaban crédito indebido por una fórmula de deuda que no reconocía facturas como cargo
+
+`registrar_cobro_completo`, `calcular_deuda_cliente` y `calcular_score_cliente`
+recalculaban la deuda del cliente con una fórmula (`WHEN tipo = 'debito' ...
+ELSE -monto`) que no reconocía `'factura'` como un tipo de cargo válido.
+Efecto en cadena:
+- Desbloqueo automático de crédito indebido para clientes que en realidad
+  tenían deuda real.
+- La oferta de plan de pago por WhatsApp nunca se disparaba (dependía de que
+  `calcular_deuda_cliente` reportara deuda correctamente).
+- El score de deuda de cualquier cliente quedaba siempre en el máximo.
+
+**Fix:** las 3 funciones pasan a leer `clientes.saldo_deuda` directamente (ya
+correcto vía trigger), en vez de recalcular con la fórmula rota.
+
+## CONS-01 — Trigger de sincronización de deuda fallaba en silencio ante tipos no reconocidos
+
+`sync_saldo_deuda_cliente` tenía un `ELSE 0` silencioso: cualquier fila con un
+`tipo` no reconocido (se encontraron 2 filas demo con `tipo IN ('debe',
+'haber')`, valores viejos que no correspondían a la taxonomía actual)
+contribuía 0 al saldo en vez de fallar visiblemente.
+
+**Fix:** el trigger ahora falla fuerte ante un tipo no reconocido (en vez de
+absorberlo en silencio) y se corrigieron las 2 filas demo con la taxonomía
+vieja.
+
+## CONS-03 — `registrar_movimiento_cta_cte` escribía en la columna que nadie leía
+
+La función escribía el monto solo en la columna `importe`, pero el trigger de
+sincronización de deuda lee `monto` — las dos columnas coexistían con
+significados solapados. El caller real de esta función tampoco tenía
+autorización explícita (`EXECUTE` estaba otorgado a `authenticated` sin que
+hubiera ningún caller legítimo real vía esa vía).
+
+**Fix:** la función ahora escribe en ambas columnas, y se revocó `EXECUTE` de
+`authenticated` (sin caller real confirmado).
+
+## Verificación de cierre (corregida — sesión 2026-08-24)
+- **Corrección:** la cita original de este documento a
+  `293_fix_cons_saldo_deuda_taxonomia_tipo_cta_cte.sql` era incorrecta — el
+  archivo `293` real del repo (`293_fix_chequear_limite_plan_excluir_rol_
+  cliente_de_usuarios.sql`) es sobre un tema no relacionado. El fix de
+  CONS-01/02/03 se aplicó directo contra producción sin dejar el archivo de
+  migración correspondiente en el repo (brecha detectada al re-verificar
+  esta etapa). Re-verificado función por función contra producción el
+  2026-08-24 — las 3 afirmaciones siguen siendo ciertas hoy:
+  - `registrar_cobro_completo`: lee `clientes.saldo_deuda` directo (no
+    recalcula con la fórmula rota).
+  - `sync_saldo_deuda_cliente`: `RAISE EXCEPTION` ante `tipo` no
+    reconocido (ya no `ELSE 0` silencioso); 0 filas con `tipo IN
+    ('debe','haber')` en producción hoy.
+  - `registrar_movimiento_cta_cte`: escribe en `monto` e `importe`; sin
+    `EXECUTE` para `authenticated` (solo `postgres`/`service_role`).
+- Documento de seguimiento del plan (`00_PLAN_MAESTRO.md`) actualizado a
+  🟢 Cerrada (previamente).
+
+## CONS-04 (hallazgo nuevo, sesión 2026-08-24) — `calcular_score_cliente` no reusaba la fuente canónica de deuda
+
+Historial de esta función, componente "Deuda" (0-20 pts):
+1. Versión original (migración `066`): comparaba `cta_cte.tipo` contra
+   `'debito'`/`'credito'`, valores que **nunca existieron** en esa columna
+   (los reales son `factura`/`cobro`/`nota_credito`) — el `CASE` caía
+   siempre al `ELSE -monto`, dando 20/20 sin importar la deuda real (esto
+   es lo que documenta CONS-02 arriba, ahora resuelto).
+2. Fix real (`523`/`524` en el repo, nunca registrados en
+   `schema_migrations_registry` hasta esta sesión): cambia a
+   `tipo = 'factura'` como débito, todo lo demás como haber — correcto
+   para los tipos en uso en ese momento.
+3. **Bug latente detectado ahora:** ese mismo `CASE` de `523`/`524` manda
+   `'cargo'` y `'nota_debito'` (soportados desde la migración `452`) al
+   `ELSE -monto` — los resta de la deuda en vez de sumarlos. Sin impacto
+   hoy (producción solo usa `factura`/`cobro`/`nota_credito`), pero se
+   activaría en cuanto se registre un `cargo` o una `nota_debito`.
+
+**Fix (migración `541`):** el componente Deuda deja de recalcular con su
+propio `SUM(CASE...)` y delega en `calcular_deuda_cliente()` (fuente
+canónica, migración `540` — reconstrucción retroactiva de la misma
+función que ya usa el semáforo de cobranza). Verificado: coincide exacto
+con `clientes.saldo_deuda` para clientes reales con actividad, y
+`calcular_score_cliente()` corre sin error post-fix (smoke test).
+
+**Nota de numeración:** `540`/`541` fueron aplicadas primero como `539`/
+`540` en una sesión que no tenía el repo completo — colisionaban con la
+migración real `539_cheques_rls_cliente_ownership.sql` (hallazgo
+CHEQUES-001, no relacionado, ya aplicado en prod pero tampoco registrado).
+Se renumeraron y se registró también el `539` real retroactivamente.
+
+## Relación con hallazgos de higiene de otras etapas
+Los 2 ítems de higiene detectados en la Etapa 1 (BUG-01: fallback silencioso
+de `sanitize`; BUG-02: mayoría de módulos admin bypasea `api-client.js` y
+pega directo a PostgREST) encajan temáticamente en esta etapa
+(consistencia/robustez), pero no se resolvieron acá — quedan como deuda
+técnica de bajo riesgo, no explotable hoy porque Etapa 2 (RLS) y Etapa 5
+(`sanitize` sí carga) ya acotan el impacto real.

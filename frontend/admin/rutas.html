@@ -14,19 +14,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas.css?v=200" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-resumen.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-professional.css?v=20260819-3" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-command-center.css?v=20260822-1" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-surface-v2.css?v=20260822-2" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=20260824-6" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-resumen.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-professional.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-command-center.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-surface-v2.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-integrated.css?v=mtcen4r4" />
   <!-- compras.css: define .select-filtro/.btn-tabla/.modal-box/.form-* que usa la pestaña "Zonas" (antes vivían en zonas.html); la tabla en sí usa .tabla-admin canónico desde la migración Fase 3 -->
-  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=197" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-rutas-gentelella dash-gentelella">
@@ -71,223 +71,276 @@
     </div>
 
     <!-- ════════════════════════════════════════════
-         TAB: Resumen — torre de control operativa
+         TAB: Resumen (dashboard de repartos del día)
     ═════════════════════════════════════════════ -->
     <div id="tab-resumen-content" role="tabpanel" aria-labelledby="tab-resumen" aria-hidden="false">
-      <div class="control-tower">
 
-        <div class="control-context-line" aria-label="Contexto de la operación">
-          <span class="control-kicker control-kicker--dark">Resumen de repartos · <span id="resumen-badge-fecha">—</span></span>
-          <span class="control-context-live"><i class="control-live-dot" aria-hidden="true"></i>Operación en vivo <strong id="resumen-choferes-count">—</strong><small>rutas cargadas</small></span>
-        </div>
+      <!-- Panel operativo único: los cuatro indicadores se leen juntos y
+           liberan el área principal para la lista de rutas y choferes. -->
+      <div class="resumen-dashboard-shell">
+        <section class="resumen-operativo-panel" aria-labelledby="resumen-operativo-titulo">
+          <div class="resumen-operativo-head">
+            <div>
+              <div class="resumen-operativo-kicker">Control del día</div>
+              <h2 id="resumen-operativo-titulo">Resumen operativo</h2>
+              <p>Pedidos, entregas y cobranzas en un solo lugar.</p>
+            </div>
+            <span class="resumen-operativo-status"><span></span> En vivo</span>
+          </div>
 
-        <section class="control-signal-strip" aria-label="Señales operativas">
-          <button type="button" class="control-signal control-signal--info" data-summary-filter="en_camino" onclick="filtrarResumenRutas('en_camino')" aria-pressed="false">
-            <span class="control-signal-label">En ruta ahora</span>
-            <strong id="resumen-signal-en-ruta">—</strong>
-            <small id="resumen-leg-en-camino">● En ruta 0</small>
-          </button>
-          <button type="button" class="control-signal control-signal--warning" data-summary-filter="risk" onclick="filtrarResumenRutas('risk')" aria-pressed="false">
-            <span class="control-signal-label">Riesgo de demora</span>
-            <strong id="resumen-signal-riesgo">—</strong>
-            <small id="resumen-leg-pendiente">● Pendiente 0</small>
-          </button>
-          <button type="button" class="control-signal control-signal--success" data-summary-filter="completada" onclick="filtrarResumenRutas('completada')" aria-pressed="false">
-            <span class="control-signal-label">Completados</span>
-            <strong id="resumen-signal-completada">—</strong>
-            <small id="resumen-leg-completada">● Completada 0</small>
-          </button>
-          <button type="button" class="control-signal control-signal--neutral" data-summary-filter="all" onclick="filtrarResumenRutas('all')" aria-pressed="true">
-            <span class="control-signal-label">Ver operación completa</span>
-            <strong id="resumen-signal-total">—</strong>
-            <small>rutas de la fecha seleccionada</small>
-          </button>
-        </section>
-
-        <div class="control-main-grid">
-          <section class="control-queue" aria-labelledby="resumen-pedidos-titulo">
-            <div class="control-section-head">
-              <div>
-                <span class="control-kicker control-kicker--dark">Cola priorizada</span>
-                <h2 id="resumen-pedidos-titulo">Pedidos en operación</h2>
-                <p>Cada pedido queda visible. Seleccioná uno para llevar su reparto al seguimiento.</p>
-              </div>
-              <span class="control-queue-note" id="resumen-choferes-delta" aria-live="polite">—</span>
-            </div>
-            <div class="control-queue-key" aria-label="Filtros de estado">
-              <span><i class="status-mark status-mark--warning"></i> Pedido pendiente</span>
-              <span><i class="status-mark status-mark--info"></i> En tránsito</span>
-              <span><i class="status-mark status-mark--success"></i> Entregado</span>
-              <span><i class="status-mark status-mark--danger"></i> No entregado / cancelado</span>
-            </div>
-            <div class="control-queue-scroll-hint" id="resumen-queue-scroll-hint" hidden aria-live="polite">
-              <span class="control-queue-scroll-icon" aria-hidden="true">↕</span>
-              <span data-scroll-copy>Deslizá dentro de la cola para ver más pedidos</span>
-              <strong id="resumen-queue-scroll-count"></strong>
-            </div>
-            <div class="control-route-list" id="resumen-chofer-list" aria-live="polite">
-              <div class="control-empty-state control-empty-state--queue" data-empty-state>
-                <span class="control-empty-state-icon" aria-hidden="true">◎</span>
-                <strong>Preparando la operación</strong>
-                <p>Consultando las rutas de la fecha seleccionada.</p>
-              </div>
-            </div>
-            <div class="control-filter-empty" id="resumen-chofer-filter-empty" hidden>No hay repartos con este filtro.</div>
-          </section>
-
-          <aside class="control-side-stack">
-            <section class="control-panel control-panel--tracking control-panel--map-rail" aria-labelledby="resumen-tracking-title">
-              <div class="control-panel-head">
-                <div>
-                  <span class="control-kicker control-kicker--dark">Contexto de calle</span>
-                  <h2 id="resumen-tracking-title">Mapa de la operación</h2>
-                </div>
-                <div class="control-tracking-meta">
-                  <span id="resumen-tracking-sub" aria-live="polite">Última posición registrada</span>
-                  <strong id="resumen-tracking-id">Ruta #—</strong>
-                </div>
-              </div>
-              <div class="control-tracking-body">
-                <div id="mapa-resumen" class="control-map">
-                  <div class="control-map-empty control-map-empty--state">
-                    <span class="control-empty-state-icon" aria-hidden="true">⌖</span>
-                    <strong>Sin ruta activa</strong>
-                    <span>El mapa se habilita al seleccionar una ruta de la fecha.</span>
+          <div class="resumen-operativo-metrics">
+            <!-- Pedidos despachados últimos días -->
+            <div class="resumen-card resumen-metric-card resumen-metric-card--orders">
+              <div class="resumen-card-head">
+                <div class="resumen-card-head-titulo">
+                  <span class="kpi-icono verde resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+                  <div>
+                    <div class="resumen-card-title">Pedidos despachados</div>
+                    <div class="resumen-card-sub" id="resumen-rutas-semana-sub">Últimos 7 días</div>
                   </div>
                 </div>
-                <div class="control-timeline" id="resumen-timeline">
-                  <div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">Sin datos aún</div></div>
-                </div>
+                <span class="resumen-badge" id="resumen-badge-fecha">—</span>
               </div>
-            </section>
-
-            <section class="control-panel control-panel--flow" aria-labelledby="resumen-flow-title">
-              <div class="control-panel-head">
-                <div>
-                  <span class="control-kicker control-kicker--dark">Pulso de servicio</span>
-                  <h2 id="resumen-flow-title">Flujo de entregas</h2>
-                </div>
-                <span class="control-panel-tag">Hoy</span>
-              </div>
-              <div class="control-flow-readout">
-                <div class="control-gauge" id="resumen-gauge" aria-label="Porcentaje de entregas completadas"></div>
-                <div class="control-flow-copy">
-                  <strong id="resumen-entregas-avance">—</strong>
-                  <span>avance consolidado</span>
-                  <small id="resumen-entregas-rutas">—</small>
-                </div>
-              </div>
-              <div class="control-flow-legend">
-                <span><i class="status-mark status-mark--success"></i><span id="resumen-gauge-ok">0 entregadas</span></span>
-                <span><i class="status-mark status-mark--neutral"></i><span id="resumen-gauge-pend">0 pendientes</span></span>
-              </div>
-            </section>
-
-            <section class="control-panel control-panel--rhythm" aria-labelledby="resumen-rhythm-title">
-              <div class="control-panel-head">
-                <div>
-                  <span class="control-kicker control-kicker--dark">Ritmo de despacho</span>
-                  <h2 id="resumen-rhythm-title">Últimos 7 días</h2>
-                </div>
-                <span class="control-panel-tag" id="resumen-rutas-semana-sub">—</span>
-              </div>
-              <div class="control-chart control-chart--bars" id="resumen-minibar-wrap" aria-live="polite">
+              <div class="resumen-minibar-wrap" id="resumen-minibar-wrap" aria-live="polite">
                 <div class="empty-state" style="padding:20px;">Cargando...</div>
               </div>
-              <div class="control-insights">
-                <span><small>Promedio diario</small><strong id="resumen-pedidos-promedio">—</strong></span>
-                <span><small>Pico de despacho</small><strong id="resumen-pedidos-pico">—</strong></span>
-              </div>
-            </section>
-          </aside>
-        </div>
-
-        <div class="control-lower-grid control-lower-grid--actions">
-          <section class="control-panel control-panel--actions" aria-labelledby="resumen-actions-title">
-            <div class="control-panel-head">
-              <div>
-                <span class="control-kicker control-kicker--dark">Intervención rápida</span>
-                <h2 id="resumen-actions-title">Acciones de chofer</h2>
+              <div class="resumen-card-insights" aria-live="polite">
+                <div class="resumen-card-insight">
+                  <span>Promedio diario</span>
+                  <strong id="resumen-pedidos-promedio">—</strong>
+                </div>
+                <div class="resumen-card-insight">
+                  <span>Pico de despacho</span>
+                  <strong id="resumen-pedidos-pico">—</strong>
+                </div>
               </div>
             </div>
-            <p class="control-panel-help">Ingresá al panel operativo o generá un acceso para un nuevo repartidor.</p>
-            <label class="control-field-label" for="resumen-chofer-select">Chofer</label>
-            <select id="resumen-chofer-select" class="control-select">
-              <option value="">Seleccionar chofer...</option>
-            </select>
-            <div class="control-action-stack">
-              <button type="button" class="btn-chofer-accion btn-chofer-accion--ingresar" onclick="ingresarComoChofer('resumen-chofer-select')">
-                Abrir panel del chofer
+
+            <!-- Gauge de entregas exitosas -->
+            <div class="resumen-card resumen-metric-card resumen-metric-card--delivery">
+              <div class="resumen-card-head">
+                <div class="resumen-card-head-titulo">
+                  <span class="kpi-icono azul resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+                  <div>
+                    <div class="resumen-card-title">Entregas exitosas</div>
+                    <div class="resumen-card-sub">Hoy</div>
+                  </div>
+                </div>
+                <span class="resumen-badge">Hoy</span>
+              </div>
+              <div class="resumen-gauge-wrap">
+                <div class="resumen-gauge" id="resumen-gauge"></div>
+                <div class="resumen-gauge-legend">
+                  <div class="resumen-gauge-legend-item"><span class="resumen-dot" style="background:var(--ge-blue);"></span> <span id="resumen-gauge-ok">0 entregadas</span></div>
+                  <div class="resumen-gauge-legend-item"><span class="resumen-dot" style="background:var(--ge-border);border:1px solid var(--ge-border);"></span> <span id="resumen-gauge-pend">0 pendientes</span></div>
+                </div>
+              </div>
+              <div class="resumen-card-insights" aria-live="polite">
+                <div class="resumen-card-insight">
+                  <span>Avance de hoy</span>
+                  <strong id="resumen-entregas-avance">—</strong>
+                </div>
+                <div class="resumen-card-insight">
+                  <span>Rutas monitoreadas</span>
+                  <strong id="resumen-entregas-rutas">—</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total cobrado -->
+            <div class="resumen-card resumen-metric-card resumen-metric-card--income">
+              <div class="resumen-card-head">
+                <div class="resumen-card-head-titulo">
+                  <span class="kpi-icono verde resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                  <div>
+                    <div class="resumen-card-title">Total cobrado</div>
+                    <div class="resumen-card-sub">Últimos 7 días</div>
+                  </div>
+                </div>
+                <span class="resumen-badge">Cta. cte.</span>
+              </div>
+              <div class="resumen-income-val" id="resumen-income-val">$0</div>
+              <div class="resumen-income-sub" id="resumen-income-sub">—</div>
+              <div class="resumen-card-insights" aria-live="polite">
+                <div class="resumen-card-insight">
+                  <span>Promedio diario</span>
+                  <strong id="resumen-income-promedio">—</strong>
+                </div>
+                <div class="resumen-card-insight">
+                  <span>Mejor día</span>
+                  <strong id="resumen-income-mejor-dia">—</strong>
+                </div>
+              </div>
+              <div class="resumen-income-chart" id="resumen-income-chart"></div>
+            </div>
+
+            <!-- Cobranzas de hoy por medio de pago -->
+            <div class="resumen-card resumen-metric-card resumen-metric-card--payments">
+              <div class="resumen-card-head">
+                <div class="resumen-card-head-titulo">
+                  <span class="kpi-icono azul resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+                  <div>
+                    <div class="resumen-card-title">Cobranzas de hoy</div>
+                    <div class="resumen-card-sub">Por medio de pago</div>
+                  </div>
+                </div>
+              </div>
+              <div class="resumen-pago-summary" aria-live="polite">
+                <div class="resumen-pago-summary-item">
+                  <span>Total de hoy</span>
+                  <strong id="resumen-pago-total-hoy">$0</strong>
+                </div>
+                <div class="resumen-pago-summary-item">
+                  <span>Operaciones</span>
+                  <strong id="resumen-pago-operaciones">0</strong>
+                </div>
+              </div>
+              <div class="resumen-pago-grid" id="resumen-pago-grid" aria-live="polite">
+                <div class="empty-state" style="padding:12px;grid-column:span 2;">Cargando...</div>
+              </div>
+              <div class="resumen-pago-activity">
+                <div style="font-size:11px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Actividad reciente</div>
+                <div id="resumen-pago-activity-list" aria-live="polite">
+                  <div class="resumen-pago-activity-item"><span class="resumen-pago-activity-cliente">—</span></div>
+                </div>
+                <div class="resumen-pago-last">
+                  <span>Último cobro</span>
+                  <strong id="resumen-pago-ultimo">—</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Área principal: la lista de choferes y sus pedidos ocupa el foco -->
+        <section class="resumen-pedidos-focus" aria-labelledby="resumen-pedidos-titulo">
+          <div class="resumen-pedidos-focus-head">
+            <div>
+              <div class="resumen-operativo-kicker">Operación en calle</div>
+              <h2 id="resumen-pedidos-titulo">Pedidos y choferes</h2>
+            </div>
+            <span class="resumen-pedidos-focus-note">Estado de las rutas de hoy</span>
+          </div>
+
+          <!-- Acciones de chofer (antes vivía en la pestaña "Armar ruta",
+               apretado junto al selector de chofer de la ruta en
+               construcción — sin espacio real ahí y poco visible. Ocupa
+               el lugar que tenía la tarjeta "Carga por chofer". -->
+          <div class="resumen-card resumen-card--capacity">
+            <div class="resumen-card-head">
+              <div class="resumen-card-head-titulo">
+                <span class="kpi-icono morado resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <div>
+                  <div class="resumen-card-title">Acciones de chofer</div>
+                  <div class="resumen-card-sub">Ingresar a su panel o invitar uno nuevo</div>
+                </div>
+              </div>
+            </div>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">
+              Chofer
+              <select id="resumen-chofer-select" style="display:block;width:100%;margin-top:4px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);font-size:13px;font-weight:500;text-transform:none;letter-spacing:normal;">
+                <option value="">Seleccionar chofer...</option>
+              </select>
+            </label>
+            <div class="ruta-chofer-acciones" style="margin-top:12px;padding-top:0;border-top:none;">
+              <button type="button" class="btn-chofer-accion btn-chofer-accion--ingresar" onclick="ingresarComoChofer('resumen-chofer-select')" title="Abre el panel de ese chofer en una pestaña nueva, ya logueado">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Ingresar al panel del chofer
               </button>
-              <button type="button" class="btn-chofer-accion btn-chofer-accion--invitar" onclick="abrirModalInvitarChofer()">
+              <button type="button" class="btn-chofer-accion btn-chofer-accion--invitar" onclick="abrirModalInvitarChofer()" title="Genera una invitación para que un chofer nuevo se registre">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 Invitar nuevo chofer
               </button>
             </div>
-          </section>
+          </div>
+
+          <!-- Choferes operando hoy -->
+          <div class="resumen-card resumen-card--drivers">
+            <div class="resumen-choferes-card">
+              <div>
+                <div class="resumen-card-title"><span class="kpi-icono azul resumen-icono resumen-icono--inline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>Choferes en la calle</div>
+                <div class="resumen-card-sub">Rutas activas hoy</div>
+                <div class="resumen-choferes-count" id="resumen-choferes-count">—</div>
+                <div class="resumen-choferes-delta" id="resumen-choferes-delta"></div>
+              </div>
+              <div class="resumen-truck-wrap" id="resumen-truck-wrap">
+                <span class="resumen-smoke resumen-smoke--1"></span>
+                <span class="resumen-smoke resumen-smoke--2"></span>
+                <span class="resumen-smoke resumen-smoke--3"></span>
+                <span class="resumen-smoke resumen-smoke--4"></span>
+                <img src="/frontend/admin/img/truck-illustration.png" alt="Camión de reparto" class="resumen-truck-svg" />
+              </div>
+            </div>
+            <div class="resumen-estado-legend">
+              <span id="resumen-leg-en-camino">● En ruta 0</span>
+              <span id="resumen-leg-pendiente">● Pendiente 0</span>
+              <span id="resumen-leg-completada">● Completada 0</span>
+            </div>
+            <div class="resumen-chofer-list" id="resumen-chofer-list" aria-live="polite">
+              <div class="empty-state" style="padding:20px;">Cargando rutas de hoy...</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="resumen-secondary-grid">
+        <!-- Tracking en vivo -->
+        <div class="resumen-card resumen-card--tracking" style="padding:0;">
+          <div class="panel-header" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+            <h2>
+              <span class="kpi-icono amarillo resumen-icono resumen-icono--inline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+              Seguimiento de entrega
+            </h2>
+            <div class="panel-header-sub" id="resumen-tracking-sub" aria-live="polite">Última posición registrada</div>
+          </div>
+          <div class="resumen-tracking-grid">
+            <div id="mapa-resumen">
+              <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:13px;">Sin ruta activa hoy</div>
+            </div>
+            <div class="resumen-tracking-info">
+              <div class="resumen-tracking-id" id="resumen-tracking-id">Ruta #—</div>
+              <div class="resumen-timeline" id="resumen-timeline">
+                <div class="resumen-timeline-item"><div class="resumen-timeline-dot"></div><div class="resumen-timeline-txt">Sin datos aún</div></div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="control-finance-grid">
-          <section class="control-panel control-panel--finance" aria-labelledby="resumen-income-title">
-            <div class="control-panel-head">
+        <!-- Cobro rápido -->
+        <div class="resumen-card resumen-card--quick-pay">
+          <div class="resumen-card-head">
+            <div class="resumen-card-head-titulo">
+              <span class="kpi-icono morado resumen-icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="16" r="2"/></svg></span>
               <div>
-                <span class="control-kicker control-kicker--dark">Cobranza acumulada</span>
-                <h2 id="resumen-income-title">Dinero recuperado</h2>
-              </div>
-              <span class="control-panel-tag">7 días</span>
-            </div>
-            <div class="control-money-readout">
-              <strong id="resumen-income-val">$0</strong>
-              <span id="resumen-income-sub">—</span>
-            </div>
-            <div class="control-chart control-chart--income" id="resumen-income-chart"></div>
-            <div class="control-insights">
-              <span><small>Promedio diario</small><strong id="resumen-income-promedio">—</strong></span>
-              <span><small>Mejor día</small><strong id="resumen-income-mejor-dia">—</strong></span>
-            </div>
-          </section>
-
-          <section class="control-panel control-panel--payments" aria-labelledby="resumen-payments-title">
-            <div class="control-panel-head">
-              <div>
-                <span class="control-kicker control-kicker--dark">Caja en movimiento</span>
-                <h2 id="resumen-payments-title">Cobros de hoy</h2>
-              </div>
-              <span class="control-panel-tag" id="resumen-pago-operaciones">0</span>
-            </div>
-            <div class="control-payment-readout">
-              <span>Total de hoy</span>
-              <strong id="resumen-pago-total-hoy">$0</strong>
-            </div>
-            <div class="control-payment-grid" id="resumen-pago-grid" aria-live="polite">
-              <div class="empty-state" style="padding:12px;">Cargando...</div>
-            </div>
-            <div class="control-payment-activity">
-              <span class="control-mini-label">Actividad reciente</span>
-              <div id="resumen-pago-activity-list" aria-live="polite">
-                <div class="resumen-pago-activity-item"><span class="resumen-pago-activity-cliente">—</span></div>
-              </div>
-              <div class="control-payment-last"><span>Último cobro</span><strong id="resumen-pago-ultimo">—</strong></div>
-            </div>
-          </section>
-
-          <section class="control-panel control-panel--quickpay" aria-labelledby="resumen-quickpay-title">
-            <div class="control-panel-head">
-              <div>
-                <span class="control-kicker control-kicker--dark">Registro inmediato</span>
-                <h2 id="resumen-quickpay-title">Cobro contra entrega</h2>
+                <div class="resumen-card-title">Cobro rápido</div>
+                <div class="resumen-card-sub">Registrar un cobro contra entrega</div>
               </div>
             </div>
-            <div class="control-client-picker" id="resumen-avatares">
-              <span class="control-panel-help">Elegí un cliente de la ruta de hoy.</span>
+          </div>
+          <div class="resumen-avatares" id="resumen-avatares">
+            <div class="resumen-card-sub">Elegí un cliente de la ruta de hoy</div>
+          </div>
+          <div class="resumen-cobro-form">
+            <div>
+              <label for="resumen-cobro-monto">Monto</label>
+              <input type="number" id="resumen-cobro-monto" placeholder="Ingresá un monto" min="0" step="0.01" />
             </div>
-            <div class="control-form-grid">
-              <label class="control-field-label" for="resumen-cobro-monto">Monto<input type="number" id="resumen-cobro-monto" placeholder="Ingresá un monto" min="0" step="0.01" /></label>
-              <label class="control-field-label" for="resumen-cobro-medio">Método<select id="resumen-cobro-medio"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="cheque">Cheque</option><option value="otro">Otro</option></select></label>
+            <div>
+              <label for="resumen-cobro-medio">Método de pago</label>
+              <select id="resumen-cobro-medio">
+                <option value="efectivo">Efectivo</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="cheque">Cheque</option>
+                <option value="otro">Otro</option>
+              </select>
             </div>
-            <button type="button" class="btn btn--primary control-submit" id="resumen-cobro-btn" onclick="btnAsyncClick(this, registrarCobroRapido)" disabled>Registrar cobro</button>
-          </section>
+            <button type="button" class="btn btn--primary" id="resumen-cobro-btn" onclick="btnAsyncClick(this, registrarCobroRapido)" disabled>
+              Registrar cobro
+            </button>
+          </div>
         </div>
       </div>
+
     </div><!-- /tab-resumen -->
 
     <!-- ════════════════════════════════════════════
@@ -389,16 +442,17 @@
                 Fecha de entrega
                  <input type="date" id="ruta-fecha" onchange="cambiarFechaRuta(this.value)" aria-label="Fecha de la ruta" />
               </label>
-              <label>
+              <label class="ruta-form-grid-chofer">
                 Chofer
                  <select id="ruta-chofer" onchange="guardarBorradorSilencioso()">
                   <option value="">Seleccionar chofer...</option>
                 </select>
               </label>
-              <label>
-                Notas internas
-                 <input type="text" id="ruta-notas" placeholder="Ej: zona norte AM" aria-label="Notas de la ruta" oninput="guardarBorradorSilencioso()" />
-              </label>
+              <!-- Notas internas: se sacó del formulario visible (v964) para darle más
+                   espacio al select de Chofer. Se conserva como input oculto porque
+                   rutas.js todavía lee/escribe este campo (guardarBorradorSilencioso,
+                   confirmarRuta, limpiarRuta) — sacarlo del DOM rompería esas llamadas. -->
+              <input type="hidden" id="ruta-notas" aria-hidden="true" />
               <button type="button" class="btn btn--ghost" onclick="limpiarRuta()" style="margin-bottom:1px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.65"/></svg>
                 Limpiar
@@ -862,40 +916,44 @@
   </div>
 </div>
 
-  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css?v=196"/>
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=5" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-gentelella.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/rutas-compact.css?v=7" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-gentelella.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-compact.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/rutas-resumen-identity.css?v=mtcen4r4" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-  <script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
-<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+  <script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- Etapa 1: reloj + avatar centralizados -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
   <!-- ABM de la pestaña "Zonas" (antes página propia /admin/zonas) -->
-  <script src="/frontend/shared/componentes-admin.js?v=1"></script>
-  <script src="/frontend/admin/js/zonas.js?v1"></script>
+  <script src="/frontend/shared/componentes-admin.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/zonas.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  <script src="/frontend/shared/echarts-gentelella-theme.js?v1"></script>
-  <script src="/frontend/shared/echarts-wrapper.js?v1"></script>
-  <script type="module" src="/frontend/admin/js/rutas.js?v=20260820-2"></script>
-  <script type="module" src="/frontend/admin/js/rutas-resumen.js?v=20260824-1"></script>
-  <script src="/frontend/admin/js/remito.js?v1786978189156"></script>
+  <script src="/frontend/shared/echarts-gentelella-theme.js?v=mtcen4r4"></script>
+  <script src="/frontend/shared/echarts-wrapper.js?v=mtcen4r4"></script>
+  <script type="module" src="/frontend/admin/js/rutas.js?v=mtcen4r4"></script>
+  <script type="module" src="/frontend/admin/js/rutas-resumen.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/remito.js?v=mtcen4r4"></script>
   <script>
   // Bridge: expone el pedidoId activo al botón de remito en rutas
   let _pedidoIdEntregaActivo = null;
@@ -912,6 +970,6 @@
     window.mostrarToast = (msg) => { /* stub: ui-utils no cargó aún */ };
   }
   </script>
-<script src="/frontend/shared/tabla-agrupada.js"></script>
+<script src="/frontend/shared/tabla-agrupada.js?v=mtcen4r4"></script>
 </body>
 </html>

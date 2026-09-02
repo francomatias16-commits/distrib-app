@@ -111,6 +111,10 @@ export async function mockearPerfilAdmin(page, datos) {
     saas_plan: 'pro',
     saas_trial_fin: null,
     saas_precio_mes: 0,
+    // config: null por default — específicos (ej. captura-competencia.spec.js,
+    // que necesita captura_competencia_habilitada:true) lo pasan vía
+    // opts.empresa. No afecta a specs preexistentes: ninguno lee este campo.
+    config: null,
     ...(datos.empresa || {}),
   };
 

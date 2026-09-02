@@ -122,12 +122,28 @@
     return err;
   }
 
+  // OFFLINE-03: si un intento anterior de esta misma acción ya subió una
+  // imagen a Storage pero se cortó la conexión antes de llegar al PATCH/POST
+  // final (idempotente vía offline_local_id), un reintento ingenuo la vuelve
+  // a subir — inofensivo para el resultado, pero acumula archivos huérfanos
+  // en el bucket en cada intento fallido a mitad de camino, y con mala señal
+  // (el escenario típico del chofer) esto se repite seguido. `campo` es la
+  // clave bajo la que se persiste en `accion.progreso` (offline-core.js).
+  async function _subirImagenConProgreso(accion, campo, subirFn) {
+    if (accion.progreso && accion.progreso[campo]) return accion.progreso[campo];
+    const url = await subirFn();
+    if (url) await outbox.guardarProgresoParcial(accion.local_id, { [campo]: url });
+    return url;
+  }
+
   async function procesarAccion(accion, token) {
     const { tipo, payload, offline_local_id } = accion;
 
     if (tipo === 'entregar') {
-      const firma_url = await _subirImagen(payload.firma_data_url, 'firma', token);
-      const foto_url  = await _subirImagen(payload.foto_data_url,  'foto',  token);
+      const firma_url = await _subirImagenConProgreso(accion, 'firma_url',
+        () => _subirImagen(payload.firma_data_url, 'firma', token));
+      const foto_url = await _subirImagenConProgreso(accion, 'foto_url',
+        () => _subirImagen(payload.foto_data_url, 'foto', token));
       const r = await fetch(`/api/chofer/remitos/${payload.pedido_id}/entregar`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -147,7 +163,8 @@
     }
 
     if (tipo === 'no_entregar') {
-      const foto_url = await _subirImagen(payload.foto_data_url, 'foto', token);
+      const foto_url = await _subirImagenConProgreso(accion, 'foto_url',
+        () => _subirImagen(payload.foto_data_url, 'foto', token));
       const r = await fetch(`/api/chofer/remitos/${payload.pedido_id}/no-entregar`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -165,7 +182,8 @@
     }
 
     if (tipo === 'devolucion') {
-      const foto_url = await _subirFotoDevolucion(payload.foto_data_url, token);
+      const foto_url = await _subirImagenConProgreso(accion, 'foto_url',
+        () => _subirFotoDevolucion(payload.foto_data_url, token));
       const r = await fetch('/api/chofer/devolucion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -253,6 +271,21 @@
       window.mostrarToast('Sin internet. Lo que confirmes ahora se guarda en el celular y se envía solo al reconectar.', 'warning', 5000);
     }
   });
+
+  // Defensa en profundidad: OfflineCore.crearOutbox() NO tira excepción si
+  // Dexie no está cargado — devuelve `null` a propósito (ver offline-core.js,
+  // rama `typeof Dexie === 'undefined'`), para que un módulo pueda decidir
+  // su propio fallback. Sin este guard, cualquier uso de outbox.* de más
+  // abajo tira un TypeError síncrono DENTRO de este IIFE y
+  // window.ChoferOffline nunca llega a asignarse — el celular del chofer
+  // queda sin ningún rastro de por qué (mismo síntoma que "el script no
+  // cargó", pero mucho más difícil de diagnosticar porque el resto de la
+  // página sigue funcionando normal). Mismo fix que ya tenía
+  // proveedor-offline.js (OFFLINE-02).
+  if (!outbox) {
+    console.error('[ChoferOffline] OfflineCore.crearOutbox() devolvió null — Dexie no estaba disponible. Sin soporte offline en esta carga.');
+    return;
+  }
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 

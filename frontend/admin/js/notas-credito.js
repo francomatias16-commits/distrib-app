@@ -24,12 +24,12 @@ async function cargarNotasCredito(filtrosNC = {}) {
     const estado = filtrosNC.estado ?? document.getElementById('nc-filtro-estado')?.value ?? '';
     const desde = (paginaActualNC - 1) * ITEMS_POR_PAGINA_NC;
 
-    const { data, error } = await window.authCtx.sb.rpc('fn_notas_credito_lista', {
+    const { data, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_notas_credito_lista', {
       p_busqueda: busq || null,
       p_estado: estado || null,
       p_limit: ITEMS_POR_PAGINA_NC,
       p_offset: desde,
-    });
+    }), 10000);
 
     if (error) throw error;
 
@@ -115,9 +115,9 @@ try { inyectarControlesPaginacionNC(); } catch(e) { console.warn('[notas-credito
 
 async function cargarClientesNC() {
   try {
-    const { data, error } = await window.authCtx.sb.from('clientes')
+    const { data, error } = await window.conTimeoutRed(window.authCtx.sb.from('clientes')
       .select('id, razon_social, nombre_fantasia, condicion_iva')
-      .eq('activo', true).order('razon_social');
+      .eq('activo', true).order('razon_social'), 10000);
     if (error) throw error;
     clientesNC = data || [];
 
@@ -213,20 +213,20 @@ function estadoInfoNC(estado) {
       </button>`);
     }
     if (pdfUrl) {
-      items.push(`<a class="dropdown-item" role="menuitem" href="${pdfUrl}" target="_blank" rel="noopener">
+      // El bucket de comprobantes es privado (auditoría 2026-08-24):
+      // pdfUrl acá es la ruta interna en Storage, no una URL abrible
+      // directo — verPdfNC() pide una signed URL de 5 min al backend.
+      items.push(`<button type="button" class="dropdown-item" role="menuitem" onclick="verPdfNC('${ncId}')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Ver / descargar PDF
-      </a>`);
+      </button>`);
     }
     if (!items.length) return;
 
     menu.innerHTML = items.join('');
     menu.dataset.ncId = ncId;
 
-    const r = btn.getBoundingClientRect();
-    menu.style.top   = `${r.bottom + 4}px`;
-    menu.style.left  = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -238,6 +238,13 @@ function estadoInfoNC(estado) {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
   window.addEventListener('resize', cerrar);
   document.getElementById('tbody-nc')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en la tabla,
+  // pero en mobile (vista de tarjetas) el contenedor de la tabla no tiene
+  // su propio scroll interno — quien scrollea es la página completa
+  // (window/body). Sin este listener, al scrollear la página el menú se
+  // queda "flotando" en la posición vieja (donde estaba el botón "⋮"
+  // cuando se abrió), ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 // ── Modal nueva NC ────────────────────────────────────────────────────
@@ -273,12 +280,12 @@ async function onClienteNC(clienteId) {
 
   // Cargar facturas del cliente para asociar
   try {
-    const { data: facturas, error } = await window.authCtx.sb.from('facturas')
+    const { data: facturas, error } = await window.conTimeoutRed(window.authCtx.sb.from('facturas')
       .select('id, numero')
       .eq('cliente_id', clienteId)
       .in('estado', ['emitida', 'pagada'])
       .order('fecha_emision', { ascending: false })
-      .limit(30);
+      .limit(30), 10000);
     if (error) throw error;
 
     const sel = document.getElementById('nc-factura');
@@ -441,6 +448,24 @@ async function emitirNC(id) {
     if (typeof window.cargarContadoresFacturas === 'function') await window.cargarContadoresFacturas();
   } catch (err) {
     mostrarToast(`Error AFIP: ${err.message || 'Sin detalle'}`, 'error');
+  }
+}
+
+// ── Ver/descargar PDF ────────────────────────────────────────────────────
+async function verPdfNC(id) {
+  try {
+    const token = (await window.authCtx.sb.auth.getSession()).data.session?.access_token;
+    const res = await fetch(`/api/notas-credito?id=${id}&accion=pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      mostrarToast(data.error || 'No se pudo obtener el PDF de la nota de crédito', 'error');
+      return;
+    }
+    window.open(data.url, '_blank', 'noopener');
+  } catch (err) {
+    mostrarToast(err.message || 'Error de conexión al obtener el PDF', 'error');
   }
 }
 

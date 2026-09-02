@@ -367,18 +367,18 @@ function renderVistaPorZona(filas) {
       : '';
 
     return `<tr class="${trClass}">
-      <td><strong>${z.zona_nombre ? esc(z.zona_nombre) : '<span style="color:var(--color-text-light);">Sin zona</span>'}</strong></td>
-      <td>${z.rutas.size}</td>
-      <td>${z.entregas.toLocaleString('es-AR')}</td>
-      <td>${fmtNum(z.km)} km</td>
-      <td>${fmtPeso(z.facturado)}</td>
-      <td>${fmtPeso(z.margen)}</td>
-      <td>${z.sinCostoKm
+      <td data-label="Zona"><strong>${z.zona_nombre ? esc(z.zona_nombre) : '<span style="color:var(--color-text-light);">Sin zona</span>'}</strong></td>
+      <td data-label="Rutas">${z.rutas.size}</td>
+      <td data-label="Entregas">${z.entregas.toLocaleString('es-AR')}</td>
+      <td data-label="KM recorridos">${fmtNum(z.km)} km</td>
+      <td data-label="Facturado">${fmtPeso(z.facturado)}</td>
+      <td data-label="Margen bruto">${fmtPeso(z.margen)}</td>
+      <td data-label="Costo logístico">${z.sinCostoKm
             ? `<span class="badge-aviso">Sin configurar</span>`
             : fmtPeso(z.costoLog)}</td>
-      <td class="${claseMargen}">${fmtPeso(z.margenNeto)}</td>
-      <td class="${claseMargen}">${margenNetoPorKm != null ? fmtPeso(margenNetoPorKm) + '/km' : '—'}</td>
-      <td>${rendBadge}</td>
+      <td class="${claseMargen}" data-label="Margen neto">${fmtPeso(z.margenNeto)}</td>
+      <td class="${claseMargen}" data-label="Margen neto / km">${margenNetoPorKm != null ? fmtPeso(margenNetoPorKm) + '/km' : '—'}</td>
+      <td data-label="Rendimiento">${rendBadge}</td>
     </tr>`;
   }).join('');
 }
@@ -400,18 +400,18 @@ function renderVistaPorRuta(filas) {
     const margenPorKm = f.margen_neto_por_km != null ? fmtPeso(f.margen_neto_por_km) + '/km' : '—';
 
     return `<tr>
-      <td><strong>${window.formatFecha ? window.formatFecha(f.ruta_fecha) : f.ruta_fecha}</strong></td>
-      <td>${f.zona_nombre ? esc(f.zona_nombre) : '<span style="color:var(--color-text-light);">Sin zona</span>'}</td>
-      <td style="font-size:12px;color:var(--color-text-muted);">${f.chofer_id ? '—' : '—'}</td>
-      <td>${+f.entregas_completadas || 0}</td>
-      <td>${fmtNum(f.km_recorridos)} km</td>
-      <td>${fmtPeso(f.facturado_total)}</td>
-      <td>${fmtPeso(f.margen_total)}</td>
-      <td>${sinCostoKm
+      <td data-label="Fecha"><strong>${window.formatFecha ? window.formatFecha(f.ruta_fecha) : f.ruta_fecha}</strong></td>
+      <td data-label="Zona">${f.zona_nombre ? esc(f.zona_nombre) : '<span style="color:var(--color-text-light);">Sin zona</span>'}</td>
+      <td data-label="Chofer" style="font-size:12px;color:var(--color-text-muted);">${f.chofer_id ? '—' : '—'}</td>
+      <td data-label="Entregas">${+f.entregas_completadas || 0}</td>
+      <td data-label="KM">${fmtNum(f.km_recorridos)} km</td>
+      <td data-label="Facturado">${fmtPeso(f.facturado_total)}</td>
+      <td data-label="Margen bruto">${fmtPeso(f.margen_total)}</td>
+      <td data-label="Costo logístico">${sinCostoKm
             ? `<span class="badge-aviso">Sin configurar</span>`
             : fmtPeso(f.costo_logistico_estimado)}</td>
-      <td class="${claseMargen}">${fmtPeso(margenNeto)}</td>
-      <td class="${claseMargen}">${margenPorKm}</td>
+      <td class="${claseMargen}" data-label="Margen neto">${fmtPeso(margenNeto)}</td>
+      <td class="${claseMargen}" data-label="Margen neto / km">${margenPorKm}</td>
     </tr>`;
   }).join('');
 }

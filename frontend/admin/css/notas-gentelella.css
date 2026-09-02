@@ -356,14 +356,10 @@ body.dash-notas-gentelella .toast {
    Responsive (mobile)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  body.dash-notas-gentelella .filtros-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  body.dash-notas-gentelella .filtros-bar input,
-  body.dash-notas-gentelella .filtros-bar select {
-    width: 100% !important;
-  }
+  /* .filtros-bar en columna/100% en mobile: ya lo hace el canónico de
+     componentes-admin.css (Fase 1, 2026-08-25) desde --bp-md (640px).
+     Esto quedaba en 768px, un breakpoint distinto sin escala común —
+     justo la inconsistencia que documenta la auditoría. No redeclarar. */
   body.dash-notas-gentelella .form-grid {
     grid-template-columns: 1fr !important;
   }

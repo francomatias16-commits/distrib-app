@@ -29,7 +29,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "no-cache, must-revalidate"
         },
         {
           "key": "X-Frame-Options",
@@ -97,7 +97,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.mercadopago.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://cdnjs.cloudflare.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.mercadopago.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
         }
       ]
     },
@@ -252,6 +252,17 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.fluxoapp.com.ar"
+        }
+      ],
+      "destination": "https://fluxoapp.com.ar/:path*",
+      "permanent": true
+    },
+    {
       "source": "/demo",
       "destination": "/admin/login?demo=1",
       "permanent": false
@@ -298,6 +309,14 @@
     {
       "source": "/manifest.json",
       "destination": "/frontend/manifest.json"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/frontend/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/frontend/sitemap.xml"
     },
     {
       "source": "/registro.html",
@@ -464,6 +483,10 @@
       "destination": "/api/index?_mod=admin&_svc=resumen-arranque"
     },
     {
+      "source": "/api/admin/estado-financiero",
+      "destination": "/api/index?_mod=admin&_svc=estado-financiero"
+    },
+    {
       "source": "/api/admin/devoluciones(.*)",
       "destination": "/api/index?_mod=pedidos&_svc=devoluciones"
     },
@@ -564,6 +587,10 @@
       "destination": "/api/index?_mod=gastos-generales"
     },
     {
+      "source": "/api/etiquetas(.*)",
+      "destination": "/api/index?_mod=etiquetas"
+    },
+    {
       "source": "/api/reglas-automatizacion(.*)",
       "destination": "/api/index?_mod=reglas-automatizacion"
     },
@@ -626,6 +653,14 @@
     {
       "source": "/api/banco-codigos(.*)",
       "destination": "/api/index?_mod=banco-codigos"
+    },
+    {
+      "source": "/api/captura-competencia(.*)",
+      "destination": "/api/index?_mod=captura-competencia"
+    },
+    {
+      "source": "/api/prospectos-competencia(.*)",
+      "destination": "/api/index?_mod=prospectos-competencia"
     },
     {
       "source": "/api/proveedores(.*)",
@@ -694,6 +729,10 @@
     {
       "source": "/api/notif/audit-log-reprocesar",
       "destination": "/api/index?_mod=notif&_svc=audit-log-reprocesar-cron"
+    },
+    {
+      "source": "/api/retencion",
+      "destination": "/api/index?_mod=retencion"
     },
     {
       "source": "/api/notif/whatsapp",
@@ -976,6 +1015,14 @@
       "destination": "/frontend/admin/pedidos.html"
     },
     {
+      "source": "/admin/captura-competencia",
+      "destination": "/frontend/admin/captura-competencia.html"
+    },
+    {
+      "source": "/admin/prospectos-competencia",
+      "destination": "/frontend/admin/prospectos-competencia.html"
+    },
+    {
       "source": "/admin/clientes",
       "destination": "/frontend/admin/clientes.html"
     },
@@ -1018,6 +1065,10 @@
     {
       "source": "/admin/mercadopago-config",
       "destination": "/frontend/admin/mercadopago-config.html"
+    },
+    {
+      "source": "/admin/canales-venta",
+      "destination": "/frontend/admin/canales-venta.html"
     },
     {
       "source": "/admin/empresa-config",
@@ -1076,6 +1127,10 @@
       "destination": "/frontend/admin/presupuestos.html"
     },
     {
+      "source": "/admin/etiquetas-config",
+      "destination": "/frontend/admin/etiquetas-config.html"
+    },
+    {
       "source": "/admin/usuarios",
       "destination": "/frontend/admin/usuarios.html"
     },
@@ -1106,6 +1161,10 @@
     {
       "source": "/admin/reportes-financieros",
       "destination": "/frontend/admin/reportes-financieros.html"
+    },
+    {
+      "source": "/admin/estado-financiero",
+      "destination": "/frontend/admin/estado-financiero.html"
     },
     {
       "source": "/admin/reportes-stock",
@@ -1448,6 +1507,10 @@
     {
       "path": "/api/notif/audit-log-reprocesar",
       "schedule": "40 3 * * *"
+    },
+    {
+      "path": "/api/retencion",
+      "schedule": "50 3 * * *"
     }
   ],
   "functions": {

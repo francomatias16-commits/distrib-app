@@ -77,6 +77,13 @@ function calcularFechas() {
             break;
     }
 
+    // Filtrar por día completo (00:00:00 a 23:59:59.999), igual que Gastos
+    // Generales, y no por el instante exacto en que se abre la página.
+    // Antes, `fin` quedaba con la hora actual (ej. 15:04), así que una venta
+    // cargada a las 16:00 quedaba afuera del reporte aunque fuera "de hoy".
+    inicio.setHours(0, 0, 0, 0);
+    fin.setHours(23, 59, 59, 999);
+
     estadoReportesFinancieros.fechaInicio = inicio;
     estadoReportesFinancieros.fechaFin = fin;
 }
@@ -106,25 +113,25 @@ async function cargarReportes() {
 async function cargarKPIsFinancieros() {
     try {
         // Obtener pedidos entregados en el período
-        const { data: pedidos, error } = await window.authCtx.sb
+        const { data: pedidos, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, pedido_items(cantidad, precio_unitario, producto_id)')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
             .gte('fecha_pedido', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         if (error) throw error;
 
         // Ventas de mostrador (POS) del mismo período — mismo criterio que usa
         // el dashboard ejecutivo (obtenerVentasPosPeriodo): estado 'completada'.
-        const { data: ventasPos, error: errorPos } = await window.authCtx.sb
+        const { data: ventasPos, error: errorPos } = await window.conTimeoutRed(window.authCtx.sb
             .from('ventas_pos')
             .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id)')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'completada')
             .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         if (errorPos) throw errorPos;
 
@@ -141,10 +148,10 @@ async function cargarKPIsFinancieros() {
             });
         });
 
-        const { data: productos } = await window.authCtx.sb
+        const { data: productos } = await window.conTimeoutRed(window.authCtx.sb
             .from('productos')
             .select('id, costo')
-            .in('id', Array.from(productosIds));
+            .in('id', Array.from(productosIds)), 10000);
 
         const productoCosto = {};
         (productos || []).forEach(p => {
@@ -178,22 +185,23 @@ async function cargarKPIsFinancieros() {
         fechaInicioAnterior.setDate(fechaInicioAnterior.getDate() - diasDiferencia);
         const fechaFinAnterior = new Date(estadoReportesFinancieros.fechaInicio);
         fechaFinAnterior.setDate(fechaFinAnterior.getDate() - 1);
+        fechaFinAnterior.setHours(23, 59, 59, 999); // mismo criterio: día completo, no solo la medianoche
 
-        const { data: pedidosAnterior } = await window.authCtx.sb
+        const { data: pedidosAnterior } = await window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, pedido_items(cantidad, precio_unitario, producto_id)')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
             .gte('fecha_pedido', fechaInicioAnterior.toISOString())
-            .lte('fecha_pedido', fechaFinAnterior.toISOString());
+            .lte('fecha_pedido', fechaFinAnterior.toISOString()), 10000);
 
-        const { data: ventasPosAnterior } = await window.authCtx.sb
+        const { data: ventasPosAnterior } = await window.conTimeoutRed(window.authCtx.sb
             .from('ventas_pos')
             .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id)')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'completada')
             .gte('created_at', fechaInicioAnterior.toISOString())
-            .lte('created_at', fechaFinAnterior.toISOString());
+            .lte('created_at', fechaFinAnterior.toISOString()), 10000);
 
         let ingresosAnterior = 0;
         let costosAnterior = 0;
@@ -253,14 +261,14 @@ async function cargarKPIsFinancieros() {
         // no rompe el resto del panel si la migración 479 no corrió todavía.
         try {
             const [{ data: gastos }, { data: gastosAnterior }] = await Promise.all([
-                window.authCtx.sb.from('gastos_generales').select('monto')
+                window.conTimeoutRed(window.authCtx.sb.from('gastos_generales').select('monto')
                     .eq('empresa_id', window.authCtx.perfil.empresa_id).eq('activo', true)
                     .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString().slice(0, 10))
-                    .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString().slice(0, 10)),
-                window.authCtx.sb.from('gastos_generales').select('monto')
+                    .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString().slice(0, 10)), 10000),
+                window.conTimeoutRed(window.authCtx.sb.from('gastos_generales').select('monto')
                     .eq('empresa_id', window.authCtx.perfil.empresa_id).eq('activo', true)
                     .gte('fecha', fechaInicioAnterior.toISOString().slice(0, 10))
-                    .lte('fecha', fechaFinAnterior.toISOString().slice(0, 10)),
+                    .lte('fecha', fechaFinAnterior.toISOString().slice(0, 10)), 10000),
             ]);
 
             const gastosGenerales = (gastos || []).reduce((s, g) => s + (Number(g.monto) || 0), 0);
@@ -311,33 +319,33 @@ async function cargarKPIsFinancieros() {
 async function cargarKPIsCobranza() {
     try {
         // Facturas emitidas
-        const { data: facturas } = await window.authCtx.sb
+        const { data: facturas } = await window.conTimeoutRed(window.authCtx.sb
             .from('facturas')
             .select('id, total, estado, vencimiento, total_cobrado')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .gte('fecha_emision', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha_emision', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha_emision', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         const totalFacturado = (facturas || []).reduce((sum, f) => sum + (f.total || 0), 0);
         const cantidadFacturas = (facturas || []).length;
 
         // Cobros realizados
-        const { data: cobros } = await window.authCtx.sb
+        const { data: cobros } = await window.conTimeoutRed(window.authCtx.sb
             .from('cta_cte')
             .select('id, monto, tipo')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('tipo', 'cobro')
             .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         const totalCobrado = (cobros || []).reduce((sum, c) => sum + (c.monto || 0), 0);
 
         // Deuda pendiente
-        const { data: facturasPendientes } = await window.authCtx.sb
+        const { data: facturasPendientes } = await window.conTimeoutRed(window.authCtx.sb
             .from('facturas')
             .select('id, total, total_cobrado, estado, vencimiento')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
-            .in('estado', ['emitida', 'parcial']);
+            .in('estado', ['emitida', 'parcial']), 10000);
 
         let deudaPendiente = 0;
         let deudaVencida = 0;
@@ -357,22 +365,22 @@ async function cargarKPIsCobranza() {
         const fechaInicioAnterior = new Date(estadoReportesFinancieros.fechaInicio);
         fechaInicioAnterior.setDate(fechaInicioAnterior.getDate() - diasDiferencia);
 
-        const { data: facturasAnterior } = await window.authCtx.sb
+        const { data: facturasAnterior } = await window.conTimeoutRed(window.authCtx.sb
             .from('facturas')
             .select('id, total')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .gte('fecha_emision', fechaInicioAnterior.toISOString())
-            .lt('fecha_emision', estadoReportesFinancieros.fechaInicio.toISOString());
+            .lt('fecha_emision', estadoReportesFinancieros.fechaInicio.toISOString()), 10000);
 
         const totalFacturadoAnterior = (facturasAnterior || []).reduce((sum, f) => sum + (f.total || 0), 0);
 
-        const { data: cobrosAnterior } = await window.authCtx.sb
+        const { data: cobrosAnterior } = await window.conTimeoutRed(window.authCtx.sb
             .from('cta_cte')
             .select('id, monto')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('tipo', 'cobro')
             .gte('fecha', fechaInicioAnterior.toISOString())
-            .lt('fecha', estadoReportesFinancieros.fechaInicio.toISOString());
+            .lt('fecha', estadoReportesFinancieros.fechaInicio.toISOString()), 10000);
 
         const totalCobradoAnterior = (cobrosAnterior || []).reduce((sum, c) => sum + (c.monto || 0), 0);
 
@@ -413,30 +421,30 @@ async function cargarKPIsCobranza() {
 async function cargarFlujoCaja() {
     try {
         // Obtener movimientos diarios
-        const { data: pedidos } = await window.authCtx.sb
+        const { data: pedidos } = await window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, fecha_pedido')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
             .gte('fecha_pedido', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
-        const { data: cobros } = await window.authCtx.sb
+        const { data: cobros } = await window.conTimeoutRed(window.authCtx.sb
             .from('cta_cte')
             .select('id, monto, fecha')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('tipo', 'cobro')
             .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         // Ventas de mostrador (POS) del mismo período
-        const { data: ventasPos } = await window.authCtx.sb
+        const { data: ventasPos } = await window.conTimeoutRed(window.authCtx.sb
             .from('ventas_pos')
             .select('id, total, created_at')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'completada')
             .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         // Agrupar por día
         const flujoPorDia = {};
@@ -503,22 +511,22 @@ async function cargarFlujoCaja() {
 // Cargar ingresos vs costos
 async function cargarIngresosVsCostos() {
     try {
-        const { data: pedidos } = await window.authCtx.sb
+        const { data: pedidos } = await window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, pedido_items(cantidad, precio_unitario, producto_id), fecha_pedido')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
             .gte('fecha_pedido', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha_pedido', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         // Ventas de mostrador (POS) del mismo período
-        const { data: ventasPos } = await window.authCtx.sb
+        const { data: ventasPos } = await window.conTimeoutRed(window.authCtx.sb
             .from('ventas_pos')
             .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id), created_at')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'completada')
             .gte('created_at', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('created_at', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         // Obtener costos
         const productosIds = new Set();
@@ -533,10 +541,10 @@ async function cargarIngresosVsCostos() {
             });
         });
 
-        const { data: productos } = await window.authCtx.sb
+        const { data: productos } = await window.conTimeoutRed(window.authCtx.sb
             .from('productos')
             .select('id, costo')
-            .in('id', Array.from(productosIds));
+            .in('id', Array.from(productosIds)), 10000);
 
         const productoCosto = {};
         (productos || []).forEach(p => {
@@ -634,11 +642,11 @@ async function cargarIngresosVsCostos() {
 // Cargar deuda por cliente
 async function cargarDeudaPorCliente() {
     try {
-        const { data: facturas } = await window.authCtx.sb
+        const { data: facturas } = await window.conTimeoutRed(window.authCtx.sb
             .from('facturas')
             .select('id, cliente_id, total, total_cobrado, vencimiento, clientes(razon_social)')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
-            .in('estado', ['emitida', 'parcial']);
+            .in('estado', ['emitida', 'parcial']), 10000);
 
         // Agrupar por cliente
         const deudaPorCliente = {};
@@ -699,12 +707,12 @@ async function cargarDeudaPorCliente() {
             const estadoClass = estado === 'Vencida' ? 'red' : (estado === 'Por vencer' ? 'yellow' : 'green');
             return `
                 <tr>
-                    <td>${sanitize(c.nombre)}</td>
-                    <td>$${c.deudaTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                    <td>$${c.deudaVencida.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                    <td>$${c.deudaPorVencer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                    <td>${c.diasPromedio} días</td>
-                    <td><span class="status-badge ${estadoClass}">${estado}</span></td>
+                    <td data-label="Cliente">${sanitize(c.nombre)}</td>
+                    <td data-label="Deuda Total">$${c.deudaTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                    <td data-label="Deuda Vencida">$${c.deudaVencida.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                    <td data-label="Deuda por Vencer">$${c.deudaPorVencer.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                    <td data-label="Días Promedio">${c.diasPromedio} días</td>
+                    <td data-label="Estado"><span class="status-badge ${estadoClass}">${estado}</span></td>
                 </tr>
             `;
         }).join('');
@@ -721,13 +729,13 @@ async function cargarDeudaPorCliente() {
 // Cargar resumen de cobranzas
 async function cargarResumenCobranzas() {
     try {
-        const { data: cobros } = await window.authCtx.sb
+        const { data: cobros } = await window.conTimeoutRed(window.authCtx.sb
             .from('cta_cte')
             .select('id, monto, medio_pago')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('tipo', 'cobro')
             .gte('fecha', estadoReportesFinancieros.fechaInicio.toISOString())
-            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString());
+            .lte('fecha', estadoReportesFinancieros.fechaFin.toISOString()), 10000);
 
         // Agrupar por medio de pago
         const cobrosPorMedio = {};
@@ -752,10 +760,10 @@ async function cargarResumenCobranzas() {
             const porcentaje = totalCobros > 0 ? (data.monto / totalCobros * 100).toFixed(2) : 0;
             return `
                 <tr>
-                    <td>${medio}</td>
-                    <td>${data.cantidad}</td>
-                    <td>$${data.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                    <td>${porcentaje}%</td>
+                    <td data-label="Medio de Pago">${medio}</td>
+                    <td data-label="Cantidad">${data.cantidad}</td>
+                    <td data-label="Monto Total">$${data.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                    <td data-label="% del Total">${porcentaje}%</td>
                 </tr>
             `;
         }).join('');
@@ -773,24 +781,24 @@ async function cargarResumenCobranzas() {
 async function cargarEvolucionMargen() {
     try {
         // Obtener datos por mes
-        const { data: pedidos, error: errPedidos } = await window.authCtx.sb
+        const { data: pedidos, error: errPedidos } = await window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, pedido_items(cantidad, precio_unitario, producto_id), fecha_pedido')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
-            .gte('fecha_pedido', new Date(new Date().getFullYear(), 0, 1).toISOString());
+            .gte('fecha_pedido', new Date(new Date().getFullYear(), 0, 1).toISOString()), 10000);
 
         if (errPedidos) {
             console.error('Error consultando pedidos para evolución de margen:', errPedidos);
         }
 
         // Ventas de mostrador (POS) del año en curso
-        const { data: ventasPos, error: errVentasPos } = await window.authCtx.sb
+        const { data: ventasPos, error: errVentasPos } = await window.conTimeoutRed(window.authCtx.sb
             .from('ventas_pos')
             .select('id, total, venta_pos_items(cantidad, precio_unitario, producto_id), created_at')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'completada')
-            .gte('created_at', new Date(new Date().getFullYear(), 0, 1).toISOString());
+            .gte('created_at', new Date(new Date().getFullYear(), 0, 1).toISOString()), 10000);
 
         if (errVentasPos) {
             console.error('Error consultando ventas POS para evolución de margen:', errVentasPos);
@@ -809,10 +817,10 @@ async function cargarEvolucionMargen() {
             });
         });
 
-        const { data: productos } = await window.authCtx.sb
+        const { data: productos } = await window.conTimeoutRed(window.authCtx.sb
             .from('productos')
             .select('id, costo')
-            .in('id', Array.from(productosIds));
+            .in('id', Array.from(productosIds)), 10000);
 
         const productoCosto = {};
         (productos || []).forEach(p => {
@@ -852,11 +860,11 @@ async function cargarEvolucionMargen() {
                 const porcentajeMargen = data.ingresos > 0 ? (margenBruto / data.ingresos * 100).toFixed(2) : 0;
                 return `
                     <tr>
-                        <td>${meses[parseInt(mes)]}</td>
-                        <td>$${data.ingresos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td>$${data.costos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td>$${margenBruto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td>${porcentajeMargen}%</td>
+                        <td data-label="Período">${meses[parseInt(mes)]}</td>
+                        <td data-label="Ingresos">$${data.ingresos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="Costos">$${data.costos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="Margen Bruto">$${margenBruto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="% Margen">${porcentajeMargen}%</td>
                     </tr>
                 `;
             }).join('');

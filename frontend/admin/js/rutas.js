@@ -261,13 +261,13 @@ window.ingresarComoChofer = ingresarComoChofer;
 
 // ── Cargar choferes ───────────────────────────────────────────────────────
 async function cargarChoferes() {
-  const { data } = await sb
+  const { data } = await window.conTimeoutRed(sb
     .from('usuarios')
     .select('id, nombre')
     .eq('empresa_id', empresaId)
     .eq('rol', 'chofer')
     .eq('activo', true)
-    .order('nombre');
+    .order('nombre'), 10000);
 
   choferes = data || [];
   const opciones = '<option value="">Seleccionar chofer...</option>' +
@@ -290,7 +290,7 @@ async function cargarPedidosDespachables() {
 
   window.mostrarSkeletonTabla('lista-pendientes', 3, 4); // Mostrar skeleton antes de cargar
 
-  const { data } = await sb
+  const { data } = await window.conTimeoutRed(sb
     .from('pedidos')
     .select(`
       id, estado, total, notas_cliente, fecha_entrega,
@@ -298,7 +298,7 @@ async function cargarPedidosDespachables() {
     `)
     .eq('empresa_id', empresaId)
     .in('estado', ['confirmado', 'preparando'])
-    .order('fecha_entrega', { ascending: true });
+    .order('fecha_entrega', { ascending: true }), 10000);
 
   // FIX (auditoría etapa 6 — Hallazgo 2): el comentario de arriba decía
   // "sin ruta asignada" pero nunca se filtraba eso — solo por estado. Un
@@ -315,11 +315,11 @@ async function cargarPedidosDespachables() {
   // aunque en la práctica ya se habían entregado. Ahora solo se
   // considera "activa" una entrega si, además de pendiente/en_camino,
   // su ruta NO está completada ni cancelada.
-  const { data: entregasActivas } = await sb
+  const { data: entregasActivas } = await window.conTimeoutRed(sb
     .from('entregas')
     .select('pedido_id, rutas!inner(estado)')
     .in('estado', ['pendiente', 'en_camino'])
-    .not('rutas.estado', 'in', '(completada,cancelada)');
+    .not('rutas.estado', 'in', '(completada,cancelada)'), 10000);
   const pedidosYaEnRuta = new Set((entregasActivas || []).map(e => e.pedido_id));
 
   pedidos = (data || [])
@@ -556,7 +556,7 @@ async function cargarRutasDelDia() {
 
   window.mostrarSkeletonTabla('tabla-rutas-dia', 6); // Mostrar skeleton antes de cargar
 
-  const { data } = await sb
+  const { data } = await window.conTimeoutRed(sb
     .from('rutas')
     .select(`
       id, fecha, estado, notas, created_at,
@@ -565,7 +565,7 @@ async function cargarRutasDelDia() {
     `)
     .eq('empresa_id', empresaId)
     .eq('fecha', fecha)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }), 10000);
 
   rutasHoy = data || [];
   renderRutasDelDia();
@@ -617,7 +617,7 @@ function renderRutasDelDia() {
       <td data-label="Creada" style="color:var(--color-text-light);font-size:12px;">${hora}</td>
       <td data-label="" style="display:flex;gap:6px;">
         <button class="btn--secondary" style="padding:5px 10px;font-size:12px;" onclick="mostrarTab('seguimiento');document.getElementById('sel-ruta-seguimiento').value='${r.id}';cargarSeguimiento()">Ver</button>
-        ${r.estado === 'pendiente' ? `<button class="btn-danger" style="padding:5px 10px;font-size:12px;" onclick="cancelarRuta('${r.id}')">Cancelar</button>` : ''}
+        ${r.estado === 'pendiente' ? `<button class="btn-danger btn--danger" style="padding:5px 10px;font-size:12px;" onclick="cancelarRuta('${r.id}')">Cancelar</button>` : ''}
       </td>
     </tr>`;
   }, 6);
@@ -645,41 +645,35 @@ async function confirmarRuta() {
   btn.textContent = 'Guardando...';
 
   try {
-    // 1. Crear la ruta
-    const { data: ruta, error: rutaErr } = await sb
-      .from('rutas')
-      .insert({
-        empresa_id: empresaId,
-        chofer_id:  choferId,
-        fecha:      fecha,
-        estado:     'pendiente',
-        notas:      document.getElementById('ruta-notas').value || null,
-      })
-      .select()
-      .single();
-
-    if (rutaErr) throw rutaErr;
-
-    // 2. Insertar entregas
-    const entregas = rutaItems.map((p, i) => ({
-      ruta_id:   ruta.id,
-      pedido_id: p.id,
-      orden:     i + 1,
-      estado:    'pendiente',
-    }));
-
-    const { error: entErr } = await sb.from('entregas').insert(entregas);
-    if (entErr) throw entErr;
-
-    // 3. Cambiar estado logístico → 'preparando' (cambio de estado sin modificar stock).
-    //    El stock se descontará cuando admin llame a marcar_preparado desde pedidos.js.
+    // FIX (v1054 → v1055): antes esto eran 3 escrituras sueltas (INSERT
+    // rutas, INSERT entregas, UPDATE pedidos) sin transacción — si la 2da
+    // o 3ra fallaba a mitad de camino (timeout, error de red), quedaba una
+    // ruta fantasma sin entregas, o pedidos "atrapados" en preparando sin
+    // ruta real. Ahora los 3 pasos van en una sola RPC transaccional
+    // (rpc_confirmar_ruta, migración 576): si algo falla, todo se
+    // revierte solo. La RPC además revalida server-side que los pedidos
+    // sigan despachables (por si cambiaron de estado o los tomó otra
+    // ruta entre que se cargó la lista y se tocó "Confirmar").
     const ids = rutaItems.map(p => p.id);
-    const { error: prepErr } = await sb
-      .from('pedidos')
-      .update({ estado: 'preparando' })
-      .in('id', ids)
-      .eq('empresa_id', empresaId);
-    if (prepErr) throw prepErr;
+    const { data: rpcResult, error: rpcErr } = await window.conTimeoutRed(sb.rpc('rpc_confirmar_ruta', {
+      p_empresa_id:  empresaId,
+      p_chofer_id:   choferId,
+      p_fecha:       fecha,
+      p_notas:       document.getElementById('ruta-notas').value || null,
+      p_pedido_ids:  ids,
+    }), 10000);
+
+    if (rpcErr) throw rpcErr;
+    if (!rpcResult?.ok) {
+      // Error de validación de negocio (ej. un pedido ya no está
+      // disponible) — no es una excepción, así que no cae al catch de
+      // abajo; se resetea el botón acá mismo (el finally también corre,
+      // pero conviene el toast específico de la RPC antes de eso).
+      window.toast(rpcResult?.error || 'No se pudo crear la ruta.', 'warning');
+      return;
+    }
+
+    const ruta = rpcResult.ruta;
 
      // 4. Notificar al chofer por WhatsApp y push, distinguiendo
      // "ruta creada" de "chofer efectivamente notificado".
@@ -723,7 +717,7 @@ async function cancelarRuta(id) {
   // parcial real en vez de un éxito falso.
   if (!(await confirmar('¿Cancelar esta ruta? Los pedidos volverán a "confirmado".', { labelOk: 'Cancelar ruta', tipo: 'danger' }))) return;
 
-  const { error: rutaErr } = await sb.from('rutas').update({ estado: 'cancelada' }).eq('id', id);
+  const { error: rutaErr } = await window.conTimeoutRed(sb.from('rutas').update({ estado: 'cancelada' }).eq('id', id), 10000);
   if (rutaErr) {
     console.error('[RUTAS] Error al cancelar ruta:', rutaErr);
     window.toast('No se pudo cancelar la ruta — revisá la consola');
@@ -731,7 +725,7 @@ async function cancelarRuta(id) {
   }
 
   // Revertir pedidos a 'confirmado' (reserva de stock sigue vigente, solo estado logístico)
-  const { data: entregas, error: entregasSelectErr } = await sb.from('entregas').select('pedido_id').eq('ruta_id', id);
+  const { data: entregas, error: entregasSelectErr } = await window.conTimeoutRed(sb.from('entregas').select('pedido_id').eq('ruta_id', id), 10000);
   if (entregasSelectErr) {
     console.error('[RUTAS] Ruta cancelada pero no se pudieron leer sus entregas:', entregasSelectErr);
     window.toast('Ruta cancelada, pero no se pudieron revertir los pedidos — revisalos a mano');
@@ -745,10 +739,10 @@ async function cancelarRuta(id) {
     const perfil = window.authCtx?.perfil;
     // Revertir cada pedido individualmente usando RPC para que quede en audit_log
     for (const pedidoId of ids) {
-      const { error: pedErr } = await sb.from('pedidos')
+      const { error: pedErr } = await window.conTimeoutRed(sb.from('pedidos')
         .update({ estado: 'confirmado' })
         .eq('id', pedidoId)
-        .eq('empresa_id', perfil?.empresa_id);
+        .eq('empresa_id', perfil?.empresa_id), 10000);
       if (pedErr) {
         console.error(`[RUTAS] No se pudo revertir el pedido ${pedidoId}:`, pedErr);
         pedidosConError++;
@@ -762,10 +756,10 @@ async function cancelarRuta(id) {
   // volvía a estar disponible, terminaba en una ruta nueva mientras la
   // fila vieja seguía "pendiente", generando entregas duplicadas para el
   // mismo pedido (encontrado en producción durante esta auditoría).
-  const { error: entregasUpdateErr } = await sb.from('entregas')
+  const { error: entregasUpdateErr } = await window.conTimeoutRed(sb.from('entregas')
     .update({ estado: 'no_entregado', motivo_no_entrega: 'otro', notas_entrega: 'Ruta cancelada' })
     .eq('ruta_id', id)
-    .in('estado', ['pendiente', 'en_camino']);
+    .in('estado', ['pendiente', 'en_camino']), 10000);
 
   if (pedidosConError > 0 || entregasUpdateErr) {
     if (entregasUpdateErr) console.error('[RUTAS] No se pudieron cerrar las entregas de la ruta cancelada:', entregasUpdateErr);
@@ -785,9 +779,15 @@ async function notificarChofer(rutaId, chofer, fecha, cantPedidos) {
   // 1. WhatsApp (si tiene teléfono)
   if (chofer?.telefono) {
     try {
+      // FIX (auditoría v960): faltaba el Authorization Bearer, igual que
+      // el fix aplicado en pedidos.js — el backend ahora lo exige.
+      const { data: { session: sesionWa } } = await sb.auth.getSession();
       const resp = await fetch('/api/notif/whatsapp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${sesionWa?.access_token}`,
+        },
         body: JSON.stringify({
           template: 'ruta_asignada',
           telefono: chofer.telefono,
@@ -979,11 +979,11 @@ function inicializarMapa(entregas) {
 
     const marker = L.marker([lat, lng], { icon })
       .bindPopup(`
-        <strong>${cliente}</strong><br>
-        ${dir ? `${dir}<br>` : ''}
+        <strong>${esc(cliente)}</strong><br>
+        ${dir ? `${esc(dir)}<br>` : ''}
         Estado: <b>${capEstado(e.estado)}</b>
         ${hora ? `<br>Confirmado: ${hora}` : ''}
-        ${e.receptor ? `<br>Recibió: ${e.receptor}` : ''}
+        ${e.receptor ? `<br>Recibió: ${esc(e.receptor)}` : ''}
         ${e._estimada ? `<br><span style="color:var(--color-text-light,#7A857E);font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Ubicación estimada (domicilio registrado, aún sin confirmar por el chofer)</span>` : ''}
       `)
       .addTo(_mapaLeaflet);
@@ -1029,7 +1029,7 @@ function pintarSinUbicar(entregas) {
 }
 
 async function actualizarSeguimiento(rutaId) {
-  const { data } = await sb
+  const { data } = await window.conTimeoutRed(sb
     .from('entregas')
     .select(`
       id, orden, estado, receptor, notas_entrega, fecha_confirmacion,
@@ -1037,7 +1037,7 @@ async function actualizarSeguimiento(rutaId) {
       pedidos(id, total, ubicacion_entrega, clientes(razon_social, domicilio, localidad, telefono, lat, lng))
     `)
     .eq('ruta_id', rutaId)
-    .order('orden');
+    .order('orden'), 10000);
 
   const entregas = data || [];
   entregasSeguimientoActual = entregas;
@@ -1195,7 +1195,7 @@ function cerrarModalEntrega() {
 async function cargarHistorial() {
   window.mostrarSkeletonTabla('tabla-historial', 8);
 
-  const { data } = await sb
+  const { data } = await window.conTimeoutRed(sb
     .from('rutas')
     .select(`
       id, fecha, estado, created_at,
@@ -1204,7 +1204,7 @@ async function cargarHistorial() {
     `)
     .eq('empresa_id', empresaId)
     .order('fecha', { ascending: false })
-    .limit(60);
+    .limit(60), 10000);
 
   const tbody = document.getElementById('tabla-historial');
   if (!tbody) return;
@@ -1248,6 +1248,10 @@ function mostrarTab(tab) {
       btn.tabIndex = t === tab ? 0 : -1;
     }
   });
+  // "Armar ruta" no está sujeta a la regla de una-sola-pantalla que rige
+  // las demás pestañas (ver rutas-compact.css): esta clase le avisa a
+  // ese CSS cuándo debe liberar el alto y dejar scrollear la página.
+  document.body.classList.toggle('armar-ruta-activa', tab === 'armar');
   if (tab === 'historial')   cargarHistorial();
   if (tab === 'seguimiento') {
     poblarSelectorSeguimiento();
@@ -1426,14 +1430,14 @@ async function cambiarTipoInvitacion() {
     // Todos los choferes ya cargados (activos e inactivos), no solo los del select de ruta
     const sel = document.getElementById('invitar-chofer-existente');
     sel.innerHTML = '<option>Cargando...</option>';
-    const { data } = await sb
+    const { data } = await window.conTimeoutRed(sb
       .from('usuarios')
       .select('id, nombre, telefono')
       .eq('empresa_id', empresaId)
       .eq('rol', 'chofer')
-      .order('nombre');
+      .order('nombre'), 10000);
     sel.innerHTML = (data || []).map(c =>
-      `<option value="${c.id}">${c.nombre}${c.telefono ? '' : ' (sin teléfono)'}</option>`
+      `<option value="${c.id}">${esc(c.nombre)}${c.telefono ? '' : ' (sin teléfono)'}</option>`
     ).join('') || '<option value="">No hay choferes cargados</option>';
   }
 }
@@ -1552,7 +1556,7 @@ async function cargarReporteRuta() {
   if (desde) query = query.gte('generado_en', desde);
   if (hasta) query = query.lte('generado_en', hasta + 'T23:59:59');
 
-  const { data, error } = await query;
+  const { data, error } = await window.conTimeoutRed(query, 10000);
 
   if (error) {
     console.error('[REPORTE-RUTA] Error:', error);
@@ -1704,14 +1708,14 @@ async function cargarDetalleReporte() {
   }
 
   // Cargar entregas de la ruta para mapa + tabla
-  const { data: entregas, error } = await sb
+  const { data: entregas, error } = await window.conTimeoutRed(sb
     .from('entregas')
     .select(`
       id, orden, estado, receptor, notas_entrega, fecha_confirmacion,
       pedidos(id, total, ubicacion_entrega, clientes(razon_social, domicilio, localidad, telefono, lat, lng))
     `)
     .eq('ruta_id', rutaId)
-    .order('orden');
+    .order('orden'), 10000);
 
   if (error) {
     console.error('[REPORTE-RUTA] Error cargando entregas:', error);

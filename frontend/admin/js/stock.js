@@ -65,7 +65,7 @@ const toast = (msg, tipo='default') => window.mostrarToast(msg, tipo);
 // Plan offline — Etapa 3, ítem 2: mismo criterio que chofer-offline.js /
 // cliente-offline.js — distingue "el servidor respondió con un error de
 // negocio" (mostrarlo tal cual) de "la llamada nunca llegó a completarse"
-// (encolar y reintentar solo). sb.rpc() no rechaza la promesa cuando falla
+// (encolar y reintentar solo). window.conTimeoutRed(sb.rpc(), 10000) no rechaza la promesa cuando falla
 // la red: postgrest-js atrapa el TypeError original y lo devuelve como
 // `error`, así que el `throw error;` de más abajo termina lanzando esa
 // misma instancia — por eso alcanza con este mismo chequeo.
@@ -160,12 +160,12 @@ async function cargarOverviewKPIs() {
   // más amplio que "sin stock" — por eso el pill mostraba un número distinto
   // (mayor) al del resumen "En esta página: N sin stock", que sí compara
   // contra 0. Ver fn_stock_lista_agrupada / mostrarAlertasResumen.
-  const sinStockRes = await sb.rpc('fn_stock_lista_agrupada', {
+  const sinStockRes = await window.conTimeoutRed(sb.rpc('fn_stock_lista_agrupada', {
     p_estado: 'critico',
     p_deposito_id: depFiltro,
     p_limit: 1,
     p_offset: 0,
-  });
+  }), 10000);
   if (sinStockRes.error) throw sinStockRes.error;
 
   const sinStock = Number(sinStockRes.data?.[0]?.total_count) || 0;
@@ -216,14 +216,14 @@ async function cargarProductosModificados(periodo = _periodoModificados) {
   cont.innerHTML = '<div class="loading-row"><span class="loading-spinner"></span> Cargando…</div>';
 
   try {
-    const { data, error } = await sb
+    const { data, error } = await window.conTimeoutRed(sb
       .from('movimientos_stock')
       .select('producto_id, deposito_id, tipo, cantidad, created_at, productos!inner(id, nombre, unidad, activo), depositos(nombre)')
       .eq('productos.activo', true)
       .in('tipo', ['ingreso', 'egreso', 'ajuste', 'transferencia'])
       .gte('created_at', inicioPeriodoModificados(periodo))
       .order('created_at', { ascending: false })
-      .limit(300);
+      .limit(300), 10000);
 
     if (error) throw error;
 
@@ -345,9 +345,9 @@ document.getElementById('modif-lista')?.addEventListener('click', async (ev) => 
 
 // ── Depósitos ──────────────────────────────────────────────────────────────
 async function cargarDepositos() {
-  const { data } = await sb.from('depositos')
+  const { data } = await window.conTimeoutRed(sb.from('depositos')
     .select('id, nombre, es_principal')
-    .eq('empresa_id', empresaData.id);
+    .eq('empresa_id', empresaData.id), 10000);
   depositos = data || [];
 
   // Reconstruye el select desde cero (no solo agregar) para poder reusar esta
@@ -557,10 +557,10 @@ async function activarDeposito(id) {
 
 // ── Categorías ─────────────────────────────────────────────────────────────
 async function cargarCategorias() {
-  const { data } = await sb.from('categorias')
+  const { data } = await window.conTimeoutRed(sb.from('categorias')
     .select('id, nombre')
     .eq('empresa_id', empresaData.id)
-    .order('nombre');
+    .order('nombre'), 10000);
 
   const sel = document.getElementById('filtro-categoria');
   (data || []).forEach(c => {
@@ -611,7 +611,7 @@ async function cargarStock() {
       productoIds = ids;
     }
 
-    const { data, error } = await sb.rpc('fn_stock_lista_agrupada', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('fn_stock_lista_agrupada', {
       p_busqueda:     busq || null,
       p_categoria_id: catFiltro || null,
       p_deposito_id:  depFiltro || null,
@@ -619,7 +619,7 @@ async function cargarStock() {
       p_producto_ids: productoIds,
       p_limit:        PAGE_SIZE,
       p_offset:       desde,
-    });
+    }), 10000);
 
     if (error) throw error;
 
@@ -949,7 +949,7 @@ async function toggleDetalleDepositos(btn) {
   celda.innerHTML = '<div class="detalle-depositos-loading"><span class="loading-spinner"></span> Cargando depósitos…</div>';
 
   try {
-    const { data, error } = await sb.rpc('fn_stock_depositos_producto', { p_producto_id: prodId });
+    const { data, error } = await window.conTimeoutRed(sb.rpc('fn_stock_depositos_producto', { p_producto_id: prodId }), 10000);
     if (error) throw error;
     const html = renderDetalleDepositos(prodId, btn.dataset.nombre, btn.dataset.unidad, data || []);
     _cacheDetalleDep.set(prodId, html);
@@ -1067,7 +1067,7 @@ async function buscarProductoTransferencia(q) {
   _mbtAC = createAC();
 
   try {
-    const { data, error } = await sb
+    const { data, error } = await window.conTimeoutRed(sb
       .from('stock')
       .select(`
         producto_id,
@@ -1083,7 +1083,7 @@ async function buscarProductoTransferencia(q) {
       .or(`nombre.ilike.%${q}%,codigo.ilike.%${q}%`, { foreignTable: 'productos' })
       .order('cantidad_disponible', { ascending: false })
       .limit(25)
-      .abortSignal(_mbtAC.signal);
+      .abortSignal(_mbtAC.signal), 10000);
 
     if (error) throw error;
 
@@ -1259,17 +1259,17 @@ function actualizarAvisoMotivo() {
   const avisos = {
     compra: {
       clase: 'aviso--bloqueante',
-      html: 'La compra a proveedor se registra <strong>recepcionando la Orden de Compra</strong> — así queda vinculada a lote, costo y proveedor. <a href="compras.html" target="_blank" rel="noopener">Ir a Compras →</a>',
+      html: 'La compra a proveedor se registra <strong>recepcionando la Orden de Compra</strong> — así queda vinculada a lote, costo y proveedor. <a href="/admin/compras" target="_blank" rel="noopener">Ir a Compras →</a>',
       bloquea: true,
     },
     devolucion_cliente: {
       clase: 'aviso--bloqueante',
-      html: 'La devolución de un cliente se registra desde <strong>Devoluciones</strong> — así queda vinculada al cliente/pedido, y desde ahí podés generar la nota de crédito y reponer el stock con trazabilidad. <a href="devoluciones.html" target="_blank" rel="noopener">Ir a Devoluciones →</a>',
+      html: 'La devolución de un cliente se registra desde <strong>Devoluciones</strong> — así queda vinculada al cliente/pedido, y desde ahí podés generar la nota de crédito y reponer el stock con trazabilidad. <a href="/admin/devoluciones" target="_blank" rel="noopener">Ir a Devoluciones →</a>',
       bloquea: true,
     },
     venta_manual: {
       clase: 'aviso--info',
-      html: '¿Es una venta con cliente y cobro? Usá el <a href="pos.html" target="_blank" rel="noopener">POS →</a>. Este motivo es solo para salidas por venta ya cobrada que no se facturó en el momento.',
+      html: '¿Es una venta con cliente y cobro? Usá el <a href="/admin/pos" target="_blank" rel="noopener">POS →</a>. Este motivo es solo para salidas por venta ya cobrada que no se facturó en el momento.',
       bloquea: false,
     },
   };
@@ -1419,7 +1419,7 @@ async function guardarAjuste() {
         p_cantidad: Math.abs(cantidad),
         p_motivo: motivo, p_notas: notas || null,
       };
-      const { data, error } = await sb.rpc('transferir_stock', payloadRpcTransferencia);
+      const { data, error } = await window.conTimeoutRed(sb.rpc('transferir_stock', payloadRpcTransferencia), 10000);
       if (error) {
         // Plan offline — Etapa 3, ítem 5: mismo criterio que ajuste/conteo —
         // encolar en vez de perder la transferencia si fue un corte de red,
@@ -1462,7 +1462,7 @@ async function guardarAjuste() {
         // vuelve a comparar contra el mismo stock que se acaba de leer.
         p_stock_sistema_esperado: modalStockTotal,
       };
-      const { data, error } = await sb.rpc('registrar_conteo_stock', payloadRpcConteo);
+      const { data, error } = await window.conTimeoutRed(sb.rpc('registrar_conteo_stock', payloadRpcConteo), 10000);
       if (error) {
         // Plan offline — Etapa 3, ítem 2: si la RPC no llegó a responder por
         // falta de red, encolamos el conteo en vez de perderlo — se envía
@@ -1489,11 +1489,11 @@ async function guardarAjuste() {
       // la receta (BOM, tabla producto_insumos) en la misma transacción que
       // el ingreso del producto terminado. Si el producto no tiene receta
       // cargada, produce igual (no bloquea a quien todavía no cargó el BOM).
-      const { data, error } = await sb.rpc('producir_con_insumos', {
+      const { data, error } = await window.conTimeoutRed(sb.rpc('producir_con_insumos', {
         p_producto_id: modalProductoId, p_deposito_id: depOrigen,
         p_cantidad: Math.abs(cantidad),
         p_motivo: motivo, p_notas: notas || null,
-      });
+      }), 10000);
       if (error) throw error;
       if (!data?.ok) { toast(data?.error || 'No se pudo registrar la producción'); return; }
 
@@ -1512,7 +1512,7 @@ async function guardarAjuste() {
         p_delta: delta, p_tipo: tipoActivo,
         p_motivo: motivo, p_notas: notas || null,
       };
-      const { data, error } = await sb.rpc('ajustar_stock', payloadRpcAjuste);
+      const { data, error } = await window.conTimeoutRed(sb.rpc('ajustar_stock', payloadRpcAjuste), 10000);
       if (error) {
         // Plan offline — Etapa 3, ítem 2: mismo criterio que el conteo de
         // arriba — encolar en vez de perder el ingreso/egreso si fue un
@@ -1555,7 +1555,7 @@ async function guardarAjuste() {
 
   } catch (err) {
     console.error(err);
-    toast('No se pudo guardar el movimiento por un problema de conexión. Probá de nuevo en unos segundos; si persiste, avisá a soporte.');
+    toast('No se pudo guardar el movimiento. Probá de nuevo en unos segundos; si persiste, avisá a soporte.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Registrar movimiento';
@@ -1567,11 +1567,11 @@ async function cargarHistorial(productoId) {
   const lista = document.getElementById('historial-lista');
   lista.innerHTML = '<div class="loading-row">Cargando...</div>';
 
-  const { data } = await sb.from('movimientos_stock')
+  const { data } = await window.conTimeoutRed(sb.from('movimientos_stock')
     .select('tipo, cantidad, referencia, notas, created_at, usuarios(nombre), depositos(nombre)')
     .eq('producto_id', productoId)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(20), 10000);
 
   if (!data?.length) {
     lista.innerHTML = '<div class="empty-row">Sin movimientos registrados</div>';
@@ -1636,14 +1636,14 @@ async function exportarExcel() {
     }
 
     if (busq) {
-      const { data: matchIds } = await sb.from('productos').select('id')
+      const { data: matchIds } = await window.conTimeoutRed(sb.from('productos').select('id')
         .eq('empresa_id', empresaData.id).eq('activo', true)
-        .or(`nombre.ilike.%${busq}%,codigo.ilike.%${busq}%`);
+        .or(`nombre.ilike.%${busq}%,codigo.ilike.%${busq}%`), 10000);
       const ids = (matchIds || []).map(p => p.id);
       if (ids.length) q = q.in('producto_id', ids);
     }
 
-    const { data } = await q;
+    const { data } = await window.conTimeoutRed(q, 10000);
     const rows = (data || []).map(s => {
       const d = disp(s);
       return {
@@ -1967,7 +1967,7 @@ window.cerrarModalProyeccion = () => {
 // el modal de proyección para poder modificar el producto sin salir del flujo.
 async function abrirModalDesdeProductoId(productoId) {
   try {
-    const { data, error } = await sb
+    const { data, error } = await window.conTimeoutRed(sb
       .from('stock')
       .select(`
         producto_id,
@@ -1981,7 +1981,7 @@ async function abrirModalDesdeProductoId(productoId) {
       .eq('producto_id', productoId)
       .eq('productos.activo', true)
       .order('cantidad_disponible', { ascending: false })
-      .limit(1);
+      .limit(1), 10000);
 
     if (error) throw error;
     if (!data || !data.length) {

@@ -22,48 +22,67 @@ const listenersMock = vi.hoisted(() => {
   return { ok1, ok2, falla };
 });
 
+// Refleja el contrato real de reclamarEventos() (SYNC-06): SELECT con
+// .order().limit()[.eq('empresa_id',x)].or(filtroOr) — el filtroOr combina
+// "estado.in.(...)" con la rama de lease vencido para 'procesando' — y un
+// claim atómico .update(cambios).eq('id',x).eq('estado',y).select('*').maybeSingle().
+// despacharEvento() sigue usando la forma simple .update(cambios).eq('id',x)
+// awaited directo, sin select/maybeSingle — el mock soporta ambas formas.
 vi.mock('../../lib/supabase-lazy.js', () => ({
   crearClienteSupabaseLazy: () => ({
     from: (tabla) => {
       if (tabla !== 'eventos_negocio') throw new Error(`tabla inesperada en el mock: ${tabla}`);
-      const query = {};
-      query.order = vi.fn(() => query);
-      query.limit = vi.fn(() => query);
-      query.eq = vi.fn((_col, empresaId) => {
-        query.empresaId = empresaId;
-        return query;
-      });
-      query.or = vi.fn(() => Promise.resolve({
-        data: dbMock.eventosPendientes.filter((evento) =>
-          (!query.empresaId || evento.empresa_id === query.empresaId) &&
-          ['pendiente', 'error', 'procesando'].includes(evento.estado)
-        ),
-        error: null,
-      }));
-      query.then = (resolve, reject) => Promise.resolve({
-        data: dbMock.eventosPendientes.filter((evento) =>
-          !query.empresaId || evento.empresa_id === query.empresaId
-        ),
-        error: null,
-      }).then(resolve, reject);
       return {
-        select: vi.fn(() => query),
-        update: (cambios) => {
-          let updateId = null;
-          const updateQuery = {
-            eq: (_col, id) => {
-              updateId = id;
-              dbMock.updates.push({ id, cambios });
-              return updateQuery;
+        select: () => {
+          const state = {};
+          const builder = {
+            order: () => builder,
+            limit: () => builder,
+            eq: (_col, empresaId) => { state.empresaId = empresaId; return builder; },
+            or: (filtroOr) => { state.filtroOr = filtroOr; return builder; },
+            then: (resolve) => {
+              const inMatch = state.filtroOr?.match(/estado\.in\.\(([^)]*)\)/);
+              const estadosIn = inMatch ? inMatch[1].split(',') : [];
+              const leaseMatch = state.filtroOr?.match(/procesando_desde\.lt\.([^)]*)\)/);
+              const leaseLimite = leaseMatch ? leaseMatch[1] : null;
+              let data = dbMock.eventosPendientes.filter((e) => {
+                if (estadosIn.includes(e.estado)) return true;
+                if (leaseLimite && e.estado === 'procesando' && e.procesando_desde && e.procesando_desde < leaseLimite) return true;
+                return false;
+              });
+              if (state.empresaId) data = data.filter((e) => e.empresa_id === state.empresaId);
+              resolve({ data, error: null });
             },
-            select: vi.fn(() => updateQuery),
-            maybeSingle: vi.fn(async () => ({
-              data: dbMock.eventosPendientes.find((evento) => evento.id === updateId) || { id: updateId, ...cambios },
-              error: null,
-            })),
-            then: (resolve, reject) => Promise.resolve({ error: null }).then(resolve, reject),
           };
-          return updateQuery;
+          return builder;
+        },
+        update: (cambios) => {
+          const state = {};
+          const builder = {
+            eq: (col, val) => {
+              if (col === 'id') state.id = val;
+              if (col === 'estado') state.estadoEsperado = val;
+              return builder;
+            },
+            select: () => builder,
+            // claim atómico de reclamarEventos(): solo "gana" si el estado sigue
+            // siendo el que se leyó (misma condición de carrera que el código real).
+            maybeSingle: () => {
+              const evento = dbMock.eventosPendientes.find(
+                (e) => e.id === state.id && (state.estadoEsperado === undefined || e.estado === state.estadoEsperado),
+              );
+              if (!evento) return Promise.resolve({ data: null, error: null });
+              Object.assign(evento, cambios);
+              dbMock.updates.push({ id: state.id, cambios });
+              return Promise.resolve({ data: { ...evento }, error: null });
+            },
+            // forma simple de despacharEvento(): awaited directo sin select/maybeSingle.
+            then: (resolve) => {
+              dbMock.updates.push({ id: state.id, cambios });
+              resolve({ error: null });
+            },
+          };
+          return builder;
         },
       };
     },

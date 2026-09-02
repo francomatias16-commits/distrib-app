@@ -65,9 +65,9 @@ async function cargarCatalogos() {
   try {
     const sb = window.authCtx.sb;
     const [{ data: productos }, { data: categorias }, { data: zonas }] = await Promise.all([
-      sb.from('productos').select('id, nombre, codigo').eq('activo', true).order('nombre'),
-      sb.from('categorias').select('id, nombre').order('nombre'),
-      sb.from('zonas').select('id, nombre').eq('activa', true).order('nombre'),
+      window.conTimeoutRed(sb.from('productos').select('id, nombre, codigo').eq('activo', true).order('nombre'), 10000),
+      window.conTimeoutRed(sb.from('categorias').select('id, nombre').order('nombre'), 10000),
+      window.conTimeoutRed(sb.from('zonas').select('id, nombre').eq('activa', true).order('nombre'), 10000),
     ]);
     productosCache  = productos  || [];
     categoriasCache = categorias || [];
@@ -195,15 +195,15 @@ function renderTabla(filas) {
     ` : '';
 
     return `<tr class="${filaClase}${puedeEscribir ? ' fila-clickeable' : ''}" ${puedeEscribir ? `onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${f.id}')"` : ''}>
-      <td><strong>${window.sanitize(f.nombre)}</strong></td>
-      <td>${alcance}</td>
-      <td>${zona}</td>
-      <td>${fmtNum(f.cantidad_minima)}</td>
-      <td>${descuento}</td>
-      <td style="font-size:12px;">${vigencia}</td>
-      <td>${f.prioridad ?? 0}</td>
-      <td>${estado}</td>
-      <td class="col-sticky-end col-acciones"><div class="fila-acciones">${accionesEscritura || '—'}</div></td>
+      <td data-label="Nombre"><strong>${window.sanitize(f.nombre)}</strong></td>
+      <td data-label="Alcance">${alcance}</td>
+      <td data-label="Zona">${zona}</td>
+      <td data-label="Cant. mín.">${fmtNum(f.cantidad_minima)}</td>
+      <td data-label="Descuento">${descuento}</td>
+      <td data-label="Vigencia" style="font-size:12px;">${vigencia}</td>
+      <td data-label="Prioridad">${f.prioridad ?? 0}</td>
+      <td data-label="Estado">${estado}</td>
+      <td class="col-sticky-end col-acciones" data-label="Acciones"><div class="fila-acciones">${accionesEscritura || '—'}</div></td>
     </tr>`;
   }).join('');
 

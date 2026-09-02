@@ -201,13 +201,15 @@ body.dash-riesgo-cheques-gentelella .score-bloqueado { background: var(--ge-bg) 
 /* ════════════════════════════════════════════════════════════
    Botones secundarios chicos ("Verificar" / "Ver cheques")
    ════════════════════════════════════════════════════════════ */
-body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary {
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary,
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn--secondary {
   border: 1px solid var(--ge-border) !important;
   background: var(--ge-panel) !important;
   color: var(--ge-ink-soft) !important;
   border-radius: var(--ge-radius-btn) !important;
 }
-body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary:hover {
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn-secondary:hover,
+body.dash-riesgo-cheques-gentelella .btn.btn-sm.btn--secondary:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
   border-color: var(--ge-teal) !important;

@@ -294,11 +294,13 @@ body.dash-devoluciones-gentelella .detalle-panel-footer .btn {
   font-weight: 600 !important;
   border: none !important;
 }
-body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger {
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger,
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn--danger {
   background: var(--ge-red) !important;
   color: var(--ge-panel) !important;
 }
-body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger:hover {
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn-danger:hover,
+body.dash-devoluciones-gentelella .detalle-panel-footer .btn--danger:hover {
   background: color-mix(in srgb, var(--ge-red) 80%, black) !important;
 }
 body.dash-devoluciones-gentelella .detalle-panel-footer .btn-success {
@@ -332,14 +334,10 @@ body.dash-devoluciones-gentelella .toast {
   body.dash-devoluciones-gentelella .finanzas-kpis {
     grid-template-columns: 1fr 1fr !important;
   }
-  body.dash-devoluciones-gentelella .filtros-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  body.dash-devoluciones-gentelella .filtros-bar input,
-  body.dash-devoluciones-gentelella .filtros-bar select {
-    width: 100% !important;
-  }
+  /* .filtros-bar en columna/100% en mobile: ya lo hace el canónico de
+     componentes-admin.css (Fase 1, 2026-08-25) desde --bp-md (640px).
+     Esto quedaba en 768px, un breakpoint distinto sin escala común —
+     justo la inconsistencia que documenta la auditoría. No redeclarar. */
 }
 @media (max-width: 480px) {
   body.dash-devoluciones-gentelella .finanzas-kpis {

@@ -124,15 +124,23 @@
   .table-responsive-cards .tabla-admin tbody,
   .table-responsive-cards .tabla-admin th,
   .table-responsive-cards .tabla-admin td,
-  .table-responsive-cards .tabla-admin tr {
+  .table-responsive-cards .tabla-admin tr,
+  .table-responsive-cards .prod-tabla,
+  .table-responsive-cards .prod-tabla thead,
+  .table-responsive-cards .prod-tabla tbody,
+  .table-responsive-cards .prod-tabla th,
+  .table-responsive-cards .prod-tabla td,
+  .table-responsive-cards .prod-tabla tr {
     display: block;
   }
-  .table-responsive-cards .tabla-admin thead tr {
+  .table-responsive-cards .tabla-admin thead tr,
+  .table-responsive-cards .prod-tabla thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-  .table-responsive-cards .tabla-admin tbody tr {
+  .table-responsive-cards .tabla-admin tbody tr,
+  .table-responsive-cards .prod-tabla tbody tr {
     border: 1px solid var(--color-border-soft);
     margin: 0 0 12px;
     border-radius: var(--radius-lg);
@@ -140,17 +148,21 @@
     background: var(--color-surface);
     box-shadow: var(--shadow-xs);
   }
-  .table-responsive-cards .tabla-admin tbody tr:hover { background: var(--color-surface); }
-  .table-responsive-cards .tabla-admin td {
+  .table-responsive-cards .tabla-admin tbody tr:hover,
+  .table-responsive-cards .prod-tabla tbody tr:hover { background: var(--color-surface); }
+  .table-responsive-cards .tabla-admin td,
+  .table-responsive-cards .prod-tabla td {
     border: none !important;
     position: relative;
-    padding: 9px 0 9px 42%;
-    text-align: right;
+    padding: 9px 0 9px 42% !important;
+    text-align: right !important;
     border-bottom: 1px solid var(--color-bg) !important;
     min-height: 20px;
   }
-  .table-responsive-cards .tabla-admin td:last-child { border-bottom: none !important; }
-  .table-responsive-cards .tabla-admin td::before {
+  .table-responsive-cards .tabla-admin td:last-child,
+  .table-responsive-cards .prod-tabla td:last-child { border-bottom: none !important; }
+  .table-responsive-cards .tabla-admin td::before,
+  .table-responsive-cards .prod-tabla td::before {
     content: attr(data-label);
     position: absolute;
     left: 0;
@@ -163,16 +175,25 @@
   }
   /* Primera celda y Acciones van a ancho completo sin label */
   .table-responsive-cards .tabla-admin td:first-child,
-  .table-responsive-cards .tabla-admin td[data-label="Acciones"] {
-    text-align: left;
-    padding-left: 0;
+  .table-responsive-cards .tabla-admin td[data-label="Acciones"],
+  .table-responsive-cards .prod-tabla td:first-child,
+  .table-responsive-cards .prod-tabla td[data-label="Acciones"] {
+    text-align: left !important;
+    padding-left: 0 !important;
   }
   .table-responsive-cards .tabla-admin td:first-child::before,
-  .table-responsive-cards .tabla-admin td[data-label="Acciones"]::before {
+  .table-responsive-cards .tabla-admin td[data-label="Acciones"]::before,
+  .table-responsive-cards .prod-tabla td:first-child::before,
+  .table-responsive-cards .prod-tabla td[data-label="Acciones"]::before {
     display: none;
   }
   .table-responsive-cards .fila-acciones { flex-wrap: wrap; }
   .table-responsive-cards .btn-tabla { flex: 1; justify-content: center; padding: 8px; }
+  /* .prod-tabla trae su propio ancho mínimo (580px) para el scroll
+     horizontal de escritorio — en modo tarjeta no aplica, cada td ya es
+     block-level y se acomoda al ancho real de la pantalla. */
+  .table-responsive-cards .prod-tabla { min-width: 0 !important; width: 100% !important; }
+  .table-responsive-cards .cb-combo-composicion { max-width: none; white-space: normal; }
 }
 
 /* ── Badge de estado — fuente única, reemplaza las 11 redefiniciones
@@ -280,13 +301,102 @@
    Ver frontend/shared/pagination.css: .paginacion-container, .btn-pag,
    .info-pag */
 
-/* ── Barra de filtros ──────────────────────────────────────────────── */
+/* ── Barra de filtros ──────────────────────────────────────────────────
+   ÚNICA fuente de verdad para .filtros-bar y sus input/select hijos
+   (auditoría responsive, Fase 1 — 2026-08-25). Antes había 4 definiciones
+   compitiendo sin ganador predecible (adminlte-components.css,
+   reskin-patch.css, responsive-mobile.css, y este mismo archivo con una
+   versión incompleta) — ver AUDITORIA_FILTROS_v280.md para el detalle.
+   Esta consolidación NO toca los overrides `body.dash-<pagina>` de los
+   43 archivos `-gentelella.css`, que siguen ganando por especificidad
+   donde existan — eso es Fase 2 (barrido guiado por auditoría visual).
+
+   Mobile-first: la base de abajo es el layout de ~375px, el media query
+   de arriba (--bp-md, 640px) es lo que escala a desktop, no al revés. */
 .filtros-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   margin-bottom: 14px;
+  padding: 14px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-fluffy);
+  box-sizing: border-box;
+}
+.filtros-bar > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.filtros-bar input,
+.filtros-bar select {
+  font-family: inherit;
+  font-size: 16px; /* >=16px evita el zoom automático de iOS Safari al enfocar */
+  padding: 7px 10px;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.filtros-bar input:focus,
+.filtros-bar select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0,174,112,.12);
+}
+.filtros-bar .btn-exportar,
+.filtros-bar .btn-importar,
+.filtros-bar .btn-primario,
+.filtros-bar .btn-secundario {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── .btn-exportar / .btn-importar — forma base ───────────────────────
+   Repetida letra por letra en 6 archivos (automatizacion, facturacion,
+   finanzas, pedidos, reportes, rutas) — auditoría responsive, Fase 2
+   (2026-08-25). El color de :hover de .btn-importar varía entre páginas
+   (primary vs. info) — eso SÍ se dejó local en cada archivo, no es
+   duplicación sino una diferencia real que no correspondía decidir acá.
+   `compras.css` tiene una forma base ligeramente distinta (radius/transition)
+   y se dejó afuera de esta consolidación a propósito. */
+.btn-exportar, .btn-importar {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: all .12s; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-muted);
+}
+
+/* Desktop / tablet (>= --bp-md = 640px): .filtros-bar vuelve a fila */
+@media (min-width: 641px) {
+  .filtros-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filtros-bar > * {
+    width: auto;
+    max-width: none;
+  }
+  .filtros-bar input,
+  .filtros-bar select {
+    font-size: 13px;
+    flex: 1 1 140px;
+  }
+  .filtros-bar .btn-exportar,
+  .filtros-bar .btn-importar,
+  .filtros-bar .btn-primario,
+  .filtros-bar .btn-secundario {
+    width: auto;
+  }
 }
 
 /* ── Header de página (ya estandarizado en 44/56 páginas) ────────────
@@ -371,6 +481,33 @@
 .chip-gris, .chip-inactiva, .chip-borrador, .chip-entregado, .chip-expirado {
   background: var(--ge-chip-bg);
   color: var(--ge-ink-soft);
+}
+
+/* ── .modal — panel lateral, forma base ────────────────────────────────
+   Repetida letra por letra en 4 páginas (clientes, facturacion, productos,
+   stock) — auditoría responsive, Fase 2 (2026-08-25). Cada página conserva
+   localmente solo lo que le es propio: `right` (offset = -width), `width`
+   y `gap`. Selector con `body.dash-X` para ganar en especificidad, porque
+   este archivo carga DESPUÉS del CSS de cada página (mismo patrón ya usado
+   en `.badge-estado`). `pedidos.css` NO está acá: usa un mecanismo distinto
+   (`transform: translateX()` en vez de animar `right`), no es un duplicado. */
+body.dash-clientes-gentelella .modal,
+body.dash-compras-gentelella .modal,
+body.dash-facturacion-gentelella .modal,
+body.dash-productos-gentelella .modal,
+body.dash-stock-gentelella .modal {
+  position: fixed;
+  top: 0;
+  max-width: 95vw;
+  height: 100vh;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  z-index: var(--z-modal);
+  overflow-y: auto;
+  padding: 28px;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Alterno / púrpura */

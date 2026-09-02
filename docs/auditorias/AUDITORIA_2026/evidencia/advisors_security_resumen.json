@@ -1,0 +1,20 @@
+{
+  "fecha": "2026-07-11",
+  "proyecto_supabase": "jgiquzjwoedmzwqgzubr",
+  "postgres_version": "17.6.1.127",
+  "resumen": {
+    "rls_sin_politicas": ["asistente_articulos", "asistente_uso", "demo_snapshots"],
+    "function_search_path_mutable": ["fn_cheques_sync_vencimiento"],
+    "extensiones_en_public": ["pg_trgm", "vector"],
+    "auth_leaked_password_protection": "disabled",
+    "funciones_security_definer_expuestas_anon_o_authenticated_total_aprox": 90,
+    "funciones_verificadas_con_auth_interna_ok": [
+      "ajustar_stock", "anular_venta_pos", "cancelar_pedido (2 variantes)",
+      "crear_orden_compra", "registrar_cobro", "registrar_movimiento_cta_cte",
+      "registrar_venta_pos", "saas_confirmar_pago", "saas_tenant_cambiar_plan"
+    ],
+    "total_tablas_public": 103,
+    "tablas_con_rls_habilitado": 103,
+    "tablas_con_0_politicas": 3
+  }
+}

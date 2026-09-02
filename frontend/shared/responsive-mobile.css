@@ -36,12 +36,28 @@
 .tabla-wrap,
 .tabla-container,
 .tabla-wrapper,
-.rmw-tabla-auto {
+.rmw-tabla-auto,
+.prod-tabla-wrap,
+.lotes-wrap {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
   /* Asegura que la columna sticky derecha (.col-sticky-end) siga
      funcionando correctamente al scrollear */
   position: relative;
+}
+/* AUDITORIA-MOBILE 2026-08 (139 hallazgos): overflow-x:auto por sí solo no
+   alcanza si el wrapper es hijo directo de un grid/flex container — por
+   default los items de grid/flex tienen min-width:auto y no se achican por
+   debajo del ancho intrínseco de su contenido (acá, la tabla ancha), así
+   que el wrapper "crece" con la tabla en vez de scrollear. Ver
+   conciliacion-bancaria.html para el caso concreto que motivó esto. */
+.tabla-wrap,
+.tabla-container,
+.tabla-wrapper,
+.rmw-tabla-auto,
+.prod-tabla-wrap,
+.lotes-wrap {
+  min-width: 0;
 }
 /* .rmw-tabla-auto: wrapper que responsive-mobile.js inserta en runtime
    alrededor de cualquier <table> que no tenga ya un wrapper propio de
@@ -77,16 +93,22 @@ html, body {
   /* Contador (ej: "27 productos") — se repite en el body, no crítico */
   .topbar-contador { display: none !important; }
 
-  /* Topbar-left: que no desborde cuando el menú tiene logo + botón */
-  .topbar-left { min-width: 0; overflow: hidden; }
+  /* Topbar-left: que no desborde cuando el menú tiene logo + botón.
+     flex:1 1 auto para que ocupe el espacio real que deja topbar-right
+     libre (en mobile casi siempre poco: fecha/usuario ocultos) en vez
+     de un ancho fijo en vw que no tiene en cuenta cuánto sobra. */
+  .topbar-left { min-width: 0; overflow: hidden; flex: 1 1 auto; }
   .topbar-left .logo { flex-shrink: 0; }
 
-  /* El título de la página: truncar si es muy largo */
+  /* El título de la página: truncar solo si de verdad no entra,
+     usando el 100% del espacio real de topbar-left en vez de un
+     porcentaje fijo del viewport (eso cortaba títulos cortos como
+     "Reparto de rutas" aunque hubiera lugar de sobra). */
   .topbar-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 40vw;
+    max-width: 100%;
   }
 }
 
@@ -94,9 +116,6 @@ html, body {
   /* En mobile muy pequeño, dejar solo AFIP + deuda vencida + avatar */
   #pill-wa  { display: none !important; }
   #pill-pos { display: none !important; }
-
-  /* Título aún más corto */
-  .topbar-title { max-width: 30vw; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -122,26 +141,9 @@ html, body {
 /* ══════════════════════════════════════════════════════════════
    4. FILTROS / TOOLBARS — columna en mobile
    ══════════════════════════════════════════════════════════════ */
-@media (max-width: 640px) {
-  /* Barra de filtros compartida */
-  .filtros-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-  }
-  .filtros-bar > * { width: 100% !important; max-width: 100% !important; }
-  .filtros-bar input,
-  .filtros-bar select { width: 100% !important; box-sizing: border-box !important; }
-
-  /* Botones de acción en barra de filtros: ocupan todo el ancho */
-  .filtros-bar .btn-exportar,
-  .filtros-bar .btn-importar,
-  .filtros-bar .btn-primario,
-  .filtros-bar .btn-secundario {
-    width: 100% !important;
-    justify-content: center !important;
-  }
-}
+/* .filtros-bar (columna en mobile, fila en desktop): consolidado en
+   frontend/shared/componentes-admin.css, mobile-first, sin !important
+   (auditoría responsive, Fase 1 — 2026-08-25). No redeclarar acá. */
 
 /* ══════════════════════════════════════════════════════════════
    5. MODAL FOOTER / FORM ACCIONES — wrapping en mobile

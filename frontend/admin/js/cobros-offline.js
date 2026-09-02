@@ -29,7 +29,7 @@
 // stock-offline.js/chofer-offline.js. Acá no hay un `tipo` explícito en la
 // respuesta (a diferencia de registrar_conteo_stock): todo ok:false es el
 // caso genérico "rechazado_servidor", con el mensaje de la RPC tal cual
-// para el detalle del modal. Un error real de sb.rpc (red, timeout) sigue
+// para el detalle del modal. Un error real de window.conTimeoutRed(sb.rpc (red, timeout), 10000) sigue
 // el camino normal de reintento — no es conflicto.
 //
 // IDEMPOTENCIA: offline_local_id lo genera OfflineCore al encolar
@@ -65,10 +65,10 @@
     procesarAccion: async (accion, sb) => {
       const { payload, offline_local_id } = accion;
 
-      const { data, error } = await sb.rpc(TIPO_COBRO, {
+      const { data, error } = await window.conTimeoutRed(sb.rpc(TIPO_COBRO, {
         ...payload,
         p_offline_local_id: offline_local_id,
-      });
+      }), 10000);
 
       if (error) throw error;
 
@@ -89,9 +89,9 @@
       // si esta consulta falla no se pierde el cobro ya sincronizado, solo
       // no se muestra el aviso.
       try {
-        const { data: deuda } = await sb.rpc('calcular_deuda_cliente', {
+        const { data: deuda } = await window.conTimeoutRed(sb.rpc('calcular_deuda_cliente', {
           p_cliente_id: payload.p_cliente_id,
-        });
+        }), 10000);
         if (typeof deuda === 'number' && deuda < 0 && window.mostrarToast) {
           window.mostrarToast(
             `Cobro offline sincronizado (${data.nro}) — el cliente quedó con saldo a favor de $${Math.abs(deuda).toFixed(2)}. Revisar cta-cte.`,
@@ -161,6 +161,21 @@
       window.mostrarToast('Sin internet. Los cobros que registres ahora se guardan en el dispositivo y se envían solos al reconectar.', 'warning', 5000);
     }
   });
+
+  // Defensa en profundidad: OfflineCore.crearOutbox() NO tira excepción si
+  // Dexie no está cargado — devuelve `null` a propósito (ver offline-core.js,
+  // rama `typeof Dexie === 'undefined'`), para que un módulo pueda decidir
+  // su propio fallback. Sin este guard, cualquier uso de outbox.* de más
+  // abajo tira un TypeError síncrono DENTRO de este IIFE y
+  // window.CobrosOffline nunca llega a asignarse — la página queda sin
+  // ningún rastro de por qué (mismo síntoma que "el script no cargó", pero
+  // mucho más difícil de diagnosticar porque el resto de la página sigue
+  // funcionando normal). Mismo fix que ya tenía proveedor-offline.js
+  // (OFFLINE-02).
+  if (!outbox) {
+    console.error('[CobrosOffline] OfflineCore.crearOutbox() devolvió null — Dexie no estaba disponible. Sin soporte offline en esta carga.');
+    return;
+  }
 
   async function init({ getSb } = {}) {
     if (typeof getSb === 'function') _getSb = getSb;

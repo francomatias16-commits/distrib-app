@@ -66,12 +66,12 @@ async function cargarNotas() {
     const tipoRpc = tipoSel === 'credito' ? 'nota_credito' : (tipoSel === 'debito' ? 'nota_debito' : null);
     const desde = (paginaActualNotas - 1) * ITEMS_POR_PAGINA_NOTAS;
 
-    const { data, error } = await _sb.rpc('fn_notas_lista', {
+    const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_notas_lista', {
       p_busqueda: busq || null,
       p_tipo: tipoRpc,
       p_limit: ITEMS_POR_PAGINA_NOTAS,
       p_offset: desde,
-    });
+    }), 10000);
     if (error) throw error;
 
     notas = (data || []).map(n => ({
@@ -161,10 +161,7 @@ function renderTabla(notas) {
     </button>`;
     menu.dataset.notaId = notaId;
 
-    const r = btn.getBoundingClientRect();
-    menu.style.top   = `${r.bottom + 4}px`;
-    menu.style.left  = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -176,6 +173,13 @@ function renderTabla(notas) {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
   window.addEventListener('resize', cerrar);
   document.getElementById('tbody-notas')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en la tabla,
+  // pero en mobile (vista de tarjetas) el contenedor de la tabla no tiene
+  // su propio scroll interno — quien scrollea es la página completa
+  // (window/body). Sin este listener, al scrollear la página el menú se
+  // queda "flotando" en la posición vieja (donde estaba el botón "⋮"
+  // cuando se abrió), ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 // Antes filtraba en memoria sobre `todasNotas` (el recorte fijo de 500).
@@ -263,14 +267,14 @@ async function guardarNota() {
     // Numeración secuencial real (RPC siguiente_numero_comprobante,
     // atómica vía SELECT...FOR UPDATE) en lugar de 'PROV-' + Date.now()
     const sb = window.authCtx?.sb;
-    const { data, error } = await sb.rpc('emitir_nota_cta_cte', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('emitir_nota_cta_cte', {
       p_empresa_id:  window.authCtx?.perfil?.empresa_id,
       p_cliente_id:  cliente_id,
       p_tipo:        tipoSeleccionado === 'credito' ? 'nota_credito' : 'nota_debito',
       p_importe:     monto,
       p_descripcion: motivo || null,
       p_fecha:       fecha,
-    });
+    }), 10000);
 
     if (error) throw new Error(error.message);
     if (!data?.ok) throw new Error(data?.error || 'Error desconocido al emitir la nota');
@@ -329,12 +333,12 @@ async function anularNota(id) {
 
   try {
     const sb = window.authCtx?.sb;
-    const { data, error } = await sb.rpc('anular_nota_cta_cte', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('anular_nota_cta_cte', {
       p_empresa_id: window.authCtx?.perfil?.empresa_id,
       p_id: id,
       p_usuario_id: window.authCtx?.perfil?.id,
       p_motivo: motivo,
-    });
+    }), 10000);
     if (error) throw error;
     if (!data?.ok) throw new Error(data?.error || 'No se pudo anular la nota');
 

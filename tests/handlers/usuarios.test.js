@@ -41,6 +41,7 @@ const repoMock = vi.hoisted(() => ({
   banearUsuarioAuth: vi.fn(async () => {}),
   desbanearUsuarioAuth: vi.fn(async () => {}),
   actualizarPasswordAuth: vi.fn(async () => ({ error: null })),
+  revocarSesionesRefreshTokens: vi.fn(async () => {}),
 }));
 vi.mock('../../lib/repos/usuarios.js', () => repoMock);
 

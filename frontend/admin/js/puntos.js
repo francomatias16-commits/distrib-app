@@ -69,11 +69,11 @@ async function cargarClientes() {
 
   try {
     const offset = (paginaActualPuntos - 1) * ITEMS_POR_PAGINA_PUNTOS;
-    const { data, error } = await _sb.rpc('fn_puntos_lista', {
+    const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_puntos_lista', {
       p_busqueda: filtroBusqueda || null,
       p_limit:    ITEMS_POR_PAGINA_PUNTOS,
       p_offset:   offset,
-    });
+    }), 10000);
 
     if (error) throw error;
 
@@ -98,11 +98,11 @@ async function cargarClientes() {
 async function cargarClientesFallback() {
   try {
     const empresaId = window.authCtx?.perfil?.empresa_id;
-    const { data: vData, error: vErr } = await _sb
+    const { data: vData, error: vErr } = await window.conTimeoutRed(_sb
       .from('v_puntos_clientes')
       .select('*')
       .eq('empresa_id', empresaId)
-      .order('saldo', { ascending: false });
+      .order('saldo', { ascending: false }), 10000);
 
     let datos = vErr || !vData ? [] : vData;
 
@@ -134,7 +134,7 @@ async function cargarClientesFallback() {
 // (migración 270) — independiente de la página/búsqueda actual de la tabla.
 async function cargarKPIs() {
   try {
-    const { data, error } = await _sb.rpc('fn_puntos_kpis');
+    const { data, error } = await window.conTimeoutRed(_sb.rpc('fn_puntos_kpis'), 10000);
     if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data;
 
@@ -272,13 +272,13 @@ async function cargarHistorialCliente(clienteId) {
   lista.innerHTML = '<tr><td colspan="4" class="tabla-loading">Cargando historial...</td></tr>';
 
   try {
-    const { data: movData } = await _sb
+    const { data: movData } = await window.conTimeoutRed(_sb
       .from('v_puntos_movimientos')
       .select('*')
       .eq('empresa_id', window.authCtx.perfil.empresa_id)
       .eq('cliente_id', clienteId)
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(50), 10000);
 
     historialActivo = movData || [];
     renderHistorial(historialActivo);
@@ -379,7 +379,7 @@ async function confirmarCanje() {
     const perfil = window.authCtx?.perfil;
     const sb     = window.authCtx?.sb;
 
-    const { data, error } = await sb.rpc('canjear_puntos', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('canjear_puntos', {
       p_empresa_id:     perfil.empresa_id,
       p_cliente_id:     clienteActivo.cliente_id,
       p_puntos:         puntos,
@@ -387,7 +387,7 @@ async function confirmarCanje() {
       p_ref_tipo:       'manual',
       p_usuario_id:     perfil.id,
       p_usuario_nombre: perfil.nombre || perfil.email,
-    });
+    }), 10000);
 
     if (error) throw new Error(error.message);
 
@@ -438,7 +438,7 @@ async function confirmarAcreditacion() {
     const perfil = window.authCtx?.perfil;
     const sb     = window.authCtx?.sb;
 
-    const { data, error } = await sb.rpc('acreditar_puntos', {
+    const { data, error } = await window.conTimeoutRed(sb.rpc('acreditar_puntos', {
       p_empresa_id:     perfil.empresa_id,
       p_cliente_id:     clienteActivo.cliente_id,
       p_puntos:         puntos,
@@ -446,7 +446,7 @@ async function confirmarAcreditacion() {
       p_ref_tipo:       'manual',
       p_usuario_id:     perfil.id,
       p_usuario_nombre: perfil.nombre || perfil.email,
-    });
+    }), 10000);
 
     if (error) throw new Error(error.message);
 

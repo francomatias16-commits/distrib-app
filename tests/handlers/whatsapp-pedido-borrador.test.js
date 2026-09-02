@@ -99,6 +99,13 @@ beforeEach(() => {
     stock: stockSuficiente(),
     productos: { data: [{ id: 'prod-1', precio_base: 100, iva: 21 }], error: null },
     pedidos: { data: { numero_pedido: 'PED-0001' }, error: null },
+    // FIX (2026-08-30): resolverDepositoParaPedido (lib/repos/depositos.js)
+    // se sumó al flujo (multi-depósito, 550) después de que este archivo se
+    // escribió — sin este mock, TODO test que llegue a ese punto revienta
+    // con "no hay respuesta configurada para from('depositos')" antes de
+    // ejecutar nada de lo que en realidad se quiere probar. CLIENTE_OK no
+    // tiene deposito_id, así que cae al fallback (depósito es_principal).
+    depositos: { data: { id: 'deposito-1' }, error: null },
   };
   dbMock.rpcResponses = {
     resolver_precios_cliente: { data: [{ producto_id: 'prod-1', precio: 100 }], error: null },
@@ -230,5 +237,53 @@ describe('crearPedidoDesdeItemsWhatsapp — validaciones que deben cortar el flu
 
     expect(r.ok).toBe(false);
     expect(r.error).toBe('stock insuficiente'); // fallback cuando la RPC no manda rpcResult.error
+  });
+
+  // FIX (2026-08-30, UUID crudo al cliente): reportado por un cliente real
+  // vía WhatsApp — el chequeo atómico de stock de la RPC (red de seguridad
+  // contra condiciones de carrera) devuelve el error con el producto_id
+  // crudo, sin nombre. Antes ese texto llegaba tal cual al chat del
+  // cliente ("Stock insuficiente para producto bb89c5f6-..."). Ahora se
+  // resuelve usando `items[].nombre` (que ya viaja en el borrador).
+  it('resuelve el UUID a nombre cuando la RPC devuelve el error crudo de stock (condición de carrera)', async () => {
+    // producto_id con forma de UUID real (como en producción) — la regex
+    // de resolución solo matchea ese formato, a propósito, para no tocar
+    // por error un mensaje que no sea justamente este caso.
+    const UUID = 'bb89c5f6-9b0b-4221-9ffd-a7f58b425006';
+    const itemUuid = { producto_id: UUID, cantidad: 2, nombre: 'Aceite Natura 1.5 Lts' };
+    dbMock.fromResponses.stock = {
+      data: [{ producto_id: UUID, cantidad: 100, cantidad_reservada: 0, depositos: { es_principal: true } }],
+      error: null,
+    };
+    dbMock.fromResponses.productos = { data: [{ id: UUID, precio_base: 100, iva: 21 }], error: null };
+    dbMock.rpcResponses.resolver_precios_cliente = { data: [{ producto_id: UUID, precio: 100 }], error: null };
+    dbMock.rpcResponses.crear_pedido_cliente = {
+      data: { ok: false, tipo: 'stock_insuficiente', error: `Stock insuficiente para producto ${UUID}` },
+      error: null,
+    };
+
+    const r = await crearPedidoDesdeItemsWhatsapp({ empresaId: 'empresa-1', clienteId: 'cliente-1', items: [itemUuid] });
+
+    expect(r).toEqual({ ok: false, error: 'Stock insuficiente para "Aceite Natura 1.5 Lts"' });
+  });
+
+  it('deja el mensaje de la RPC intacto si el UUID del error no está en items (nunca peor que antes)', async () => {
+    const UUID_ITEM = 'bb89c5f6-9b0b-4221-9ffd-a7f58b425006';
+    const UUID_DESCONOCIDO = '00000000-0000-0000-0000-000000000000';
+    const itemUuid = { producto_id: UUID_ITEM, cantidad: 2, nombre: 'Aceite Natura 1.5 Lts' };
+    dbMock.fromResponses.stock = {
+      data: [{ producto_id: UUID_ITEM, cantidad: 100, cantidad_reservada: 0, depositos: { es_principal: true } }],
+      error: null,
+    };
+    dbMock.fromResponses.productos = { data: [{ id: UUID_ITEM, precio_base: 100, iva: 21 }], error: null };
+    dbMock.rpcResponses.resolver_precios_cliente = { data: [{ producto_id: UUID_ITEM, precio: 100 }], error: null };
+    dbMock.rpcResponses.crear_pedido_cliente = {
+      data: { ok: false, tipo: 'stock_insuficiente', error: `Stock insuficiente para producto ${UUID_DESCONOCIDO}` },
+      error: null,
+    };
+
+    const r = await crearPedidoDesdeItemsWhatsapp({ empresaId: 'empresa-1', clienteId: 'cliente-1', items: [itemUuid] });
+
+    expect(r).toEqual({ ok: false, error: `Stock insuficiente para producto ${UUID_DESCONOCIDO}` });
   });
 });

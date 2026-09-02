@@ -1,0 +1,161 @@
+/**
+ * canales-venta-gentelella.css — Reskin "Gentelella v4" de la pantalla Canales de venta
+ * ─────────────────────────────────────────────────────────────────────────────────
+ * Se carga DESPUÉS de /frontend/admin/css/base-layout.css, /frontend/admin/css/nav.css
+ * y de /frontend/shared/gentelella-tokens.css (que debe estar linkeado antes en el <head>).
+ * No modifica ningún id/clase que lea canales-venta.html (todo el JS de esta
+ * pantalla es inline): solo redistribuye color, layout y forma.
+ *
+ * Tokens (--ge-*): exclusivamente desde frontend/shared/gentelella-tokens.css.
+ * Si hace falta un valor que no esté ahí, se agrega en gentelella-tokens.css
+ * PRIMERO — nunca se inventan valores numéricos directos acá.
+ *
+ * Scope: body.dash-canales-venta-gentelella
+ */
+
+/* ════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella { background: var(--ge-bg) !important; }
+body.dash-canales-venta-gentelella * { box-sizing: border-box; }
+
+/* ════════════════════════════════════════════════════════════
+   Topbar
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .topbar {
+  background: var(--ge-panel) !important;
+  border-bottom: 1px solid var(--ge-border) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-canales-venta-gentelella .topbar-title {
+  color: var(--ge-ink) !important;
+  font-weight: 700 !important;
+}
+body.dash-canales-venta-gentelella .topbar-usuario {
+  color: var(--ge-ink-soft) !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Page intro
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .page-intro {
+  background: var(--ge-panel) !important;
+  border-left: 3px solid var(--ge-teal) !important;
+  border-radius: var(--ge-radius-card) !important;
+  color: var(--ge-ink-soft) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Vista bloqueada (plan no elegible)
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .cv-lock {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-canales-venta-gentelella .cv-lock-icono {
+  background: var(--ge-warning-bg) !important;
+  color: var(--ge-warning-text) !important;
+}
+body.dash-canales-venta-gentelella .cv-lock h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-canales-venta-gentelella .cv-lock p {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-canales-venta-gentelella .cv-lock-feats {
+  background: var(--ge-chip-bg) !important;
+  border-radius: var(--ge-radius-card) !important;
+}
+body.dash-canales-venta-gentelella .cv-lock-feats li {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Vista Platinum — tarjetas de canal
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .cv-card {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-canales-venta-gentelella .cv-logo {
+  background: var(--ge-chip-bg) !important;
+  color: var(--ge-ink-soft) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-canales-venta-gentelella .cv-card h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-canales-venta-gentelella .cv-card .sub {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-canales-venta-gentelella .cv-card p.desc {
+  color: var(--ge-ink-soft) !important;
+}
+
+/* Chips genéricos (chip-gris "Próximamente") — se resuelven vía el
+   componente canónico en frontend/shared/componentes-admin.css, no acá. */
+
+/* ════════════════════════════════════════════════════════════
+   Roadmap (pasos de habilitación)
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .cv-roadmap {
+  background: var(--ge-panel) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-card) !important;
+  box-shadow: var(--ge-shadow) !important;
+}
+body.dash-canales-venta-gentelella .cv-roadmap h2 {
+  color: var(--ge-ink) !important;
+}
+body.dash-canales-venta-gentelella .cv-roadmap .sub {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-canales-venta-gentelella .paso {
+  border-bottom: 1px solid var(--ge-border) !important;
+}
+body.dash-canales-venta-gentelella .paso-n {
+  background: var(--ge-teal) !important;
+  color: var(--ge-panel) !important;
+}
+body.dash-canales-venta-gentelella .paso-t {
+  color: var(--ge-ink-soft) !important;
+}
+body.dash-canales-venta-gentelella .paso-t b {
+  color: var(--ge-ink) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Botones
+   ════════════════════════════════════════════════════════════ */
+body.dash-canales-venta-gentelella .btn--primary {
+  border-radius: var(--ge-radius-btn) !important;
+  font-weight: 600 !important;
+}
+body.dash-canales-venta-gentelella .btn--secondary {
+  background: var(--ge-panel) !important;
+  color: var(--ge-ink) !important;
+  border: 1px solid var(--ge-border) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-canales-venta-gentelella .btn--secondary:hover {
+  background: var(--ge-bg) !important;
+  border-color: var(--ge-muted) !important;
+}
+body.dash-canales-venta-gentelella .btn--ghost {
+  color: var(--ge-teal-dark) !important;
+  border-radius: var(--ge-radius-btn) !important;
+}
+body.dash-canales-venta-gentelella .btn--ghost:hover {
+  background: var(--ge-teal-light) !important;
+}
+body.dash-canales-venta-gentelella .btn--primary:disabled {
+  background: var(--ge-muted) !important;
+  border-color: var(--ge-muted) !important;
+  opacity: .55 !important;
+}

@@ -85,6 +85,23 @@ window.NAV_WORKSPACES = [
       { label: 'Descuentos automáticos', href: '/admin/reglas-precio', seccion: 'reglas-precio',
         roles: ['dueno', 'admin', 'vendedor', 'contador'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m20.59 13.41-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>` },
+      // v1013/v1014 — Fase 1 (Capa 2, MVP) de PLAN_CAPTURA_COMPETENCIA.md:
+      // el vendedor de campo saca la foto en el mostrador, así que necesita
+      // el mismo acceso que a Punto de venta / Clientes.
+      // (Antes vivía detrás de `flag: 'captura_competencia_habilitada'` para
+      // activación gradual por empresa (piloto de vendedores). Pedido
+      // directo: ahora visible siempre, para todas las empresas, sin
+      // depender de esa clave en empresas.config.)
+      // Fusión UX (mismo criterio que 'Cobros y saldos pendientes'): "Captura
+      // de competencia" y "Prospección de competencia" (Fase 3, Capa 1 de
+      // PLAN_CAPTURA_COMPETENCIA.md) dejaron de ser dos secciones de menú
+      // separadas — son dos pestañas de la misma puerta de entrada
+      // (/admin/captura-competencia, ver cambiarVistaPrincipal). El link de
+      // menú entra siempre por la pestaña "Captura"; /admin/prospectos-competencia
+      // quedó como redirect a ?vista=prospeccion para no romper bookmarks.
+      { label: 'Captura de competencia', href: '/admin/captura-competencia', seccion: 'captura-competencia',
+        roles: ['dueno', 'admin', 'vendedor'],
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
       // FIX (pedido del dueño): "Zonas de reparto" dejó de ser una sección
       // aparte del menú — es un ABM chico (nombre + días) que ahora vive
       // como pestaña "Zonas" dentro de Repartos (/admin/rutas), al lado de
@@ -158,14 +175,14 @@ window.NAV_WORKSPACES = [
     label: 'Cobros y Pagos',
     color: 'var(--nav-cobros)',
     textColor: 'var(--nav-cobros-text)',
-    roles: ['dueno', 'admin', 'contador', 'vendedor'],
+    roles: ['dueno', 'admin', 'contador'],
     icon:  `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="1" y="4" width="22" height="16" rx="2"/>
               <line x1="1" y1="10" x2="23" y2="10"/>
             </svg>`,
     secciones: [
       { label: 'Cobros y saldos pendientes', href: '/admin/cobranzas', seccion: 'cobranzas',  diario: true,
-        roles: ['dueno', 'admin', 'contador', 'vendedor'],
+        roles: ['dueno', 'admin', 'contador'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
       { label: 'Cruzar con el banco', href: '/admin/conciliacion-bancaria', seccion: 'conciliacion-bancaria',
         roles: ['dueno', 'admin', 'contador'],
@@ -246,6 +263,9 @@ window.NAV_WORKSPACES = [
       { label: 'Finanzas',  href: '/admin/reportes-financieros', seccion: 'reportes-financieros',
         roles: ['dueno', 'admin', 'contador'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
+      { label: 'Estado financiero integral', href: '/admin/estado-financiero', seccion: 'estado-financiero',
+        roles: ['dueno', 'admin', 'contador'],
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>` },
       { label: 'Gastos generales', href: '/admin/gastos-generales', seccion: 'gastos-generales',
         roles: ['dueno', 'admin', 'contador'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>` },
@@ -289,6 +309,12 @@ window.NAV_WORKSPACES = [
       { label: 'Mercado Pago',   href: '/admin/mercadopago-config', seccion: 'mercadopago-config',
         roles: ['dueno', 'admin'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>` },
+      { label: 'Etiquetas de precio', href: '/admin/etiquetas-config', seccion: 'etiquetas-config',
+        roles: ['dueno', 'admin'],
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 6v12M17 6v12"/></svg>` },
+      { label: 'Canales de venta', href: '/admin/canales-venta', seccion: 'canales-venta',
+        roles: ['dueno', 'admin'], badge: 'Platinum',
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M21 3l-7.5 7.5"/><path d="M3 21l7.5-7.5"/><circle cx="12" cy="12" r="3"/></svg>` },
       { label: 'Suscripciones SaaS', href: '/admin/saas-billing', seccion: 'saas-billing',
         roles: ['dueno'],
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>` },

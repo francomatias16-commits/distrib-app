@@ -43,6 +43,21 @@ vi.mock('../../lib/repos/pagos.js', async () => {
 // igual para que un fallo de guard no intente pegarle a la red real.
 vi.mock('node-fetch', () => ({ default: vi.fn() }));
 
+// exigirLimitePlan (agregado junto con el corte de MP por plan trial —
+// ver tests/handlers/pagos-tope-plan.test.js, que sí prueba ese corte de
+// verdad) se mockea acá como no-op a propósito: este archivo prueba el
+// guard de esPedidoPilotoWhatsApp/pedido no encontrado, no el de plan, y
+// sin mock intentaría crear un cliente Supabase real (mismo problema que
+// tuvo whatsapp-notif-permisos.test.js con demo-mode.js sin mockear
+// plan-limits.js).
+vi.mock('../../lib/plan-limits.js', async () => {
+  const real = await vi.importActual('../../lib/plan-limits.js');
+  return {
+    ...real,
+    exigirLimitePlan: vi.fn(() => Promise.resolve()),
+  };
+});
+
 const { default: handler } = await import('../../lib/handlers/pagos.js');
 
 function fakeRes() {

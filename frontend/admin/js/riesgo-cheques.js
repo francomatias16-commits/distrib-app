@@ -287,7 +287,7 @@ async function cargarRiesgoCheques() {
     window.mostrarSkeletonTabla('tbody-riesgo-cheques', 5, 7);
 
     const [riesgoRes, alertasPorCliente, deudaPorCliente] = await Promise.all([
-      _sb.rpc('fn_riesgo_cheques_lista'),
+      window.conTimeoutRed(_sb.rpc('fn_riesgo_cheques_lista'), 10000),
       cargarAlertasPorCliente(),
       cargarDeudaPorCliente(),
     ]);
@@ -504,7 +504,7 @@ function renderTablaRiesgo(lista) {
       : '—';
 
     const bcraHtml = c.cuit
-      ? `<button class="btn btn-sm btn-secondary" style="font-size:11px" onclick="verificarBcraCliente('${c.id}')">Verificar</button>`
+      ? `<button class="btn btn-sm btn-secondary btn--secondary" style="font-size:11px" onclick="verificarBcraCliente('${c.id}')">Verificar</button>`
       : `<span style="font-size:11px;color:var(--color-text-muted)" title="El cliente no tiene CUIT cargado">Sin CUIT</span>`;
 
     return `<tr>
@@ -516,7 +516,7 @@ function renderTablaRiesgo(lista) {
       <td data-label="Última alerta">${alertaHtml}</td>
       <td data-label="BCRA (oficial)">${bcraHtml}</td>
       <td class="col-sticky-end" data-label="Acciones">
-        <button class="btn btn-sm btn-secondary" style="font-size:11px" onclick="verChequesDeCliente(${escOnclickArg(c.nombre)})">Ver cheques</button>
+        <button class="btn btn-sm btn-secondary btn--secondary" style="font-size:11px" onclick="verChequesDeCliente(${escOnclickArg(c.nombre)})">Ver cheques</button>
       </td>
     </tr>`;
   }).join('');

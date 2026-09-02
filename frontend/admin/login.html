@@ -33,17 +33,18 @@
   <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
 
-  <link rel="stylesheet" href="/frontend/admin/css/login.css?v=201" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/frontend/admin/css/login.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
@@ -390,8 +391,12 @@ async function activarModoDemoSiCorresponde() {
   await ingresar();
 
   // Si llegamos hasta acá es porque el login automático falló (si hubiera
-  // funcionado ya nos habríamos ido a /admin/dashboard). Reabrimos el
-  // formulario, ya precargado, para reintentar manualmente.
+  // funcionado ya nos habríamos ido a /admin/dashboard) — con el timeout
+  // de conTimeout() esto ahora pasa como máximo a los 8s, nunca se cuelga
+  // para siempre. Reabrimos el formulario, ya precargado, para reintentar
+  // manualmente, y sacamos el "Entrando a la demo…" para no dejarlo
+  // pegado ahí arriba mientras el usuario ve el error de mostrarError().
+  document.getElementById('nombre-empresa').textContent = 'Panel administrativo';
   if (formGroup) formGroup.style.display = '';
   if (btn) btn.style.display = '';
 }
@@ -456,6 +461,30 @@ async function loginSocial(provider, btn) {
   }
 }
 
+// FIX (29/8, mismo incidente de Supabase Auth "Increased response times"
+// que afectó al dashboard — ver getUserSeguro() en lib/auth-helpers.js):
+// ninguna de las 3 llamadas de red de ingresar() (signInWithPassword +
+// 2 selects) tenía timeout. Si Supabase Auth/PostgREST no responde, el
+// await se cuelga para siempre — sin error, sin reactivar el botón, sin
+// volver a mostrar el form. En modo demo esto se ve como "Entrando a la
+// demo…" trabado sin salida (el form ni siquiera se re-muestra porque
+// activarModoDemoSiCorresponde() sigue esperando el mismo await colgado).
+// Mismo patrón que el backend: Promise.race contra un timeout, y se
+// marca el error para poder mostrar un mensaje distinto al de
+// "credenciales incorrectas".
+const TIMEOUT_LOGIN_MS = 8000;
+
+function conTimeout(promesa, ms = TIMEOUT_LOGIN_MS) {
+  return Promise.race([
+    promesa,
+    new Promise((_, reject) => setTimeout(() => {
+      const err = new Error('timeout');
+      err.esTimeoutLogin = true;
+      reject(err);
+    }, ms)),
+  ]);
+}
+
 async function ingresar() {
   const email = document.getElementById('input-email').value.trim();
   const pass  = document.getElementById('input-pass').value;
@@ -471,18 +500,18 @@ async function ingresar() {
   btn.classList.add('loading');
 
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    const { data, error } = await conTimeout(sb.auth.signInWithPassword({ email, password: pass }));
 
     if (error || !data.session) {
       mostrarError('Email o contraseña incorrectos.');
       return;
     }
 
-    const { data: usuario, error: errUsuario } = await sb
+    const { data: usuario, error: errUsuario } = await conTimeout(sb
       .from('usuarios')
       .select('rol, empresa_id')
       .eq('id', data.session.user.id)
-      .single();
+      .single());
 
     if (errUsuario || !usuario) {
       await sb.auth.signOut();
@@ -497,18 +526,20 @@ async function ingresar() {
     }
 
     // Si la empresa no completó el setup → wizard de onboarding
-    const { data: empresa } = await sb
+    const { data: empresa } = await conTimeout(sb
       .from('empresas')
       .select('setup_completado')
       .eq('id', usuario.empresa_id)
-      .single();
+      .single());
 
     window.location.href = (empresa && empresa.setup_completado === false)
       ? '/admin/setup-wizard'
       : '/admin/dashboard';
 
-  } catch {
-    mostrarError('Error de conexión. Verificá tu internet.');
+  } catch (err) {
+    mostrarError(err?.esTimeoutLogin
+      ? 'El servicio de autenticación está lento. Probá de nuevo en unos segundos.'
+      : 'Error de conexión. Verificá tu internet.');
   } finally {
     btn.disabled = false;
     btn.classList.remove('loading');

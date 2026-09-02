@@ -62,10 +62,10 @@ async function initLotes() {
 // ── Depósitos ─────────────────────────────────────────────────────────────
 async function cargarDepositos() {
   try {
-    const { data, error } = await sb.from('depositos')
+    const { data, error } = await window.conTimeoutRed(sb.from('depositos')
       .select('id, nombre')
       .eq('empresa_id', empresaData.id)
-      .order('nombre');
+      .order('nombre'), 10000);
     if (error) throw error;
     depositos = data || [];
 
@@ -278,12 +278,12 @@ async function buscarProducto() {
   if (!sb || !empresaData?.id) return; // auth aún no lista
 
   try {
-    const { data, error } = await sb.from('productos')
+    const { data, error } = await window.conTimeoutRed(sb.from('productos')
       .select('id, codigo, nombre')
       .eq('empresa_id', empresaData.id)
       .eq('activo', true)
       .or(`codigo.ilike.%${q}%,nombre.ilike.%${q}%`)
-      .limit(8);
+      .limit(8), 10000);
     if (error) throw error;
 
     prodSugs = data || [];

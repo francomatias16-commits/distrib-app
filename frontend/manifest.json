@@ -2,7 +2,7 @@
   "name": "Fluxo — Entrá a la operación real",
   "short_name": "Fluxo",
   "description": "Fluxo es el centro operativo para distribuidoras que conectan pedidos, stock, rutas y cobranzas.",
-  "start_url": "/",
+  "start_url": "/admin/login",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",

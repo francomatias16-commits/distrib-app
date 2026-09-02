@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
 <title>Panel de Control · Fluxo Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="/shared/tokens.css?v=197" />
-<link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
+<link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+<link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -987,7 +987,7 @@ body.zoom-open{overflow:hidden}
   .dash-quick-nav { display: flex !important; }
 
   /* ─ 3. Topbar compacto ─ */
-  .topbar { margin-bottom: 8px !important; flex-wrap: wrap !important; gap:var(--sp-2) !important; }
+  .topbar { margin-bottom: 8px !important; flex-wrap: wrap !important; gap:var(--sp-2) !important; justify-content: flex-start !important; }
   .logo img { height: 24px !important; }
   .nav-menu-btn { height: 28px !important; padding: 0 10px !important; }
   .nav-menu-btn-label { font-size: 12px !important; }
@@ -1019,14 +1019,103 @@ body.zoom-open{overflow:hidden}
   .periodo-tabs { gap: 1px !important; }
   .periodo-tab { font-size: 11px !important; padding: 3px 8px !important; }
 
+  /* ─ 7b. Encabezado de "Hoy en tu negocio": ícono+título+tag a la
+     izquierda y pestañas de período a la derecha, en una sola fila
+     flex sin wrap (justify-content:space-between). Cuando el tag de
+     fuente ("Cargando…", nombre largo de fuente de datos) ocupa más
+     espacio, empuja las pestañas Hoy/Semana/Mes fuera del borde de
+     la tarjeta — mismo patrón de desborde ya visto en el resto del
+     dashboard. Se permite que esta fila haga wrap en mobile. */
+  .card-dark.card-nav > div:first-child {
+    flex-wrap: wrap !important;
+    row-gap: var(--sp-2) !important;
+  }
+  .card-dark.card-nav .card-head {
+    min-width: 0 !important;
+  }
+  .card-dark.card-nav #tag-fuente-kpis {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 120px !important;
+  }
+  /* El timestamp de última actualización es dato secundario: en
+     mobile no aporta y es lo primero que sobra cuando el espacio
+     escasea. */
+  .card-dark.card-nav #ultimo-update {
+    display: none !important;
+  }
+
   /* ─ 8. kpi-val: tamaño legible sin overflow ─ */
   .kpi-val { font-size: clamp(18px, 6vw, 26px) !important; }
   .hero-num { font-size: clamp(20px, 6vw, 28px) !important; }
   .hero-num-sm { font-size: clamp(18px, 5vw, 24px) !important; }
 
-  /* ─ 9. Inner tabs de Reportes (Cobranza / Stock / Ranking) ─ */
-  .inner-tabs { gap: 0 !important; }
-  .inner-tab { font-size: 11px !important; padding: 4px 8px !important; }
+  /* ─ 8b. KPIs Hoy (card "Hoy en tu negocio"): el grid interno usa
+     grid-template-columns:2fr 1fr 1fr 1fr INLINE (4 columnas: Ventas,
+     Pedidos, Facturas, Cobranzas). fixMobileGrids() buscaba el patrón
+     viejo "repeat(4,1fr)", que ya no existe en el HTML, así que nunca
+     lo convertía y en mobile las 4 columnas se apretaban en el ancho
+     de la card: la última (Cobranzas) quedaba cortada en el borde
+     derecho. Se colapsa a 2×2 vía clase estable (más robusto que
+     matchear el inline style por JS) y se le saca el border-left a
+     Facturas, que en el layout 2×2 pasa a la columna izquierda. */
+  .kpi-hoy-row {
+    grid-template-columns: 1fr 1fr !important;
+    row-gap: var(--sp-3) !important;
+  }
+  /* FIX: con períodos de más volumen ("Mes") los montos, el "Ticket
+     promedio" y el detalle de cobranzas son más largos — sin min-width:0
+     cada columna del grid se medía por su contenido en vez de por el
+     1fr asignado, empujando toda la fila más ancha que la tarjeta y
+     recortando "Pedidos"/"Cobranzas" contra el borde de la pantalla
+     (mismo patrón ya visto en Cobranzas/Facturación). */
+  .kpi-hoy-row > div {
+    min-width: 0 !important;
+    overflow-wrap: break-word !important;
+  }
+  .kpi-hoy-row > div:nth-child(3) {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+
+  /* ─ 9. Reportes críticos (Cobranza/Stock/Ranking/Compras/Gastos) en mobile:
+     antes el tag "Datos reales" competía por espacio en la misma fila que
+     las 5 pestañas, dejando lugar para ver como mucho una pestaña entera
+     (el resto solo alcanzable arrastrando el dedo, swipe horizontal oculto).
+     Se oculta el tag (es decorativo, no aporta en mobile) y las pestañas
+     pasan a su propia fila con el mismo formato "pill" que Hoy/Semana/Mes
+     de "Hoy en tu negocio" — compactas y todas visibles de una, sin scroll. */
+  #card-reportes-criticos > div:first-child {
+    flex-wrap: wrap !important;
+    row-gap: var(--sp-2) !important;
+  }
+  #card-reportes-criticos .card-tag {
+    display: none !important;
+  }
+  #card-reportes-criticos .inner-tabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 3px !important;
+    background: rgba(255,255,255,.08) !important;
+    border-radius: 9px !important;
+    padding: 3px !important;
+    border-bottom: none !important;
+  }
+  #card-reportes-criticos .inner-tab {
+    flex: 1 1 auto !important;
+    text-align: center !important;
+    font-size: 10.5px !important;
+    padding: 5px 6px !important;
+    border-radius: 7px !important;
+    border-bottom: none !important;
+    color: rgba(201,198,186,.65) !important;
+  }
+  #card-reportes-criticos .inner-tab.active {
+    background: rgba(255,255,255,.16) !important;
+    color: #fff !important;
+  }
 
   /* ─ 10. Chat box de WhatsApp: altura compacta ─ */
   .chat-box, .chat-box-empty { min-height: 80px !important; max-height: 140px !important; overflow-y: auto !important; }
@@ -1039,18 +1128,151 @@ body.zoom-open{overflow:hidden}
   /* ─ 12. QR: más pequeño ─ */
   .qr { width: 40px !important; height: 40px !important; }
 
-  /* ─ 13. Datos header de topbar: alineado ─ */
-  .topbar-right { justify-content: flex-end !important; width: 100% !important; }
+  /* ─ 13. Datos header de topbar: alineado ─
+     #topbar-usuario y #topbar-avatar-ini se ocultan en mobile (ver
+     adminlte-components.css, @media max-width:768px) porque son info
+     secundaria — así que en mobile topbar-right queda con la sola
+     campanita adentro. Antes se forzaba width:100%+justify-flex-end,
+     pensado para cuando topbar-right tenía contenido (chip+bell) que
+     necesitaba envolver a una 2da fila: con un solo ícono chico eso
+     mandaba la campanita al extremo derecho de la pantalla, lejos del
+     botón de menú, dejando un espacio en blanco enorme en el medio del
+     topbar. Ahora se deja con ancho natural, pegada al botón de menú. */
+  .topbar-right { justify-content: flex-start !important; width: auto !important; }
 }
 
 @media (max-width: 480px) {
   body { padding: 6px 8px 48px !important; }
   .topbar-left { gap:var(--sp-2) !important; }
 }
+
+/* ── FIX (menú hamburguesa blanco al entrar) ─────────────────────────
+ * dashboard.html es la única pantalla del admin que trae el mega-menú
+ * ("Menú principal") inline en vez de compartir admin/js/nav.js (ver
+ * comentario en nav.js) y por eso nunca recibió el tratamiento mobile
+ * (botón hamburguesa oscuro + drawer lateral, admin/js/nav-mobile.js)
+ * que ya tienen las demás ~27 pantallas. Resultado: al entrar por
+ * primera vez (login → dashboard) se veía el botón/panel claro de
+ * escritorio también en el celular; recién al navegar a otra pantalla
+ * (que sí carga nav.css + nav-mobile.js) aparecía el drawer oscuro.
+ * Se copia acá el mismo bloque "Menú mobile (≤768px)" de
+ * admin/css/nav.css, sin modificarlo, para que dashboard use el mismo
+ * componente oscuro que el resto del panel. Los tokens que usa
+ * (--nav-dark-bg, --z-mnav-toggle, etc.) ya están disponibles porque
+ * shared/tokens.css se carga arriba. */
+#mnav-root { display: none; }
+
+@media (max-width: 768px) {
+  #mnav-root { display: block; }
+  .topbar-left .topbar-divider,
+  .topbar-left .nav-menu-btn { display: none; }
+
+  .mnav-fab {
+    position: fixed; top: 12px; left: 12px;
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--nav-dark-bg); color: var(--color-surface); border: none;
+    display: flex; align-items: center; justify-content: center;
+    z-index: var(--z-mnav-toggle); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.modal-abierto .mnav-fab { display: none; }
+  .mnav-fab:active { background: var(--nav-dark-rail); }
+  .mnav-fab svg { width: 20px; height: 20px; }
+
+  .mnav-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: var(--z-mnav-overlay); opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .mnav-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .mnav-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(82vw, 300px); background: var(--nav-dark-bg);
+    z-index: var(--z-mnav-panel); display: flex; flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,.35);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mnav-drawer.open { transform: translateX(0); }
+
+  .mnav-drawer-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 14px; border-bottom: 1px solid rgba(255,255,255,.08);
+    flex-shrink: 0;
+  }
+  .mnav-drawer-logo {
+    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,255,255,.12); color: var(--color-surface);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; overflow: hidden;
+  }
+  .mnav-drawer-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .mnav-drawer-empresa {
+    flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mnav-drawer-close {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: none;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+
+  .mnav-drawer-body { flex: 1; overflow-y: auto; padding: 8px 8px 4px; -webkit-overflow-scrolling: touch; }
+
+  .mnav-ws-group { margin-bottom: 2px; }
+  .mnav-ws-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: rgba(255,255,255,.42);
+  }
+  .mnav-ws-header svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .8; }
+  .mnav-ws-header--link {
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+  }
+  .mnav-ws-header--link:active { background: rgba(255,255,255,.06); }
+  .mnav-ws-header.active { color: var(--mnav-ws-color, var(--color-surface)); background: rgba(255,255,255,.06); }
+  .mnav-ws-header.active svg { opacity: 1; }
+
+  .mnav-drawer-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 10px 11px 30px; border-radius: 8px;
+    text-decoration: none; color: rgba(255,255,255,.7);
+    font-size: 14px; font-weight: 500;
+    border: none; border-left: 3px solid transparent;
+    background: none; cursor: pointer; width: 100%;
+    text-align: left; -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s; font-family: inherit;
+  }
+  .mnav-drawer-item:active { background: rgba(255,255,255,.06); }
+  .mnav-drawer-item.active { background: rgba(255,255,255,.1); color: var(--color-surface); font-weight: 600; }
+  .mnav-drawer-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,.5); }
+  .mnav-drawer-icon svg { width: 16px; height: 16px; }
+  .mnav-drawer-item.active .mnav-drawer-icon { color: inherit; }
+  .mnav-drawer-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mnav-drawer-check { font-size: 13px; font-weight: 700; margin-left: auto; }
+
+  .mnav-drawer-footer {
+    flex-shrink: 0; padding: 10px; border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .mnav-drawer-salir {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 11px 10px; border-radius: 8px; border: none;
+    background: none; color: rgba(255,255,255,.55); font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .mnav-drawer-salir:active { background: rgba(179,38,30,.15); color: var(--color-danger-mid); }
+  .mnav-drawer-salir svg { width: 18px; height: 18px; flex-shrink: 0; }
+}
 </style>
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <link rel="stylesheet" href="/frontend/shared/chat-widget.css?v=865" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 </head>
 <body>
 
@@ -1099,7 +1321,7 @@ body.zoom-open{overflow:hidden}
         <div style="font-size:11px;color:rgba(201,198,186,.4);font-family:'IBM Plex Mono',monospace" id="ultimo-update">—</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--sp-2);flex:1">
+    <div class="kpi-hoy-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--sp-2);flex:1">
       <div style="display:flex;flex-direction:column;gap:var(--sp-1)" class="item-nav" onclick="irA('/admin/reportes-ventas',event)" title="Ver ventas">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(201,198,186,.5)">Ventas</div>
         <div class="kpi-val hero-num" id="kv-ventas" style="color:#fff">—</div>
@@ -1545,21 +1767,52 @@ body.zoom-open{overflow:hidden}
 
 <!-- ═══ Auth + cliente de datos, mismo patrón que el resto del panel admin ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="/frontend/env-config.js?v1785129290014" defer></script>
+<script src="/frontend/env-config.js?v=mtcen4r4" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
-<script src="/frontend/admin/js/auth-ready.js?v1785129290014" defer></script>
-<script src="/frontend/admin/js/auth.js?v=1787253387467" defer></script>
-<script src="/frontend/shared/topbar-widgets.js?v2" defer></script>  <!-- avatar + campanita de notificaciones, igual que el resto de las pantallas -->
-<script src="/frontend/admin/js/api-client.js?v1785129290014" defer></script>
-<script src="/frontend/admin/js/nav-data.js?v=1785554232617" defer></script>
-<script src="/frontend/shared/realtime.js?v1" defer></script>
+<!-- FIX (bug reportado: "entro pero no logra conectar" / cartel "No pudimos
+     verificar tu perfil por un problema puntual de conexión"): a esta
+     página le faltaba cargar ui-utils.js. auth.js depende de la función
+     global window.conTimeoutRed (definida ahí) para consultar la tabla
+     usuarios con timeout. Sin ui-utils.js, esa llamada tira un TypeError
+     ANTES de siquiera salir a la red — por eso el pedido nunca aparecía ni
+     como fallido en los logs de Supabase: no llegaba a irse del navegador.
+     Se agrega sin defer, antes de auth.js, igual que en pedidos.html y el
+     resto de las pantallas del admin, para que conTimeoutRed exista para
+     cuando auth.js (deferred) se ejecute. -->
+<script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4" defer></script>
+<script>
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'vendedor', 'depositero', 'contador'];
+</script>
+<script src="/frontend/admin/js/auth.js?v=mtcen4r4" defer></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4" defer></script>  <!-- avatar + campanita de notificaciones, igual que el resto de las pantallas -->
+<script src="/frontend/admin/js/api-client.js?v=mtcen4r4" defer></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4" defer></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4" defer></script>
+<script src="/frontend/shared/realtime.js?v=mtcen4r4" defer></script>
 <!-- v960: sin FAB — el panel de chat-widget.js se abre desde el ítem
      "Trabajar con IA" del mega-menú (ver nav-data.js). El flag va en un
      <script> normal (no defer) para correr antes de que el IIFE deferred
      de chat-widget.js lo lea. -->
 <script>window.__CHAT_ASISTENTE_SIN_BOTON__ = true;</script>
-<script src="/frontend/shared/chat-widget.js?v=865" defer data-chat-asistente="1"></script>
-<script type="module" src="/frontend/js/push-init.js?v1785129290014"></script>
+<script src="/frontend/shared/chat-widget.js?v=mtcen4r4" defer data-chat-asistente="1"></script>
+<!-- FIX (bug reportado: "entro pero no logra conectar" — el dashboard se
+     recargaba solo a los pocos segundos de loguear): push-init.js registraba
+     un Service Worker legacy (/sw-push.js) con scope '/' que competía con
+     sw-admin.js (scope /admin/, ya registrado por auth.js) y disparaba
+     'controllerchange' al hacer clients.claim() en su activate — lo que a
+     su vez hacía que auth.js recargara la página. Se reemplaza por
+     push-admin.js, que reusa el MISMO sw-admin.js (sin registrar un SW
+     aparte) para las notificaciones push del admin. -->
+<script type="module">
+  import { inicializarPushAdmin } from '/frontend/admin/js/push-admin.js';
+  window.authReady.then(() => {
+    const { sb, perfil } = window.authCtx;
+    inicializarPushAdmin(sb, perfil.id, perfil.empresa_id);
+  }).catch(() => {
+    // Auth no disponible (logout o error) — no inicializar push
+  });
+</script>
 
 <script>
 'use strict';
@@ -2251,9 +2504,9 @@ function iniciarRealtimeDashboard(){
 // canal fijo 'pos'. Se muestra como una línea compacta de porcentajes bajo
 // el número de Ventas, mismos labels que usa el filtro de Pedidos.
 const CANAL_LABEL = {
-  web: 'Web', whatsapp: 'WhatsApp', portal_cliente: 'Portal', vendedor: 'Vendedor',
-  telefono: 'Teléfono', app: 'App', chofer: 'Chofer', admin: 'Admin', pos: 'POS',
-  mostrador: 'Mostrador',
+  web: 'Tienda online', whatsapp: 'WhatsApp', portal_cliente: 'Pedido del cliente (online)',
+  vendedor: 'Vendedor en ruta', telefono: 'Por teléfono', app: 'App', chofer: 'Reparto',
+  admin: 'Carga manual (equipo)', pos: 'Venta de mostrador', mostrador: 'Venta de mostrador',
 };
 // Blindado contra variaciones del backend: si el RPC cambia el nombre del
 // campo (porcentaje/pct) o llega un canal sin total_general (total=0), nunca
@@ -2743,7 +2996,7 @@ async function cargarPOS(){
       ? entradas.map(([medio, monto]) => `<div class="data-row"><span>${etiquetaMedio(medio)}</span><span>${fmtMoney(monto)}</span></div>`).join('')
       : '<div class="data-row-empty"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Sin ventas todavía en este turno</div>';
 
-    const coloresMedio = { efectivo: '#E0A53E', tarjeta_debito: '#2E6088', tarjeta_credito: '#5B4A8F', cuenta_corriente: '#487050' };
+    const coloresMedio = { efectivo: '#E0A53E', qr: '#2E88A0', tarjeta: '#2E6088', tarjeta_debito: '#2E6088', tarjeta_credito: '#5B4A8F', cuenta_corriente: '#487050' };
     const barraEl = document.getElementById('pos-barra');
     const leyendaEl = document.getElementById('pos-leyenda');
     const barraWrap = document.getElementById('pos-barra-wrap');
@@ -2862,7 +3115,7 @@ function iniciarRealtimePOS(){
   });
 }
 function etiquetaMedio(m){
-  return { efectivo: 'Efectivo', tarjeta_debito: 'Tarjeta débito', tarjeta_credito: 'Tarjeta crédito', cuenta_corriente: 'Cuenta corriente' }[m] || m;
+  return { efectivo: 'Efectivo', qr: 'QR', tarjeta: 'Tarjeta', tarjeta_debito: 'Tarjeta débito', tarjeta_credito: 'Tarjeta crédito', cuenta_corriente: 'Cuenta corriente' }[m] || m;
 }
 
 /* ══════════════════════════════════════════════════════════════
