@@ -99,6 +99,18 @@ jobs:
 
       # El schema ya quedó vacío por el paso anterior, así que ya no hace
       # falta --clean/--if-exists: no hay nada previo con qué chocar.
+      #
+      # --- Fix definitivo: FKs que apuntan a auth.users ---
+      # --schema=public no incluye (a propósito) el schema "auth" de
+      # Supabase, así que ningún usuario real de Auth se copia al proyecto
+      # de prueba. Si alguna tabla (ej. audit_log) tiene una FK contra un
+      # usuario de auth.users que en prod existe pero en el proyecto de
+      # prueba nunca se creó, el ALTER TABLE ... ADD CONSTRAINT que agrega
+      # esa FK falla al validar los datos ya cargados. Como este restore es
+      # para probar el proceso de backup/restore y contar filas — no para
+      # verificar integridad de usuarios reales — se agrega " NOT VALID" a
+      # cada FK que trae el dump: la constraint queda definida (rige para
+      # datos nuevos) pero no revalida lo que ya se cargó.
       - name: Dump de prod → restore directo al proyecto de prueba
         env:
           SRC_URL: ${{ steps.buildurl.outputs.src_url }}
@@ -110,6 +122,7 @@ jobs:
             --no-privileges \
           | sed -e '/^CREATE SCHEMA public;/d' \
                 -e '/^COMMENT ON SCHEMA public IS/d' \
+                -E '/FOREIGN KEY/ s/;$/ NOT VALID;/' \
           | psql "$DST_URL" -v ON_ERROR_STOP=1
 
       - name: Chequeo de integridad (conteo de filas por tabla)
