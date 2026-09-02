@@ -52,18 +52,25 @@ jobs:
           echo "src_url=$SRC_URL" >> "$GITHUB_OUTPUT"
           echo "dst_url=$DST_URL" >> "$GITHUB_OUTPUT"
 
-      # --- Fix del error "type extensions.vector does not exist" ---
-      # Prod usa la extensión pgvector (instalada en el schema "extensions",
-      # como hace Supabase por defecto) para algún tipo/columna. El dump con
+      # --- Fix de errores "type/operator class ... does not exist" ---
+      # Prod usa extensiones que viven en el schema "extensions" (como hace
+      # Supabase por defecto): pgvector para tipos vectoriales, pg_trgm para
+      # los índices GIN de búsqueda por similitud de texto. El dump con
       # --schema=public no incluye la creación de extensiones, así que si el
-      # proyecto de prueba nunca la tuvo habilitada, el restore falla apenas
-      # encuentra el tipo "vector". Se la habilita acá antes de restaurar
-      # (si ya está habilitada, el IF NOT EXISTS no hace nada).
+      # proyecto de prueba no las tenía habilitadas, el restore falla apenas
+      # encuentra el tipo o el operator class correspondiente. Se habilitan
+      # acá antes de restaurar (si ya están, el IF NOT EXISTS no hace nada).
+      # Si en el futuro aparece otro error "does not exist" de este mismo
+      # estilo con el nombre de otra extensión, se agrega una línea más acá.
       - name: Asegurar extensiones necesarias en destino
         env:
           DST_URL: ${{ steps.buildurl.outputs.dst_url }}
         run: |
-          psql "$DST_URL" -v ON_ERROR_STOP=1 -c "create extension if not exists vector with schema extensions;"
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists vector with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_trgm with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pgcrypto with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists "uuid-ossp" with schema extensions;'
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_net with schema extensions;'
 
       # --- Fix definitivo: destino garantizado limpio en cada corrida ---
       # Los intentos fallidos anteriores dejaron el proyecto de prueba en
