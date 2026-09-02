@@ -17,6 +17,7 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import qs from 'qs';
 
 // Lazy-loaded so a broken/misconfigured backend module (missing secrets,
 // external services, etc.) never prevents the static frontend from serving.
@@ -61,8 +62,16 @@ app.use((req, res, next) => {
     if (existingQuery) {
       for (const [k, v] of new URLSearchParams(existingQuery)) params.append(k, v);
     }
-    const qs = params.toString();
-    req.url = qs ? `${newPath}?${qs}` : newPath;
+    const qsStr = params.toString();
+    req.url = qsStr ? `${newPath}?${qsStr}` : newPath;
+    // Express 4 ya computó req.query con la URL ORIGINAL (lo hace en un
+    // middleware interno que corre antes que cualquier app.use() nuestro —
+    // ver express/lib/application.js: this._router.use(query(...)) en
+    // default(), registrado primero). Reescribir req.url acá NO alcanza:
+    // req.query queda "congelado" con la query vieja, sin _mod/_svc/accion,
+    // y api/index.js recibe mod=undefined -> 404 "Módulo de API desconocido".
+    // Lo recalculamos a mano con el mismo parser (qs) que usa Express.
+    req.query = qs.parse(qsStr);
     break;
   }
   next();
