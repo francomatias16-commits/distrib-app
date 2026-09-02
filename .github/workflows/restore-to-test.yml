@@ -1,0 +1,74 @@
+name: Restaurar a proyecto de prueba (manual)
+
+on:
+  workflow_dispatch: {}   # se corre a mano desde la pestaña Actions
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente de PostgreSQL 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+            sudo gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | \
+            sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      # Arma las dos URLs (origen = prod, destino = proyecto de prueba)
+      # con el mismo URL-encoding seguro que ya usa el backup workflow.
+      - name: Construir URLs de conexión
+        id: buildurl
+        env:
+          SRC_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+          SRC_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+          SRC_NAME: ${{ secrets.SUPABASE_DB_NAME }}
+          SRC_USER: ${{ secrets.SUPABASE_DB_USER }}
+          SRC_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          DST_HOST: ${{ secrets.SUPABASE_TEST_DB_HOST }}
+          DST_PORT: ${{ secrets.SUPABASE_TEST_DB_PORT }}
+          DST_NAME: ${{ secrets.SUPABASE_TEST_DB_NAME }}
+          DST_USER: ${{ secrets.SUPABASE_TEST_DB_USER }}
+          DST_PASSWORD: ${{ secrets.SUPABASE_TEST_DB_PASSWORD }}
+        run: |
+          read SRC_URL DST_URL <<< $(python3 - <<'EOF'
+          import os, urllib.parse
+          def build(prefix):
+              user = urllib.parse.quote(os.environ[f"{prefix}_USER"], safe="")
+              pwd  = urllib.parse.quote(os.environ[f"{prefix}_PASSWORD"], safe="")
+              host = os.environ[f"{prefix}_HOST"]
+              port = os.environ.get(f"{prefix}_PORT") or "5432"
+              name = os.environ.get(f"{prefix}_NAME") or "postgres"
+              return f"postgresql://{user}:{pwd}@{host}:{port}/{name}"
+          print(build("SRC"), build("DST"))
+          EOF
+          )
+          echo "::add-mask::$SRC_URL"
+          echo "::add-mask::$DST_URL"
+          echo "src_url=$SRC_URL" >> "$GITHUB_OUTPUT"
+          echo "dst_url=$DST_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Dump de prod → restore directo al proyecto de prueba
+        env:
+          SRC_URL: ${{ steps.buildurl.outputs.src_url }}
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          pg_dump "$SRC_URL" \
+            --schema=public \
+            --no-owner \
+            --no-privileges \
+          | psql "$DST_URL" -v ON_ERROR_STOP=1
+
+      - name: Chequeo de integridad (conteo de filas por tabla)
+        env:
+          SRC_URL: ${{ steps.buildurl.outputs.src_url }}
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          echo "== PROD =="
+          psql "$SRC_URL" -c "SELECT relname, n_live_tup FROM pg_stat_user_tables ORDER BY relname;"
+          echo "== TEST =="
+          psql "$DST_URL" -c "SELECT relname, n_live_tup FROM pg_stat_user_tables ORDER BY relname;"
