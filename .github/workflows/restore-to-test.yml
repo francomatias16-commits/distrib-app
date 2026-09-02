@@ -65,19 +65,33 @@ jobs:
         run: |
           psql "$DST_URL" -v ON_ERROR_STOP=1 -c "create extension if not exists vector with schema extensions;"
 
-      # --- Fix definitivo: restore idempotente ---
-      # Cualquier corrida anterior que haya fallado a mitad de camino deja
-      # objetos a medio crear en el proyecto de prueba (tipos, funciones,
-      # tablas). Si el restore no es idempotente, cada corrida nueva choca
-      # contra lo que dejó la anterior con errores tipo "already exists".
-      # --clean hace que pg_dump emita un DROP antes de cada CREATE, y
-      # --if-exists evita que ese DROP falle si el objeto no existe todavía
-      # (por ejemplo la primera vez que se corre contra un proyecto nuevo).
-      # Con esto el workflow siempre parte de limpio, sea la 1ra corrida o
-      # la enésima. Se sigue filtrando con sed el CREATE/COMMENT/DROP del
-      # schema "public" en sí (Supabase ya lo trae de fábrica con sus
-      # permisos propios para anon/authenticated/service_role — no hay que
-      # tocarlo, solo lo que hay adentro).
+      # --- Fix definitivo: destino garantizado limpio en cada corrida ---
+      # Los intentos fallidos anteriores dejaron el proyecto de prueba en
+      # estados intermedios distintos cada vez (a veces con tipos de más,
+      # a veces con tablas de menos) — por eso --clean/--if-exists seguía
+      # rompiendo: un DROP TRIGGER/POLICY "IF EXISTS x ON tabla" falla
+      # igual si la tabla en sí no existe, sin importar el IF EXISTS.
+      # En vez de perseguir cada combinación posible de estado a medias,
+      # se borra el schema public completo y se recrea vacío con los
+      # permisos estándar de Supabase (anon/authenticated/service_role)
+      # ANTES de restaurar. Así cada corrida parte de exactamente el mismo
+      # punto de partida, sin importar cómo terminó la anterior.
+      - name: Resetear schema public en destino (estado limpio garantizado)
+        env:
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          psql "$DST_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          DROP SCHEMA IF EXISTS public CASCADE;
+          CREATE SCHEMA public;
+          GRANT ALL ON SCHEMA public TO postgres;
+          GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres, anon, authenticated, service_role;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+          SQL
+
+      # El schema ya quedó vacío por el paso anterior, así que ya no hace
+      # falta --clean/--if-exists: no hay nada previo con qué chocar.
       - name: Dump de prod → restore directo al proyecto de prueba
         env:
           SRC_URL: ${{ steps.buildurl.outputs.src_url }}
@@ -87,12 +101,8 @@ jobs:
             --schema=public \
             --no-owner \
             --no-privileges \
-            --clean \
-            --if-exists \
           | sed -e '/^CREATE SCHEMA public;/d' \
                 -e '/^COMMENT ON SCHEMA public IS/d' \
-                -e '/^DROP SCHEMA IF EXISTS public;/d' \
-                -e '/^DROP SCHEMA public;/d' \
           | psql "$DST_URL" -v ON_ERROR_STOP=1
 
       - name: Chequeo de integridad (conteo de filas por tabla)
