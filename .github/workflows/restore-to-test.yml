@@ -52,6 +52,19 @@ jobs:
           echo "src_url=$SRC_URL" >> "$GITHUB_OUTPUT"
           echo "dst_url=$DST_URL" >> "$GITHUB_OUTPUT"
 
+      # --- Fix del error "type extensions.vector does not exist" ---
+      # Prod usa la extensión pgvector (instalada en el schema "extensions",
+      # como hace Supabase por defecto) para algún tipo/columna. El dump con
+      # --schema=public no incluye la creación de extensiones, así que si el
+      # proyecto de prueba nunca la tuvo habilitada, el restore falla apenas
+      # encuentra el tipo "vector". Se la habilita acá antes de restaurar
+      # (si ya está habilitada, el IF NOT EXISTS no hace nada).
+      - name: Asegurar extensiones necesarias en destino
+        env:
+          DST_URL: ${{ steps.buildurl.outputs.dst_url }}
+        run: |
+          psql "$DST_URL" -v ON_ERROR_STOP=1 -c "create extension if not exists vector with schema extensions;"
+
       # --- Fix del error "schema public already exists" ---
       # Desde Postgres 15+, pg_dump ya no asume que "public" existe de forma
       # implícita: lo trata como un schema más y emite "CREATE SCHEMA public;"
