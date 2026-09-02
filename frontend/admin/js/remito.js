@@ -12,10 +12,10 @@ async function obtenerNroRemito(pedidoId) {
   const token = (await sb.auth.getSession()).data.session?.access_token;
 
   // 1. Ver si el pedido ya tiene remito_nro
-  const { data: ped } = await sb.from('pedidos')
+  const { data: ped } = await window.conTimeoutRed(sb.from('pedidos')
     .select('remito_nro')
     .eq('id', pedidoId)
-    .single();
+    .single(), 10000);
 
   if (ped?.remito_nro) return ped.remito_nro;
 
@@ -34,18 +34,18 @@ async function obtenerNroRemito(pedidoId) {
   } catch (_) { /* fallback */ }
 
   // Fallback local (sin persistencia)
-  const { data: maxRow } = await sb.from('pedidos')
+  const { data: maxRow } = await window.conTimeoutRed(sb.from('pedidos')
     .select('remito_nro')
     .not('remito_nro', 'is', null)
     .order('remito_nro', { ascending: false })
     .limit(1)
-    .single();
+    .single(), 10000);
 
   const siguiente = (maxRow?.remito_nro || 0) + 1;
 
-  await sb.from('pedidos')
+  await window.conTimeoutRed(sb.from('pedidos')
     .update({ remito_nro: siguiente })
-    .eq('id', pedidoId);
+    .eq('id', pedidoId), 10000);
 
   return siguiente;
 }
@@ -82,7 +82,7 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
   if (window.mostrarToast) window.toast('Generando remito...', '');
 
   // Cargar pedido completo con datos de cliente
-  const { data: p, error } = await sb.from('pedidos')
+  const { data: p, error } = await window.conTimeoutRed(sb.from('pedidos')
     .select(`
       id, estado, subtotal, descuento, iva_total, total,
       notas_cliente, fecha_pedido, fecha_entrega, created_at, remito_nro,
@@ -91,7 +91,7 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
       usuarios!vendedor_id(nombre)
     `)
     .eq('id', pedidoId)
-    .single();
+    .single(), 10000);
 
   if (error || !p) {
     if (window.mostrarToast) window.toast('Error al cargar el pedido', 'error');
@@ -103,9 +103,9 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
   // Cargar items si no vienen precargados
   let items = itemsPrecargados;
   if (!items) {
-    const { data } = await sb.from('pedido_items')
+    const { data } = await window.conTimeoutRed(sb.from('pedido_items')
       .select('cantidad, precio_unitario, descuento_pct, subtotal, productos(nombre, unidad, codigo)')
-      .eq('pedido_id', pedidoId);
+      .eq('pedido_id', pedidoId), 10000);
     items = data || [];
   }
 
@@ -461,7 +461,7 @@ async function imprimirRemito(pedidoId, itemsPrecargados) {
 
   <!-- ── Footer ── -->
   <div class="footer-remito">
-    Remito ${nroStr} · ${sanitize(empresa.nombre)}${empresa.cuit ? ' · CUIT ' + empresa.cuit : ''} · Emisión: ${fechaEmision}
+    Remito ${nroStr} · ${sanitize(empresa.nombre)}${empresa.cuit ? ' · CUIT ' + sanitize(empresa.cuit) : ''} · Emisión: ${fechaEmision}
   </div>
 
   <script>

@@ -131,6 +131,7 @@ function renderTabla() {
       <td class="col-sticky-end col-fit" data-label="Acciones">
         <span class="fila-acciones">
           <button type="button" class="btn-tabla" onclick="abrirModalEditar('${p.id}')">Editar</button>
+          <button type="button" class="btn-tabla" onclick="abrirPortal('${p.id}')">Portal</button>
           ${p.activo
             ? `<button type="button" class="btn-tabla peligro" onclick="desactivar('${p.id}')">Dar de baja</button>`
             : `<button type="button" class="btn-tabla primario" onclick="activar('${p.id}')">Activar</button>`
@@ -142,9 +143,12 @@ function renderTabla() {
   `).join('');
 }
 
-// ── Menú "⋮" de acciones secundarias por fila (Compras / Portal) ──────────
+// ── Menú "⋮" de acciones secundarias por fila (Compras) ────────────────
 // Mismo patrón de menú flotante compartido que Cheques/Notas de crédito
 // (ver PLAN_UNIFICACION_UX_ADMIN.md §2/§5, cierre del Hallazgo #6 acá).
+// v995: "Portal" salió de acá — vivía únicamente detrás de este menú
+// (poco visible, y ver v994) y pasó a ser un botón directo en la fila,
+// junto a Editar/Dar de baja. Solo "Compras" sigue en el menú.
 (function iniciarMenuAccionesProveedor() {
   const menu = document.getElementById('menu-acciones-proveedor');
   if (!menu) return;
@@ -169,17 +173,10 @@ function renderTabla() {
       <button type="button" class="dropdown-item" role="menuitem" onclick="verCompras('${proveedorId}')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
         Compras
-      </button>
-      <button type="button" class="dropdown-item" role="menuitem" onclick="abrirPortal('${proveedorId}')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        Portal
       </button>`;
     menu.dataset.proveedorId = proveedorId;
 
-    const r = btn.getBoundingClientRect();
-    menu.style.top   = `${r.bottom + 4}px`;
-    menu.style.left  = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -191,6 +188,13 @@ function renderTabla() {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
   window.addEventListener('resize', cerrar);
   document.getElementById('tbody-proveedores')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en la tabla,
+  // pero en mobile (vista de tarjetas) el contenedor de la tabla no tiene
+  // su propio scroll interno — quien scrollea es la página completa
+  // (window/body). Sin este listener, al scrollear la página el menú se
+  // queda "flotando" en la posición vieja (donde estaba el botón "⋮"
+  // cuando se abrió), ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 // ── Modal nuevo/editar ────────────────────────────────────────────────
@@ -528,14 +532,14 @@ async function cargarLinksActivos() {
         : '—';
       return `
         <tr id="link-row-${l.id}">
-          <td>${nombre}</td>
-          <td class="col-fit" style="font-size:12px;color:var(--color-text-muted,#5B6660);">${creadoPor}</td>
-          <td class="col-fit" style="font-size:12px;">${creadoEl}</td>
-          <td class="col-fit" style="font-size:12px;">${expiraEl}</td>
-          <td class="col-fit" style="text-align:center;font-weight:600;">${l.usos || 0}</td>
-          <td class="col-fit" style="font-size:12px;">${ultimoUso}</td>
-          <td class="col-fit"><span style="color:var(--color-success,#487050);font-weight:600;font-size:12px;">● Activo</span></td>
-          <td class="col-sticky-end col-fit">
+          <td data-label="Proveedor">${nombre}</td>
+          <td class="col-fit" data-label="Creado por" style="font-size:12px;color:var(--color-text-muted,#5B6660);">${creadoPor}</td>
+          <td class="col-fit" data-label="Creado el" style="font-size:12px;">${creadoEl}</td>
+          <td class="col-fit" data-label="Expira el" style="font-size:12px;">${expiraEl}</td>
+          <td class="col-fit" data-label="Usos" style="text-align:center;font-weight:600;">${l.usos || 0}</td>
+          <td class="col-fit" data-label="Último uso" style="font-size:12px;">${ultimoUso}</td>
+          <td class="col-fit" data-label="Estado"><span style="color:var(--color-success,#487050);font-weight:600;font-size:12px;">● Activo</span></td>
+          <td class="col-sticky-end col-fit" data-label="Acciones">
             <button class="btn-tabla" style="color:var(--color-danger,#7A2820);"
               onclick="revocarLinkPortal('${l.id}','${l._proveedor_id}')">Revocar</button>
           </td>

@@ -141,11 +141,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Cargar depósitos
 async function cargarDepositos() {
     try {
-        const { data, error } = await window.authCtx.sb
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('depositos')
             .select('id, nombre')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
-            .order('nombre');
+            .order('nombre'), 10000);
 
         if (error) throw error;
 
@@ -200,10 +200,10 @@ async function cargarOverviewChart() {
         desde.setDate(1);
         desde.setHours(0, 0, 0, 0);
 
-        const { data, error } = await window.authCtx.sb
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('movimientos_stock')
             .select('tipo, cantidad, created_at')
-            .gte('created_at', desde.toISOString());
+            .gte('created_at', desde.toISOString()), 10000);
         if (error) throw error;
 
         // Armar los últimos 6 meses como buckets, en orden
@@ -269,11 +269,11 @@ async function cargarOverviewChart() {
 // Cargar categorías
 async function cargarCategorias() {
     try {
-        const { data, error } = await window.authCtx.sb
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('categorias')
             .select('id, nombre')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
-            .order('nombre');
+            .order('nombre'), 10000);
 
         if (error) throw error;
 
@@ -321,10 +321,10 @@ async function cargarReportes() {
 // sumas y conteos en SQL y devuelve 1 fila.
 async function cargarKPIs() {
     try {
-        const { data, error } = await window.authCtx.sb.rpc('fn_reportes_stock_kpis', {
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_reportes_stock_kpis', {
             p_deposito_id: estadoReportesStock.depositoSeleccionado || null,
             p_categoria_id: estadoReportesStock.categoriaSeleccionada || null
-        });
+        }), 10000);
         if (error) throw error;
 
         const kpis = (data && data[0]) || {
@@ -386,9 +386,9 @@ async function cargarKPIs() {
 // `categorias` para agrupar y sumar en JS. Ahora un RPC agrupa y suma en SQL.
 async function cargarDistribucionStock() {
     try {
-        const { data: distribucion, error } = await window.authCtx.sb.rpc('fn_reportes_stock_distribucion', {
+        const { data: distribucion, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_reportes_stock_distribucion', {
             p_deposito_id: estadoReportesStock.depositoSeleccionado || null
-        });
+        }), 10000);
         if (error) throw error;
 
         const categoriasNombres = (distribucion || []).map(d => d.categoria_nombre);
@@ -427,10 +427,10 @@ async function cargarDistribucionStock() {
 async function cargarRotacion() {
     try {
         const hace30Dias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const { data: movimientos } = await window.authCtx.sb
+        const { data: movimientos } = await window.conTimeoutRed(window.authCtx.sb
             .from('movimientos_stock')
             .select('id, cantidad, created_at')
-            .gte('created_at', hace30Dias.toISOString());
+            .gte('created_at', hace30Dias.toISOString()), 10000);
 
         // Agrupar por día
         const movimientosPorDia = {};
@@ -522,7 +522,7 @@ async function cargarEstadoStock() {
 
         query = query.order('cantidad', { ascending: false }).range(desde, hasta);
 
-        const { data: stocks, error, count } = await query;
+        const { data: stocks, error, count } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         PAGINACION_STOCK.totalRegistros = count || 0;
@@ -549,14 +549,14 @@ async function cargarEstadoStock() {
 
                 return `
                     <tr>
-                        <td>${sanitize(nombreProducto)}</td>
-                        <td>${sanitize(nombreCategoria)}</td>
-                        <td>${s.cantidad}</td>
-                        <td>${s.cantidad_reservada}</td>
-                        <td>${disponible}</td>
-                        <td>$${s.costo_promedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td>$${valorTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td><span class="status-badge ${estadoClass}">${estado}</span></td>
+                        <td data-label="Producto">${sanitize(nombreProducto)}</td>
+                        <td data-label="Categoría">${sanitize(nombreCategoria)}</td>
+                        <td data-label="Stock Actual">${s.cantidad}</td>
+                        <td data-label="Stock Reservado">${s.cantidad_reservada}</td>
+                        <td data-label="Disponible">${disponible}</td>
+                        <td data-label="Costo Unitario">$${s.costo_promedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="Valor Total">$${valorTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="Estado"><span class="status-badge ${estadoClass}">${estado}</span></td>
                     </tr>
                 `;
             })
@@ -621,12 +621,12 @@ async function cargarProductosCriticos() {
 
         const desde = (PAGINACION_CRITICOS.paginaActual - 1) * PAGINACION_CRITICOS.porPagina;
 
-        const { data: criticos, error } = await window.authCtx.sb.rpc('fn_reportes_stock_criticos_lista', {
+        const { data: criticos, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_reportes_stock_criticos_lista', {
             p_deposito_id: estadoReportesStock.depositoSeleccionado || null,
             p_categoria_id: estadoReportesStock.categoriaSeleccionada || null,
             p_limit: PAGINACION_CRITICOS.porPagina,
             p_offset: desde
-        });
+        }), 10000);
         if (error) throw error;
 
         PAGINACION_CRITICOS.totalRegistros = (criticos && criticos[0]?.total_count) || 0;
@@ -638,11 +638,11 @@ async function cargarProductosCriticos() {
         // críticos de la empresa en cada carga, aunque después solo se
         // mostraran 6 en pantalla).
         const { data: pedidoItemsRaw } = productosIds.length
-            ? await window.authCtx.sb
+            ? await window.conTimeoutRed(window.authCtx.sb
                 .from('pedido_items')
                 .select('id, producto_id, pedidos(fecha_pedido)')
                 .in('producto_id', productosIds)
-                .limit(500)
+                .limit(500), 10000)
             : { data: [] };
 
         const pedidos = (pedidoItemsRaw || [])
@@ -658,12 +658,12 @@ async function cargarProductosCriticos() {
 
                 return `
                     <tr>
-                        <td>${sanitize(c.nombre || 'Sin nombre')}</td>
-                        <td>${c.cantidad_disponible}</td>
-                        <td>${c.stock_minimo}</td>
-                        <td>${c.deficit}</td>
-                        <td>${ultimaVentaFecha}</td>
-                        <td><button type="button" class="status-badge status-badge--action red" onclick="reabastecerProducto('${c.producto_id}')">Reabastecer</button></td>
+                        <td data-label="Producto">${sanitize(c.nombre || 'Sin nombre')}</td>
+                        <td data-label="Stock Actual">${c.cantidad_disponible}</td>
+                        <td data-label="Stock Mínimo">${c.stock_minimo}</td>
+                        <td data-label="Déficit">${c.deficit}</td>
+                        <td data-label="Última Venta">${ultimaVentaFecha}</td>
+                        <td data-label="Acción Recomendada"><button type="button" class="status-badge status-badge--action red" onclick="reabastecerProducto('${c.producto_id}')">Reabastecer</button></td>
                     </tr>
                 `;
             })
@@ -714,7 +714,7 @@ function renderPaginacionCriticos() {
 // y suma en SQL, mismo patrón que fn_reportes_stock_distribucion.
 async function cargarValorizacion() {
     try {
-        const { data: filas, error } = await window.authCtx.sb.rpc('fn_reportes_stock_valorizacion');
+        const { data: filas, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_reportes_stock_valorizacion'), 10000);
         if (error) throw error;
 
         const totalCosto = (filas || []).reduce((sum, d) => sum + (Number(d.costo_total) || 0), 0);
@@ -727,11 +727,11 @@ async function cargarValorizacion() {
                 const porcentaje = totalCosto > 0 ? (costo / totalCosto * 100).toFixed(2) : 0;
                 return `
                     <tr>
-                        <td>${sanitize(d.deposito_nombre)}</td>
-                        <td>${d.cantidad_productos}</td>
-                        <td>${d.unidades}</td>
-                        <td>$${costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                        <td>${porcentaje}%</td>
+                        <td data-label="Depósito">${sanitize(d.deposito_nombre)}</td>
+                        <td data-label="Cantidad Productos">${d.cantidad_productos}</td>
+                        <td data-label="Cantidad Total Unidades">${d.unidades}</td>
+                        <td data-label="Costo Total">$${costo.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                        <td data-label="% del Total">${porcentaje}%</td>
                     </tr>
                 `;
             })
@@ -756,12 +756,12 @@ async function cargarMovimientos() {
         const desde = (PAGINACION_MOVIMIENTOS.paginaActual - 1) * PAGINACION_MOVIMIENTOS.porPagina;
         const hasta = desde + PAGINACION_MOVIMIENTOS.porPagina - 1;
 
-        const { data: movimientos, error, count } = await window.authCtx.sb
+        const { data: movimientos, error, count } = await window.conTimeoutRed(window.authCtx.sb
             .from('movimientos_stock')
             .select('id, producto_id, tipo, cantidad, deposito_id, usuario_id, created_at', { count: 'exact' })
             .gte('created_at', hace30Dias.toISOString())
             .order('created_at', { ascending: false })
-            .range(desde, hasta);
+            .range(desde, hasta), 10000);
         if (error) throw error;
 
         PAGINACION_MOVIMIENTOS.totalRegistros = count || 0;
@@ -770,11 +770,11 @@ async function cargarMovimientos() {
         const usuariosIds = (movimientos || []).map(m => m.usuario_id);
 
         const { data: productos } = productosIds.length
-            ? await window.authCtx.sb.from('productos').select('id, nombre').in('id', productosIds)
+            ? await window.conTimeoutRed(window.authCtx.sb.from('productos').select('id, nombre').in('id', productosIds), 10000)
             : { data: [] };
 
         const { data: usuarios } = usuariosIds.length
-            ? await window.authCtx.sb.from('usuarios').select('id, nombre').in('id', usuariosIds)
+            ? await window.conTimeoutRed(window.authCtx.sb.from('usuarios').select('id, nombre').in('id', usuariosIds), 10000)
             : { data: [] };
 
         // Renderizar tabla
@@ -790,12 +790,12 @@ async function cargarMovimientos() {
 
                 return `
                     <tr>
-                        <td>${fecha}</td>
-                        <td>${sanitize(producto?.nombre || 'Sin nombre')}</td>
-                        <td>${m.tipo}</td>
-                        <td>${m.cantidad}</td>
-                        <td>${sanitize(deposito?.nombre || 'Sin depósito')}</td>
-                        <td>${sanitize(usuario?.nombre || 'Sin usuario')}</td>
+                        <td data-label="Fecha">${fecha}</td>
+                        <td data-label="Producto">${sanitize(producto?.nombre || 'Sin nombre')}</td>
+                        <td data-label="Tipo">${m.tipo}</td>
+                        <td data-label="Cantidad">${m.cantidad}</td>
+                        <td data-label="Depósito">${sanitize(deposito?.nombre || 'Sin depósito')}</td>
+                        <td data-label="Usuario">${sanitize(usuario?.nombre || 'Sin usuario')}</td>
                     </tr>
                 `;
             })
@@ -878,12 +878,12 @@ async function cargarConteos() {
 // KPIs agregados (sobre todo el conjunto filtrado, no solo la página actual)
 async function cargarConteosKPIs() {
     try {
-        const { data, error } = await window.authCtx.sb.rpc('fn_conteos_stock_kpis', {
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_conteos_stock_kpis', {
             p_deposito_id: estadoConteos.depositoId || null,
             p_motivo: estadoConteos.motivo || null,
             p_desde: estadoConteos.desde || null,
             p_hasta: estadoConteos.hasta || null
-        });
+        }), 10000);
         if (error) throw error;
 
         const kpis = (data && data[0]) || { total_conteos: 0, con_diferencia: 0, diferencia_acumulada: 0 };
@@ -915,13 +915,13 @@ async function cargarConteosKPIs() {
 // Ranking de productos con más diferencia acumulada (valor absoluto), para el gráfico
 async function cargarConteosTopProductos() {
     try {
-        const { data, error } = await window.authCtx.sb.rpc('fn_conteos_stock_top_productos', {
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb.rpc('fn_conteos_stock_top_productos', {
             p_deposito_id: estadoConteos.depositoId || null,
             p_motivo: estadoConteos.motivo || null,
             p_desde: estadoConteos.desde || null,
             p_hasta: estadoConteos.hasta || null,
             p_limit: 10
-        });
+        }), 10000);
         if (error) throw error;
 
         const nombres = (data || []).map(d => d.producto_nombre);
@@ -998,7 +998,7 @@ async function cargarConteosStock() {
 
         query = query.order('created_at', { ascending: false }).range(desde, hasta);
 
-        const { data: conteos, error, count } = await query;
+        const { data: conteos, error, count } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         PAGINACION_CONTEOS.totalRegistros = count || 0;
@@ -1010,14 +1010,14 @@ async function cargarConteosStock() {
 
                 return `
                     <tr>
-                        <td>${fecha}</td>
-                        <td>${sanitize(c.productos?.nombre || 'Sin nombre')}</td>
-                        <td>${sanitize(c.depositos?.nombre || 'Sin depósito')}</td>
-                        <td>${c.cantidad_sistema}</td>
-                        <td>${c.cantidad_contada}</td>
-                        <td class="kpi-change ${diferenciaClass}">${c.diferencia > 0 ? '+' : ''}${c.diferencia}</td>
-                        <td>${sanitize(labelMotivoConteo(c.motivo))}</td>
-                        <td>${sanitize(c.usuarios?.nombre || 'Sin usuario')}</td>
+                        <td data-label="Fecha">${fecha}</td>
+                        <td data-label="Producto">${sanitize(c.productos?.nombre || 'Sin nombre')}</td>
+                        <td data-label="Depósito">${sanitize(c.depositos?.nombre || 'Sin depósito')}</td>
+                        <td data-label="Sistema">${c.cantidad_sistema}</td>
+                        <td data-label="Contado">${c.cantidad_contada}</td>
+                        <td class="kpi-change ${diferenciaClass}" data-label="Diferencia">${c.diferencia > 0 ? '+' : ''}${c.diferencia}</td>
+                        <td data-label="Motivo">${sanitize(labelMotivoConteo(c.motivo))}</td>
+                        <td data-label="Usuario">${sanitize(c.usuarios?.nombre || 'Sin usuario')}</td>
                     </tr>
                 `;
             })

@@ -39,15 +39,27 @@
 
   /* ── Filtrado por rol ─────────────────────────────────────────────── */
 
-  function tieneAcceso(item, rol) {
-    if (!item.roles || !item.roles.length) return true;
-    return item.roles.includes(rol);
+  // `flag` (opcional, ver nav-data.js): además del rol, un ítem puede pedir
+  // una clave en empresas.config para activarse — mismo patrón de rollout
+  // gradual por empresa que captura_competencia_habilitada (piloto). Sin
+  // empresaConfig disponible (o sin la clave en true) el ítem no se
+  // muestra, aunque el rol sí tenga acceso — fail-safe, no gating de rol.
+  function tieneAcceso(item, rol, empresaConfig) {
+    // rol === null → render provisional (authCtx todavía no resolvió, ver
+    // initConAuth). No filtramos por rol para no dejar el menú en blanco,
+    // pero SÍ filtramos por `flag`: empresaConfig también es null en ese
+    // momento, así que un ítem con flag ya queda afuera acá — evita el
+    // parpadeo de "aparece y después desaparece" en el segundo render
+    // (cuando rol y empresaConfig sí están resueltos).
+    if (rol && item.roles && item.roles.length && !item.roles.includes(rol)) return false;
+    if (item.flag && empresaConfig?.[item.flag] !== true) return false;
+    return true;
   }
 
-  function workspacesParaRol(rol) {
+  function workspacesParaRol(rol, empresaConfig) {
     return window.NAV_WORKSPACES
-      .filter(ws => tieneAcceso(ws, rol))
-      .map(ws => ({ ...ws, secciones: ws.secciones.filter(sec => tieneAcceso(sec, rol)) }))
+      .filter(ws => tieneAcceso(ws, rol, empresaConfig))
+      .map(ws => ({ ...ws, secciones: ws.secciones.filter(sec => tieneAcceso(sec, rol, empresaConfig)) }))
       .filter(ws => {
         const esUnica = window.NAV_WORKSPACES.find(w => w.id === ws.id).secciones.length === 0;
         return esUnica || ws.secciones.length > 0;
@@ -70,7 +82,21 @@
 
   /* ── Render del mega-menú ─────────────────────────────────────────── */
   function renderMenuNavegacion(panel, rol) {
-    const workspaces = rol ? workspacesParaRol(rol) : window.NAV_WORKSPACES;
+    // Config de la empresa para el gating por `flag` (ver tieneAcceso) —
+    // se lee directo de authCtx en vez de agregar un parámetro más a esta
+    // función y a toda su cadena de llamadas (inicializarMenuNavegacion,
+    // el listener de resize, etc.): siempre que hay rol resuelto, authCtx
+    // ya está disponible (ver renderConRol).
+    const empresaConfig = window.authCtx?.perfil?.empresas?.config || null;
+    // Antes: si `rol` todavía no resolvió, se usaba window.NAV_WORKSPACES
+    // crudo (sin pasar por tieneAcceso), lo que mostraba ítems detrás de
+    // flag (ej. Prospección de competencia) aunque la empresa no lo tuviera
+    // habilitado — y luego, al re-renderizar con el rol ya resuelto,
+    // desaparecían y el bin-packing reordenaba las columnas (ver
+    // tieneAcceso más arriba). Ahora siempre pasa por workspacesParaRol():
+    // con rol null se listan todos los roles (fail-safe, no pantalla en
+    // blanco) pero el flag se respeta desde el primer render.
+    const workspaces = workspacesParaRol(rol, empresaConfig);
 
     // el acceso único (Panel principal) va aparte, destacado en el header
     const home = document.getElementById('nav-menu-home');
@@ -96,7 +122,11 @@
           return `<a class="nav-ws-link" href="#" data-menu-accion="${sec.accion}"><span>${sec.label}</span></a>`;
         }
         const activo = esActivo(sec.href);
-        return `<a class="nav-ws-link${activo ? ' is-current' : ''}" href="${sec.href}"><span>${sec.label}</span></a>`;
+        // `badge` (opcional, ver nav-data.js): etiqueta corta al lado del
+        // label — hoy solo "Platinum" en canales-venta, para señalar que
+        // la sección es de un plan superior antes de entrar.
+        const badge = sec.badge ? `<span class="nav-badge">${sec.badge}</span>` : '';
+        return `<a class="nav-ws-link${activo ? ' is-current' : ''}" href="${sec.href}"><span>${sec.label}</span>${badge}</a>`;
       }).join('');
       const html = `<div class="nav-ws${ws.destacado ? ' nav-ws--destacado' : ''}">
         <div class="nav-ws-label" style="--nav-ws-color:${ws.textColor}">${ws.icon}${ws.label}</div>
@@ -414,6 +444,58 @@
     const el = document.getElementById('nav-usuario');
     if (el) el.textContent = nombre;
   };
+
+  /* ── Detección de modal abierto (FIX v991) ──────────────────────────
+   * El FAB del menú hamburguesa (.mnav-fab) debe ocultarse mientras haya
+   * un .modal-overlay realmente visible en pantalla. Antes esto se
+   * resolvía en nav.css con `body:has(.modal-overlay:not(.hidden))`,
+   * que asumía que TODAS las pantallas usan la convención
+   * class="modal-overlay hidden" para el estado cerrado.
+   *
+   * Auditoría (v991) encontró que esa convención NO es universal:
+   * varias pantallas (usuarios, proveedores, compras, stock,
+   * riesgo-cheques, rutas/zonas, vencimientos/lotes, facturacion/NC,
+   * entre otras) abren/cierran sus modales seteando
+   * `elemento.style.display = 'flex' | 'none'` directo por JS, sin
+   * tocar nunca la clase `hidden`. Como esos overlays nunca tienen esa
+   * clase, `:not(.hidden)` los toma como "abiertos" permanentemente
+   * (estén o no realmente visibles) y el FAB queda oculto para siempre
+   * en esas pantallas.
+   *
+   * En vez de perseguir cada convención distinta (o unificarlas todas,
+   * lo cual implicaría tocar ~10 archivos JS), acá se resuelve una sola
+   * vez, de forma genérica: se observa cualquier .modal-overlay del DOM
+   * y se lee su estado real con getComputedStyle (que sí sabe resolver
+   * clases + estilos inline + CSS en cascada, a diferencia de un
+   * selector CSS). El resultado se refleja en `body.modal-abierto`, que
+   * es lo que nav.css usa ahora para ocultar el FAB. */
+  function hayModalVisible() {
+    const overlays = document.querySelectorAll('.modal-overlay');
+    for (let i = 0; i < overlays.length; i++) {
+      if (getComputedStyle(overlays[i]).display !== 'none') return true;
+    }
+    return false;
+  }
+
+  function sincronizarClaseModalAbierto() {
+    document.body.classList.toggle('modal-abierto', hayModalVisible());
+  }
+
+  function iniciarObserverModales() {
+    sincronizarClaseModalAbierto();
+    const observer = new MutationObserver(sincronizarClaseModalAbierto);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      subtree: true,
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciarObserverModales);
+  } else {
+    iniciarObserverModales();
+  }
 
   /* ── Init ────────────────────────────────────────────────────────── */
   if (document.readyState === 'loading') {

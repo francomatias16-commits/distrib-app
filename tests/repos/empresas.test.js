@@ -86,7 +86,7 @@ describe('obtenerDatosEditables', () => {
   it('trae exactamente los campos editables + config, filtrado por empresa_id', async () => {
     const fila = {
       nombre: 'Acme', cuit: '20304050607', domicilio: 'Calle 1', telefono: '123',
-      email: 'a@a.com', logo_url: null, config: { catalogo_publico_habilitado: true }, slug: 'acme',
+      email: 'a@a.com', logo_url: null, config: { catalogo_publico_habilitado: true },
     };
     const query = fakeQuery({ data: fila, error: null });
     dbMock.from.mockReturnValue(query);

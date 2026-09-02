@@ -115,7 +115,17 @@
 /* ══════════════════════════════════════════════════════════════════
    TABLA restyle — fila con avatar/ícono de producto, badges tipo pill
    ══════════════════════════════════════════════════════════════════ */
-.tabla-admin .fila-stock .td-producto { display: table-cell; }
+/* Scopeado a desktop: en mobile (<=768px) esta regla ganaba por
+   especificidad (3 clases) al `display:block` del patrón canónico
+   tabla→tarjeta de componentes-admin.css, dejando el <td> como
+   table-cell "huérfano" (sin fila de tabla real como padre). El
+   navegador lo resuelve como celda anónima de ancho shrink-to-fit,
+   y como .prod-nombre usa white-space:nowrap, la celda se estiraba
+   al ancho del texto completo y desbordaba la tarjeta/hoja. En
+   desktop la regla era redundante (td ya es table-cell por default). */
+@media (min-width: 769px) {
+  .tabla-admin .fila-stock .td-producto { display: table-cell; }
+}
 .prod-row {
   display: flex;
   align-items: center;

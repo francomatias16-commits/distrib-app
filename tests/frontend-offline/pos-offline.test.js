@@ -265,6 +265,7 @@ describe('pos-offline.js — migración one-shot desde pos_offline_db v1', () =>
     expect(outboxFake.encolarLegacySinTenant).toHaveBeenCalledTimes(2);
     expect(outboxFake.encolarLegacySinTenant).toHaveBeenNthCalledWith(1, 'venta', { total: 100 }, 'pos_offline_db_v1');
     expect(outboxFake.encolarLegacySinTenant).toHaveBeenNthCalledWith(2, 'venta', { total: 200 }, 'pos_offline_db_v1');
+    expect(outboxFake.encolarAccion).not.toHaveBeenCalled();
     expect(outboxFake.init).toHaveBeenCalledTimes(1);
   });
 

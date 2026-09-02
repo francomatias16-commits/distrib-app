@@ -28,28 +28,51 @@
 
 'use strict';
 
-const SW_VERSION   = 'proveedor-v2';
+const SW_VERSION   = 'proveedor-v3';
 const CACHE_STATIC = `${SW_VERSION}-static`;
 const CACHE_DATA   = `${SW_VERSION}-data`;
 
 // Nota: no se precachea '/proveedor/portal' porque su contenido depende
 // del token en el query string (?t=...), que varía por proveedor/link.
 // El shell estático sí es común a todos.
+//
+// OFFLINE-06: faltaban 6 de los 12 assets propios que portal.html realmente
+// referencia (pwa-init.js y varios CSS/JS compartidos que sí carga esta
+// pantalla) — lista completada recorriendo frontend/proveedor/portal.html
+// y extrayendo cada <script src>/<link href> local. Van SIN el query string
+// "?v=..." de cache-busting a propósito, mismo motivo que sw-admin.js:
+// cacheFirst() de abajo matchea con { ignoreSearch: true }.
 const PRECACHE_URLS = [
   '/frontend/proveedor/portal.css',
   '/frontend/proveedor/portal.js',
   '/frontend/proveedor/proveedor-offline.js',
+  '/proveedor/pwa-init.js',
+  '/shared/microinteracciones.css',
   '/shared/offline-core.js',
-  '/shared/tokens.css',
+  '/shared/reskin-patch.css',
+  '/shared/reskin-patch-v2-shadcn.css',
+  '/shared/responsive-mobile.css',
+  '/shared/responsive-mobile.js',
   '/shared/skeletons.css',
+  '/shared/tokens.css',
 ];
 
+// FIX (precache resiliente): antes era cache.addAll(PRECACHE_URLS), que es
+// atómico — si UNA sola URL de la lista da 404/error de red durante el
+// install, addAll() rechaza COMPLETO y no se cachea nada. Ahora cada URL
+// se cachea con su propio try/catch vía Promise.allSettled. Mismo fix que
+// sw-admin.js/sw-chofer.js/sw-cliente.js.
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_STATIC)
-      .then((c) => c.addAll(PRECACHE_URLS))
-      .catch((err) => console.warn('[SW-proveedor] Precache parcial:', err))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_STATIC).then((c) =>
+      Promise.allSettled(
+        PRECACHE_URLS.map((url) =>
+          c.add(url).catch((err) => {
+            console.warn('[SW-proveedor] No se pudo precachear', url, err.message);
+          })
+        )
+      ).then(() => self.skipWaiting())
+    )
   );
 });
 
@@ -107,7 +130,13 @@ self.addEventListener('fetch', (e) => {
   // GET de datos (/api/proveedores?_svc=portal&t=...) → Network-First.
   // El caché queda atado a la URL exacta (incluye el token), así que un
   // proveedor solo ve su propio último dato cacheado, nunca el de otro.
-  if (url.pathname.startsWith('/api/proveedores')) {
+  //
+  // OFFLINE-05: generalizado de '/api/proveedores' a '/api/' — hoy el
+  // portal solo llama ese único prefijo, pero así cualquier endpoint nuevo
+  // que se agregue a futuro (ej. notificaciones propias del proveedor)
+  // hereda la misma red de contención sin tener que acordarse de tocar
+  // este archivo. Mismo criterio de caché atado a URL exacta con token.
+  if (url.pathname.startsWith('/api/')) {
     e.respondWith(networkFirst(req, CACHE_DATA));
     return;
   }
@@ -127,14 +156,24 @@ self.addEventListener('message', (e) => {
 
 // ─── Estrategias ────────────────────────────────────────────────────────
 
+// FIX (ignoreSearch): PRECACHE_URLS se guarda SIN el query string "?v=..."
+// de cache-busting, pero portal.html los pide CON ese query. Sin
+// ignoreSearch, caches.match(req) nunca encontraba la entrada precacheada.
+// Mismo fix que sw-admin.js/sw-chofer.js/sw-cliente.js.
+function sinQuery(req) {
+  const url = new URL(req.url);
+  url.search = '';
+  return new Request(url.toString(), { method: 'GET' });
+}
+
 async function cacheFirst(req) {
-  const cached = await caches.match(req);
+  const cached = await caches.match(req, { ignoreSearch: true });
   if (cached) return cached;
   try {
     const resp = await fetch(req);
     if (resp.ok) {
       const c = await caches.open(CACHE_STATIC);
-      c.put(req, resp.clone());
+      c.put(sinQuery(req), resp.clone());
     }
     return resp;
   } catch {

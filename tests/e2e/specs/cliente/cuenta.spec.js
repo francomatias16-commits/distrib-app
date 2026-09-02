@@ -8,7 +8,7 @@
 import { test, expect } from '@playwright/test';
 import { startStaticServer } from '../../helpers/static-server.js';
 import { vendorizarSupabase, filtrarRuidoRed, mockApi } from '../../helpers/mock-network.js';
-import { mockearTabla, mockearRestGenerico, mockearConteoTabla } from '../../helpers/supabase-rest-mock.js';
+import { mockearTabla, mockearRestGenerico, mockearConteoTabla, mockearAuthGenerico } from '../../helpers/supabase-rest-mock.js';
 import { sembrarSesionCliente } from '../../helpers/auth-helper.js';
 import { ClienteCuentaPage } from '../../page-objects/cliente/cuenta.page.js';
 
@@ -44,6 +44,13 @@ async function prepararRed(page, { cliente = CLIENTE_BASE, puntos = PUNTOS, reco
 
   await vendorizarSupabase(page);
   mockearRestGenerico(page);
+  // Necesario para el test de logout: sb.auth.signOut() pega a
+  // /auth/v1/logout (GoTrue), una capa distinta a /rest/v1/ que cubre
+  // mockearRestGenerico. Sin esto el await de signOut() nunca resuelve
+  // a tiempo en el sandbox de CI y la sesión falsa queda viva cuando
+  // login.html vuelve a leerla (mismo patrón ya usado en
+  // chofer/index.spec.js).
+  mockearAuthGenerico(page);
   mockearTabla(page, 'usuarios', { onSelect: () => USUARIO });
   mockearTabla(page, 'clientes', { onSelect: () => cliente });
   mockearTabla(page, 'saldo_puntos', { onSelect: () => puntos });
@@ -100,7 +107,7 @@ test.describe('cliente/cuenta.html', () => {
 
     const fila = cuentaPage.infoRow('Saldo pendiente');
     await expect(fila).toBeVisible();
-    await expect(fila.locator('.info-row-val')).toHaveClass(/deuda/);
+    await expect(fila.locator('.cta-info-row-val')).toHaveClass(/deuda/);
   });
 
   test('cuenta corriente: saldo a favor se muestra distinto de una deuda', async ({ page }) => {
@@ -111,7 +118,7 @@ test.describe('cliente/cuenta.html', () => {
 
     const fila = cuentaPage.infoRow('Saldo a favor');
     await expect(fila).toBeVisible();
-    await expect(fila.locator('.info-row-val')).toHaveClass(/ok/);
+    await expect(fila.locator('.cta-info-row-val')).toHaveClass(/ok/);
   });
 
   test('actividad: muestra el conteo de pedidos realizados', async ({ page }) => {

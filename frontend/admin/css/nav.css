@@ -167,6 +167,15 @@
 .nav-ws-link.is-current { color: var(--nav-ws-color, var(--color-primary)); font-weight: 700; }
 .nav-ws-link.is-current::before { color: var(--nav-ws-color, var(--color-primary)); }
 
+/* ── Badge de sección (p.ej. "Platinum" en canales-venta) — mismo par de
+   colores que .badge--warning en tokens.css, para que se lea como
+   "función de otro nivel de plan" sin inventar un color nuevo. */
+.nav-ws-link .nav-badge {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--color-warning); background: var(--color-warning-bg);
+  border-radius: 999px; padding: 1.5px 6px; line-height: 1.5; flex-shrink: 0;
+}
+
 /* ── "Trabajar con IA" — un ítem más del menú, como cualquier otro grupo
    (mismo .nav-ws de siempre, ya con color propio vía --nav-ws-color en el
    encabezado). Único plus pedido: el link con su color y un toque más
@@ -286,14 +295,14 @@ body[data-ws="config"]       .topbar-title::before { background: var(--nav-confi
    llega a 4.5:1) — se fuerza texto oscuro, igual que ya se hacía en
    cobros. hoy/facturación/fidelización/config sí superan 4.5:1 con
    blanco y se dejan como estaban. */
-body[data-ws="hoy"]          .btn-primary { background: var(--nav-hoy);          border-color: var(--nav-hoy); }
-body[data-ws="ventas"]       .btn-primary { background: var(--nav-ventas);       border-color: var(--nav-ventas);       color: var(--color-text); }
-body[data-ws="deposito"]     .btn-primary { background: var(--nav-deposito);     border-color: var(--nav-deposito);     color: var(--color-text); }
-body[data-ws="cobros"]       .btn-primary { background: var(--nav-cobros);       border-color: var(--nav-cobros);       color: var(--color-text); }
-body[data-ws="facturacion"]  .btn-primary { background: var(--nav-facturacion);  border-color: var(--nav-facturacion); }
-body[data-ws="fidelizacion"] .btn-primary { background: var(--nav-fidelizacion); border-color: var(--nav-fidelizacion); }
-body[data-ws="reportes"]     .btn-primary { background: var(--nav-reportes);     border-color: var(--nav-reportes);     color: var(--color-text); }
-body[data-ws="config"]       .btn-primary { background: var(--nav-config);       border-color: var(--nav-config); }
+body[data-ws="hoy"]          .btn-primary, body[data-ws="hoy"]          .btn--primary { background: var(--nav-hoy);          border-color: var(--nav-hoy); }
+body[data-ws="ventas"]       .btn-primary, body[data-ws="ventas"]       .btn--primary { background: var(--nav-ventas);       border-color: var(--nav-ventas);       color: var(--color-text); }
+body[data-ws="deposito"]     .btn-primary, body[data-ws="deposito"]     .btn--primary { background: var(--nav-deposito);     border-color: var(--nav-deposito);     color: var(--color-text); }
+body[data-ws="cobros"]       .btn-primary, body[data-ws="cobros"]       .btn--primary { background: var(--nav-cobros);       border-color: var(--nav-cobros);       color: var(--color-text); }
+body[data-ws="facturacion"]  .btn-primary, body[data-ws="facturacion"]  .btn--primary { background: var(--nav-facturacion);  border-color: var(--nav-facturacion); }
+body[data-ws="fidelizacion"] .btn-primary, body[data-ws="fidelizacion"] .btn--primary { background: var(--nav-fidelizacion); border-color: var(--nav-fidelizacion); }
+body[data-ws="reportes"]     .btn-primary, body[data-ws="reportes"]     .btn--primary { background: var(--nav-reportes);     border-color: var(--nav-reportes);     color: var(--color-text); }
+body[data-ws="config"]       .btn-primary, body[data-ws="config"]       .btn--primary { background: var(--nav-config);       border-color: var(--nav-config); }
 
 /* ── Empty states workspace-colored ── */
 body[data-ws="hoy"]          .empty-guide-icon { background: var(--nav-hoy-bg);          color: var(--nav-hoy); }
@@ -352,16 +361,40 @@ body[data-ws="config"]       .empty-guide-icon { background: var(--nav-config-bg
   .topbar-title::before { display: none; } /* el borde de color queda raro pegado al botón hamburguesa */
 
   /* ── Botón hamburguesa (FAB fijo, siempre arriba de todo) ── */
+  /* v988: ya no depende de --demo-banner-h (el banner de "demostración en
+     vivo" se eliminó por completo en auth.js) — top fijo simple. */
+  /* v993: el fondo casi negro (--nav-dark-bg) se perdía contra la status
+     bar y el resto de la UI oscura — pasaba desapercibido en todas las
+     páginas. Color de acento fijo (no --color-primary: varias páginas lo
+     pisan localmente por workspace — depósito, finanzas, etc. — y el FAB
+     necesita verse igual y reconocible en todas) + glow más marcado. */
   .mnav-fab {
     position: fixed; top: 12px; left: 12px;
     width: 40px; height: 40px; border-radius: 12px;
-    background: var(--nav-dark-bg); color: var(--color-surface); border: none;
+    background: #2563EB; color: var(--color-surface); border: none;
     display: flex; align-items: center; justify-content: center;
     z-index: var(--z-mnav-toggle); cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+    box-shadow: 0 4px 16px rgba(37,99,235,.55), 0 2px 6px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.15);
     -webkit-tap-highlight-color: transparent;
   }
-  .mnav-fab:active { background: var(--nav-dark-rail); }
+  /* FIX (auditoría mobile 2026-08): el FAB tenía z-index más alto que
+     cualquier modal (--z-mnav-toggle:700 vs modal-overlay ~500), así que
+     quedaba visualmente encima de cualquier modal abierto (ej. "Editar
+     cheque"). El propio modal ya tiene su botón de cierre — el FAB no
+     aporta nada útil ahí y solo tapa contenido, así que se oculta mientras
+     haya un .modal-overlay realmente visible en la página.
+     FIX v991: antes esto era `body:has(.modal-overlay:not(.hidden))`,
+     que asumía que el estado cerrado siempre se marca con la clase
+     .hidden. Varias pantallas (usuarios, proveedores, compras, stock,
+     riesgo-cheques, rutas/zonas, vencimientos/lotes, facturación/NC)
+     abren y cierran sus modales con `style.display` por JS y nunca usan
+     esa clase, así que el FAB quedaba oculto ahí para siempre, incluso
+     con el modal cerrado. Ahora nav.js sincroniza `body.modal-abierto`
+     leyendo el estado real (getComputedStyle) de cualquier
+     .modal-overlay del DOM — ver comentario "Detección de modal
+     abierto" en ese archivo. */
+  body.modal-abierto .mnav-fab { display: none; }
+  .mnav-fab:active { background: #1D4ED8; }
   .mnav-fab svg { width: 20px; height: 20px; }
 
   .mnav-overlay {

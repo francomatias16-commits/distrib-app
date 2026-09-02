@@ -9,19 +9,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <script src="/frontend/env-config.js"></script>
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="/cliente/pwa-init.js"></script>
-  <link rel="stylesheet" href="/cliente/css/checkout.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/chat-widget.css">
+  <script src="/cliente/pwa-init.js?v=mtcen4r4"></script>
+  <link rel="stylesheet" href="/cliente/css/checkout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/chat-widget.css?v=mtcen4r4">
 </head>
 <body>
 
@@ -185,8 +185,8 @@ async function cargar() {
     div.className = 'item-row';
     div.innerHTML = `
       <div>
-        <span class="item-nombre">${item.productos?.nombre || '—'}</span>
-        <span class="item-unidad">${item.productos?.unidad || ''}</span>
+        <span class="item-nombre">${esc(item.productos?.nombre || '—')}</span>
+        <span class="item-unidad">${esc(item.productos?.unidad || '')}</span>
       </div>
       <div style="display:flex;align-items:center">
         <span class="item-cant">x${item.cantidad}</span>
@@ -196,6 +196,10 @@ async function cargar() {
   });
 
   document.getElementById('seccion-items').style.display = '';
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
 // Etapa 5 offline (Mercado Pago) — deja el botón listo pero avisa de
@@ -306,6 +310,12 @@ async function confirmarPedido() {
 
 cargar();
 </script>
-  <script src="/frontend/shared/chat-widget.js" defer data-chat-asistente="1"></script>
+  <!-- v971: sin FAB flotante -- se saca el botón "Trabajar con IA" de este
+       portal (no aplica al cliente/chofer); el panel de chat-widget.js queda
+       montado pero sin punto de apertura. El flag va en un tag script normal
+       (no defer) para correr antes de que el IIFE deferred de chat-widget.js
+       lo lea. -->
+  <script>window.__CHAT_ASISTENTE_SIN_BOTON__ = true;</script>
+  <script src="/frontend/shared/chat-widget.js?v=mtcen4r4" defer data-chat-asistente="1"></script>
 </body>
 </html>

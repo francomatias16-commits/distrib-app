@@ -404,14 +404,10 @@ body.dash-reglas-precio-gentelella .toast {
    Responsive (mobile)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  body.dash-reglas-precio-gentelella .filtros-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  body.dash-reglas-precio-gentelella .filtros-bar input,
-  body.dash-reglas-precio-gentelella .filtros-bar select {
-    width: 100% !important;
-  }
+  /* .filtros-bar en columna/100% en mobile: ya lo hace el canónico de
+     componentes-admin.css (Fase 1, 2026-08-25) desde --bp-md (640px).
+     Esto quedaba en 768px, un breakpoint distinto sin escala común —
+     justo la inconsistencia que documenta la auditoría. No redeclarar. */
   body.dash-reglas-precio-gentelella .kpis-grid {
     grid-template-columns: 1fr 1fr !important;
   }
@@ -459,3 +455,36 @@ body.dash-reglas-precio-gentelella .toast {
   transform: none;
 }
 #modal-regla.modal.open { right: 0; }
+
+/* ════════════════════════════════════════════════════════════
+   Fix mobile: el panel quedaba con el borde izquierdo fuera de
+   pantalla (texto de título/labels cortado por la izquierda,
+   solo el botón "×" visible del lado derecho). Causa: en
+   viewports angostos, el ancho quedaba en 580px con `right:0`
+   como ancla y `max-width:95vw` como única salvaguarda — si esa
+   salvaguarda no contiene el ancho real (viewport/layout
+   inconsistente en el dispositivo), el excedente de ancho se va
+   por la izquierda y queda invisible (no hay scroll horizontal
+   posible en un elemento position:fixed).
+   Fix: por debajo de 640px el panel pasa a ocupar el 100% del
+   viewport (left:0 y right:0 a la vez, sin depender de `vw` para
+   el ancho) y la animación de apertura/cierre se hace con
+   `transform: translateX()` en vez de animar `right` — el mismo
+   mecanismo que ya usa pedidos.css, inmune a este problema porque
+   el porcentaje del transform es relativo al propio ancho del
+   elemento, no al viewport.
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  #modal-regla.modal {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: 100%;
+    transform: translateX(100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  #modal-regla.modal.open {
+    right: 0;
+    transform: translateX(0);
+  }
+}

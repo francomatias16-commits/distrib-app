@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://fluxoapp.com.ar/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://fluxoapp.com.ar/registro</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fluxoapp.com.ar/terminos</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://fluxoapp.com.ar/privacidad</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://fluxoapp.com.ar/eliminacion-datos</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>
+<!-- El catálogo público por empresa (/cliente/catalogo/:slug) es dinámico
+     y no se hardcodea acá a propósito: no hay lista fija de empresas en
+     el repo. Si se quiere indexar, generarlo server-side o vía un
+     sitemap-index separado que liste los slugs activos. -->

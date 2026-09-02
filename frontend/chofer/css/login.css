@@ -99,18 +99,18 @@
       cursor: pointer; margin-top: 1.75rem; font-family: inherit;
       transition: background .15s, color .15s, box-shadow .15s, transform .15s;
     }
-    .btn-primary {
+    .btn-primary, .btn--primary {
       background: transparent;
       color: var(--login-accent-dark);
       border: 1.5px solid var(--login-accent);
     }
-    .btn-primary:hover {
+    .btn-primary:hover, .btn--primary:hover {
       background: var(--login-accent);
       color: #fff;
       box-shadow: 0 12px 26px rgba(46,109,180,.3);
       transform: translateY(-1px);
     }
-    .btn-primary:active { transform: translateY(0); filter: brightness(.98); }
+    .btn-primary:active, .btn--primary:active { transform: translateY(0); filter: brightness(.98); }
     .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
     .alerta {

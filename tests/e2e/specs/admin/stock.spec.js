@@ -101,39 +101,42 @@ test.describe('Stock (admin) — Fase 1 P0', () => {
     expect(filtrarRuidoRed(erroresConsola), `Errores de consola:\n${erroresConsola.join('\n')}`).toEqual([]);
   });
 
-  test('ajustar stock (ingreso) llama a ajustar_stock con el delta correcto y refresca la fila', async ({ page }) => {
+  test('ajustar stock (egreso) llama a ajustar_stock con el delta correcto y refresca la fila', async ({ page }) => {
     const { stockPage } = await armarPagina(page);
 
     const obtenerParamsAjuste = mockearRpc(page, 'ajustar_stock', ({ params }) => {
-      // Confirma el payload real armado por guardarAjuste() para tipo
-      // "ingreso" — delta positivo, sin p_stock_nuevo (eso es exclusivo
-      // del tipo "ajuste"/conteo, que pasa por otra RPC).
+      // FIX: el test original usaba tipo "ingreso" + motivo
+      // "devolucion_cliente" para ejercitar el camino genérico de
+      // ajustar_stock. Ya no es posible — MOTIVOS_POR_TIPO.ingreso quedó
+      // en ['compra', 'devolucion_cliente', 'produccion'] y guardarAjuste()
+      // bloquea los dos primeros con un `return` temprano (redirigen a
+      // Compras/Devoluciones) y el tercero pasa por otra RPC
+      // (producir_con_insumos, ver rama `tipoActivo === 'ingreso' &&
+      // motivo === 'produccion'') — el branch genérico de ajustar_stock
+      // para "ingreso" quedó inalcanzable desde la UI. "egreso" con
+      // motivo "venta_manual" sigue yendo por el camino genérico (solo
+      // trae un aviso informativo, no bloqueante — ver actualizarAvisoMotivo()).
       expect(params).toMatchObject({
         p_producto_id: PRODUCTO_ID,
         p_deposito_id: DEPOSITO_ID,
-        p_delta: 5,
-        p_tipo: 'ingreso',
-        p_motivo: 'devolucion_cliente',
+        p_delta: -5,
+        p_tipo: 'egreso',
+        p_motivo: 'venta_manual',
       });
-      return { ok: true, stock_nuevo: 13 };
+      return { ok: true, stock_nuevo: 3 };
     });
 
     await stockPage.goto();
     await stockPage.abrirAjustePorId(PRODUCTO_ID);
 
     await expect(stockPage.modalSubtitulo).toContainText('Producto E2E');
-    // "ingreso" es el tipo activo por defecto al abrir (selTipo('ingreso', ...) en abrirModal()).
-    // "compra" está bloqueado en el cliente (redirige a Compras) y
-    // "produccion" pasa por otra RPC (producir_con_insumos) — para
-    // ejercitar el camino genérico de ajustar_stock hace falta un motivo
-    // de ingreso que no tenga flujo dedicado, ver optgroup "Ingresos" en
-    // stock.html.
+    await stockPage.elegirTipo('egreso');
     await stockPage.inputCantidad.fill('5');
-    await stockPage.selectMotivo.selectOption('devolucion_cliente');
+    await stockPage.selectMotivo.selectOption('venta_manual');
     await stockPage.guardar();
 
     await expect(stockPage.toast).toBeVisible();
-    await expect(stockPage.toast).toContainText('13');
+    await expect(stockPage.toast).toContainText('3');
     await expect(stockPage.modalAjuste).not.toHaveClass(/open/);
 
     expect(obtenerParamsAjuste(), 'ajustar_stock debería haberse llamado exactamente una vez').toBe(1);

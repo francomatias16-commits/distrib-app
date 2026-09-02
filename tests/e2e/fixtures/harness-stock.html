@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <!-- Harness de test — NO es una página de producción. Ver harness-chofer.html para la justificación.
-     Reconstruido por Claude (no vino en el material adjuntado por el usuario) siguiendo el mismo
-     patrón mecánico que harness-pos.html/harness-chofer.html: carga Dexie + offline-core.js + el
-     módulo offline puntual, nada más. Si el harness real de la sesión anterior tenía algo distinto
-     (markup extra, IDs específicos que stock-offline.js espera encontrar en el DOM), reemplazar este
-     archivo por ese — no se pudo verificar contra el código real de stock-offline.js en esta sesión. -->
+
+     FIX: a este harness (reconstruido a ciegas en una sesión anterior) le faltaba
+     ui-utils.js. stock-offline.js llama a window.conTimeoutRed(sb.rpc(...), 10000)
+     dentro de procesarAccion (ver ese archivo) — esa función la define ui-utils.js,
+     no stock-offline.js ni offline-core.js. Sin ella, CADA intento de sincronizar
+     tiraba "TypeError: window.conTimeoutRed is not a function" dentro de
+     procesarAccion; offline-core.js lo atrapaba como error reintentable genérico
+     (nunca llegaba a evaluar data.ok ni data.tipo), así que ni el contador de
+     pendientes bajaba a 0 ni el de conflictos subía a 1 — quedaban pegados para
+     siempre. La página real (frontend/admin/stock.html) sí carga
+     /frontend/admin/js/ui-utils.js antes de stock-offline.js; este harness ahora
+     replica ese mismo orden. -->
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -15,6 +22,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/frontend/admin/js/ui-utils.js"></script>
   <script src="/frontend/shared/offline-core.js?v1"></script>
   <script src="/frontend/admin/js/stock-offline.js"></script>
 </body>

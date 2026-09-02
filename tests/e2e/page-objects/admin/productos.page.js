@@ -56,7 +56,13 @@ export class ProductosPage extends PageObjectBase {
   }
 
   // ── Modal: nuevo/editar producto ────────────────────────────────────
-  get btnNuevoProducto() { return this.page.locator('.prod-add-btn'); }
+  // OJO: `.prod-add-btn` sola ya no alcanza — el tab de Combos (mismo
+  // archivo productos.html) agregó su propio botón "Nuevo combo"
+  // (#cb-btn-nuevo) reusando la misma clase para heredar el estilo. Ambos
+  // conviven en el DOM aunque el tab de combos esté oculto, así que el
+  // locator por clase sola rompe en "strict mode" (matchea los 2). Se
+  // desambigua por aria-label, que es único para cada botón.
+  get btnNuevoProducto() { return this.page.getByRole('button', { name: 'Nuevo producto', exact: true }); }
   get modalProducto() { return this.page.locator('#modal-producto'); }
   get modalTitulo() { return this.page.locator('#modal-prod-titulo'); }
   get inputNombre() { return this.page.locator('#fp-nombre'); }

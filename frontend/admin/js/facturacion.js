@@ -63,7 +63,7 @@ async function init() {
 // sobre el viejo recorte de 300.
 async function cargarContadoresFacturas() {
   try {
-    const { data, error } = await sb.rpc('fn_facturas_contadores').single();
+    const { data, error } = await window.conTimeoutRed(sb.rpc('fn_facturas_contadores').single(), 10000);
     if (error) throw error;
     contadoresFacturas = data || contadoresFacturas;
     actualizarKpis();
@@ -106,14 +106,14 @@ async function cargarFacturas() {
 
   const desde = (paginaActualFacturas - 1) * ITEMS_POR_PAGINA_FACTURAS;
 
-  const { data, error } = await sb.rpc('fn_facturas_lista', {
+  const { data, error } = await window.conTimeoutRed(sb.rpc('fn_facturas_lista', {
     p_busqueda: busq || null,
     p_estado: filtroEstado || null,
     p_fecha_desde: fechaDesde,
     p_fecha_hasta: fechaHasta,
     p_limit: ITEMS_POR_PAGINA_FACTURAS,
     p_offset: desde,
-  });
+  }), 10000);
 
   if (error) {
     console.error(error);
@@ -378,10 +378,7 @@ function renderTabla() {
     menu.innerHTML = items.join('');
     menu.dataset.facturaId = facturaId;
 
-    const r = btn.getBoundingClientRect();
-    menu.style.top   = `${r.bottom + 4}px`;
-    menu.style.left  = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -393,6 +390,13 @@ function renderTabla() {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrar(); });
   window.addEventListener('resize', cerrar);
   document.getElementById('tabla-body')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en #tabla-body,
+  // pero en mobile (vista de tarjetas) #tabla-body no tiene su propio
+  // scroll interno — quien scrollea es la página completa (window/body).
+  // Sin este listener, al scrollear la página el menú se queda "flotando"
+  // en la posición vieja (donde estaba el botón "⋮" cuando se abrió),
+  // ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 function estadoInfo(estado) {
@@ -489,10 +493,10 @@ async function cargarItemsFactura(f) {
   seccion.style.display = 'block';
   lista.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--color-text-muted);font-size:12px">Cargando ítems…</td></tr>';
 
-  const { data } = await sb.from('pedido_items')
+  const { data } = await window.conTimeoutRed(sb.from('pedido_items')
     .select('cantidad, precio_unitario, descuento_pct, subtotal, productos(nombre, unidad)')
     .eq('pedido_id', f.pedido_id)
-    .order('productos(nombre)');
+    .order('productos(nombre)'), 10000);
 
   if (!data?.length) {
     lista.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:10px;color:var(--color-text-muted);font-size:12px">Sin ítems disponibles</td></tr>';
@@ -592,20 +596,13 @@ function mostrarConfirmAnular() {
 }
 
 // ── Ver/descargar PDF ────────────────────────────────────────────────────
-// El PDF normalmente ya está listo (lib/facturas.js lo genera en background
-// apenas se emite el comprobante), pero por si la generación en background
-// todavía no corrió o falló, este botón siempre funciona: si no hay pdf_url
-// en caché, le pega a GET /api/facturas?accion=pdf, que regenera el PDF al
-// toque con pdfkit y devuelve la URL — la facturación es lo más importante
-// del sistema, así que esto no puede ser un callejón sin salida.
+// El bucket de comprobantes es privado (auditoría 2026-08-24): f.pdf_url
+// ya no es una URL abrible directo, es la ruta interna en Storage. Todo
+// click pasa siempre por GET /api/facturas?accion=pdf, que valida tenant
+// (y dueño, si es cliente) y devuelve una signed URL de 5 min — si el PDF
+// ya existe solo la firma (rápido); si no, lo genera al toque con pdfkit.
 async function verPdf(facturaId, ev) {
   if (ev) ev.stopPropagation();
-
-  const f = facturas.find(x => x.id === facturaId);
-  if (f?.pdf_url) {
-    window.open(f.pdf_url, '_blank', 'noopener');
-    return;
-  }
 
   const btn = ev?.currentTarget;
   const htmlOriginal = btn?.innerHTML;
@@ -623,7 +620,6 @@ async function verPdf(facturaId, ev) {
       return;
     }
 
-    if (f) f.pdf_url = data.url; // cachear en memoria para no regenerarlo de nuevo
     window.open(data.url, '_blank', 'noopener');
   } catch (err) {
     console.error(err);
@@ -673,10 +669,10 @@ async function reintentar(facturaId) {
       }
     } else {
       window.toast('Factura emitida correctamente');
-      sb.rpc('registrar_auditoria', {
+      window.conTimeoutRed(sb.rpc('registrar_auditoria', {
         p_tabla: 'facturas', p_accion: 'UPDATE',
         p_registro_id: facturaId, p_datos_despues: { accion: 'reintentar' },
-      }).then(() => {}, () => {});
+      }).then(() => {}, () => {}), 10000);
     }
 
     await Promise.all([cargarFacturas(), cargarContadoresFacturas()]);
@@ -748,10 +744,10 @@ async function anular(facturaId) {
     }
 
     window.toast('Comprobante anulado y nota de crédito generada');
-    sb.rpc('registrar_auditoria', {
+    window.conTimeoutRed(sb.rpc('registrar_auditoria', {
       p_tabla: 'facturas', p_accion: 'UPDATE',
       p_registro_id: facturaId, p_datos_despues: { accion: 'anular', motivo },
-    }).then(() => {}, () => {});
+    }).then(() => {}, () => {}), 10000);
     cerrarModal();
     await Promise.all([cargarFacturas(), cargarContadoresFacturas()]);
 

@@ -14,25 +14,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
-  <link rel="stylesheet" href="/frontend/admin/css/pos.css?v=752" />
-  <link rel="stylesheet" href="/frontend/admin/css/pos-gentelella.css?v=1" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/pos.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/pos-gentelella.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
   <!-- Reestructuración total POS estilo terminal profesional (supermercado) — se carga último a propósito, gana la cascada sobre pos.css/pos-gentelella.css/reskin-patch sin pisar sus variables. -->
-  <link rel="stylesheet" href="/frontend/admin/css/pos-terminal-pro.css?v=1" />
-  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/pos-terminal-pro.css?v=mtcen4r4" />
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="dash-pos-gentelella dash-gentelella">
@@ -157,18 +158,24 @@
               <p class="pos-resultados-vacio">Escaneá un código de barras o escribí para buscar productos.</p>
             </div>
           </div>
-          <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-camara" onclick="abrirModalScanner()" title="Escanear código de barras con la cámara de esta pantalla (F10 o 0)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            Cámara
-          </button>
-          <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-vincular-celular" onclick="abrirModalVincularCelular()" title="Usar el celular como lector de código de barras">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-            <span id="pos-btn-vincular-celular-label">Vincular celular</span>
-          </button>
-          <button type="button" class="pos-btn-buscar-articulo" onclick="abrirModalAtajos()" title="Ver todos los atajos de teclado (F1 o 1)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Atajos
-          </button>
+          <!-- v1023 — en mobile este grupo se compacta a una sola fila de
+               íconos (ver .pos-toolbar-acciones en pos.css, @media 640px);
+               display:contents en desktop lo deja transparente al layout
+               original (cada botón sigue siendo hijo directo del toolbar). -->
+          <div class="pos-toolbar-acciones">
+            <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-camara" onclick="abrirModalScanner()" title="Escanear código de barras con la cámara de esta pantalla (F10 o 0)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span class="pos-btn-texto">Cámara</span>
+            </button>
+            <button type="button" class="pos-btn-buscar-articulo" id="pos-btn-vincular-celular" onclick="abrirModalVincularCelular()" title="Usar el celular como lector de código de barras">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              <span id="pos-btn-vincular-celular-label" class="pos-btn-texto">Vincular celular</span>
+            </button>
+            <button type="button" class="pos-btn-buscar-articulo" onclick="abrirModalAtajos()" title="Ver todos los atajos de teclado (F1 o 1)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span class="pos-btn-texto">Atajos</span>
+            </button>
+          </div>
         </div>
 
         <!-- Fase 2 — ítem 13: Grilla de favoritos → tira de accesos rápidos tipo "productos frecuentes" de POS de supermercado -->
@@ -740,6 +747,21 @@
 
       <p id="hw-error" class="pos-turno-error" style="display:none"></p>
       <button type="button" class="btn btn--primary" id="btn-guardar-hardware" style="margin-top:10px" onclick="btnAsyncClick(this, guardarConfigHardware)">Guardar configuración</button>
+
+      <hr style="border:none;border-top:1px solid var(--color-border);margin:14px 0" />
+
+      <!-- v978: la config de etiquetas de precio/código de barras se movió
+           a Menú → Configuración → Etiquetas de precio (era config de
+           catálogo/empresa, no hardware físico de esta caja — no tenía
+           sentido que solo se pudiera tocar parado en el POS). Mismo
+           patrón de link-out que ya usa acá arriba la config de QR de
+           Mercado Pago. Ver PLAN_ETIQUETAS_PRECIO_CODIGO_BARRAS.md. -->
+      <p class="pos-sec-label">Etiquetas de precio / código de barras</p>
+      <p class="pos-cierre-sub">
+        Tamaño, código de barras y contenido de la etiqueta se configuran en
+        <a href="/admin/etiquetas-config" target="_blank" rel="noopener">Menú → Configuración → Etiquetas de precio</a>.
+        Es por empresa, no depende de esta caja.
+      </p>
     </div>
 
     <!-- Panel: Config POS — supervisor_pin, umbral descuento, log movimientos_caja -->
@@ -895,17 +917,17 @@
 <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
 <!-- v612 — genera el QR del modal "Vincular celular" (ver pos-scanner-remoto.js) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
 <script>
   window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'vendedor'];
 </script>
-<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
-<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
 
 <!-- ══ MODAL: Alta rápida de cliente (Fase 3) ══════════════════════════ -->
 <div class="pos-modal-overlay" id="modal-cliente-rapido-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-cr-tit" style="display:none">
@@ -1066,14 +1088,32 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
-<script src="/shared/offline-core.js?v1"></script>
-<script src="/frontend/admin/js/pos-offline.js?v2"></script>
-<script src="/frontend/admin/js/pos-printer.js?v1782700000000"></script>
-<script src="/frontend/shared/realtime.js?v1"></script>
-<script src="/frontend/admin/js/pos-terminal.js?v1782700000000"></script>
-<script src="/frontend/admin/js/pos-scanner.js?v1785878700000"></script>
-<script src="/frontend/admin/js/pos.js?v1786814815728"></script>
-<script src="/frontend/admin/js/pos-scanner-remoto.js?v1"></script>
+<script src="/shared/offline-core.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos-offline.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos-printer.js?v=mtcen4r4"></script>
+<!-- 543 — generador de etiquetas de precio/código de barras (Etapa 1) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="/frontend/admin/js/etiquetas-print.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/realtime.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos-terminal.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos-scanner.js?v=mtcen4r4"></script>
+<!-- pos.js (25/08/2026): partido por sección en frontend/admin/js/pos/ —
+     scripts clásicos cargados en el mismo orden que ocupaban en el archivo
+     original, para preservar el scope global compartido. Ver
+     docs/tecnico/ARQUITECTURA_ACTUAL.md. -->
+<script src="/frontend/admin/js/pos/nucleo.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/atajos-teclado.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/turnos-caja.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/busqueda-favoritos.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/carrito.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/cliente-cobro.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/ticket-facturacion.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/admin-ventas-stock.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/cliente-rapido-alertas.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/devoluciones-promos.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/offline-hooks.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos/hardware-config.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/pos-scanner-remoto.js?v=mtcen4r4"></script>
 
 <script>
 // Mostrar el grupo de caja (Movimiento/Reporte Z) solo cuando hay turno abierto

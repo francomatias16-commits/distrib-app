@@ -72,7 +72,7 @@ async function init() {
   const sess = (await sb.auth.getSession()).data.session;
   if (!sess) { location.href = '/admin/login'; return; }
 
-  const { data: perfil } = await sb.from('usuarios').select('nombre,rol,empresa_id').eq('id', sess.user.id).single();
+  const { data: perfil } = await window.conTimeoutRed(sb.from('usuarios').select('nombre,rol,empresa_id').eq('id', sess.user.id).single(), 10000);
   (document.getElementById('topbar-usuario') || {}).textContent = perfil?.nombre || '';
 
   // Fecha hoy en campos de pago
@@ -218,18 +218,18 @@ function renderTabla(lista) {
       : '';
 
     return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirFacturaExistente(facturasPorId['${f.id}'])">
-      <td style="font-weight:600;line-height:1.25">${window.sanitize(f.numero_factura)}${badgeDif}<div style="margin-top:2px;font-size:11px;font-weight:400;line-height:1;color:var(--color-text-muted)">${window.sanitize(f.tipo)}</div></td>
-      <td>${avatarProveedor(nomProv)}</td>
-      <td>${f.orden_id
+      <td data-label="N° Factura" style="font-weight:600;line-height:1.25">${window.sanitize(f.numero_factura)}${badgeDif}<div style="margin-top:2px;font-size:11px;font-weight:400;line-height:1;color:var(--color-text-muted)">${window.sanitize(f.tipo)}</div></td>
+      <td data-label="Proveedor">${avatarProveedor(nomProv)}</td>
+      <td data-label="OC vinculada">${f.orden_id
         ? `<a href="/admin/compras?orden=${f.orden_id}" style="color:var(--color-primary);text-decoration:none">${numOC}</a>`
         : '<span style="color:var(--color-text-muted)">Sin OC</span>'}</td>
-      <td>${fmtFecha(f.fecha_factura)}</td>
-      <td>${venceCell}</td>
-      <td style="text-align:left;font-weight:600">${moneda(f.total)}</td>
-      <td style="text-align:left;color:var(--color-success,#487050)">${moneda(f.total_pagado)}</td>
-      <td style="text-align:left;font-weight:600;color:${saldo > 0 ? 'var(--color-warning,#8A5F13)' : 'var(--color-text-muted)'}">${saldo > 0 ? moneda(saldo) : '—'}</td>
-      <td>${badgeEstado(f)}</td>
-      <td class="col-sticky-end">
+      <td data-label="Fecha">${fmtFecha(f.fecha_factura)}</td>
+      <td data-label="Vence">${venceCell}</td>
+      <td data-label="Total" style="text-align:left;font-weight:600">${moneda(f.total)}</td>
+      <td data-label="Pagado" style="text-align:left;color:var(--color-success,#487050)">${moneda(f.total_pagado)}</td>
+      <td data-label="Saldo" style="text-align:left;font-weight:600;color:${saldo > 0 ? 'var(--color-warning,#8A5F13)' : 'var(--color-text-muted)'}">${saldo > 0 ? moneda(saldo) : '—'}</td>
+      <td data-label="Estado">${badgeEstado(f)}</td>
+      <td class="col-sticky-end" data-label="Acciones">
         <div style="display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end">
           <button class="btn-tabla" onclick="abrirFacturaExistente(facturasPorId['${f.id}'])" title="Ver detalle">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -288,10 +288,7 @@ function renderTabla(lista) {
 
     // Posicionar debajo del botón, alineado a la derecha (el botón suele
     // estar pegado al borde derecho por ser columna sticky).
-    const r = btn.getBoundingClientRect();
-    menu.style.top  = `${r.bottom + 4}px`;
-    menu.style.left = 'auto';
-    menu.style.right = `${window.innerWidth - r.right}px`;
+    posicionarMenuFlotante(menu, btn);
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   });
@@ -304,6 +301,13 @@ function renderTabla(lista) {
   window.addEventListener('resize', cerrar);
   document.getElementById('tbody-facturas')?.addEventListener('scroll', cerrar);
   document.querySelector('.tabla-wrap')?.addEventListener('scroll', cerrar);
+  // El menú es position:fixed y la fila que lo abrió vive en la tabla,
+  // pero en mobile (vista de tarjetas) el contenedor de la tabla no tiene
+  // su propio scroll interno — quien scrollea es la página completa
+  // (window/body). Sin este listener, al scrollear la página el menú se
+  // queda "flotando" en la posición vieja (donde estaba el botón "⋮"
+  // cuando se abrió), ya desconectado de la fila real, en vez de cerrarse.
+  window.addEventListener('scroll', cerrar, { passive: true });
 })();
 
 // Índice rápido por id (usado en onclick inline)
@@ -782,11 +786,11 @@ async function cargarPagosTab(facturaId) {
 async function cargarChequesDisponibles() {
   const sel = document.getElementById('pago-cheque-id');
   sel.innerHTML = '<option value="">Cargando...</option>';
-  const { data, error } = await sb
+  const { data, error } = await window.conTimeoutRed(sb
     .from('cheques')
     .select('id, banco, numero, monto, fecha_vto, cliente_id, clientes(razon_social)')
     .in('estado', ['pendiente', 'en_cartera'])
-    .order('fecha_vto', { ascending: true });
+    .order('fecha_vto', { ascending: true }), 10000);
 
   if (error || !data?.length) {
     sel.innerHTML = '<option value="">No hay cheques en cartera disponibles</option>';

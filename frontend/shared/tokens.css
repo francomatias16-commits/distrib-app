@@ -177,6 +177,18 @@
      que ya existían (productos-modal-fix.css, skeletons.css, etc.) SÍ
      fueron migrados a estas variables — ver el segundo bloque de abajo
      y el CHANGELOG de la auditoría responsive Fase 1 (2026-08-22). */
+  /* Escala única de breakpoints (auditoría responsive, Fase 1 — 2026-08-25).
+     Documenta la convención; el CSS plano no permite var() dentro de un
+     @media, así que estos valores son la fuente de verdad EN TEXTO — todo
+     @media nuevo debe usar uno de estos 4 números exactos, no otro. Los 20
+     valores sueltos que había en el código (480/600/620/640/760px...) se
+     migran a esta escala de forma incremental en los archivos que se toquen,
+     no de golpe (ver PLAN_RESPONSIVE_MOBILE_COMPLETO.md, Fase 2). */
+  --bp-sm: 480px;   /* celular chico */
+  --bp-md: 640px;   /* celular grande / phablet — el corte real a "mobile" del panel admin */
+  --bp-lg: 900px;   /* tablet */
+  --bp-xl: 1200px;  /* desktop */
+
   --z-base:0; --z-raised:10; --z-dropdown:100;
   --z-sticky:200; --z-modal:400; --z-toast:600; --z-tooltip:800;
   --z-overlay-critical:9000;   /* "por encima de todo lo normal" (reemplaza al 9999 usado a mano) */

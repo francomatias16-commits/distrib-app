@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Captura y prospección de competencia — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/finanzas.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-fkpi.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
+  <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+
+  <style>
+    /* ── Captura de competencia — estilos propios de esta pantalla ── */
+    .cc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .cc-toolbar-filtros { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .cc-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--color-border); background: var(--color-bg); }
+
+    .cc-ahorro-pos { color: var(--color-success); font-weight: 700; }
+    .cc-ahorro-neg { color: var(--color-text-muted); }
+
+    /* Panel lateral de revisión (mismo esqueleto que .detalle-panel, más ancho) */
+    #panel-captura.detalle-panel { width: min(720px, 96vw); }
+
+    .cc-panel-foto-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--color-border); margin-bottom: 14px; background: var(--color-bg); }
+    .cc-panel-foto-wrap img { width: 100%; max-height: 260px; object-fit: contain; display: block; cursor: zoom-in; background: #111; }
+
+    .cc-meta-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--color-text-muted); margin-bottom: 14px; }
+    .cc-meta-row strong { color: var(--color-text); font-weight: 600; }
+
+    .cc-item {
+      border: 1px solid var(--color-border); border-radius: 10px; padding: 12px; margin-bottom: 10px;
+      background: var(--color-surface);
+    }
+    .cc-item.cc-item-descartado { opacity: .55; }
+    .cc-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .cc-item-original { font-size: 12px; color: var(--color-text-muted); font-style: italic; overflow-wrap: break-word; }
+    .cc-item-grid { display: grid; grid-template-columns: 1fr 90px 130px 130px; gap: 8px; align-items: end; }
+    .cc-item-grid label { display: block; font-size: 11px; color: var(--color-text-muted); margin-bottom: 3px; }
+    .cc-item-grid input, .cc-item-grid select { width: 100%; }
+    .cc-item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; flex-wrap: wrap; }
+    .cc-item-margen-warn { font-size: 12px; color: var(--color-danger); font-weight: 600; }
+
+    .cc-buscador-prod { position: relative; }
+    .cc-buscador-resultados {
+      position: absolute; z-index: 5; top: 100%; left: 0; right: 0;
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12); max-height: 220px; overflow-y: auto; margin-top: 4px;
+    }
+    .cc-buscador-resultado { padding: 8px 10px; font-size: 13px; cursor: pointer; }
+    .cc-buscador-resultado:hover { background: var(--color-bg); }
+
+    .cc-resumen-box { border-top: 1px solid var(--color-border); margin-top: 8px; padding-top: 14px; }
+    .cc-resumen-linea { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
+    .cc-resumen-linea.total { font-weight: 700; font-size: 16px; }
+
+    .cc-convertir-box { border: 1px dashed var(--color-border); border-radius: 10px; padding: 14px; margin-top: 14px; }
+    .cc-tabs-cliente { display: flex; gap: 6px; margin-bottom: 10px; }
+    .cc-tabs-cliente button { flex: 1; }
+    .cc-tabs-cliente button.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    @media (max-width: 640px) {
+      /* El buscador de "Producto propio" pasa a ocupar la fila entera —
+         a media columna (como quedaban las 4 columnas en 2x2) el
+         vendedor apenas ve 3-4 letras mientras escribe para buscar el
+         producto, justo el campo que más usa parado en el mostrador. */
+      .cc-item-grid { grid-template-columns: 1fr 1fr; }
+      .cc-item-grid .cc-buscador-prod { grid-column: 1 / -1; }
+    }
+    @media (max-width: 360px) {
+      /* Mobile muy chico (ej. Galaxy A series): ni cantidad/precios entran
+         cómodos a media columna sin achicarse demasiado para tocar bien. */
+      .cc-item-grid { grid-template-columns: 1fr; }
+    }
+
+    /* foto-input-wrap / btn-foto / foto-preview no vienen en el bundle base
+       de esta página (solo están en productos*.css) — versión propia,
+       mismo criterio visual que la usada en /chofer/remito.html. */
+    .foto-input-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .btn-foto {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 8px;
+      background: var(--color-surface); color: var(--color-text); font-size: 13px; cursor: pointer;
+    }
+    .btn-foto:hover { background: var(--color-bg); }
+    .foto-preview { display: none; max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid var(--color-border); object-fit: contain; }
+
+    @media (max-width: 640px) {
+      /* Botón "Tomar o adjuntar foto": es la acción principal de toda la
+         pantalla para el vendedor parado en el mostrador — área de toque
+         grande y ancho completo, no un botón chico como el resto. */
+      .btn-foto { width: 100%; padding: 14px; font-size: 14.5px; }
+
+      /* Toolbar de filtros: que el select y el botón "+ Nueva captura"
+         ocupen el ancho real en vez de quedar chicos y descentrados
+         cuando .tabla-header los pasa a su propia fila (flex-wrap ya
+         existente en finanzas.css). */
+      .cc-toolbar-filtros { width: 100%; }
+      .cc-toolbar-filtros select, .cc-toolbar-filtros button { flex: 1 1 0; }
+    }
+
+    /* Idem — .alerta / variantes usadas en /chofer, no en este bundle admin. */
+    .alerta { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; }
+    .alerta-err { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-mid, var(--color-danger)); }
+    .alerta-ok { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
+
+    /* ── Modal (zoom de foto / nueva captura) — bug real: esta página no
+       carga ninguna hoja de estilos propia (a diferencia de clientes.css,
+       productos.css, automatizacion.css, etc.), así que .modal-backdrop/
+       .modal quedaban sin position/z-index — el JS solo alterna
+       display:block/none (nunca una clase .open/.show, a diferencia del
+       patrón de panel lateral de componentes-admin.css), y .modal-titulo/
+       .modal-subtitulo/.modal-seccion no estaban definidas en ningún lado.
+       Centrado con position:fixed + transform en vez de flex en el
+       backdrop, porque el JS setea display:'block' en el backdrop, no
+       'flex' (mismo resultado visual, cero cambios en captura-competencia.js). */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: var(--z-modal-backdrop);
+    }
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: var(--z-modal);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 40px rgba(0,0,0,.18);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-titulo    { font-size: 17px; font-weight: 700; margin: 0; }
+    .modal-subtitulo { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+    .modal-seccion   { display: flex; flex-direction: column; gap: 4px; }
+
+    /* ── Prospección de competencia — estilos propios (ex prospectos-competencia.html,
+       unificada acá como pestaña "Prospección"; ver mostrarTabPrincipal) ── */
+    .pc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    .pc-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .pc-tabs button {
+      padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px;
+      background: var(--color-surface); color: var(--color-text); font-size: 13px; cursor: pointer;
+    }
+    .pc-tabs button.activo { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    .pc-ranking-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pc-ranking-toolbar select { min-width: 260px; }
+    .pc-distancia { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+
+    .pc-coords-estado { font-size: 12px; margin-top: 4px; min-height: 16px; }
+    .pc-coords-estado.ok  { color: var(--color-success); }
+    .pc-coords-estado.err { color: var(--color-danger); }
+
+    .pc-coords-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  </style>
+</head>
+<body class="dash-captura-competencia dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Captura de competencia</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+    Sacá una foto de la factura de un comercio no-cliente y compará ítem por ítem contra tu catálogo, con el margen mínimo siempre protegido. Si cierra, un toque lo convierte en cliente + pedido; si no, la captura queda guardada para retomarla después.
+  </div>
+
+  <!-- ── Fusión UX: "Captura" y "Prospección" dejaron de ser dos páginas/
+       secciones de menú separadas — ahora son dos pestañas de esta misma
+       puerta de entrada (mismo criterio que cobranzas.html fusionó
+       'Cobranzas' + 'Cuenta corriente' con cambiarVistaPrincipal/?vista=).
+       /admin/prospectos-competencia quedó como redirect acá con ?vista=prospeccion. -->
+  <div class="vista-principal-tabs" role="tablist" aria-label="Vista principal" style="display:flex;gap:8px;padding:0 24px;margin-top:-4px">
+    <button type="button" role="tab" aria-selected="true"  aria-controls="vista-captura-competencia"    class="tab-btn-principal active" id="vptab-captura"    onclick="cambiarVistaPrincipal('captura')">Captura</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="vista-prospectos-competencia" class="tab-btn-principal"        id="vptab-prospeccion" onclick="cambiarVistaPrincipal('prospeccion')">Prospección</button>
+  </div>
+
+  <main class="main" id="vista-captura-competencia">
+    <!-- Plan 1.7: métrica de éxito del piloto (tasa de cierre + tiempo
+         promedio foto→cierre). Mismo componente .franja-resumen-sololectura
+         que ya usa reglas-precio.js, sin CSS propio. -->
+    <div class="franja-resumen-sololectura" id="cc-kpis" style="display:none"></div>
+
+    <div class="tabla-wrap table-responsive-cards">
+      <div class="tabla-header">
+        <h2>Capturas</h2>
+        <div class="cc-toolbar-filtros">
+          <select id="cc-filtro-estado" onchange="ccFiltrar()">
+            <option value="">Todos los estados</option>
+            <option value="pendiente_revision">Pendiente de revisión</option>
+            <option value="revisado">Revisado (listo para convertir)</option>
+            <option value="convertido_pedido">Convertido en pedido</option>
+            <option value="descartado">Descartado</option>
+          </select>
+          <button type="button" class="btn btn-success" onclick="ccAbrirModalNueva()">+ Nueva captura</button>
+        </div>
+      </div>
+      <div class="tabla-overflow">
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th class="col-fit">Fecha</th>
+              <th class="col-fit" id="cc-th-vendedor" style="display:none">Vendedor</th>
+              <th>Proveedor competencia</th>
+              <th class="col-fit">Estado</th>
+              <th class="col-fit">Ahorro</th>
+              <th class="col-sticky-end col-fit">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cc-tbody"><tr><td colspan="6" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fase 2 (plan 2.5): ranking de ahorro acumulado por cliente. Oculto
+         por completo (sin error visible) para el rol vendedor — es un
+         reporte agregado de toda la empresa, no de sus propias capturas. -->
+    <div class="tabla-wrap table-responsive-cards" id="cc-ahorro-wrap" style="display:none">
+      <div class="tabla-header">
+        <h2>Ahorro acumulado por cliente</h2>
+      </div>
+      <div class="franja-resumen-sololectura" id="cc-ahorro-total" style="display:none"></div>
+      <div class="tabla-overflow">
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th class="col-fit">Ahorro acumulado</th>
+              <th class="col-fit">Pedidos con ahorro</th>
+              <th class="col-fit">Última actualización</th>
+            </tr>
+          </thead>
+          <tbody id="cc-ahorro-tbody"><tr><td colspan="4" class="tabla-loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Vista "Prospección" (ex prospectos-competencia.html) ── -->
+  <main class="main" id="vista-prospectos-competencia" style="display:none">
+    <div class="franja-resumen-sololectura" id="pc-kpis" style="display:none"></div>
+
+    <div class="pc-tabs">
+      <button type="button" id="pc-tab-bandeja" class="activo" onclick="pcCambiarTab('bandeja')">Bandeja</button>
+      <button type="button" id="pc-tab-ranking" onclick="pcCambiarTab('ranking')">Sobre una ruta</button>
+    </div>
+
+    <div id="pc-vista-bandeja">
+      <div class="tabla-wrap table-responsive-cards">
+        <div class="tabla-header pc-toolbar">
+          <h2>Prospectos</h2>
+          <button type="button" class="btn btn-success" onclick="pcAbrirModalNuevo()">+ Nuevo prospecto</button>
+        </div>
+        <div class="tabla-overflow">
+          <table class="tabla-admin">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th class="col-fit" id="pc-th-vendedor" style="display:none">Vendedor</th>
+                <th>Rubro</th>
+                <th class="col-fit">Estado</th>
+                <th class="col-sticky-end col-fit">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="pc-bandeja-tbody"><tr><td colspan="5" class="tabla-loading">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="pc-vista-ranking" style="display:none">
+      <div class="pc-ranking-toolbar">
+        <select id="pc-select-ruta" onchange="pcCargarRanking()">
+          <option value="">Elegí una ruta del día...</option>
+        </select>
+      </div>
+      <div class="tabla-wrap table-responsive-cards">
+        <div class="tabla-overflow">
+          <table class="tabla-admin">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Rubro</th>
+                <th class="col-fit">Distancia</th>
+                <th class="col-fit">Estado</th>
+                <th class="col-sticky-end col-fit">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="pc-ranking-tbody"><tr><td colspan="5" class="tabla-loading">Elegí una ruta para ver oportunidades.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Panel lateral: pantalla de revisión ── -->
+<div class="detalle-panel" id="panel-captura">
+  <div class="detalle-panel-header">
+    <h3 id="cc-panel-titulo">Revisión de captura</h3>
+    <button type="button" class="btn-cerrar-panel" onclick="ccCerrarPanel()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="detalle-panel-body" id="cc-panel-body">
+    <!-- contenido dinámico -->
+  </div>
+</div>
+
+<!-- ── Modal: zoom de foto ── -->
+<div class="modal-backdrop" id="cc-backdrop-zoom" onclick="ccCerrarZoom()" aria-hidden="true" style="display:none"></div>
+<div class="modal" id="cc-modal-zoom" style="display:none;max-width:min(900px,96vw);padding:8px;background:#111">
+  <img id="cc-zoom-img" style="width:100%;height:auto;max-height:88vh;object-fit:contain;display:block" alt="Factura de competencia ampliada">
+</div>
+
+<!-- ── Modal: nueva captura ── -->
+<div class="modal-backdrop" id="cc-backdrop-nueva" onclick="ccCerrarModalNueva()" aria-hidden="true" style="display:none"></div>
+<div class="modal" id="cc-modal-nueva" style="display:none;max-width:480px">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo">Nueva captura</h2>
+      <div class="modal-subtitulo">Foto de la factura o remito del competidor</div>
+    </div>
+    <button type="button" class="modal-close" onclick="ccCerrarModalNueva()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-seccion">
+    <div id="cc-nueva-alerta" class="alerta" style="display:none"></div>
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Proveedor de la competencia (opcional, si el comercio lo dice)</label>
+    <input type="text" id="cc-nueva-proveedor" style="width:100%;margin-bottom:10px" placeholder="Ej: Distribuidora XYZ">
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Foto</label>
+    <div class="foto-input-wrap">
+      <button type="button" class="btn-foto" id="cc-btn-tomar-foto">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Tomar o adjuntar foto
+      </button>
+      <input type="file" id="cc-input-foto" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
+      <img id="cc-preview-foto" class="foto-preview" alt="Vista previa de la factura">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn--ghost" onclick="ccCerrarModalNueva()">Cancelar</button>
+    <button type="button" class="btn btn-success" id="cc-btn-crear-captura" onclick="ccCrearCaptura()">Analizar factura</button>
+  </div>
+</div>
+
+<!-- ── Modal: nuevo prospecto (ex prospectos-competencia.html) ── -->
+<div class="modal-backdrop" id="pc-backdrop-nuevo" onclick="pcCerrarModalNuevo()" aria-hidden="true" style="display:none"></div>
+<div class="modal" id="pc-modal-nuevo" style="display:none;max-width:480px">
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-titulo">Nuevo prospecto</h2>
+      <div class="modal-subtitulo">Comercio no-cliente que querés priorizar visitar</div>
+    </div>
+    <button type="button" class="modal-close" onclick="pcCerrarModalNuevo()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-seccion">
+    <div id="pc-nueva-alerta" class="alerta" style="display:none"></div>
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Nombre del comercio</label>
+    <input type="text" id="pc-nuevo-nombre" style="width:100%;margin-bottom:10px" placeholder="Ej: Almacén Don José">
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Rubro (opcional)</label>
+    <input type="text" id="pc-nuevo-rubro" style="width:100%;margin-bottom:10px" placeholder="Ej: Almacén, kiosco, verdulería...">
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Dirección (opcional, descriptiva)</label>
+    <input type="text" id="pc-nuevo-direccion" style="width:100%;margin-bottom:10px" placeholder="Ej: Av. San Martín al 1200">
+
+    <label style="font-size:13px;color:var(--color-text-muted)">Ubicación</label>
+    <button type="button" class="btn btn--ghost" style="width:100%;margin-bottom:6px" onclick="pcUsarUbicacionActual()">Usar mi ubicación actual</button>
+    <div class="pc-coords-grid">
+      <input type="number" step="0.000001" id="pc-nuevo-lat" placeholder="Latitud">
+      <input type="number" step="0.000001" id="pc-nuevo-lng" placeholder="Longitud">
+    </div>
+    <div class="pc-coords-estado" id="pc-coords-estado"></div>
+
+    <label style="font-size:13px;color:var(--color-text-muted);margin-top:10px">Notas (opcional)</label>
+    <textarea id="pc-nuevo-notas" style="width:100%;margin-bottom:10px" rows="2" placeholder="Lo que valga la pena recordar para la visita"></textarea>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn--ghost" onclick="pcCerrarModalNuevo()">Cancelar</button>
+    <button type="button" class="btn btn-success" id="pc-btn-guardar-nuevo" onclick="pcGuardarNuevo()">Guardar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+<script>
+  // Sin esto, auth.js gatea con el default ['dueno','admin'] (ver
+  // auth.js: "Acceso por defecto") y el vendedor de campo — el usuario
+  // PRINCIPAL de esta pantalla según PLAN_CAPTURA_COMPETENCIA.md 1.2
+  // ("Vendedor abre 'Nueva captura' desde la app") — queda deslogueado
+  // al entrar, pese a que permisos-service.js sí lo autoriza server-side
+  // (captura_competencia: crear/leer/confirmar/convertir incluyen
+  // 'vendedor'). Mismo patrón que pos.html.
+  window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'vendedor'];
+</script>
+<script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/captura-competencia.js?v=mtcen4r4"></script>
+</body>
+</html>

@@ -7,7 +7,18 @@
   'use strict';
 
   // Configuración
-  const AUTH_TIMEOUT_MS = 15000; // 15 segundos
+  // FIX (reportado: "en la demo no carga y al rato vuelve al login"):
+  // auth.js resuelve window.authCtx recién después de cargarPerfilConReintento(),
+  // que en el peor caso (varios timeouts de red/consulta lenta, algo más
+  // probable en el tenant demo público por su carga concurrente) puede tardar
+  // hasta 4 intentos × 10s + backoff de 900/2000/4000ms entre medio ≈ 47s.
+  // Con AUTH_TIMEOUT_MS en 15s, esta "puerta única" se rendía y redirigía a
+  // /admin/login (ver api-client.js) MIENTRAS auth.js seguía reintentando en
+  // segundo plano con una sesión en realidad válida. Se sube a 50s para que
+  // siempre sea mayor al peor caso real de auth.js — evita el falso timeout
+  // sin tocar la lógica de reintentos (que existe a propósito, ver Etapa 3/4
+  // en auth.js).
+  const AUTH_TIMEOUT_MS = 50000; // 50 segundos
   const POLL_INTERVAL   = 50;    // polling fallback cada 50ms
 
   let __authResolve, __authReject;

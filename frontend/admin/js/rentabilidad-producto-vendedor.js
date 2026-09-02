@@ -270,13 +270,13 @@ function renderVistaPorProducto() {
     ).join(' ');
 
     return `<tr class="${trClass}">
-      <td><strong>${esc(p.producto_nombre)}</strong></td>
-      <td>${p.categoria_nombre ? esc(p.categoria_nombre) : '<span style="color:var(--color-text-light);">Sin categoría</span>'}</td>
-      <td>${fmtNum(p.cantidad)}</td>
-      <td>${fmtPeso(p.facturado)}</td>
-      <td class="${claseMargen}">${fmtPeso(p.margen)}</td>
-      <td class="${claseMargen}">${margenPct != null ? margenPct + '%' : '—'}</td>
-      <td>${origenChips}</td>
+      <td data-label="Producto"><strong>${esc(p.producto_nombre)}</strong></td>
+      <td data-label="Categoría">${p.categoria_nombre ? esc(p.categoria_nombre) : '<span style="color:var(--color-text-light);">Sin categoría</span>'}</td>
+      <td data-label="Cantidad vendida">${fmtNum(p.cantidad)}</td>
+      <td data-label="Facturado">${fmtPeso(p.facturado)}</td>
+      <td class="${claseMargen}" data-label="Margen">${fmtPeso(p.margen)}</td>
+      <td class="${claseMargen}" data-label="Margen %">${margenPct != null ? margenPct + '%' : '—'}</td>
+      <td data-label="Origen">${origenChips}</td>
     </tr>`;
   }).join('');
 
@@ -315,12 +315,12 @@ function renderVistaPorVendedor() {
     ).join(' ');
 
     return `<tr class="${trClass}">
-      <td><strong>${v.vendedor_nombre ? esc(v.vendedor_nombre) : '<span style="color:var(--color-text-light);">Sin vendedor asignado</span>'}</strong></td>
-      <td>${fmtNum(v.documentos)}</td>
-      <td>${fmtPeso(v.facturado)}</td>
-      <td class="${claseMargen}">${fmtPeso(v.margen)}</td>
-      <td class="${claseMargen}">${margenPct != null ? margenPct + '%' : '—'}</td>
-      <td>${origenChips}</td>
+      <td data-label="Vendedor"><strong>${v.vendedor_nombre ? esc(v.vendedor_nombre) : '<span style="color:var(--color-text-light);">Sin vendedor asignado</span>'}</strong></td>
+      <td data-label="Documentos">${fmtNum(v.documentos)}</td>
+      <td data-label="Facturado">${fmtPeso(v.facturado)}</td>
+      <td class="${claseMargen}" data-label="Margen">${fmtPeso(v.margen)}</td>
+      <td class="${claseMargen}" data-label="Margen %">${margenPct != null ? margenPct + '%' : '—'}</td>
+      <td data-label="Origen">${origenChips}</td>
     </tr>`;
   }).join('');
 

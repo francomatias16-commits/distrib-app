@@ -66,14 +66,9 @@
       // idempotency_key hace seguro reintentar aunque este intento también
       // falle por red — el pedido nunca se duplica.
       if (!r.ok) {
-        // Etapa 4 — UI de conflicto. El único 409 real que devuelve
-        // /api/pedidos?accion=confirmar es tipo:'stock_insuficiente'
-        // (crear_pedido_cliente, migración 115): alguien más vendió el
-        // producto mientras el pedido esperaba offline con ese carrito.
-        // No tiene sentido reintentar a ciegas con la misma cantidad — el
-        // usuario tiene que revisar el carrito. Cualquier otro status
-        // (500, red caída, etc.) sigue siendo un error transitorio y
-        // reintenta normal como antes.
+        // Etapa 4 — UI de conflicto. El 409 de stock_insuficiente
+        // (crear_pedido_cliente, migración 115) es el caso ya cubierto: no
+        // tiene sentido reintentar a ciegas con la misma cantidad.
         if (r.status === 409 && data.tipo === 'stock_insuficiente') {
           const err = new Error(data.error || 'El stock cambió mientras el pedido esperaba sin conexión');
           err.conflicto = true;
@@ -81,6 +76,25 @@
           err.datosConflicto = { error: data.error || null };
           throw err;
         }
+        // Hallazgo menor (auditoría Etapa 5): 403 cliente_bloqueado — el
+        // cliente pasó a tener deuda vencida MIENTRAS el pedido esperaba en
+        // la cola (confirmarPedidoHandler lo revalida en cada intento, no
+        // solo en el original). Antes esto caía al Error genérico de más
+        // abajo: no es un error transitorio de red, así que reintentaba a
+        // ciegas hasta agotar maxIntentos y terminaba en 'error_permanente'
+        // sin que el cliente viera nunca el motivo. Es una decisión de
+        // negocio evaluada contra el estado real (igual que
+        // stock_insuficiente) — el cliente puede reintentar cuando regularice
+        // la deuda, o descartar el pedido desde el mismo modal de conflicto.
+        if (r.status === 403 && data.error === 'cliente_bloqueado') {
+          const err = new Error(data.mensaje || 'Tu cuenta tiene deuda vencida.');
+          err.conflicto = true;
+          err.tipoConflicto = 'cliente_bloqueado';
+          err.datosConflicto = { error: data.mensaje || null };
+          throw err;
+        }
+        // Cualquier otro status (500, red caída, etc.) sigue siendo un
+        // error transitorio y reintenta normal como antes.
         throw new Error(data.error || data.mensaje || `HTTP ${r.status}`);
       }
       return data;
@@ -110,6 +124,13 @@
       // Texto del modal de resolución de conflictos (offline-core.js).
       formatoConflicto: (reg) => {
         const d = reg.conflicto_datos || {};
+        if (reg.conflicto_tipo === 'cliente_bloqueado') {
+          return {
+            titulo:  'Pedido: la cuenta quedó con deuda vencida mientras esperaba sin conexión',
+            detalle: (d.error || 'Tu cuenta tiene deuda vencida.') +
+                      ' Regularizá con tu vendedor y reintentá, o descartá el pedido.',
+          };
+        }
         return {
           titulo:  'Pedido: el stock cambió mientras estabas sin conexión',
           detalle: (d.error || 'Uno o más productos ya no tienen stock suficiente.') +
@@ -132,6 +153,21 @@
 
     syncTag: 'sync-cliente-outbox',
   });
+
+  // Defensa en profundidad: OfflineCore.crearOutbox() NO tira excepción si
+  // Dexie no está cargado — devuelve `null` a propósito (ver offline-core.js,
+  // rama `typeof Dexie === 'undefined'`), para que un módulo pueda decidir
+  // su propio fallback. Sin este guard, cualquier uso de outbox.* de más
+  // abajo tira un TypeError síncrono DENTRO de este IIFE y
+  // window.ClienteOffline nunca llega a asignarse — el carrito del cliente
+  // queda sin ningún rastro de por qué (mismo síntoma que "el script no
+  // cargó", pero mucho más difícil de diagnosticar porque el resto de la
+  // página sigue funcionando normal). Mismo fix que ya tenía
+  // proveedor-offline.js (OFFLINE-02).
+  if (!outbox) {
+    console.error('[ClienteOffline] OfflineCore.crearOutbox() devolvió null — Dexie no estaba disponible. Sin soporte offline en esta carga.');
+    return;
+  }
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 

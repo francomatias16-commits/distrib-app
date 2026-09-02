@@ -79,22 +79,22 @@ export class ProveedoresPage extends PageObjectBase {
   get infoPagina() { return this.page.locator('#info-pag-proveedores'); }
 
   // ── Acciones de fila (onclick inline, ver renderTabla()) ────────────────
-  // (2026-08-19, cierre del Hallazgo #6 — PLAN_UNIFICACION_UX_ADMIN.md §17)
-  // Editar/Dar de baja/Activar siguen siendo botones .btn-tabla visibles en
-  // la fila. Compras/Portal se movieron a un menú "⋮" flotante (mismo patrón
-  // que Cheques/Notas de crédito — #menu-acciones-proveedor, compartido por
-  // todas las filas, reposicionado por JS al abrir) — ya NO son
-  // button.btn-tabla, hay que abrir el kebab primero.
+  // (2026-08-19, cierre del Hallazgo #6 — PLAN_UNIFICACION_UX_ADMIN.md §17;
+  // actualizado v995) Editar/Portal/Dar de baja/Activar son botones
+  // .btn-tabla visibles directo en la fila. Solo Compras sigue en el menú
+  // "⋮" flotante (mismo patrón que Cheques/Notas de crédito —
+  // #menu-acciones-proveedor, compartido por todas las filas, reposicionado
+  // por JS al abrir) — hay que abrir el kebab primero para llegar a ella.
   botonEditar(id)    { return this.fila(id).locator('button.btn-tabla', { hasText: 'Editar' }); }
+  botonPortal(id)    { return this.fila(id).locator('button.btn-tabla', { hasText: 'Portal' }); }
   botonDesactivar(id) { return this.fila(id).locator('button.btn-tabla.peligro', { hasText: 'Dar de baja' }); }
   botonActivar(id)   { return this.fila(id).locator('button.btn-tabla.primario', { hasText: 'Activar' }); }
   botonKebab(id)     { return this.fila(id).locator('button.btn-kebab'); }
 
   get menuAcciones()      { return this.page.locator('#menu-acciones-proveedor'); }
   get botonMenuCompras()  { return this.menuAcciones.locator('.dropdown-item', { hasText: 'Compras' }); }
-  get botonMenuPortal()   { return this.menuAcciones.locator('.dropdown-item', { hasText: 'Portal' }); }
 
-  /** Abre el menú "⋮" de una fila (Compras / Portal). */
+  /** Abre el menú "⋮" de una fila (Compras). */
   async abrirMenuAcciones(id) {
     await this.botonKebab(id).click();
     await expect(this.menuAcciones).toBeVisible();
@@ -185,8 +185,7 @@ export class ProveedoresPage extends PageObjectBase {
   get portalError() { return this.page.locator('.portal-error'); }
 
   async abrirPortalFila(id) {
-    await this.abrirMenuAcciones(id);
-    await this.botonMenuPortal.click();
+    await this.botonPortal(id).click();
     await expect(this.modalPortal).toBeVisible();
   }
 

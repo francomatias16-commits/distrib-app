@@ -42,8 +42,30 @@ export class FacturacionPage extends PageObjectBase {
     return this.page.locator(`[data-testid="factura-fila"][data-id="${facturaId}"]`);
   }
 
+  btnKebabFila(facturaId) {
+    return this.page.locator(`.btn-kebab-factura[data-factura-id="${facturaId}"]`);
+  }
+
+  get menuAcciones() { return this.page.locator('#menu-acciones-factura'); }
+
+  /** Abre el menú "⋮" flotante de la fila — reintentar/PDF viven ahí, no directo en la fila. */
+  async abrirMenuAcciones(facturaId) {
+    await this.btnKebabFila(facturaId).click();
+    await expect(this.menuAcciones).toBeVisible();
+  }
+
   btnReintentarFila(facturaId) {
     return this.page.locator(`#btn-reintentar-${facturaId}`);
+  }
+
+  btnPdfFila(facturaId) {
+    return this.page.locator(`#btn-pdf-${facturaId}`);
+  }
+
+  /** Abre el kebab de la fila y clickea "Reintentar emisión" en el menú flotante. */
+  async reintentarFila(facturaId) {
+    await this.abrirMenuAcciones(facturaId);
+    await this.btnReintentarFila(facturaId).click();
   }
 
   async abrirDetallePorId(facturaId) {

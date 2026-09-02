@@ -28,6 +28,7 @@ const {
   actualizarFechaEsperadaOrden,
   obtenerOrdenCompraParaFactura,
   insertarFacturaProveedorPortal,
+  buscarFacturaProveedorPorOfflineLocalId,
 } = await import('../../lib/repos/portal-proveedor.js');
 
 function fakeQuery(result) {
@@ -220,5 +221,40 @@ describe('insertarFacturaProveedorPortal', () => {
     dbMock.from.mockReturnValue(fakeQuery({ data: row, error: null }));
     const data = await insertarFacturaProveedorPortal({ empresa_id: 'e1', proveedor_id: 'p1', numero_factura: 'F1' });
     expect(data).toEqual(row);
+  });
+
+  it('OFFLINE-05: con offline_local_id ya existente, no llama a insert() — devuelve la fila existente con ya_existia:true', async () => {
+    const existente = { id: 'f1', numero_factura: 'F1', estado: 'pendiente' };
+    const query = fakeQuery({ data: existente, error: null });
+    dbMock.from.mockReturnValue(query);
+    const data = await insertarFacturaProveedorPortal({
+      empresa_id: 'e1', proveedor_id: 'p1', numero_factura: 'F1', offline_local_id: 'loc-1',
+    });
+    expect(data).toEqual({ ...existente, ya_existia: true });
+    expect(query.insert).not.toHaveBeenCalled();
+  });
+});
+
+describe('buscarFacturaProveedorPorOfflineLocalId', () => {
+  it('OFFLINE-05: sin offline_local_id, devuelve null sin consultar la base', async () => {
+    const data = await buscarFacturaProveedorPorOfflineLocalId('e1', null);
+    expect(data).toBeNull();
+    expect(dbMock.from).not.toHaveBeenCalled();
+  });
+
+  it('OFFLINE-05: filtra por empresa_id Y offline_local_id, devuelve null si no existe', async () => {
+    const query = fakeQuery({ data: null, error: null });
+    dbMock.from.mockReturnValue(query);
+    const data = await buscarFacturaProveedorPorOfflineLocalId('empresa-1', 'loc-1');
+    expect(query.eq).toHaveBeenCalledWith('empresa_id', 'empresa-1');
+    expect(query.eq).toHaveBeenCalledWith('offline_local_id', 'loc-1');
+    expect(data).toBeNull();
+  });
+
+  it('OFFLINE-05: devuelve la factura si ya existe (permite al handler cortar ANTES de subir el archivo)', async () => {
+    const existente = { id: 'f1', numero_factura: 'F1', archivo_url: 'ya-subido.pdf' };
+    dbMock.from.mockReturnValue(fakeQuery({ data: existente, error: null }));
+    const data = await buscarFacturaProveedorPorOfflineLocalId('empresa-1', 'loc-1');
+    expect(data).toEqual(existente);
   });
 });

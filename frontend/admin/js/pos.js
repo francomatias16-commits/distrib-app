@@ -2296,7 +2296,7 @@ window.cambiarTabAdmin = function (tab) {
   else if (tab === 'favoritos-tab') cargarFavoritosAdmin();
   else if (tab === 'devoluciones') iniciarPanelDevoluciones();
   else if (tab === 'promociones') iniciarPanelPromociones();
-  else if (tab === 'hardware') cargarConfigHardware();
+  else if (tab === 'hardware') { cargarConfigHardware(); }
   else if (tab === 'config-pos') iniciarPanelConfigPos();
 };
 
@@ -3392,6 +3392,12 @@ window.guardarConfigHardware = async function () {
     btn.disabled = false;
   }
 };
+
+// v978: la config de etiquetas de precio/código de barras (config_etiquetas)
+// se movió de acá a su propia pantalla — Menú → Configuración → Etiquetas
+// de precio (frontend/admin/etiquetas-config.html) — porque es config de
+// catálogo/empresa, no hardware físico de esta caja. Ver
+// PLAN_ETIQUETAS_PRECIO_CODIGO_BARRAS.md y CHANGELOG_v978.
 
 // ══════════════════════════════════════════════════════════════════════════
 // ── Pestaña Config POS (PIN supervisor, umbral por cajero, log de caja) ────

@@ -79,13 +79,46 @@
     // .single()) es un caso real de "usuario no encontrado/inactivo" y no
     // tiene sentido reintentar; cualquier otro error (timeout, red, 5xx)
     // se considera transitorio y se reintenta una vez con feedback visible.
-    async function cargarPerfilConReintento(intentosRestantes = 2) {
-      const { data, error } = await sb
-        .from('usuarios')
-        .select('id, nombre, email, rol, empresa_id, solo_lectura')
-        .eq('id', session.user.id)
-        .eq('activo', true)
-        .single();
+    // Etapa 4 (hallazgo Crítico — reportado: "entro bien, veo el dashboard
+    // y al segundo vuelve al login con error=red" en un caso donde los
+    // logs del servidor mostraban 200 OK en TODAS las consultas): el bug
+    // no era del backend, era la reacción de este código ante cualquier
+    // ambigüedad. Antes, cualquier error que no fuera exactamente
+    // PGRST116 (0 filas) — un blip de un segundo, una respuesta que
+    // tardó de más por la congestión de cargar 20+ recursos del dashboard
+    // en simultáneo, lo que sea — hacía signOut() inmediato y mandaba al
+    // login. Eso destruye una sesión que en realidad seguía siendo
+    // válida, por una falla que ni siquiera había llegado a confirmarse
+    // como real. Ahora: más reintentos con backoff creciente (en vez de
+    // uno solo a los 900ms), y el signOut+redirect a login solo se
+    // dispara cuando PGRST116 confirma que el usuario no existe o está
+    // inactivo. Cualquier otro error, agotados los reintentos, deja la
+    // sesión intacta y muestra un estado de error recuperable en vez de
+    // deslogear a alguien que sigue con una sesión perfectamente válida.
+    async function cargarPerfilConReintento(intentosRestantes = 4, intentoNro = 0) {
+      // FIX: conTimeoutRed() RECHAZA la promesa cuando corta por timeout
+      // (ver ui-utils.js — Promise.race contra un timer que hace reject).
+      // No devuelve { data, error } en ese caso como sí hace el cliente de
+      // Supabase ante un error de la API. Sin este try/catch, un timeout
+      // real (sin conexión, o señal intermitente que cuelga los 10s) tira
+      // una excepción sin atrapar acá adentro, que sube sin capturar por
+      // toda la IIFE async: window.authCtx nunca se setea, authReady nunca
+      // se dispara, y nav.js/el resto de la página quedan a medio pintar.
+      // Es el mismo bug reportado ("dashboard anda offline, el resto del
+      // menú se rompe"): el dashboard sobrevive porque suele servirse
+      // desde el caché de sessionStorage (TTL 5 min) sin pasar por acá; en
+      // cuanto ese caché vence y toca una página que sí re-consulta, explota.
+      let data, error;
+      try {
+        ({ data, error } = await window.conTimeoutRed(sb
+          .from('usuarios')
+          .select('id, nombre, email, rol, empresa_id, solo_lectura')
+          .eq('id', session.user.id)
+          .eq('activo', true)
+          .single(), 10000));
+      } catch (e) {
+        error = { code: 'TIMEOUT_RED', message: e?.message || 'timeout' };
+      }
 
       if (!error) return { perfilDB: data, error: null };
 
@@ -96,8 +129,12 @@
 
       if (intentosRestantes > 1) {
         window.mostrarToast?.('No pudimos verificar tu sesión, reintentando…', 'warning');
-        await new Promise((r) => setTimeout(r, 900));
-        return cargarPerfilConReintento(intentosRestantes - 1);
+        // Backoff creciente (0.9s, 2s, 4s) en vez de un único reintento a
+        // los 900ms — le da tiempo real a un blip transitorio de red o a
+        // que baje la congestión inicial del dashboard antes de rendirse.
+        const espera = [900, 2000, 4000][intentoNro] ?? 4000;
+        await new Promise((r) => setTimeout(r, espera));
+        return cargarPerfilConReintento(intentosRestantes - 1, intentoNro + 1);
       }
 
       return { perfilDB: null, error };
@@ -105,25 +142,53 @@
 
     const { perfilDB, error } = await cargarPerfilConReintento();
 
+    if (error?.code === 'PGRST116') {
+      // Único caso confirmado y no transitorio: no existe o está inactivo.
+      console.error('[auth] Usuario inactivo o inexistente:', { code: error.code });
+      await sb.auth.signOut();
+      window.location.href = '/admin/login?error=usuario_inactivo';
+      return;
+    }
+
     if (error || !perfilDB) {
       // Log completo (código + status), no solo el mensaje, para diagnóstico real.
-      console.error('[auth] Error cargando perfil:', {
+      console.error('[auth] No se pudo verificar el perfil tras reintentar (sesión NO cerrada):', {
         code: error?.code, message: error?.message, status: error?.status,
       });
-      await sb.auth.signOut();
-      const motivo = error?.code === 'PGRST116' ? 'usuario_inactivo' : 'red';
-      window.location.href = '/admin/login?error=' + motivo;
+      // No deslogueamos: la sesión sigue siendo válida, lo que falló fue
+      // esta consulta puntual. Deslogear acá era el bug — obligaba a
+      // volver a loguearse para toparse con el mismo problema de nuevo.
+      // Mostramos un estado recuperable y dejamos que el usuario reintente
+      // (F5) sin perder la sesión.
+      document.body.innerHTML = `
+        <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; padding:24px; text-align:center; font-family:inherit;">
+          <p style="max-width:420px; color:#7c2d12;">No pudimos verificar tu perfil por un problema puntual de conexión, pero tu sesión sigue activa. Probá recargar la página.</p>
+          <button onclick="window.location.reload()" style="padding:10px 24px; border-radius:8px; border:1px solid #1e40af; background:#1e40af; color:#fff; cursor:pointer;">Reintentar</button>
+        </div>`;
       return;
     }
 
     perfil = perfilDB;
 
     // Cargar empresa en query separada (evita RLS circular en join)
-    const { data: empresaData } = await sb
-      .from('empresas')
-      .select('id, nombre, logo_url, cuit, activa, saas_suspendida, saas_plan, saas_trial_fin, saas_precio_mes')
-      .eq('id', perfil.empresa_id)
-      .single();
+    // FIX: mismo problema que en cargarPerfilConReintento — conTimeoutRed()
+    // rechaza la promesa en un timeout real, no devuelve { data, error }.
+    // Sin try/catch acá, esa excepción tampoco la agarraba nadie y crasheaba
+    // la IIFE completa un nivel más arriba (ya con perfil de usuario
+    // cargado, pero sin llegar nunca a pintar authCtx). Un fallo acá cae en
+    // la misma rama que ya existía para "empresaData vacío": objeto mínimo,
+    // sin marcar empresaResuelta, para que la próxima carga reintente.
+    let empresaData;
+    try {
+      ({ data: empresaData } = await window.conTimeoutRed(sb
+        .from('empresas')
+        .select('id, nombre, logo_url, cuit, activa, saas_suspendida, saas_plan, saas_trial_fin, saas_precio_mes, config')
+        .eq('id', perfil.empresa_id)
+        .single(), 10000));
+    } catch (e) {
+      console.warn('[auth] Timeout/red cargando empresa (no fatal, se usa fallback mínimo):', e?.message);
+      empresaData = null;
+    }
 
     // v85: verificar que la empresa esté activa (no suspendida/dada de baja)
     if (empresaData && empresaData.activa === false) {
@@ -149,7 +214,7 @@
       // (auditoría v70, 3.1a) — si fallaba por timing de RLS, fallaba igual la
       // segunda vez. Usamos un objeto mínimo y NO marcamos empresaResuelta,
       // así esta carga no se cachea y la próxima página reintenta de verdad.
-      perfil.empresas = { id: perfil.empresa_id, nombre: '', logo_url: null, cuit: null };
+      perfil.empresas = { id: perfil.empresa_id, nombre: '', logo_url: null, cuit: null, config: null };
     }
 
     // Solo cacheamos resultados "buenos" — si la empresa no se resolvió,
@@ -171,6 +236,23 @@
   }
 
   window.authCtx = { user: session.user, session, perfil, sb };
+
+  // FIX (reportado: "en la demo no carga y al rato vuelve al login"): sb
+  // refresca el access_token solo en segundo plano (autoRefreshToken, on por
+  // default), pero window.authCtx.session quedaba fijo con el token del
+  // momento del login. Las queries directas (sb.from(...), la mayoría del
+  // panel) usan el cliente vivo y por eso nunca se rompían; api-client.js
+  // (window.api, usado por el panel de KPIs) en cambio leía ese token
+  // congelado a mano — apenas vencía, el backend devolvía 401 y eso
+  // redirigía a /admin/login aunque la sesión real siguiera activa. Se
+  // mantiene authCtx.session al día en cada refresh/sign-in para que ambos
+  // caminos (directo y vía api-client) usen siempre el token vigente.
+  sb.auth.onAuthStateChange((_event, nuevaSession) => {
+    if (window.authCtx && nuevaSession) {
+      window.authCtx.session = nuevaSession;
+      window.authCtx.user = nuevaSession.user;
+    }
+  });
 
   // Notificar a auth-ready.js (Etapa 2) y a nav.js (compatibilidad legado)
   window.dispatchEvent(new CustomEvent('authReady'));
@@ -222,44 +304,17 @@
   // Sin roles internos: no hay restricciones visuales ni de menú que aplicar.
   // (dueño/admin ven el panel completo)
 
-  // ── 456: banner de modo demostración (usuario solo_lectura) ─────────────
-  // El bloqueo real de escritura vive en el backend (dispatcher, ver
-  // lib/solo-lectura.js) — esto es solo la señal visual para que quien
-  // entra por "Ver demo en vivo" sepa que puede navegar todo el sistema
-  // pero los guardados no se van a aplicar.
+  // ── 456→v988: se sacó por completo el banner de "demostración en vivo".
+  // Con el drawer mobile abierto, el banner (sticky, z-index:10000) quedaba
+  // pintado por encima del propio drawer (z-index:691) y tapaba el botón
+  // para volver al dashboard — la variable --demo-banner-h que corría el FAB
+  // hamburguesa no alcanzaba a los ítems de navegación *dentro* del drawer.
+  // En vez de seguir sumando parches de z-index/offset para un aviso
+  // puramente informativo, se elimina directamente: el bloqueo real de
+  // escritura en modo solo_lectura sigue viviendo en el backend (dispatcher,
+  // ver lib/solo-lectura.js) y no depende de este aviso visual.
   if (perfil.solo_lectura) {
     document.body.classList.add('modo-demo-solo-lectura');
-    const banner = document.createElement('div');
-    banner.id = 'banner-demo-solo-lectura';
-    banner.textContent = 'Estás viendo una demostración en vivo — podés navegar todo el sistema, pero los cambios no se guardan.';
-    banner.style.cssText = [
-      'position:sticky', 'top:0', 'left:0', 'right:0', 'z-index:10000',
-      'background:#6A9873', 'color:#fff', 'font:600 13px/1.4 var(--sans, system-ui)',
-      'text-align:center', 'padding:8px 16px',
-      // 456-fix: flex:none + width:100% son un respaldo explícito por si
-      // este banner terminara insertado (por error o por HTML futuro que
-      // cambie la jerarquía) como flex-item de un contenedor en fila —
-      // evita que vuelva a estirarse verticalmente como pasó cuando se
-      // insertaba en `body` (display:flex, fila).
-      'flex:none', 'width:100%',
-    ].join(';');
-    // 456-fix (bug real, no extensión): `body` es `display:flex` SIN
-    // flex-direction, es decir fila (sidebar + .layout uno al lado del
-    // otro). Insertar el banner con document.body.prepend() lo convertía
-    // en un tercer flex-item de esa fila y, al no tener ancho propio,
-    // `align-items:stretch` (default) lo estiraba a 100% de la altura →
-    // la franja naranja de pantalla completa que tapaba todo el admin.
-    // `.layout` en cambio es flex-direction:column, así que insertarlo
-    // ahí lo vuelve una barra normal arriba del contenido, y el
-    // `position:sticky` funciona como corresponde dentro de esa columna.
-    const layoutEl = document.querySelector('.layout');
-    if (layoutEl) {
-      layoutEl.prepend(banner);
-    } else {
-      // Fallback por si alguna página no tiene `.layout` (no debería pasar
-      // en el admin, pero mejor no romper el login si faltara el selector).
-      document.body.prepend(banner);
-    }
   }
 
   // ── Helpers globales ───────────────────────────────────────────────────
@@ -316,10 +371,10 @@
     // Elimina la condición de carrera donde dos usuarios concurrentes
     // podían obtener el mismo número de comprobante.
     try {
-      const { data, error } = await sb.rpc('siguiente_numero_comprobante', {
+      const { data, error } = await window.conTimeoutRed(sb.rpc('siguiente_numero_comprobante', {
         p_empresa_id: perfil.empresa_id,
         p_tipo: tipo
-      });
+      }), 10000);
       if (error) throw error;
       return data; // ya viene formateado con 8 dígitos desde la función SQL
     } catch (e) {
@@ -338,8 +393,19 @@
   // y se carga en esta misma página (dashboard.html) vía push-init.js.
   if ('serviceWorker' in navigator) {
     // Evita loops de recarga: solo recargamos una vez por cambio de SW.
+    // FIX (bug reportado: "entro pero no logra conectar" — el dashboard se
+    // recargaba solo a los pocos segundos de loguear): 'controllerchange' es
+    // un evento GLOBAL de la página, no específico de sw-admin.js. Cuando
+    // dashboard.html/notif-log.html también cargan push-init.js (legacy),
+    // ese script registra un SW aparte (sw-push.js) con scope '/' que hace
+    // clients.claim() en su 'activate' — y ESO disparaba este mismo
+    // listener, recargando la página por un SW que no tiene nada que ver
+    // con sw-admin.js ni con la sesión. Ahora se filtra: solo recarga si el
+    // nuevo controller es efectivamente sw-admin.js.
     let _swReloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
+      const nuevoController = navigator.serviceWorker.controller;
+      if (!nuevoController || !nuevoController.scriptURL.includes('/sw-admin.js')) return;
       if (_swReloading) return;
       _swReloading = true;
       window.location.reload();

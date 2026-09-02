@@ -487,17 +487,40 @@ document.addEventListener('keydown', function (e) {
 });
 
 // ─── XSS: sanitización de datos de usuario ──────────────────────────────────
-// Usar siempre que se inserte un valor de usuario en innerHTML.
+// Usar siempre que se inserte un valor de usuario en innerHTML — incluido
+// dentro de atributos HTML (ej. `data-nombre="${sanitize(x)}"`,
+// `alt="${sanitize(x)}"`), no solo en contenido de texto.
 // Para texto plano puro, preferir el.textContent = valor directamente.
 //
 // Uso:
 //   el.innerHTML = `<span>${sanitize(cliente.nombre)}</span>`;
+//   el.innerHTML = `<button data-nombre="${sanitize(cliente.nombre)}">…`;
 //
+// FIX (auditoría de bugs, Etapa 4 — hallazgo XSS atributo): la implementación
+// anterior (`div.textContent = str; return div.innerHTML`) solo escapaba
+// "&", "<", ">" — el escapado de nodo de TEXTO del HTML Living Standard no
+// toca comillas simples/dobles, porque no hacen falta ahí. El problema es
+// que esta función se usa en TODO el admin (y portales) para interpolar
+// valores de usuario dentro de atributos HTML entre comillas dobles
+// (`data-nombre="${escHtml(nombre)}"`, `alt="Foto de ${escHtml(nombre)}"`,
+// etc. — decenas de sitios, ver stock.js/clientes.js/productos.js/etc.).
+// Un nombre de producto/depósito/cliente con una comilla doble literal
+// (ej. `Producto" onmouseover="alert(1)`, campo sin restricción de
+// caracteres, solo maxlength) rompía el atributo y quedaba XSS persistente
+// ejecutable con solo pasar el mouse por encima — para CUALQUIER usuario
+// que viera esa fila, no solo quien cargó el dato. Reescrita como escapado
+// manual de "&", "<", ">", '"' y "'" (en ese orden, "&" primero para no
+// doble-escapar las entidades que agrega el resto) — sigue siendo válido y
+// se ve igual en contexto de texto (las entidades se decodifican al
+// renderizar) y ahora también es seguro en contexto de atributo.
 window.sanitize = function (str) {
   if (str === null || str === undefined) return '';
-  const d = document.createElement('div');
-  d.textContent = String(str);
-  return d.innerHTML;
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 };
 
 // Alias corto para templates con muchos campos
@@ -570,4 +593,72 @@ window.habilitarFiltroSelect = function (selectEl, inputEl) {
       opciones().forEach(o => { o.hidden = false; });
     }
   });
+};
+
+// ── Posicionar menú flotante "⋮" (Anular/Cancelar/etc) sin que se corte
+//    contra el borde de la pantalla ──────────────────────────────────────
+// Antes cada pantalla (Notas, Facturación, Compras, Proveedores, NC,
+// Cta.Cte. Proveedores) repetía a mano:
+//   menu.style.left = 'auto'; menu.style.right = innerWidth - r.right + 'px';
+// Eso ancla el menú siempre pegado al borde derecho del botón "⋮" y lo deja
+// crecer hacia la izquierda sin límite. En mobile, cuando el botón "⋮" está
+// cerca del borde izquierdo de una card angosta (ej: Notas), el menú
+// (min-width: 180px, ver .dropdown-menu en adminlte-components.css) termina
+// con su "left" calculado en negativo — se corta contra el borde de la
+// pantalla y ni el texto de la opción ("Anular") llega a verse completo.
+// Esta función mide el ancho real del menú y, si no entra pegado a la
+// derecha del botón, lo clampea a un margen mínimo del borde izquierdo.
+//
+// FIX (e2e facturacion.spec.js): esta función se llamaba desde 6 páginas
+// distintas (facturacion, compras, notas, notas-credito, proveedores,
+// cc-proveedores) pero nunca había quedado definida en ningún archivo del
+// proyecto — tiraba ReferenceError a mitad del handler de click, justo
+// antes de la línea que hace `menu.hidden = false`, así que el menú
+// quedaba con sus datos ya seteados (ej. `data-factura-id`) pero igual
+// oculto. Nadie lo había notado porque solo facturacion.spec.js ejercita
+// el click real del botón "⋮".
+window.posicionarMenuFlotante = function posicionarMenuFlotante(menu, btn) {
+  const MARGEN = 8;
+  const r = btn.getBoundingClientRect();
+
+  menu.style.position = 'fixed';
+  menu.style.top = `${r.bottom + MARGEN}px`;
+  // Anclar primero al borde derecho del botón (comportamiento previo) para
+  // poder medir el ancho real del menú ya con su contenido cargado.
+  menu.style.left = 'auto';
+  menu.style.right = `${window.innerWidth - r.right}px`;
+
+  const anchoMenu = menu.getBoundingClientRect().width;
+  const leftCalculado = r.right - anchoMenu;
+  if (leftCalculado < MARGEN) {
+    menu.style.left = `${MARGEN}px`;
+    menu.style.right = 'auto';
+  }
+};
+// ── conTimeoutRed ────────────────────────────────────────────────────────
+// FIX (bug reportado: grillas del admin que llaman a Supabase directo —
+// window.supabaseClient.rpc/.from — quedan colgadas para siempre con el
+// spinner de carga cuando la señal está débil pero no totalmente caída).
+//
+// El Service Worker (sw-admin.js) solo intercepta pedidos al MISMO origen
+// (/api/*, páginas, assets) — cualquier llamada directa al proyecto de
+// Supabase (otro origen) pasa de largo sin red de contención ni timeout
+// propio. Y fetch() nativo no tiene timeout por defecto: en 4G con señal
+// débil (barras llenas, throughput casi nulo — el caso real de un
+// chofer/cliente en la calle, no "avión" con la red totalmente apagada) el
+// navegador puede tardar 60s+ en darse por vencido, dejando colgada
+// cualquier pantalla que dependa de esa promesa para salir del estado
+// "cargando".
+//
+// Uso: window.conTimeoutRed(window.supabaseClient.rpc('fn_x', {}), 10000)
+// Si no resuelve a tiempo, rechaza con Error('timeout') — así el código que
+// llama lo trata igual que un error de red real (mismo branch de "no
+// pudimos cargar", mismo botón de reintentar), en vez de agregar un estado
+// nuevo que cada pantalla tendría que manejar aparte.
+window.conTimeoutRed = function conTimeoutRed(promesa, ms = 10000) {
+  let idTimeout;
+  const timeout = new Promise((_, reject) => {
+    idTimeout = setTimeout(() => reject(new Error('timeout')), ms);
+  });
+  return Promise.race([promesa, timeout]).finally(() => clearTimeout(idTimeout));
 };

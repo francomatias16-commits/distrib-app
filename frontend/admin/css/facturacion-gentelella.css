@@ -460,6 +460,44 @@ body.dash-facturacion-gentelella .toast {
    Responsive (mobile)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* ── FIX: pestaña "Comprobantes hist." quedaba desfasada/cortada ──
+     .fac-tabs pone en la misma fila el grupo de tabs y el grupo de
+     acciones (Configurar ARCA / Enviar a mi contador) con
+     justify-content:space-between. El grupo de tabs (div interno,
+     display:flex sin wrap) no tenía scroll propio, así que en mobile
+     se recortaba contra el borde del viewport (el safety-net global
+     overflow-x:hidden lo cortaba) y "Comprobantes hist." aparecía
+     truncado como "Comprobar". Se apila en columna y el grupo de tabs
+     scrollea horizontalmente en su propia franja. */
+  body.dash-facturacion-gentelella .fac-tabs {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px 0 !important;
+    min-width: 0 !important;
+  }
+  body.dash-facturacion-gentelella .fac-tabs > div:first-child {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-bottom: 2px !important;
+  }
+  body.dash-facturacion-gentelella .fac-tabs > div:first-child .fac-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  body.dash-facturacion-gentelella .fac-tabs > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    padding: 0 0 10px !important;
+  }
   body.dash-facturacion-gentelella .topbar-right {
     flex-wrap: wrap !important;
     gap: 6px !important;

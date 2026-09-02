@@ -85,7 +85,7 @@ a { color: inherit; }
 .module-theme-facturacion-arca { background: linear-gradient(135deg, #fff7e8, #fff 58%, #f0f7ff); }
 .module-theme-reparto-en-vivo { background: linear-gradient(135deg, #e7f7ff, #fff 58%, #e8f6f2); }
 .module-theme-asistente-ia { background: linear-gradient(135deg, #f0ebff, #fff 58%, #eef0ff); }
-.module-theme-importacion-migracion { background: linear-gradient(135deg, #fff0e6, #fff 58%, #fff8e7); }
+.module-theme-etiquetas-precio-codigo-barras { background: linear-gradient(135deg, #fff0e6, #fff 58%, #fff8e7); }
 .module-theme-automatizacion-pedido-cobro { background: linear-gradient(135deg, #e8effa, #072a5c 145%); }
 .module-theme-responsive-celular { background: linear-gradient(135deg, #edf7ff, #fff 58%, #effaf8); }
 .module-theme-reportes { background: linear-gradient(135deg, #eef4ff, #fff 58%, #f2fbf5); }
@@ -369,7 +369,7 @@ body { background: #fbfcfa; }
 .module-theme-facturacion-arca,
 .module-theme-reparto-en-vivo,
 .module-theme-asistente-ia,
-.module-theme-importacion-migracion,
+.module-theme-etiquetas-precio-codigo-barras,
 .module-theme-automatizacion-pedido-cobro,
 .module-theme-responsive-celular,
 .module-theme-reportes,

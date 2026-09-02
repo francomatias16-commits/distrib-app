@@ -33,6 +33,19 @@
 // vive solo en el backend.
 
 let _wabaId = null;
+let _businessId = null;
+
+// Estado actual mostrado en pantalla — determina qué hace el botón
+// principal al tocarlo (ver aplicarEstadoBoton). 'conectado' es el único
+// caso en el que el botón pasa a ser "Desconectar"; en cualquier otro caso
+// (sin conectar, o necesita_reconexion) el botón sigue disparando el
+// flujo de Embedded Signup, igual que antes.
+let _estadoActual = 'sin_conectar'; // 'sin_conectar' | 'necesita_reconexion' | 'conectado'
+
+// Business Portfolio ID guardado de una conexión anterior de esta empresa
+// (si la hay) — se usa para saltear la pantalla de creación de negocio al
+// reconectar (ver comentario en lanzarEmbeddedSignup).
+let _businessIdGuardado = null;
 
 // Iconos inline (14px / stroke-width 2, mismo criterio que el resto del
 // barrido de emojis del panel admin: nada de emoji/Unicode suelto).
@@ -59,7 +72,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   cargarEstadoActual();
   inicializarFacebookSDK();
 
-  document.getElementById('btn-conectar-wa').addEventListener('click', lanzarEmbeddedSignup);
+  // Un único botón, comportamiento según _estadoActual (ver
+  // aplicarEstadoBoton): conectar/reconectar en cualquier estado salvo
+  // 'conectado', donde pasa a ser "Desconectar".
+  document.getElementById('btn-conectar-wa').addEventListener('click', onClickBotonPrincipal);
 
   // Meta manda un postMessage con waba_id cuando el usuario completa (o
   // cancela) el flujo dentro del popup.
@@ -80,10 +96,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Chrome DevTools oculta por default bajo "Default levels".
       console.log('[whatsapp-onboarding] WA_EMBEDDED_SIGNUP', data.event, data.data);
       if (data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') {
-        // Coexistencia: Meta solo manda waba_id acá — el phone_number_id
+        // Coexistencia: Meta solo manda waba_id (y, si el flujo pasó por
+        // la pantalla de negocio, business_id) acá — el phone_number_id
         // lo resuelve el backend server-to-server (ver comentario de
         // cabecera y whatsappEmbeddedSignupHandler).
         _wabaId = data.data?.waba_id || null;
+        _businessId = data.data?.business_id || null;
       } else if (data.event === 'CANCEL') {
         window.toast?.('Cancelaste la conexión con WhatsApp antes de terminar.', 'warn');
         restaurarBoton();
@@ -104,18 +122,34 @@ async function cargarEstadoActual() {
   // empresa) — no hace falta pasar por el backend solo para leer.
   const sb = window.authCtx.sb;
   const empresaId = window.authCtx.perfil.empresa_id;
-  const { data, error } = await sb
+  const { data, error } = await window.conTimeoutRed(sb
     .from('v_empresa_whatsapp_estado')
-    .select('verified_name, phone_number_id, necesita_reconexion, es_coexistencia, desconectado_en, actualizado_en')
+    .select('verified_name, phone_number_id, necesita_reconexion, es_coexistencia, desconectado_en, business_id, actualizado_en')
     .eq('empresa_id', empresaId)
-    .maybeSingle();
+    .maybeSingle(), 10000);
+
+  // Se guarda ni bien se lee, haya o no otro estado que mostrar más abajo —
+  // lanzarEmbeddedSignup lo usa para saltear la pantalla de negocio en
+  // reconexiones (ver migración 544).
+  _businessIdGuardado = data?.business_id || null;
 
   if (error || !data) {
+    // FIX (2026-08-30): antes esto tragaba `error` en silencio — si el
+    // POST de conexión respondía 200 pero esta lectura scopeada por RLS no
+    // traía la fila (empresa_id/rol resuelto distinto entre el JWT del
+    // usuario y lo que ve Postgres, columna no expuesta todavía en el
+    // schema cache de PostgREST, etc.), el panel quedaba mostrando "no
+    // conectado" para siempre sin ningún rastro en consola de qué falló.
+    // Bug reportado: toast de éxito + cartel de "no conectado" al mismo
+    // tiempo, indefinidamente. Este log es el primer punto a mirar (F12)
+    // si vuelve a pasar.
+    if (error) console.error('[whatsapp-onboarding] Error leyendo v_empresa_whatsapp_estado (RLS/PostgREST):', error);
     box.innerHTML = `
       <div class="estado-box no-conectado">
         <span class="estado-icono">${ICONO_ALERTA}</span>
         <span>Todavía no conectaste un número de WhatsApp propio. Mientras tanto, el bot sigue usando el número de prueba configurado por el equipo técnico.</span>
       </div>`;
+    aplicarEstadoBoton('sin_conectar');
     return;
   }
 
@@ -136,16 +170,54 @@ async function cargarEstadoActual() {
         <span class="estado-icono">${ICONO_ALERTA}</span>
         <span>El WhatsApp${data.verified_name ? ` de <strong>${escaparHtml(data.verified_name)}</strong>` : ''} ${motivo}. Tocá el botón de abajo para volver a conectarlo.</span>
       </div>`;
-    document.getElementById('btn-conectar-wa').textContent = 'Reconectar mi WhatsApp';
+    aplicarEstadoBoton('necesita_reconexion');
     return;
   }
 
-  box.innerHTML = `
+  box.innerHTML = renderBoxConectado(data.verified_name);
+  aplicarEstadoBoton('conectado');
+}
+
+// Extraído para poder pintar el estado "conectado" desde dos lugares: acá
+// (lectura normal por RLS) y en enviarAlBackend, que lo pinta DIRECTO con
+// la respuesta del POST — ver comentario ahí de por qué hace falta el
+// segundo camino.
+function renderBoxConectado(verifiedName) {
+  return `
     <div class="estado-box conectado">
       <span class="estado-icono">${ICONO_CHECK}</span>
-      <span>WhatsApp conectado${data.verified_name ? `: <strong>${escaparHtml(data.verified_name)}</strong>` : ''}. Tus clientes ya pueden escribirle directamente a este número.</span>
+      <span>WhatsApp conectado${verifiedName ? `: <strong>${escaparHtml(verifiedName)}</strong>` : ''}. Tus clientes ya pueden escribirle directamente a este número.</span>
     </div>`;
-  document.getElementById('btn-conectar-wa').textContent = 'Reconectar / cambiar número';
+}
+
+// Único punto que decide texto + estilo + qué hace el botón principal,
+// según el estado leído de v_empresa_whatsapp_estado. 'conectado' es el
+// único caso en que pasa a ser una acción destructiva ("Desconectar") —
+// en 'sin_conectar' y 'necesita_reconexion' sigue siendo el flujo normal
+// de Embedded Signup (ver onClickBotonPrincipal).
+function aplicarEstadoBoton(estado) {
+  _estadoActual = estado;
+  const btn = document.getElementById('btn-conectar-wa');
+  if (!btn) return;
+  btn.classList.remove('btn--primary', 'btn--danger');
+  if (estado === 'conectado') {
+    btn.textContent = 'Desconectar';
+    btn.classList.add('btn--danger');
+  } else if (estado === 'necesita_reconexion') {
+    btn.textContent = 'Reconectar mi WhatsApp';
+    btn.classList.add('btn--primary');
+  } else {
+    btn.textContent = LABEL_BOTON_DEFAULT;
+    btn.classList.add('btn--primary');
+  }
+}
+
+function onClickBotonPrincipal() {
+  if (_estadoActual === 'conectado') {
+    desconectarWhatsapp();
+  } else {
+    lanzarEmbeddedSignup();
+  }
 }
 
 function inicializarFacebookSDK() {
@@ -185,9 +257,21 @@ function lanzarEmbeddedSignup() {
   }
 
   _wabaId = null;
+  _businessId = null;
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-inline"></span>Conectando...';
+
+  // Si esta empresa ya conectó antes, reinyectamos su business_id guardado
+  // (ver migración 544) para que Meta salte directo la pantalla de negocio
+  // y de selección/creación de WABA en vez de ofrecer "crear uno nuevo" —
+  // esa pantalla es la que choca con "Alcanzaste el número máximo de
+  // negocios que puedes crear en este momento" en cuentas de Facebook que
+  // ya crearon uno o más negocios (ver "Pre-filling screens" de Meta:
+  // injectar business.id salta la pantalla de negocio + WABA por completo).
+  // En la primera conexión de una empresa no hay nada guardado todavía y
+  // Meta muestra el flujo normal.
+  const setup = _businessIdGuardado ? { business: { id: _businessIdGuardado } } : {};
 
   FB.login((response) => {
     if (response.authResponse && response.authResponse.code) {
@@ -203,7 +287,7 @@ function lanzarEmbeddedSignup() {
     // Coexistencia: featureType='whatsapp_business_app_onboarding' hace que
     // Meta ofrezca conectar el número existente en vez de crear un WABA
     // nuevo (ver "Onboard WhatsApp Business app users").
-    extras: { setup: {}, featureType: 'whatsapp_business_app_onboarding', sessionInfoVersion: '3' },
+    extras: { setup, featureType: 'whatsapp_business_app_onboarding', sessionInfoVersion: '3' },
   });
 }
 
@@ -229,7 +313,11 @@ async function enviarAlBackend(code) {
     const resp = await fetch('/api/notif/whatsapp-embedded-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${_token()}` },
-      body: JSON.stringify({ code, waba_id: _wabaId, feature_type: 'coexistencia' }),
+      // business_id: si el flujo pasó por la pantalla de negocio, Meta lo
+      // manda en el mismo postMessage — el backend lo guarda (migración
+      // 544) para reinyectarlo en la próxima reconexión. Puede venir null
+      // (ej. business.id ya venía prefilleado y Meta saltó esa pantalla).
+      body: JSON.stringify({ code, waba_id: _wabaId, business_id: _businessId, feature_type: 'coexistencia' }),
     });
     const data = await resp.json();
     if (!resp.ok) {
@@ -238,8 +326,27 @@ async function enviarAlBackend(code) {
       return;
     }
     window.toast?.('¡WhatsApp conectado! Seguí usando la app de siempre — en unos minutos vas a ver también tu historial de chats acá.', 'success');
+
+    // FIX (2026-08-30, bug reportado): antes acá solo se llamaba a
+    // cargarEstadoActual() para refrescar el cartel — pero esa lectura pasa
+    // por RLS con el JWT del usuario (`window.authCtx.sb`), un camino
+    // DISTINTO del que acaba de escribir la fila (el backend, con
+    // service_role, que ya devolvió 200 acá arriba). Si por lo que sea la
+    // lectura scopeada por RLS no encuentra la fila que el backend SÍ
+    // guardó (ver el console.error nuevo en cargarEstadoActual para
+    // diagnosticar por qué), el usuario se quedaba viendo el cartel de "no
+    // conectado" para siempre a pesar del toast de éxito — el bug de la
+    // captura. Ahora se pinta el cartel de "conectado" DIRECTO con lo que
+    // ya devolvió este mismo POST (fuente de la verdad: lo que el backend
+    // acaba de guardar), sin esperar ni depender de la relectura. Después
+    // sí se dispara cargarEstadoActual() en segundo plano para que
+    // necesita_reconexion/business_id queden consistentes, pero ya no
+    // bloquea ni puede pisar el cartel de éxito recién pintado.
+    document.getElementById('estado-actual').innerHTML = renderBoxConectado(data.verified_name);
+    aplicarEstadoBoton('conectado');
     restaurarBoton();
-    await cargarEstadoActual();
+
+    cargarEstadoActual();
   } catch (err) {
     window.toast?.('Error de conexión con el servidor. Probá de nuevo.', 'error');
     restaurarBoton();
@@ -250,7 +357,53 @@ function restaurarBoton() {
   const btn = document.getElementById('btn-conectar-wa');
   if (!btn) return;
   btn.disabled = false;
-  btn.textContent = LABEL_BOTON_DEFAULT;
+  // No hardcodeamos el label acá: si el botón se restaura después de un
+  // intento cancelado/fallido, tiene que volver al texto que corresponde
+  // a _estadoActual (ej. "Reconectar mi WhatsApp"), no siempre al label
+  // por defecto de la primera conexión — por eso se delega en
+  // aplicarEstadoBoton en vez de pisar el textContent acá.
+  aplicarEstadoBoton(_estadoActual);
+}
+
+async function desconectarWhatsapp() {
+  const ok = window.confirm(
+    'Vas a desconectar el WhatsApp de la empresa. Distrib deja de mandar avisos por ese número y vuelve a usar el número de prueba del equipo técnico hasta que reconectes. Tu WhatsApp Business en el celular no se ve afectado. ¿Confirmás?'
+  );
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-conectar-wa');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-inline"></span>Desconectando...';
+
+  try {
+    const resp = await fetch('/api/notif/whatsapp-desconectar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${_token()}` },
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      window.toast?.(data.error || 'No se pudo desconectar el WhatsApp.', 'error');
+      restaurarBoton();
+      return;
+    }
+    window.toast?.('WhatsApp desconectado. Distrib volvió a usar el número de prueba mientras tanto.', 'success');
+    _businessIdGuardado = null;
+
+    // Mismo criterio que enviarAlBackend: se pinta el resultado ya
+    // conocido (desconectado) directo, sin esperar la relectura por RLS.
+    document.getElementById('estado-actual').innerHTML = `
+      <div class="estado-box no-conectado">
+        <span class="estado-icono">${ICONO_ALERTA}</span>
+        <span>Todavía no conectaste un número de WhatsApp propio. Mientras tanto, el bot sigue usando el número de prueba configurado por el equipo técnico.</span>
+      </div>`;
+    aplicarEstadoBoton('sin_conectar');
+    restaurarBoton();
+
+    cargarEstadoActual();
+  } catch (err) {
+    window.toast?.('Error de conexión con el servidor. Probá de nuevo.', 'error');
+    restaurarBoton();
+  }
 }
 
 function _token() {

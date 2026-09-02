@@ -44,15 +44,6 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 .motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
 
 /* Botones secundarios */
-.btn-exportar, .btn-importar {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm); padding: 6px 14px;
-  font-size: 13px; font-weight: 500;
-  transition: all .12s; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
-  color: var(--color-text-muted);
-}
 .btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
 .btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info); color: var(--color-info); }
 
@@ -355,7 +346,10 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 
 .ruta-form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  /* v964: se sacó "Notas internas" del formulario visible (queda como campo
+     oculto en rutas.html), así que Chofer pasa a ocupar el espacio que
+     dejó libre en vez de compartir columna pareja con Fecha. */
+  grid-template-columns: 1fr 1.6fr auto;
   gap: 12px;
   align-items: end;
 }
@@ -575,7 +569,7 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 .ruta-stat-val   { font-size: 16px; font-weight: 700; color: var(--color-text); }
 
 /* ── Botones de acción ───────────────────────────────────────────── */
-.btn-primary {
+.btn-primary, .btn--primary {
   background: var(--color-primary);
   color: var(--color-surface);
   border: none;
@@ -589,8 +583,8 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   gap: 7px;
   transition: opacity .15s;
 }
-.btn-primary:hover { opacity: .88; }
-.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary:hover, .btn--primary:hover { opacity: .88; }
+.btn-primary:disabled, .btn--primary:disabled { opacity: .45; cursor: not-allowed; }
 
 .btn--secondary {
   background: var(--color-surface);
@@ -607,7 +601,7 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 }
 .btn--secondary:hover { background: var(--color-bg); }
 
-.btn-danger {
+.btn-danger, .btn--danger {
   background: var(--color-danger-bg);
   color: var(--color-danger);
   border: 1px solid var(--color-danger-mid);
@@ -619,7 +613,7 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   align-items: center;
   gap: 6px;
 }
-.btn-danger:hover { background: color-mix(in srgb, var(--color-danger-bg) 130%, white); }
+.btn-danger:hover, .btn--danger:hover { background: color-mix(in srgb, var(--color-danger-bg) 130%, white); }
 
 /* ── Sección: rutas del día ──────────────────────────────────────── */
 .rutas-del-dia-section {
@@ -834,6 +828,16 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   padding: 20px;
 }
 .modal-overlay.hidden { display: none; }
+/* FIX: compras.css (cargado después en rutas.html, para estilos de la
+   pestaña "Zonas") trae su propia .modal-overlay { display:none } que usa
+   la convención .active en vez de .hidden. Misma especificidad (un solo
+   selector de clase) + orden de carga posterior = compras.css ganaba la
+   cascada y dejaba TODOS los modales de este archivo (incluido
+   #modal-invitar-chofer) con display:none fijo, aunque JS sacara .hidden
+   correctamente. :not(.hidden) suma especificidad (2 clases) para ganarle
+   a compras.css sin tocarlo (lo sigue necesitando la pestaña "Zonas" tal
+   cual está). */
+.modal-overlay:not(.hidden) { display: flex; }
 
 .modal {
   background: var(--color-surface);

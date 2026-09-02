@@ -41,15 +41,6 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 .motor-card:hover, .regla-card:hover { box-shadow: var(--shadow-big); }
 
 /* Botones secundarios */
-.btn-exportar, .btn-importar {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm); padding: 6px 14px;
-  font-size: 13px; font-weight: 500;
-  transition: all .12s; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
-  color: var(--color-text-muted);
-}
 .btn-exportar:hover { background: var(--color-success-bg); border-color: var(--color-box-success); color: var(--color-success); }
 .btn-importar:hover { background: var(--color-info-bg); border-color: var(--color-info); color: var(--color-info); }
 
@@ -96,6 +87,25 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   gap: 8px;
   flex-wrap: wrap;
   flex-shrink: 0;
+}
+
+/* FIX: overflow-x real a 1200px (y en general entre 901px y ~1250px) —
+   #filtros-der tiene 7 campos + 3 botones, ~1207px sin envolver. El
+   reset de escritorio en componentes-admin.css (`@media (min-width:
+   641px) { .filtros-bar > * { width: auto; max-width: none; } }`)
+   pisa cualquier max-width que se ponga en `.filtros-der` acá (misma
+   especificidad, una clase — gana por orden de carga, ese archivo se
+   sirve después). Se usa el id para tener más especificidad y no
+   depender del orden de los <link>. min-width:0 hace falta además de
+   max-width: sin eso, el tamaño mínimo automático del flex item usa el
+   ancho "sin envolver" de sus propios hijos (es a la vez flex item de
+   .filtros-bar y flex container de los suyos), no el del hijo más
+   angosto — así igual se renderiza más ancho que el viewport en vez de
+   envolver sus hijos dentro del espacio disponible, aunque
+   .filtros-bar ya lo mandó a su propia fila. */
+#filtros-der {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .search-wrap {
@@ -689,27 +699,39 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 }
 
 /* ── Tabla → Tarjetas en mobile ────────────────────────────────────────────
-   Antes, en celular, la tabla de pedidos (8 columnas) y la de presupuestos
-   (7 columnas) sólo tenían overflow-x: auto — quedaban comprimidas y había
-   que scrollear horizontalmente para ver el estado o las acciones, en la
-   pantalla que más se usa del sistema. Mismo patrón que ya funciona en
-   Stock: cada <tr> pasa a ser una tarjeta vertical, con el nombre de la
-   columna como etiqueta (via data-label) al lado de cada valor. */
+   Antes, en celular, la tabla de pedidos (8 columnas) quedaba comprimida y
+   había que scrollear horizontalmente para ver el estado o las acciones,
+   en la pantalla que más se usa del sistema. Mismo patrón que ya funciona
+   en Stock: cada <tr> pasa a ser una tarjeta vertical, con el nombre de la
+   columna como etiqueta (via data-label) al lado de cada valor.
+   Scopeado a `#panel-pedidos` (v997): este bloque usa clases propias de la
+   tabla de Pedidos (.td-id, .td-cliente, .td-text, .btn-estado,
+   .btn-cancelar-small, .btn-eliminar-small) que NO tiene la tabla de
+   Presupuestos (misma página, `#panel-presupuestos`, también
+   `.tabla-wrap.table-responsive-cards .tabla-admin`). Sin este scope, esta
+   regla —con igual especificidad y mecánica distinta (flex + sin
+   position:absolute) que la versión genérica de
+   `frontend/shared/componentes-admin.css` (position:absolute, pensada para
+   tablas sin esas clases especiales)— competía propiedad por propiedad
+   contra esa otra según el orden de carga de los <link>, dejando la tarjeta
+   de Presupuestos con una mezcla inconsistente de ambos sistemas (acciones
+   desalineadas/desbordadas). Presupuestos ahora depende exclusivamente de
+   la versión genérica de componentes-admin.css. */
 @media (max-width: 768px) {
-  .table-responsive-cards .tabla-admin,
-  .table-responsive-cards .tabla-admin thead,
-  .table-responsive-cards .tabla-admin tbody,
-  .table-responsive-cards .tabla-admin th,
-  .table-responsive-cards .tabla-admin td,
-  .table-responsive-cards .tabla-admin tr {
+  #panel-pedidos .table-responsive-cards .tabla-admin,
+  #panel-pedidos .table-responsive-cards .tabla-admin thead,
+  #panel-pedidos .table-responsive-cards .tabla-admin tbody,
+  #panel-pedidos .table-responsive-cards .tabla-admin th,
+  #panel-pedidos .table-responsive-cards .tabla-admin td,
+  #panel-pedidos .table-responsive-cards .tabla-admin tr {
     display: block;
   }
-  .table-responsive-cards .tabla-admin thead tr {
+  #panel-pedidos .table-responsive-cards .tabla-admin thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-  .table-responsive-cards .tabla-admin tr {
+  #panel-pedidos .table-responsive-cards .tabla-admin tr {
     border: 1px solid rgba(0,0,0,.07);
     margin: 0 0 12px;
     border-radius: var(--radius-lg);
@@ -718,7 +740,7 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
     box-shadow: var(--shadow-xs);
     cursor: pointer;
   }
-  .table-responsive-cards .tabla-admin td {
+  #panel-pedidos .table-responsive-cards .tabla-admin td {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -727,8 +749,8 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
     text-align: right;
     border-bottom: 1px solid var(--color-bg);
   }
-  .table-responsive-cards .tabla-admin td:last-child { border-bottom: none; }
-  .table-responsive-cards .tabla-admin td::before {
+  #panel-pedidos .table-responsive-cards .tabla-admin td:last-child { border-bottom: none; }
+  #panel-pedidos .table-responsive-cards .tabla-admin td::before {
     content: attr(data-label);
     font-weight: 600;
     text-align: left;
@@ -737,28 +759,73 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
     flex-shrink: 0;
   }
 
-  /* Cliente y N° pedido quedan como "cabecera" de la tarjeta, sin label
-     repetido — ya se entienden por su posición y estilo. */
-  .table-responsive-cards .td-id,
-  .table-responsive-cards .td-cliente {
-    text-align: left;
+  /* FIX (reporte mobile): un pedido puede mostrar hasta 3 chips a la vez
+     en la columna Estado (estado + "Factura con error" + devolución). Esa
+     <td> es un flex item con flex-shrink:0 en sus hijos (default), así
+     que sin wrap el conjunto de chips podía superar el ancho de la
+     tarjeta — y como esta tarjeta vive dentro de .tabla-wrap
+     (overflow-x:auto !important, ver responsive-mobile.css), esa única
+     fila más ancha volvía scrolleable horizontalmente TODA la lista de
+     pedidos. Si esa lista quedaba con scrollLeft > 0 (por ejemplo tras un
+     swipe accidental), todas las tarjetas se veían con el borde izquierdo
+     — labels y avatar incluidos — recortado por igual, en cantidades de
+     caracteres distintas según el ancho de cada texto. Envolver los
+     chips en un solo contenedor que haga wrap interno elimina la
+     posibilidad de que esta columna fuerce ancho extra en el eje
+     horizontal. */
+  #panel-pedidos .table-responsive-cards .chips-estado-pedido {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
   }
-  .table-responsive-cards .td-id::before,
-  .table-responsive-cards .td-cliente::before { display: none; }
-  .table-responsive-cards .td-id { flex-direction: column; align-items: flex-start; }
-  .table-responsive-cards .td-text { white-space: normal; text-align: right; }
+
+  /* Cliente y N° pedido quedan como "cabecera" de la tarjeta, sin label
+     repetido — ya se entienden por su posición y estilo.
+     FIX (2026-08-29, "fila del nombre cortada/desprolija" en mobile):
+     `.td-id` SÍ se veía bien porque, al ser la primera <td> de la fila,
+     ya caía en la regla genérica `td:first-child` de componentes-admin.css
+     (que sí trae `padding-left: 0 !important`). `.td-cliente` es la
+     SEGUNDA <td> — no matchea `:first-child` — así que dependía
+     exclusivamente de esta regla para no quedar con el `padding-left: 42%
+     !important` genérico (pensado para el layout label:valor). Como acá
+     nunca se pisaba el padding (solo `text-align`, y encima sin
+     `!important` para ganarle al `!important` genérico), el avatar +
+     nombre del cliente quedaba con un 42% de hueco en blanco a la
+     izquierda y comprimido/cortado en el 58% restante. Ahora se resetea
+     el padding igual que hace la regla de `:first-child`, con
+     `!important` para que gane la pulseada de especificidad. */
+  #panel-pedidos .table-responsive-cards .td-id,
+  #panel-pedidos .table-responsive-cards .td-cliente {
+    text-align: left !important;
+    padding-left: 0 !important;
+  }
+  #panel-pedidos .table-responsive-cards .td-id::before,
+  #panel-pedidos .table-responsive-cards .td-cliente::before { display: none; }
+  #panel-pedidos .table-responsive-cards .td-id { flex-direction: column; align-items: flex-start; }
+  #panel-pedidos .table-responsive-cards .td-text { white-space: normal; text-align: right; }
+  /* Con el padding ya resuelto arriba, el nombre del cliente tiene todo el
+     ancho de la tarjeta disponible — el `max-width: 180px` pensado para la
+     columna angosta de escritorio ya no hace falta y solo recortaba el
+     nombre antes de tiempo. */
+  #panel-pedidos .table-responsive-cards .cliente-nombre-txt {
+    max-width: none;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 
   /* Acciones: los botones de cambio de estado no entran en una fila al
      lado del label — bajan debajo, ocupando todo el ancho de la tarjeta. */
-  .table-responsive-cards .td-acciones {
+  #panel-pedidos .table-responsive-cards .td-acciones {
     flex-direction: column;
     align-items: stretch;
   }
-  .table-responsive-cards .td-acciones::before { margin-bottom: 4px; }
-  .table-responsive-cards .btn-estado,
-  .table-responsive-cards .btn-cancelar-small,
-  .table-responsive-cards .btn-eliminar-small,
-  .table-responsive-cards .btn-acc {
+  #panel-pedidos .table-responsive-cards .td-acciones::before { margin-bottom: 4px; }
+  #panel-pedidos .table-responsive-cards .btn-estado,
+  #panel-pedidos .table-responsive-cards .btn-cancelar-small,
+  #panel-pedidos .table-responsive-cards .btn-eliminar-small,
+  #panel-pedidos .table-responsive-cards .btn-acc {
     width: 100%;
     text-align: center;
   }

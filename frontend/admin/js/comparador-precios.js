@@ -133,14 +133,14 @@ async function cargarRanking() {
 
     tbody.innerHTML = filas.map(f => `
       <tr class="clickable" onclick="cargarDetalle('${esc(f.producto_id)}', ${escOnclickArg(f.producto_nombre)})">
-        <td><strong>${esc(f.producto_nombre)}</strong><br><span style="font-size:11px;color:var(--color-text-muted);">${esc(f.producto_codigo || '')}</span></td>
-        <td>${f.cantidad_proveedores}</td>
-        <td>${fmtPeso(f.precio_promedio_pagado)}</td>
-        <td class="monto-verde">${fmtPeso(f.precio_minimo_disponible)}</td>
-        <td>${f.spread_pct != null ? `<span class="spread-badge ${f.spread_pct < 5 ? 'bajo' : ''}">${fmtNum(f.spread_pct)}%</span>` : '—'}</td>
-        <td>${esc(f.proveedor_mas_barato || '—')}</td>
-        <td>${esc(f.proveedor_mas_usado || '—')}</td>
-        <td class="monto-verde">${fmtPeso(f.ahorro_potencial)}</td>
+        <td data-label="Producto"><strong>${esc(f.producto_nombre)}</strong><br><span style="font-size:11px;color:var(--color-text-muted);">${esc(f.producto_codigo || '')}</span></td>
+        <td data-label="Proveedores">${f.cantidad_proveedores}</td>
+        <td data-label="Precio promedio pagado">${fmtPeso(f.precio_promedio_pagado)}</td>
+        <td class="monto-verde" data-label="Precio más bajo disponible">${fmtPeso(f.precio_minimo_disponible)}</td>
+        <td data-label="Diferencia">${f.spread_pct != null ? `<span class="spread-badge ${f.spread_pct < 5 ? 'bajo' : ''}">${fmtNum(f.spread_pct)}%</span>` : '—'}</td>
+        <td data-label="Proveedor más barato">${esc(f.proveedor_mas_barato || '—')}</td>
+        <td data-label="Le compraste más a">${esc(f.proveedor_mas_usado || '—')}</td>
+        <td class="monto-verde" data-label="Ahorro potencial">${fmtPeso(f.ahorro_potencial)}</td>
       </tr>
     `).join('');
   } catch (e) {
@@ -193,14 +193,14 @@ async function cargarDetalle(producto_id, producto_nombre) {
       const esMejor = Number(f.precio_ultimo) === precioMinimo;
       return `
         <tr class="${esMejor ? 'fila-mejor' : ''}">
-          <td>${esc(f.proveedor_nombre)}${esMejor ? '<span class="badge-mejor">Más barato</span>' : ''}</td>
-          <td>${fmtPeso(f.precio_ultimo)}</td>
-          <td>${fmtFecha(f.fecha_ultima_compra)}</td>
-          <td>${fmtPeso(f.precio_minimo)}</td>
-          <td>${fmtPeso(f.precio_maximo)}</td>
-          <td>${fmtPeso(f.precio_promedio)}</td>
-          <td>${f.compras_count}</td>
-          <td>${fmtNum(f.cantidad_total)}</td>
+          <td data-label="Proveedor">${esc(f.proveedor_nombre)}${esMejor ? '<span class="badge-mejor">Más barato</span>' : ''}</td>
+          <td data-label="Último precio">${fmtPeso(f.precio_ultimo)}</td>
+          <td data-label="Última compra">${fmtFecha(f.fecha_ultima_compra)}</td>
+          <td data-label="Precio mínimo">${fmtPeso(f.precio_minimo)}</td>
+          <td data-label="Precio máximo">${fmtPeso(f.precio_maximo)}</td>
+          <td data-label="Precio promedio">${fmtPeso(f.precio_promedio)}</td>
+          <td data-label="Compras">${f.compras_count}</td>
+          <td data-label="Cantidad total">${fmtNum(f.cantidad_total)}</td>
         </tr>
       `;
     }).join('');

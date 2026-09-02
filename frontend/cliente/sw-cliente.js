@@ -23,23 +23,59 @@
 
 'use strict';
 
-const SW_VERSION   = 'cliente-v2';
+const SW_VERSION   = 'cliente-v3';
 const CACHE_STATIC = `${SW_VERSION}-static`;
 const CACHE_DATA   = `${SW_VERSION}-data`;
 
+// OFFLINE-06 (mismo objetivo y mismo criterio que sw-admin.js/sw-chofer.js):
+// faltaba "/cliente/checkout" (ni la página ni su CSS estaban acá) y 18 de
+// los 23 assets propios del portal — solo estaban los 5 shared genéricos,
+// no los .css por página ni cliente-offline.js/pwa-init.js/env-config.js/
+// push-init.js/chat-widget. Lista completada recorriendo
+// frontend/cliente/*.html y extrayendo cada <script src>/<link href> local.
+//
+// Nota aparte (no es un fix acá, solo un hallazgo): vercel.json mapea
+// "/cliente/puntos" a "/frontend/cliente/puntos.html", pero ese archivo no
+// existe en el repo — es una ruta rota independiente de este SW, no se
+// agrega a la lista porque siempre fallaría al precachear.
+//
+// Van SIN el query string "?v=..." de cache-busting a propósito, mismo
+// motivo que sw-admin.js: cacheFirst()/networkFirst() de abajo matchean
+// con { ignoreSearch: true } para páginas y assets — no importa qué
+// versión pida el HTML del deploy actual, encuentran la entrada igual.
 const PRECACHE_URLS = [
+  '/cliente',
   '/cliente/inicio',
   '/cliente/login',
   '/cliente/catalogo',
   '/cliente/carrito',
   '/cliente/pedidos',
   '/cliente/cuenta',
+  '/cliente/checkout',
   '/cliente/notificaciones',
-  '/shared/tokens.css',
-  '/shared/skeletons.css',
+  '/cliente/cliente-offline.js',
+  '/cliente/css/carrito.css',
+  '/cliente/css/catalogo.css',
+  '/cliente/css/checkout.css',
+  '/cliente/css/inicio.css',
+  '/cliente/css/login.css',
+  '/cliente/css/notificaciones.css',
+  '/cliente/css/pedidos.css',
+  '/cliente/pwa-init.js',
+  '/frontend/env-config.js',
+  '/frontend/js/push-init.js',
+  '/frontend/shared/chat-widget.css',
+  '/frontend/shared/chat-widget.js',
+  '/shared/a11y-focus.css',
+  '/shared/microinteracciones.css',
+  '/shared/offline-core.js',
   '/shared/reskin-patch.css',
   '/shared/reskin-patch-v2-shadcn.css',
+  '/shared/responsive-mobile.css',
+  '/shared/responsive-mobile.js',
+  '/shared/skeletons.css',
   '/shared/tienda-nav.css',
+  '/shared/tokens.css',
 ];
 
 // GET de catálogo/recompensas — bajo riesgo, se sirve del último dato
@@ -64,12 +100,24 @@ const NETWORK_ONLY_PATTERNS = [
                                       // load. Movido a network-only.
 ];
 
+// FIX (precache resiliente): antes era cache.addAll(PRECACHE_URLS), que es
+// atómico — si UNA sola URL de la lista da 404/error de red durante el
+// install, addAll() rechaza COMPLETO y no se cachea nada. Ahora cada URL
+// se cachea con su propio try/catch vía Promise.allSettled: si alguna
+// falla (ej. "/cliente/puntos" si se agregara sin arreglar antes el
+// archivo faltante), el resto se cachea igual. Mismo fix que sw-admin.js/
+// sw-chofer.js.
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_STATIC)
-      .then((c) => c.addAll(PRECACHE_URLS))
-      .catch((err) => console.warn('[SW-cliente] Precache parcial:', err))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_STATIC).then((c) =>
+      Promise.allSettled(
+        PRECACHE_URLS.map((url) =>
+          c.add(url).catch((err) => {
+            console.warn('[SW-cliente] No se pudo precachear', url, err.message);
+          })
+        )
+      ).then(() => self.skipWaiting())
+    )
   );
 });
 
@@ -107,6 +155,16 @@ self.addEventListener('fetch', (e) => {
 
   if (SWR_PATTERNS.some((p) => p.test(url.pathname))) {
     e.respondWith(staleWhileRevalidate(req));
+    return;
+  }
+
+  // OFFLINE-05: catch-all — cualquier otro GET a /api/cliente/* (o similar)
+  // que no haya matcheado NETWORK_ONLY_PATTERNS arriba (auth/pagos/pedidos/
+  // rutas-live/productos con precio real, que siguen siempre yendo a la red
+  // sin caché) se sirve con Network-First + último dato conocido, en vez de
+  // explotar sin handler y dejar la pantalla del portal cliente en blanco.
+  if (url.pathname.startsWith('/api/')) {
+    e.respondWith(networkFirst(req, CACHE_DATA));
     return;
   }
 
@@ -154,14 +212,25 @@ self.addEventListener('sync', (e) => {
 
 // ─── Estrategias ────────────────────────────────────────────────────────
 
+// FIX (ignoreSearch): PRECACHE_URLS se guarda SIN el query string "?v=..."
+// de cache-busting, pero en runtime se pide CON ese query. Sin
+// ignoreSearch, caches.match(req) nunca encontraba la entrada precacheada,
+// así que la primera visita offline a una pantalla nunca visitada antes
+// igual rompía. Mismo fix que sw-admin.js/sw-chofer.js.
+function sinQuery(req) {
+  const url = new URL(req.url);
+  url.search = '';
+  return new Request(url.toString(), { method: 'GET' });
+}
+
 async function cacheFirst(req) {
-  const cached = await caches.match(req);
+  const cached = await caches.match(req, { ignoreSearch: true });
   if (cached) return cached;
   try {
     const resp = await fetch(req);
     if (resp.ok) {
       const c = await caches.open(CACHE_STATIC);
-      c.put(req, resp.clone());
+      c.put(sinQuery(req), resp.clone());
     }
     return resp;
   } catch {

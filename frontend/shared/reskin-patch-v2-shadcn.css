@@ -54,7 +54,8 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible,
-.btn-primary:focus-visible, .btn-secondary:focus-visible, .btn-danger:focus-visible {
+.btn-primary:focus-visible, .btn-secondary:focus-visible, .btn-danger:focus-visible,
+.btn--primary:focus-visible, .btn--secondary:focus-visible, .btn--danger:focus-visible {
   outline: none !important;
   box-shadow:
     0 0 0 var(--ring-offset-width) var(--ring-offset-color),
@@ -109,7 +110,7 @@ button[data-loading="true"]::after {
   border: 2px solid rgba(255,255,255,.5); border-top-color: var(--color-surface);
   animation: btn-spin .6s linear infinite;
 }
-.btn-secondary[data-loading="true"]::after, .btn-ghost[data-loading="true"]::after {
+.btn-secondary[data-loading="true"]::after, .btn--secondary[data-loading="true"]::after, .btn-ghost[data-loading="true"]::after {
   border-color: color-mix(in srgb, var(--color-primary) 25%, transparent); border-top-color: var(--color-primary);
 }
 @keyframes btn-spin { to { transform: rotate(360deg); } }

@@ -48,7 +48,7 @@
         continue;
       }
       for (const sec of ws.secciones) {
-        if (seg === sec.href.split('/').pop()) {
+        if (sec.href && seg === sec.href.split('/').pop()) {
           return { wsId: ws.id, secSeccion: sec.seccion };
         }
       }
@@ -100,6 +100,25 @@
 
       const links = ws.secciones.map(sec => {
         const isActive = isWsActive && secSeccion === sec.seccion;
+        // FIX (404 en mobile): items con `accion` (hoy solo "Trabajar con
+        // IA", ver nav-data.js) no tienen `href` — nav.js (desktop) ya
+        // los trata aparte, pero acá se renderizaban igual que un link
+        // normal con `href="${sec.href}"`, que con `sec.href` undefined
+        // quedaba literalmente `href="undefined"`: al tocarlo en el
+        // celular, el navegador navegaba a esa URL inexistente → 404.
+        // Mismo patrón que el mega-menú desktop: href="#" + data-attr +
+        // listener delegado más abajo que abre el asistente en vez de
+        // navegar.
+        if (sec.accion) {
+          return `<a
+            class="mnav-drawer-item"
+            href="#"
+            data-mnav-accion="${sec.accion}"
+          >
+            <span class="mnav-drawer-icon">${sec.icon}</span>
+            <span class="mnav-drawer-label">${sec.label}</span>
+          </a>`;
+        }
         return `<a
           class="mnav-drawer-item${isActive ? ' active' : ''}"
           href="${sec.href}"
@@ -183,6 +202,20 @@
   };
   window._mnavToggleDrawer  = toggleDrawer;
   window._mnavCerrarDrawer  = cerrarDrawer;
+
+  // Ítems con `accion` (ver render(), rama `sec.accion`): no navegan,
+  // disparan un comportamiento propio — hoy solo "asistente-ia", abre el
+  // panel de chat-widget.js y cierra el drawer. Delegado en el body
+  // porque #mnav-root se recrea en cada render().
+  document.addEventListener('click', function (e) {
+    const link = e.target.closest('[data-mnav-accion]');
+    if (!link) return;
+    e.preventDefault();
+    cerrarDrawer();
+    if (link.dataset.mnavAccion === 'asistente-ia' && typeof window.abrirAsistenteIA === 'function') {
+      window.abrirAsistenteIA();
+    }
+  });
 
   /* ── Init con rol ────────────────────────────────────────────────── */
   function initConAuth() {

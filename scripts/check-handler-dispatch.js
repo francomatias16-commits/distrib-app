@@ -140,21 +140,38 @@ const LOCAL_IMPORT_RE = /from\s+['"](\.\/[^'"]+\.js|\.\.\/handlers\/[^'"]+\.js)[
 function resolveRelevantSources(handlerFile) {
   const handlerDir = path.join(ROOT, 'lib/handlers');
   const visited = new Set();
-  const queue = [handlerFile];
+  // FIX: encontrado corriendo `npm run predeploy` contra el split de
+  // pedidos.js (25/08/2026, ver su comentario de cabecera) — pedidos.js
+  // pasó a ser un barrel de 24 líneas que reexporta desde
+  // lib/handlers/pedidos/index.js, y ESE archivo importa sus submódulos
+  // (chofer.js, remito.js, etc.) con rutas relativas A SU PROPIA carpeta
+  // (`./chofer.js` = lib/handlers/pedidos/chofer.js). La cola guardaba
+  // solo el string del import y lo resolvía siempre contra `handlerDir`
+  // fijo (lib/handlers/chofer.js, que no existe) — se perdía en silencio
+  // (el `if (!fs.existsSync)` de abajo hacía `continue` sin avisar), así
+  // que todo lo manejado dentro de pedidos/chofer.js (ruta==='entregar',
+  // 'no-entregar', 'remitos', 'entrega-foto', 'devolucion-foto') salía
+  // como "sin manejar". Ahora la cola guarda rutas absolutas y cada
+  // import `./x.js` se resuelve relativo a la carpeta del archivo que lo
+  // declara (no siempre a lib/handlers/ raíz) — funciona para handlers
+  // planos y para los que están divididos en subcarpeta por igual.
+  const queue = [path.join(handlerDir, handlerFile)];
   let combined = '';
   while (queue.length) {
-    const file = queue.shift();
-    if (visited.has(file)) continue;
-    visited.add(file);
-    const filePath = path.join(handlerDir, file);
+    const filePath = queue.shift();
+    if (visited.has(filePath)) continue;
+    visited.add(filePath);
     if (!fs.existsSync(filePath)) continue;
     const src = fs.readFileSync(filePath, 'utf8');
     combined += '\n' + src;
     let im;
     LOCAL_IMPORT_RE.lastIndex = 0;
     while ((im = LOCAL_IMPORT_RE.exec(src))) {
-      const rel = im[1].replace(/^\.\.\/handlers\//, './').replace(/^\.\//, '');
-      queue.push(rel);
+      const importPath = im[1];
+      const resolved = importPath.startsWith('../handlers/')
+        ? path.join(handlerDir, importPath.replace(/^\.\.\/handlers\//, ''))
+        : path.join(path.dirname(filePath), importPath);
+      queue.push(resolved);
     }
   }
   return combined;

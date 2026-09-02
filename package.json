@@ -1,19 +1,24 @@
 {
   "name": "distrib-app",
-  "version": "1.49.3",
+  "version": "1.49.4",
   "private": true,
   "engines": {
     "node": "24.x"
+  },
+  "overrides": {
+    "retry-request": "^9.0.1",
+    "teeny-request": "^11.0.1",
+    "uuid": "^14.0.2"
   },
   "dependencies": {
     "@sentry/node": "^10.68.0",
     "@supabase/supabase-js": "^2.45.0",
     "bcryptjs": "^2.4.3",
     "bwip-js": "^4.5.1",
-    "docx": "^9.7.1",
     "express": "^4.19.2",
     "firebase-admin": "^14.2.0",
     "gray-matter": "^4.0.3",
+    "jose": "^6.2.10",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.2",
     "node-forge": "^1.4.0",
@@ -41,25 +46,32 @@
     "check-handler-dispatch:json": "node scripts/check-handler-dispatch.js --json",
     "check-wiring:all": "node scripts/check-asset-wiring.js && node scripts/check-api-wiring.js && node scripts/check-handler-dispatch.js",
     "cargar-embeddings-asistente": "node scripts/generar-embeddings-asistente.js",
-    "build": "node scripts/bump-sw-version.js && esbuild frontend/**/*.js --minify --outdir=dist --outbase=frontend",
+    "build": "node scripts/bump-sw-version.js && node scripts/bump-asset-versions.js && esbuild frontend/**/*.js --minify --outdir=dist --outbase=frontend",
+    "bump-asset-versions": "node scripts/bump-asset-versions.js",
+    "bump-asset-versions:dry-run": "node scripts/bump-asset-versions.js --dry-run",
     "audit:security": "node scripts/audit-security-grants.js",
     "audit:security:json": "node scripts/audit-security-grants.js --json",
     "audit:funciones-fantasma": "node scripts/audit-funciones-fantasma.js",
     "audit:funciones-fantasma:json": "node scripts/audit-funciones-fantasma.js --json",
     "audit:all": "node scripts/audit-security-grants.js && node scripts/audit-funciones-fantasma.js",
+    "audit:mobile": "node scripts/audit-mobile.js",
+    "audit:mobile:json": "node scripts/audit-mobile.js --json",
+    "audit:breakpoints": "node scripts/audit-breakpoints.js",
+    "audit:breakpoints:json": "node scripts/audit-breakpoints.js --json",
+    "check:shared-selectors": "node scripts/check-shared-selectors.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test -c playwright.config.e2e.js",
     "test:e2e:ui": "playwright test -c playwright.config.e2e.js --ui",
-    "loadtest": "node scripts/load-test.js"
+    "loadtest": "node scripts/load-test.js",
+    "loadtest:etapa4": "node scripts/load-test-etapa4.js"
   },
   "type": "module",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "autocannon": "^7.15.0",
-    "esbuild": "^0.23.1",
+    "esbuild": "^0.28.2",
     "playwright": "^1.56.1",
-    "sharp": "^0.33.4",
     "vitest": "^4.1.10"
   }
 }

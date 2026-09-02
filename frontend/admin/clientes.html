@@ -14,26 +14,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/clientes.css?v=200" />
-  <link rel="stylesheet" href="/frontend/admin/css/clientes-gentelella.css?v=3" />
-  <link rel="stylesheet" href="/frontend/admin/css/clientes-ciclos.css?v=196" />
-  <script src="/frontend/env-config.js?v1782328742714"></script>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
-  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes-gentelella.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/clientes-ciclos.css?v=mtcen4r4" />
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-clientes-gentelella dash-gentelella">
@@ -107,23 +107,18 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           Ver catálogo
         </button>
-        <div class="topbar-mas-acciones">
-          <button type="button" class="btn btn--secondary" id="btn-mas-acciones" aria-haspopup="true" aria-expanded="false">
-            <svg id="btn-mas-acciones-icon-exportar" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span id="btn-mas-acciones-texto">Más acciones</span>
-            <svg id="btn-mas-acciones-chevron" class="topbar-mas-acciones-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="dropdown-menu" id="menu-mas-acciones" role="menu" hidden>
-            <button type="button" class="dropdown-item" id="btn-geocodificar-lote" onclick="geocodificarPendientesLote()" role="menuitem" style="display:none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span id="btn-geocodificar-lote-texto">Geocodificar pendientes</span>
-            </button>
-            <button type="button" class="dropdown-item" id="btn-exportar-excel-clientes" onclick="exportarExcel()" role="menuitem">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar
-            </button>
-          </div>
-        </div>
+        <button type="button" class="btn btn--secondary" id="btn-geocodificar-lote" onclick="geocodificarPendientesLote()" title="Buscar automáticamente la ubicación de los clientes con domicilio pero sin coordenadas" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="btn-geocodificar-lote-texto">Geocodificar pendientes</span>
+        </button>
+        <button type="button" class="btn btn--secondary" id="btn-exportar-excel-clientes" onclick="exportarExcel()" title="Descargar el listado de clientes en Excel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+        <button type="button" class="btn btn--secondary" id="btn-accesos-portal" onclick="abrirModalAccesosPortal()" title="Dar o revocar el acceso al portal de cualquier cliente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Accesos al portal
+        </button>
         <button type="button" class="btn btn--primary" onclick="abrirModalNuevo()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nuevo cliente
@@ -364,6 +359,15 @@
               + Zona
             </button>
           </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Depósito / Sucursal</label>
+          <select id="f-deposito_id" class="form-select" aria-label="Depósito o sucursal fija del cliente"
+                  title="Sucursal desde la que se le arma el pedido a este cliente (WhatsApp, portal y admin). Sin asignar, se usa el depósito principal de la empresa.">
+            <option value="">Depósito principal (sin sucursal fija)</option>
+          </select>
         </div>
       </div>
       <div class="form-row">
@@ -692,19 +696,22 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <!-- ── Supabase ── -->
 
-  <script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+  <script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-  <script src="/frontend/admin/js/migracion-badge.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
-<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
-  <script src="/frontend/admin/js/notas-internas.js?v1782328742714"></script>
-  <script type="module" src="/frontend/admin/js/clientes.js?v1787278849584"></script>
-  <script src="/frontend/admin/js/clientes-ciclos.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/migracion-badge.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+    <script>
+      window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'vendedor'];
+    </script>
+    <script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/notas-internas.js?v=mtcen4r4"></script>
+  <script type="module" src="/frontend/admin/js/clientes/index.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/clientes-ciclos.js?v=mtcen4r4"></script>
 
 <!-- ── REQ-5: Modal Score Cliente ── -->
 <div class="modal-overlay" id="modal-score-cliente" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.6);z-index:1000;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="modal-score-titulo">
@@ -818,6 +825,28 @@ window.renderProfileCard = function(container, datos) {
   </div>
 </div>
 
+<!-- ── Modal Gestión de Accesos al Portal (todos los clientes) ────────────────── -->
+<div id="modal-accesos-portal-overlay" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.5);z-index:9998;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--color-surface);border-radius: var(--radius-xl);padding:1.5rem;max-width:540px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(22,24,29,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;">
+      <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:.5rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Accesos al portal de clientes
+      </h3>
+      <button onclick="cerrarModalAccesosPortal()" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="margin:.25rem 0 1rem;color:var(--color-text-muted);font-size:.85rem;">
+      Dale o quitale a cualquier cliente el acceso al portal de pedidos, sin tener que buscarlo en la tabla principal.
+    </p>
+    <input type="text" id="input-busqueda-accesos-portal" placeholder="Buscar cliente por nombre o email..." autocomplete="off"
+      oninput="renderListaAccesosPortal()"
+      style="width:100%;padding:.6rem .75rem;border:1px solid var(--color-border);border-radius: var(--radius-md);font-size:.9rem;margin-bottom:.75rem;box-sizing:border-box;background:var(--color-bg);color:var(--color-text);" />
+    <div id="lista-accesos-portal" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:.4rem;min-height:120px;"></div>
+  </div>
+</div>
+
 <style>
 .btn-portal {
   padding: .35rem .7rem;
@@ -860,6 +889,6 @@ window.renderProfileCard = function(container, datos) {
   window._actualizarMapLink = actualizarMapLink;
 })();
 </script>
-<script src="/frontend/shared/tabla-agrupada.js"></script>
+<script src="/frontend/shared/tabla-agrupada.js?v=mtcen4r4"></script>
 </body>
 </html>

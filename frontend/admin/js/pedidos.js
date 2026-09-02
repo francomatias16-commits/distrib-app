@@ -82,9 +82,16 @@ const WA_TEMPLATE = {
 
 async function enviarWhatsApp(template, telefono, params) {
   try {
+    // FIX (auditoría v960): faltaba el Authorization Bearer — igual que
+    // los demás fetch de este archivo (ver getSession() más abajo en el
+    // mismo módulo). El backend ahora lo exige.
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
     const resp = await fetch('/api/notif/whatsapp', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+      },
       body:    JSON.stringify({ template, telefono, params }),
     });
     const data = await resp.json();
@@ -179,10 +186,25 @@ function normalizarPedidoRpc(r) {
 async function cargarEntregasAsignadas(ids) {
   entregasPorPedido = new Map();
   if (!ids.length) return;
-  const { data, error } = await window.supabaseClient
-    .from('entregas')
-    .select('pedido_id, estado, rutas(chofer_id, usuarios!chofer_id(nombre))')
-    .in('pedido_id', ids);
+  // FIX (mismo bug de "Buscando y organizando..." colgado): esta llamada
+  // corre ANTES de renderTabla() en cargarPedidos(), así que si se cuelga
+  // (señal débil, ver conTimeoutRed en ui-utils.js) nunca se llega a pintar
+  // la grilla aunque la carga principal de pedidos sí haya llegado. Es
+  // best-effort (el aviso de reparto es un extra, no bloquea si falla), así
+  // que ante timeout simplemente seguimos sin ese dato en vez de esperarlo.
+  let data, error;
+  try {
+    ({ data, error } = await window.conTimeoutRed(
+      window.supabaseClient
+        .from('entregas')
+        .select('pedido_id, estado, rutas(chofer_id, usuarios!chofer_id(nombre))')
+        .in('pedido_id', ids),
+      10000
+    ));
+  } catch (e) {
+    console.warn('[Pedidos] No se pudo cargar info de reparto (timeout o error de red):', e.message);
+    return;
+  }
   if (error) {
     console.warn('[Pedidos] No se pudo cargar info de reparto:', error.message);
     return;
@@ -232,9 +254,20 @@ async function cargarPedidos() {
   // junto con otras llamadas casi simultáneas), Promise.all rechazaba entero
   // y la función cortaba sin manejar nada — acá cada resultado se resuelve
   // individualmente, haya sido éxito, error de negocio o excepción.
+  //
+  // FIX (bug reportado: pantalla de "Buscando y organizando..." colgada
+  // para siempre con señal débil): window.supabaseClient apunta a Supabase
+  // directo (otro origen), así que el Service Worker no la intercepta ni
+  // le pone ningún límite de tiempo — y fetch() nativo tampoco tiene
+  // timeout por defecto. Sin esto, Promise.allSettled esperaba a que la
+  // llamada se rindiera sola, cosa que en una conexión débil (no caída del
+  // todo) puede tardar más de un minuto o no pasar nunca. Con
+  // conTimeoutRed(), a los 10s se rechaza igual que un error de red real y
+  // cae en el branch de "No pudimos cargar los pedidos" que ya existía más
+  // abajo — no hacía falta un estado nuevo, solo dejar de esperar de más.
   const [rLista, rStats] = await Promise.allSettled([
-    window.supabaseClient.rpc('fn_pedidos_lista', rpcParams),
-    window.supabaseClient.rpc('fn_pedidos_stats_mes'),
+    window.conTimeoutRed(window.supabaseClient.rpc('fn_pedidos_lista', rpcParams), 10000),
+    window.conTimeoutRed(window.supabaseClient.rpc('fn_pedidos_stats_mes'), 10000),
   ]);
 
   const data     = rLista.status === 'fulfilled' ? rLista.value?.data : null;
@@ -312,20 +345,20 @@ function renderStatsLaterales(s) {
 // ── Filtros secundarios (vendedores, zonas y clientes) ─────────────────────
 async function cargarFiltrosSecundarios() {
   const [{ data: vendedores }, { data: zonas }, { data: clientes }] = await Promise.all([
-    window.supabaseClient.from('usuarios')
+    window.conTimeoutRed(window.supabaseClient.from('usuarios')
       .select('id, nombre')
       .eq('empresa_id', empresaData.id)
       .in('rol', ['vendedor','admin','dueno'])
-      .eq('activo', true),
-    window.supabaseClient.from('zonas')
+      .eq('activo', true), 10000),
+    window.conTimeoutRed(window.supabaseClient.from('zonas')
       .select('id, nombre')
       .eq('empresa_id', empresaData.id)
-      .eq('activa', true),
-    window.supabaseClient.from('clientes')
+      .eq('activa', true), 10000),
+    window.conTimeoutRed(window.supabaseClient.from('clientes')
       .select('id, razon_social, nombre_fantasia')
       .eq('empresa_id', empresaData.id)
       .eq('activo', true)
-      .order('razon_social'),
+      .order('razon_social'), 10000),
   ]);
 
   const selV = document.getElementById('filtro-vendedor');
@@ -544,9 +577,11 @@ function renderTabla() {
         <td class="td-text" data-label="Entrega">${fecha}</td>
         <td class="td-total" data-label="Total">${window.formatARS(p.total)}</td>
         <td data-label="Estado">
-          <span class="chip chip-${p.estado}">${capEstado(p.estado)}</span>
-          ${facturaConError ? `<span class="chip" title="La factura de este pedido no se emitió con éxito (AFIP/ARCA)" style="background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);border:1px solid var(--color-danger-mid,#D1594A);margin-left:4px;">Factura con error</span>` : ''}
-          ${chipDevolucion(p.devolucion_estado, p.id)}
+          <span class="chips-estado-pedido">
+            <span class="chip chip-${p.estado}">${capEstado(p.estado)}</span>
+            ${facturaConError ? `<span class="chip" title="La factura de este pedido no se emitió con éxito (AFIP/ARCA)" style="background:var(--color-danger-bg,#F5DDD8);color:var(--color-danger,#7A2820);border:1px solid var(--color-danger-mid,#D1594A);margin-left:4px;">Factura con error</span>` : ''}
+            ${chipDevolucion(p.devolucion_estado, p.id)}
+          </span>
         </td>
         <td class="td-acciones col-sticky-end" data-label="Acciones" onclick="event.stopPropagation()">
           ${sigEstados.filter(e=>e!=='cancelado').map(e =>
@@ -631,7 +666,7 @@ async function abrirModalPorId(id) {
 // pedidos sugeridos confirmados, notificaciones, etc. que pueden apuntar a
 // un pedido fuera de los 200 más recientes cargados en la lista).
 async function obtenerPedidoPorId(id) {
-  const { data, error } = await window.supabaseClient.from('pedidos')
+  const { data, error } = await window.conTimeoutRed(window.supabaseClient.from('pedidos')
     .select(`
       id, estado, subtotal, descuento, iva_total, total, remito_nro,
       notas_cliente, fecha_pedido, fecha_entrega, created_at,
@@ -643,7 +678,7 @@ async function obtenerPedidoPorId(id) {
     `)
     .eq('id', id)
     .eq('empresa_id', empresaData.id)
-    .maybeSingle();
+    .maybeSingle(), 10000);
 
   if (error || !data) {
     console.error('[pedidos] obtenerPedidoPorId:', error?.message);
@@ -678,12 +713,12 @@ async function _renderNotifStatus(pedidoId) {
   const lista = document.getElementById('modal-notif-lista');
   if (!wrap || !lista) return;
 
-  const { data: logs, error } = await window.supabaseClient
+  const { data: logs, error } = await window.conTimeoutRed(window.supabaseClient
     .from('notif_log')
     .select('canal, entregada, motivo, created_at')
     .eq('pedido_id', pedidoId)
     .eq('tipo', 'confirmacion_pedido')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true }), 10000);
 
   if (error || !logs || logs.length === 0) {
     wrap.style.display = 'none';
@@ -723,11 +758,11 @@ async function _renderDevolucionesPedido(pedidoId) {
   const lista = document.getElementById('modal-devoluciones-lista');
   if (!wrap || !lista) return;
 
-  const { data: devs, error } = await window.supabaseClient
+  const { data: devs, error } = await window.conTimeoutRed(window.supabaseClient
     .from('devoluciones')
     .select('id, estado, motivo, created_at')
     .eq('pedido_id', pedidoId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }), 10000);
 
   if (error || !devs || devs.length === 0) {
     wrap.style.display = 'none';
@@ -796,9 +831,9 @@ async function abrirModal(p) {
   _mostrarBannerPredictivo(p);
 
   // Items del pedido
-  const { data: items } = await window.supabaseClient.from('pedido_items')
+  const { data: items } = await window.conTimeoutRed(window.supabaseClient.from('pedido_items')
     .select('cantidad, precio_unitario, descuento_pct, subtotal, productos(nombre, unidad)')
-    .eq('pedido_id', p.id);
+    .eq('pedido_id', p.id), 10000);
 
   document.getElementById('modal-items').innerHTML = (items||[]).map(i => `
     <div class="item-row">
@@ -1128,25 +1163,25 @@ async function cambiarEstado(id, nuevoEstado) {
     // cancelar_pedido libera reservas y anula facturas pendientes.
     // marcar_preparado valida que el pedido esté confirmado (no descuenta stock real).
     if (nuevoEstado === 'confirmado') {
-      const { data, error } = await window.supabaseClient
-        .rpc('confirmar_pedido', { p_pedido_id: id, p_forzar: false });
+      const { data, error } = await window.conTimeoutRed(window.supabaseClient
+        .rpc('confirmar_pedido', { p_pedido_id: id, p_forzar: false }), 10000);
       result = error
         ? { ok: false, error: error.message }
         : { ok: true, ...(data || {}) };
 
     } else if (nuevoEstado === 'cancelado') {
-      const { data, error } = await window.supabaseClient
+      const { data, error } = await window.conTimeoutRed(window.supabaseClient
         .rpc('cancelar_pedido', {
           p_pedido_id: id,
           p_motivo:    null
-        });
+        }), 10000);
       result = error
         ? { ok: false, error: error.message }
         : { ok: true, ...(data || {}) };
 
     } else if (nuevoEstado === 'preparando') {
-      const { data, error } = await window.supabaseClient
-        .rpc('marcar_preparado', { p_pedido_id: id });
+      const { data, error } = await window.conTimeoutRed(window.supabaseClient
+        .rpc('marcar_preparado', { p_pedido_id: id }), 10000);
       result = error
         ? { ok: false, error: error.message }
         : { ok: true, ...(data || {}) };
@@ -1155,7 +1190,7 @@ async function cambiarEstado(id, nuevoEstado) {
       // despachado, entregado — transición simple sin lógica de stock
       const updateData = { estado: nuevoEstado };
       if (nuevoEstado === 'despachado') { try { updateData.fecha_despacho = new Date().toISOString(); } catch(e) {} }
-      const { error } = await window.supabaseClient.from('pedidos').update(updateData).eq('id', id);
+      const { error } = await window.conTimeoutRed(window.supabaseClient.from('pedidos').update(updateData).eq('id', id), 10000);
       result = error ? { ok: false, error: error.message } : { ok: true };
     }
   } catch (err) {
@@ -1198,7 +1233,7 @@ async function cambiarEstado(id, nuevoEstado) {
     // genérico "Ocurrió un error. Intentá de nuevo." en absolutamente todas
     // las transiciones. Se usa .then(onFulfilled, onRejected) en su lugar,
     // que sí es válido sobre un thenable.
-    window.supabaseClient.rpc('registrar_auditoria', {
+    window.conTimeoutRed(window.supabaseClient.rpc('registrar_auditoria', {
       p_tabla:         'pedidos',
       p_accion:        'UPDATE',
       p_registro_id:   id,
@@ -1206,7 +1241,7 @@ async function cambiarEstado(id, nuevoEstado) {
     }).then(
       ({ error }) => { if (error) console.warn('[AUDIT] registrar_auditoria falló:', error.message); },
       (e) => console.warn('[AUDIT] registrar_auditoria falló silenciosamente:', e?.message)
-    );
+    ), 10000);
 
     // No se espera (fire-and-forget) para no bloquear el toast de éxito, pero
     // se loguea cualquier falla interna para que no quede invisible en consola.
@@ -1408,7 +1443,7 @@ async function exportarPedidosExcel() {
     // nota dejada en productos.js para su exportarProductos().
     window.toast('Preparando exportación...');
     const f = leerFiltros();
-    const { data, error } = await window.supabaseClient.rpc('fn_pedidos_lista', {
+    const { data, error } = await window.conTimeoutRed(window.supabaseClient.rpc('fn_pedidos_lista', {
       p_busqueda:      f.busq || null,
       p_estado:        estadoActivo || null,
       p_vendedor_id:   f.vendedor || null,
@@ -1422,7 +1457,7 @@ async function exportarPedidosExcel() {
       p_sin_despachar: f.sinDespachar,
       p_limit:         10000,
       p_offset:        0,
-    });
+    }), 10000);
 
     if (error) {
       console.error('Error exportando pedidos:', error);

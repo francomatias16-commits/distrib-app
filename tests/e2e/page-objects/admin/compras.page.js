@@ -33,6 +33,21 @@ export class ComprasPage extends PageObjectBase {
   async goto() {
     await this.page.goto(`${this.baseURL}/frontend/admin/compras.html`);
     await this.esperarAppLista();
+    // FIX: compras.html no tiene `#app-preloader` — esperarAppLista() (que
+    // solo espera preloader oculto + `#nav-root` en el DOM) no da ninguna
+    // garantía de que `init()` haya terminado su
+    // `await Promise.all([cargarProveedores(), cargarProductos(),
+    // cargarOrdenes()])`. Sin esto, abrir el modal y clickear el combo de
+    // productos puede pasar con `productosData` todavía vacío — el combo
+    // solo re-renderiza en `focus`/`input`, nunca de forma reactiva cuando
+    // los datos llegan más tarde, así que el click siguiente en
+    // `[data-testid="prod-opt-*"]` se cuelga hasta el timeout de 30s (la
+    // misma familia de timeouts vista en compras/rutas/vencimientos/
+    // admin-stock). Se espera a que `#tbody-compras` deje el placeholder
+    // "Cargando..." — pasa recién cuando `renderTabla()` corrió, que
+    // ocurre después del mismo `Promise.all` (`cargarOrdenes()` es una de
+    // las 3 promesas).
+    await expect(this.page.locator('#tbody-compras')).not.toContainText('Cargando...');
   }
 
   // ── Filtros ─────────────────────────────────────────────────────────

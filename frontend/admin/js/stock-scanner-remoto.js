@@ -83,7 +83,7 @@
     }
 
     try {
-      const { data, error } = await sb
+      const { data, error } = await window.conTimeoutRed(sb
         .from('stock')
         .select(`
           producto_id,
@@ -97,7 +97,7 @@
         .eq('deposito_id', depId)
         .eq('productos.codigo', codigo)
         .eq('productos.activo', true)
-        .maybeSingle();
+        .maybeSingle(), 10000);
 
       if (error) throw error;
       if (!data) {

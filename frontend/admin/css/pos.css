@@ -1220,6 +1220,12 @@
   box-shadow: 0 0 0 4px var(--nav-ventas-bg, rgba(40,167,69,.15));
 }
 
+/* v1023 — wrapper de Cámara/Vincular celular/Atajos. En desktop es
+   invisible al layout (los 3 botones siguen siendo hijos directos del
+   toolbar, igual que antes); en mobile pasa a ser una fila compacta,
+   ver @media 640px más abajo. */
+.pos-toolbar-acciones { display: contents; }
+
 .pos-btn-buscar-articulo {
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   background: var(--color-surface);
@@ -1553,9 +1559,25 @@
   .pos-cobro-keybar { gap: 6px 10px; }
   .pos-modal-acciones { flex-direction: column-reverse; }
   .pos-modal-acciones button { width: 100%; justify-content: center; }
-  .pos-ticket-toolbar { flex-direction: column; }
+  /* v1023 — antes Cámara/Vincular celular/Atajos quedaban 3 botones
+     apilados a ancho completo con texto (~150px extra de alto) entre el
+     buscador y el resto de la sección (favoritos / ticket). Se compactan
+     a una sola fila de íconos, discreta, para que el buscador quede
+     seguido de contenido útil. El texto de cada botón no se borra, se
+     oculta (pos-btn-texto) — el ícono + title (tooltip / lector de
+     pantalla) siguen identificando la acción; el estado "vinculado" /
+     "vinculando" del celular remoto se sigue viendo por color (ver
+     .pos-btn-vinculado / .pos-btn-vinculo-pendiente arriba). */
+  .pos-ticket-toolbar { flex-direction: column; gap: 6px; }
   .pos-grid--facil .pos-busqueda-wrap { height: 52px; }
-  .pos-btn-buscar-articulo { justify-content: center; padding: 12px; height: 46px; }
+  .pos-toolbar-acciones { display: flex; gap: 6px; }
+  .pos-btn-buscar-articulo {
+    flex: 1; justify-content: center; padding: 0; height: 38px;
+    box-shadow: none; border-color: var(--color-border);
+    color: var(--color-text-muted); background: var(--color-surface-2);
+  }
+  .pos-btn-buscar-articulo.pos-btn-vinculado { border-color: transparent; }
+  .pos-btn-texto { display: none; }
   .pos-ticket-tabla-head { display: none; }
   .pos-ticket-tabla-body .pos-item-fila {
     grid-template-columns: 1fr 56px 48px;

@@ -106,13 +106,13 @@ function calcularFechas() {
 // Cargar vendedores
 async function cargarVendedores() {
     try {
-        const { data, error } = await window.authCtx.sb
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('usuarios')
             .select('id, nombre, rol')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('rol', 'vendedor')
             .eq('activo', true)
-            .order('nombre');
+            .order('nombre'), 10000);
 
         if (error) throw error;
 
@@ -131,12 +131,12 @@ async function cargarVendedores() {
 // Cargar zonas
 async function cargarZonas() {
     try {
-        const { data, error } = await window.authCtx.sb
+        const { data, error } = await window.conTimeoutRed(window.authCtx.sb
             .from('zonas')
             .select('id, nombre')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('activa', true)
-            .order('nombre');
+            .order('nombre'), 10000);
 
         if (error) throw error;
 
@@ -193,7 +193,7 @@ async function cargarKPIs() {
             query = query.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Ventas de mostrador (POS) del mismo período — mismo criterio que usa
@@ -201,13 +201,13 @@ async function cargarKPIs() {
         // el filtro de vendedor no aplica a ventas de mostrador.
         let ventasPos = [];
         if (!estadoReportesVentas.vendedorSeleccionado) {
-            const { data } = await window.authCtx.sb
+            const { data } = await window.conTimeoutRed(window.authCtx.sb
                 .from('ventas_pos')
                 .select('id, total, cliente_id', { count: 'exact' })
                 .eq('empresa_id', window.authCtx.perfil.empresa_id)
                 .eq('estado', 'completada')
                 .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
-                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString()), 10000);
             ventasPos = data || [];
         }
 
@@ -240,17 +240,17 @@ async function cargarKPIs() {
             queryAnterior = queryAnterior.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidosAnterior } = await queryAnterior;
+        const { data: pedidosAnterior } = await window.conTimeoutRed(queryAnterior, 10000);
 
         let ventasPosAnterior = [];
         if (!estadoReportesVentas.vendedorSeleccionado) {
-            const { data } = await window.authCtx.sb
+            const { data } = await window.conTimeoutRed(window.authCtx.sb
                 .from('ventas_pos')
                 .select('id, total')
                 .eq('empresa_id', window.authCtx.perfil.empresa_id)
                 .eq('estado', 'completada')
                 .gte('created_at', fechaInicioAnterior.toISOString())
-                .lte('created_at', fechaFinAnterior.toISOString());
+                .lte('created_at', fechaFinAnterior.toISOString()), 10000);
             ventasPosAnterior = data || [];
         }
 
@@ -313,19 +313,19 @@ async function cargarVentasDiarias() {
             query = query.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
         let ventasPos = [];
         if (!estadoReportesVentas.vendedorSeleccionado) {
-            const { data } = await window.authCtx.sb
+            const { data } = await window.conTimeoutRed(window.authCtx.sb
                 .from('ventas_pos')
                 .select('id, total, created_at')
                 .eq('empresa_id', window.authCtx.perfil.empresa_id)
                 .eq('estado', 'completada')
                 .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
-                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString()), 10000);
             ventasPos = data || [];
         }
 
@@ -415,19 +415,19 @@ async function cargarVentasCategorias() {
             query = query.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
         let ventasPos = [];
         if (!estadoReportesVentas.vendedorSeleccionado) {
-            const { data } = await window.authCtx.sb
+            const { data } = await window.conTimeoutRed(window.authCtx.sb
                 .from('ventas_pos')
                 .select('venta_pos_items(cantidad, precio_unitario, producto_id)')
                 .eq('empresa_id', window.authCtx.perfil.empresa_id)
                 .eq('estado', 'completada')
                 .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
-                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString()), 10000);
             ventasPos = data || [];
         }
 
@@ -444,15 +444,15 @@ async function cargarVentasCategorias() {
             });
         });
 
-        const { data: productos } = await window.authCtx.sb
+        const { data: productos } = await window.conTimeoutRed(window.authCtx.sb
             .from('productos')
             .select('id, categoria_id')
-            .in('id', Array.from(productosIds));
+            .in('id', Array.from(productosIds)), 10000);
 
-        const { data: categorias } = await window.authCtx.sb
+        const { data: categorias } = await window.conTimeoutRed(window.authCtx.sb
             .from('categorias')
             .select('id, nombre')
-            .eq('empresa_id', window.authCtx.perfil.empresa_id);
+            .eq('empresa_id', window.authCtx.perfil.empresa_id), 10000);
 
         // Mapear productos a categorías
         const productoCategoria = {};
@@ -535,7 +535,7 @@ async function cargarRankingVendedores() {
             query = query.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Agrupar por vendedor
@@ -573,12 +573,12 @@ async function cargarRankingVendedores() {
         const tbody = document.getElementById('tbodyVendedores');
         tbody.innerHTML = ranking.length ? ranking.map((v, idx) => `
             <tr>
-                <td>${idx + 1}</td>
-                <td>${sanitize(v.nombre)}</td>
-                <td>$${v.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${v.cantidad}</td>
-                <td>$${v.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${v.porcentaje}%</td>
+                <td data-label="Posición">${idx + 1}</td>
+                <td data-label="Vendedor">${sanitize(v.nombre)}</td>
+                <td data-label="Total Vendido">$${v.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="Cantidad Pedidos">${v.cantidad}</td>
+                <td data-label="Ticket Promedio">$${v.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="% del Total">${v.porcentaje}%</td>
             </tr>
         `).join('') : '<tr><td colspan="6" class="tabla-empty">No hay ventas de vendedores en el período seleccionado.</td></tr>';
 
@@ -599,15 +599,15 @@ async function cargarRankingClientes() {
             .lte('fecha_pedido', estadoReportesVentas.fechaFin.toISOString());
 
         if (estadoReportesVentas.zonaSeleccionada) {
-            const { data: clientesZona } = await window.authCtx.sb
+            const { data: clientesZona } = await window.conTimeoutRed(window.authCtx.sb
                 .from('clientes')
                 .select('id')
-                .eq('zona_id', estadoReportesVentas.zonaSeleccionada);
+                .eq('zona_id', estadoReportesVentas.zonaSeleccionada), 10000);
             const clientesIds = (clientesZona || []).map(c => c.id);
             query = query.in('cliente_id', clientesIds);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Ventas de mostrador (POS) con cliente identificado — las ventas
@@ -623,15 +623,15 @@ async function cargarRankingClientes() {
             .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
 
         if (estadoReportesVentas.zonaSeleccionada) {
-            const { data: clientesZona } = await window.authCtx.sb
+            const { data: clientesZona } = await window.conTimeoutRed(window.authCtx.sb
                 .from('clientes')
                 .select('id')
-                .eq('zona_id', estadoReportesVentas.zonaSeleccionada);
+                .eq('zona_id', estadoReportesVentas.zonaSeleccionada), 10000);
             const clientesIds = (clientesZona || []).map(c => c.id);
             queryPos = queryPos.in('cliente_id', clientesIds);
         }
 
-        const { data: ventasPos } = await queryPos;
+        const { data: ventasPos } = await window.conTimeoutRed(queryPos, 10000);
 
         // Agrupar por cliente
         const ventasPorCliente = {};
@@ -682,12 +682,12 @@ async function cargarRankingClientes() {
         const tbody = document.getElementById('tbodyClientes');
         tbody.innerHTML = ranking.length ? ranking.map((c, idx) => `
             <tr>
-                <td>${idx + 1}</td>
-                <td>${sanitize(c.nombre)}</td>
-                <td>$${c.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${c.cantidad}</td>
-                <td>$${c.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${c.porcentaje}%</td>
+                <td data-label="Posición">${idx + 1}</td>
+                <td data-label="Cliente">${sanitize(c.nombre)}</td>
+                <td data-label="Total Comprado">$${c.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="Cantidad Pedidos">${c.cantidad}</td>
+                <td data-label="Ticket Promedio">$${c.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="% del Total">${c.porcentaje}%</td>
             </tr>
         `).join('') : '<tr><td colspan="6" class="tabla-empty">No hay compras de clientes en el período seleccionado.</td></tr>';
 
@@ -711,19 +711,19 @@ async function cargarRankingProductos() {
             query = query.eq('vendedor_id', estadoReportesVentas.vendedorSeleccionado);
         }
 
-        const { data: pedidos, error } = await query;
+        const { data: pedidos, error } = await window.conTimeoutRed(query, 10000);
         if (error) throw error;
 
         // Ventas de mostrador (POS); no aplica si hay un vendedor seleccionado
         let ventasPos = [];
         if (!estadoReportesVentas.vendedorSeleccionado) {
-            const { data } = await window.authCtx.sb
+            const { data } = await window.conTimeoutRed(window.authCtx.sb
                 .from('ventas_pos')
                 .select('venta_pos_items(cantidad, precio_unitario, producto_id)')
                 .eq('empresa_id', window.authCtx.perfil.empresa_id)
                 .eq('estado', 'completada')
                 .gte('created_at', estadoReportesVentas.fechaInicio.toISOString())
-                .lte('created_at', estadoReportesVentas.fechaFin.toISOString());
+                .lte('created_at', estadoReportesVentas.fechaFin.toISOString()), 10000);
             ventasPos = data || [];
         }
 
@@ -757,10 +757,10 @@ async function cargarRankingProductos() {
 
         // Obtener datos de productos
         const productosIds = Object.keys(ventasPorProducto);
-        const { data: productos } = await window.authCtx.sb
+        const { data: productos } = await window.conTimeoutRed(window.authCtx.sb
             .from('productos')
             .select('id, nombre, costo')
-            .in('id', productosIds);
+            .in('id', productosIds), 10000);
 
         const totalIngresos = Object.values(ventasPorProducto).reduce((sum, p) => sum + p.ingresos, 0);
 
@@ -785,12 +785,12 @@ async function cargarRankingProductos() {
         const tbody = document.getElementById('tbodyProductos');
         tbody.innerHTML = ranking.length ? ranking.map((p, idx) => `
             <tr>
-                <td>${idx + 1}</td>
-                <td>${sanitize(p.nombre)}</td>
-                <td>${p.cantidad}</td>
-                <td>$${p.ingresos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${p.margenPromedio}%</td>
-                <td>${p.porcentaje}%</td>
+                <td data-label="Posición">${idx + 1}</td>
+                <td data-label="Producto">${sanitize(p.nombre)}</td>
+                <td data-label="Cantidad Vendida">${p.cantidad}</td>
+                <td data-label="Ingresos">$${p.ingresos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="Margen Promedio">${p.margenPromedio}%</td>
+                <td data-label="% del Total">${p.porcentaje}%</td>
             </tr>
         `).join('') : '<tr><td colspan="6" class="tabla-empty">No hay productos vendidos en el período seleccionado.</td></tr>';
 
@@ -802,13 +802,13 @@ async function cargarRankingProductos() {
 // Cargar ventas por zona
 async function cargarVentasPorZona() {
     try {
-        let query = window.authCtx.sb
+        let query = window.conTimeoutRed(window.authCtx.sb
             .from('pedidos')
             .select('id, total, cliente_id, clientes(zona_id, zonas(nombre))')
             .eq('empresa_id', window.authCtx.perfil.empresa_id)
             .eq('estado', 'entregado')
             .gte('fecha_pedido', estadoReportesVentas.fechaInicio.toISOString())
-            .lte('fecha_pedido', estadoReportesVentas.fechaFin.toISOString());
+            .lte('fecha_pedido', estadoReportesVentas.fechaFin.toISOString()), 10000);
 
         const { data: pedidos, error } = await query;
         if (error) throw error;
@@ -844,11 +844,11 @@ async function cargarVentasPorZona() {
         const tbody = document.getElementById('tbodyZonas');
         tbody.innerHTML = ranking.length ? ranking.map((z, idx) => `
             <tr>
-                <td>${sanitize(z.nombre)}</td>
-                <td>$${z.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${z.cantidad}</td>
-                <td>$${z.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td>${z.porcentaje}%</td>
+                <td data-label="Zona">${sanitize(z.nombre)}</td>
+                <td data-label="Total Vendido">$${z.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="Cantidad Pedidos">${z.cantidad}</td>
+                <td data-label="Ticket Promedio">$${z.ticketPromedio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                <td data-label="% del Total">${z.porcentaje}%</td>
             </tr>
         `).join('') : '<tr><td colspan="5" class="tabla-empty">No hay ventas por zona en el período seleccionado.</td></tr>';
 

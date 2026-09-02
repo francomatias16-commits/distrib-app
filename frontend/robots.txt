@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /$
+Allow: /landing
+Allow: /registro
+Allow: /registro.html
+Allow: /terminos
+Allow: /terminos.html
+Allow: /privacidad
+Allow: /privacidad.html
+Allow: /eliminacion-datos
+Allow: /eliminacion-datos.html
+Allow: /cliente/catalogo
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /cliente/login
+Disallow: /cliente/inicio
+Disallow: /cliente/carrito
+Disallow: /cliente/pedidos
+Disallow: /cliente/cuenta
+Disallow: /cliente/checkout
+Disallow: /cliente/puntos
+Disallow: /cliente/notificaciones
+Disallow: /chofer
+Disallow: /chofer/
+Disallow: /proveedor
+Disallow: /proveedor/
+Disallow: /scan-pos
+Disallow: /scan-pos/
+Disallow: /superadmin
+Disallow: /admin/superadmin
+Disallow: /api/
+Disallow: /frontend/
+
+Sitemap: https://fluxoapp.com.ar/sitemap.xml

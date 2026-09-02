@@ -109,17 +109,17 @@ function quitarFiltroPedido() {
 // ── Depósitos (para el selector al aprobar) ────────────────────────────────
 async function cargarDepositos() {
   if (!sb || !empresaId) return;
-  const { data } = await sb.from('depositos').select('id, nombre, es_principal').eq('empresa_id', empresaId);
+  const { data } = await window.conTimeoutRed(sb.from('depositos').select('id, nombre, es_principal').eq('empresa_id', empresaId), 10000);
   depositos = data || [];
 }
 
 // ── Clientes (para el <select> del alta manual) ────────────────────────────
 async function cargarClientes() {
   if (!sb || !empresaId) return;
-  const { data } = await sb.from('clientes')
+  const { data } = await window.conTimeoutRed(sb.from('clientes')
     .select('id, razon_social, nombre_fantasia')
     .eq('empresa_id', empresaId)
-    .order('razon_social');
+    .order('razon_social'), 10000);
   clientesCache = data || [];
   const sel = document.getElementById('nd-cliente');
   if (!sel) return;
@@ -374,7 +374,7 @@ function renderFooter(d) {
       </label>
       <span style="font-size:11px">Solo aplica si aprobás. La NC queda pendiente de emisión en Facturación → Notas de crédito.</span>
     </div>
-    <button class="btn btn-danger" onclick="revisarDevolucion('rechazada')">Rechazar</button>
+    <button class="btn btn-danger btn--danger" onclick="revisarDevolucion('rechazada')">Rechazar</button>
     <button class="btn btn-success" onclick="revisarDevolucion('aprobada')">Aprobar</button>
   `;
 }
@@ -541,13 +541,13 @@ async function ndCargarPedidosCliente() {
     return;
   }
 
-  const { data } = await sb.from('pedidos')
+  const { data } = await window.conTimeoutRed(sb.from('pedidos')
     .select('id, created_at, entregado_at')
     .eq('empresa_id', empresaId)
     .eq('cliente_id', clienteId)
     .not('entregado_at', 'is', null)
     .order('entregado_at', { ascending: false })
-    .limit(30);
+    .limit(30), 10000);
   (data || []).forEach(p => {
     const o = document.createElement('option');
     o.value = p.id;
@@ -591,10 +591,10 @@ async function ndDesbloquearPickerParaCliente(clienteId) {
 
   let productosComprados = [];
   try {
-    const { data } = await sb.from('pedido_items')
+    const { data } = await window.conTimeoutRed(sb.from('pedido_items')
       .select('producto_id, productos(id, codigo, nombre, unidad, precio_base, foto_url, categoria_id, activo), pedidos!inner(cliente_id, empresa_id)')
       .eq('pedidos.cliente_id', clienteId)
-      .eq('pedidos.empresa_id', empresaId);
+      .eq('pedidos.empresa_id', empresaId), 10000);
     const porId = new Map();
     (data || []).forEach(r => {
       // r.productos puede venir null si el producto fue eliminado del todo
@@ -640,9 +640,9 @@ async function ndFiltrarPickerPorPedido() {
 
   let productosPedido = [];
   try {
-    const { data } = await sb.from('pedido_items')
+    const { data } = await window.conTimeoutRed(sb.from('pedido_items')
       .select('producto_id, productos(id, codigo, nombre, unidad, precio_base, foto_url, categoria_id, activo)')
-      .eq('pedido_id', pedidoId);
+      .eq('pedido_id', pedidoId), 10000);
     const porId = new Map();
     (data || []).forEach(r => { if (r.productos) porId.set(r.productos.id, r.productos); });
     productosPedido = [...porId.values()];

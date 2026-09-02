@@ -14,24 +14,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196" />
-  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=198" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
-  <link rel="stylesheet" href="/shared/pagination.css?v=1" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/pagination.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/compras-gentelella.css?v=1" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/compras-gentelella.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/etiquetas-preview.css?v=mtcen4r4" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-compras-gentelella dash-gentelella">
@@ -358,6 +359,55 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
+     543 — generador de etiquetas de precio/código de barras, Etapa 3:
+     al confirmar una recepción, se ofrece imprimir etiquetas de los
+     productos/cantidades recién ingresados (ver
+     PLAN_ETIQUETAS_PRECIO_CODIGO_BARRAS.md, sección 5). Se dispara desde
+     ofrecerEtiquetasRecepcion() en compras.js, después de que la
+     recepción ya quedó confirmada y el stock actualizado — imprimir
+     etiquetas acá es un paso aparte, opcional, nunca bloquea ni condiciona
+     la recepción en sí.
+═════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-oferta-etiquetas-recepcion" role="dialog" aria-modal="true" aria-label="Imprimir etiquetas de la recepción" onclick="cerrarModalSiFondo(event)">
+  <div class="modal-box">
+    <div class="modal-box-header">
+      <h2>Recepción confirmada</h2>
+      <button type="button" class="modal-box-close" onclick="document.getElementById('modal-oferta-etiquetas-recepcion').style.display='none'" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-box-body">
+      <p style="font-size:13px;color:var(--color-text-muted);margin:0" id="oferta-etiquetas-texto">
+        Stock actualizado. ¿Querés imprimir las etiquetas de precio/código de barras de los productos recién ingresados?
+      </p>
+    </div>
+    <div class="modal-box-footer">
+      <button type="button" class="btn btn--secondary" onclick="document.getElementById('modal-oferta-etiquetas-recepcion').style.display='none'">No, gracias</button>
+      <button type="button" class="btn btn--primary" onclick="imprimirEtiquetasDeRecepcion()">Imprimir etiquetas</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vista previa de impresión en sí (copias por producto) — mismo modal y
+     misma lógica (etiquetas-preview.js) que usa Productos en la Etapa 2,
+     acá precargado con las cantidades recibidas en vez de arrancar en 1. -->
+<div class="modal-backdrop" id="modal-backdrop-etiquetas-preview" onclick="cerrarVistaPreviaEtiquetas()" aria-hidden="true"></div>
+<div class="modal" id="modal-etiquetas-preview" role="dialog" aria-modal="true" aria-labelledby="etq-preview-titulo">
+  <div class="modal-header">
+    <div>
+      <div class="modal-titulo" id="etq-preview-titulo">Generar etiquetas</div>
+      <div class="modal-subtitulo">Cantidad de copias por producto — se imprime con el formato configurado en Admin → Hardware.</div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarVistaPreviaEtiquetas()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div id="etiquetas-preview-cuerpo"></div>
+  <div style="display:flex;gap:8px;margin-top:16px">
+    <button type="button" class="btn-secundario" onclick="cerrarVistaPreviaEtiquetas()">Cancelar</button>
+    <button type="button" class="btn btn--primary" onclick="imprimirEtiquetasSeleccionadas()">Imprimir</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
      Modal: historial de recepciones
 ═════════════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-historial-recepciones" onclick="cerrarModalSiFondo(event)" role="dialog" aria-modal="true" aria-labelledby="modal-hist-titulo">
@@ -379,21 +429,25 @@
 
 <!-- Scripts -->
 
-<script src="/frontend/env-config.js?v1782328742714"></script>
-<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-  <script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-  <script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
+<script src="/frontend/env-config.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+  <script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
+  <script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
     <script>
       window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
     </script>
-    <script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
-<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
-<script src="/frontend/shared/componentes-admin.js?v=1"></script>
-<script src="/frontend/admin/js/compras.js?v1782328742714"></script>
-<script src="/frontend/shared/tabla-agrupada.js"></script>
+    <script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/componentes-admin.js?v=mtcen4r4"></script>
+<!-- 543, Etapa 3 — motor de impresión de etiquetas, compartido con Productos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="/frontend/admin/js/etiquetas-print.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/etiquetas-preview.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/compras.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/tabla-agrupada.js?v=mtcen4r4"></script>
 </body>
 </html>

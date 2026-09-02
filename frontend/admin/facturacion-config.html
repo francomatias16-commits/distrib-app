@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
-  <script src="/frontend/env-config.js?v1782328742714"></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4">
+  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
   <style>
     .cfg-wrap { max-width:660px; margin:0 auto; padding:24px; }
     /* Guía + formulario a la par, solo en escritorio — en mobile/tablet
@@ -62,8 +62,8 @@
     .paso { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f3f4f6; }
     .paso:last-child { border-bottom:none; }
     .paso-n { width:24px; height:24px; border-radius:50%; background:var(--color-primary); color:var(--color-surface); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-    .paso-t { font-size:13px; color:var(--color-text); line-height:1.6; }
-    .paso-t code { background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-sm); font-size:12px; }
+    .paso-t { font-size:13px; color:var(--color-text); line-height:1.6; min-width:0; overflow-wrap:anywhere; }
+    .paso-t code { background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-sm); font-size:12px; overflow-wrap:anywhere; white-space:normal; display:inline; }
     hr.div { border:none; border-top:1px solid var(--color-border-soft); margin:20px 0; }
     .toggle-row { display:flex; align-items:center; justify-content:space-between; }
     .toggle-label { font-size:13px; font-weight:500; color:var(--color-text); }
@@ -76,17 +76,17 @@
     input:checked + .slider { background:var(--color-primary); }
     input:checked + .slider:before { transform:translateX(18px); }
   </style>
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
-  <link rel="stylesheet" href="/frontend/admin/css/facturacion-config-gentelella.css" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/facturacion-config-gentelella.css?v=mtcen4r4" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-facturacion-config-gentelella dash-gentelella">
@@ -224,14 +224,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-<script src="/frontend/shared/topbar-widgets.js?v2"></script>  <!-- reloj + avatar + campanita de notificaciones -->
-  <script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-<script src="/frontend/admin/js/busqueda-global.js?v1782328742714"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+  <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
 <script>
 const API_BASE = window.ENV?.API_URL || '';
 

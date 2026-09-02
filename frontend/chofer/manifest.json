@@ -4,7 +4,7 @@
   "start_url": "/chofer",
   "scope": "/chofer",
   "display": "standalone",
-  "background_color": "#1D4ED8",
+  "background_color": "#ffffff",
   "theme_color": "#2563EB",
   "orientation": "portrait",
   "icons": [

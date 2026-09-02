@@ -303,6 +303,23 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 }
 .btn-nuevo-comp:hover { opacity: .88; transform: translateY(-1px); }
 
+/* Panel de "generar etiquetas" (#modal-etiquetas-preview, etiquetas-preview.js
+   — mismo componente que usa productos.css) — auditoría mobile automatizada,
+   Fase 3 (2026-08-25). Bug real encontrado por el script, no solo mobile:
+   esta página nunca tuvo su propia regla `.modal`, así que caía al `.modal`
+   genérico centrado de adminlte-components.css, que no tiene estado
+   "cerrado" por defecto — el panel quedaba siempre visible tapando el
+   contenido, en cualquier ancho de pantalla. Forma base ahora en
+   componentes-admin.css (junto con clientes/facturacion/productos/stock);
+   acá solo lo propio: mismo ancho que productos.css, que es la misma
+   modal reutilizada. */
+.modal {
+  right: -600px;
+  width: 580px;
+  gap: 0;
+}
+.modal.open { right: 0; }
+
 /* ── Modal overlay (usado por compras/proveedores, no panel lateral) ── */
 .modal-overlay {
   display: none;
@@ -876,3 +893,17 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 #vista-vencimientos .badge-muted { background: var(--color-bg); color: var(--color-text-muted); border: 1px solid rgba(0,0,0,.07); }
 */
 #vista-vencimientos .btn-pag { border-radius: 999px; }
+
+/* ══════════════════════════════════════════════════════════
+   FIX (e2e compras.spec.js): adminlte-components.css define
+   .modal-backdrop en display:flex/opacity:0 por defecto (sin
+   estado "cerrado" propio), y compras.html nunca sobreescribía
+   esto acá — a diferencia de productos.css, que sí tiene este
+   mismo reset. Resultado: #modal-backdrop-etiquetas-preview
+   quedaba cubriendo toda la pantalla desde el primer render e
+   interceptaba el click en "Nueva orden". Mismo fix que
+   productos.css.
+   ══════════════════════════════════════════════════════════ */
+.modal-backdrop {
+  display: none;
+}

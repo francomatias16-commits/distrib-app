@@ -260,25 +260,11 @@ body[data-ws] .topbar-title::before {
 }
 
 /* ═══════════════════════════════════════════════════
-   FILTROS BAR — superficie plana
+   FILTROS BAR — MOVIDO a frontend/shared/componentes-admin.css
+   (auditoría responsive, Fase 1 — 2026-08-25). Esta era una de las 4
+   definiciones que competían sin ganador predecible — ver
+   AUDITORIA_FILTROS_v280.md. No redeclarar acá.
    ═══════════════════════════════════════════════════ */
-.filtros-bar {
-  background: var(--glass-modal);
-  border: var(--glass-border); border-radius: var(--radius-xl);
-  padding: 14px 18px;
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-bottom: 1rem; box-shadow: var(--shadow-fluffy);
-}
-.filtros-bar input, .filtros-bar select {
-  font-family: inherit; font-size: 13px; padding: 7px 10px;
-  border: 1px solid rgba(0,0,0,.10); border-radius: var(--radius-md);
-  background: var(--color-surface); color: var(--color-text);
-  outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: var(--shadow-outline);
-}
-.filtros-bar input:focus, .filtros-bar select:focus {
-  border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0,174,112,.12);
-}
 
 /* ═══════════════════════════════════════════════════
    SECTION LABEL — replay: uppercase tracking-wide
@@ -357,7 +343,11 @@ body[data-ws] .topbar-title::before {
 }
 .notif-dropdown {
   position: absolute; top: calc(100% + 8px); right: 0; width: 340px;
-  background: var(--glass-modal);
+  /* [Contraste] antes usaba var(--glass-modal) (= --color-surface, blanco puro),
+     que se confundía con el fondo blanco de las pantallas detrás del panel.
+     Se usa --color-surface-2 (el "paper-deep" gris de la paleta) SOLO acá,
+     sin tocar --glass-modal global (compartida por otros modales/dropdowns). */
+  background: var(--color-surface-2);
   border: var(--glass-border); border-radius: var(--radius-xl);
   box-shadow: var(--shadow-big); overflow: hidden; z-index: var(--z-dropdown);
 }
@@ -365,7 +355,20 @@ body[data-ws] .topbar-title::before {
   padding: 14px 18px 10px; font-size: 11px; font-weight: var(--font-weight-bold);
   color: var(--color-text-muted); text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide); border-bottom: 1px solid rgba(0,0,0,.05);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
+/* Cruz para cerrar la campanita — oculta en desktop (ahí alcanza con
+   tocar afuera del dropdown o Escape); en mobile el dropdown queda fixed
+   pegado al borde de la pantalla y conviene un cierre explícito, ver
+   media query más abajo. */
+.notif-close {
+  display: none; background: transparent; border: none; cursor: pointer;
+  color: var(--color-text-muted); font-size: 20px; line-height: 1;
+  padding: 2px 4px; border-radius: var(--radius-full);
+  text-transform: none; letter-spacing: normal; font-weight: var(--font-weight-normal);
+  flex-shrink: 0;
+}
+.notif-close:hover { background: rgba(0,0,0,.05); color: var(--color-text); }
 .notif-item {
   display: flex; align-items: flex-start; gap: 10px; padding: 12px 18px;
   transition: background var(--transition-fast); border-bottom: 1px solid rgba(0,0,0,.04); cursor: pointer;
@@ -802,14 +805,24 @@ body[data-ws] .topbar-title::before {
     padding: 6px 10px; font-size: 12.5px;
   }
 
+  /* Campana de notificaciones: al envolver .topbar-right en mobile, la
+     campana (último elemento del flex) quedaba "huérfana" en su propia
+     fila, descolgada del resto del contenido. Se ancla en la esquina
+     superior derecha del topbar (que es position:sticky, sirve de
+     referencia) para que siempre quede a la altura del título/logo,
+     prolija y alineada, sin depender del wrap de los demás elementos. */
+  .topbar-notif-wrap { position: absolute; top: 10px; right: 16px; }
+  /* Deja lugar para no tapar el resto de .topbar-right al envolver */
+  .topbar-right { padding-right: 38px; }
+
   .page-intro { padding: 6px 16px 2px; }
 
-  .filtros-bar { padding: 12px 14px; gap: 8px; }
-  .filtros-bar input, .filtros-bar select { flex: 1 1 140px; }
+  /* .filtros-bar: movido a componentes-admin.css (ver arriba) */
 
   .notif-dropdown {
     position: fixed; top: 56px; right: 8px; left: 8px; width: auto;
   }
+  .notif-close { display: inline-flex; align-items: center; justify-content: center; }
 
   .modal { padding: 20px; max-height: 85vh; }
   .modal-title { font-size: 16px; }
@@ -827,5 +840,6 @@ body[data-ws] .topbar-title::before {
   .info-box-icon { width: 100%; height: 44px; }
   .topbar { padding: 0 12px; }
   .topbar-title { font-size: 15px; }
+  .topbar-notif-wrap { right: 12px; }
   .modal { padding: 16px; border-radius: var(--radius-lg); }
 }

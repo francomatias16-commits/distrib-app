@@ -13,6 +13,13 @@
 //   id, empresa_id, cliente_id, cliente_nombre, telefono, estado,
 //   pedido_borrador, motivo_derivacion, tomada_por, tomada_por_nombre,
 //   tomada_en, ultima_interaccion, cant_mensajes
+//
+// Tab "Historial": trae conversaciones con estado='cerrada' desde
+// v_whatsapp_conversaciones_historial (misma forma + pedido_creado_id, para
+// poder linkear a /admin/pedidos?id=... el pedido que terminó generando esa
+// charla). No son un filtro más sobre `datos` porque la vista de activas
+// excluye 'cerrada' a propósito (ver migración de esa vista) — hay que
+// pedirlas aparte. `vistaActual` decide de cuál vista lee cargarConversaciones().
 
 // ── Estado ────────────────────────────────────────────────────────────────
 let sb          = null;
@@ -20,6 +27,7 @@ let empresaId   = null;
 let perfil      = null;
 let datos       = [];      // conversaciones cargadas
 let datosVista  = [];      // después de aplicar filtros
+let vistaActual = 'activas'; // 'activas' | 'historial' — qué vista SQL alimenta `datos`
 let convActual  = null;    // conversación abierta en el modal
 let pollingId   = null;
 let waEstado    = 'desconocido'; // 'conectado' | 'no_conectado' | 'desconocido'
@@ -78,11 +86,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Estado de conexión de WhatsApp (para diferenciar "no conectado" de
 // "conectado pero sin conversaciones todavía" en la tabla vacía) ──────────
 async function cargarEstadoWhatsapp() {
-  const { data, error } = await sb
+  const { data, error } = await window.conTimeoutRed(sb
     .from('v_empresa_whatsapp_estado')
     .select('phone_number_id, desconectado_en, necesita_reconexion')
     .eq('empresa_id', empresaId)
-    .maybeSingle();
+    .maybeSingle(), 10000);
 
   if (error) {
     // Rol sin policy de lectura (vendedor/chofer, etc.) u otro error —
@@ -98,11 +106,15 @@ async function cargarEstadoWhatsapp() {
 
 // ── Carga del listado ──────────────────────────────────────────────────────
 async function cargarConversaciones() {
-  const { data, error } = await sb
-    .from('v_whatsapp_conversaciones_activas')
+  const esHistorial = vistaActual === 'historial';
+  const vista = esHistorial ? 'v_whatsapp_conversaciones_historial' : 'v_whatsapp_conversaciones_activas';
+
+  const { data, error } = await window.conTimeoutRed(sb
+    .from(vista)
     .select('*')
     .eq('empresa_id', empresaId)
-    .order('ultima_interaccion', { ascending: false });
+    .order('ultima_interaccion', { ascending: false })
+    .limit(esHistorial ? 200 : 1000), 10000);
 
   if (error) {
     console.error('[WHATSAPP-CONV] Error cargando:', error);
@@ -112,7 +124,10 @@ async function cargarConversaciones() {
 
   datos = data || [];
   aplicarFiltros();
-  actualizarStats();
+  // Los contadores de la barra de tabs son sobre las conversaciones activas
+  // (bot conversando / esperando / derivadas) — no tienen sentido mientras
+  // se está mirando el historial de cerradas, así que no los tocamos acá.
+  if (!esHistorial) actualizarStats();
 
   // Si hay un modal abierto, refrescar su fila (por si cambió tomada_por
   // desde otra sesión) sin cerrarlo ni interrumpir la lectura del chat.
@@ -147,8 +162,13 @@ function aplicarFiltros() {
   const sinTomar  = document.getElementById('filtro-sin-tomar').checked;
 
   datosVista = datos.filter(c => {
-    if (estado && c.estado !== estado) return false;
-    if (sinTomar && !(c.estado === 'derivada_humano' && !c.tomada_por)) return false;
+    // En historial todas las filas ya vienen con estado='cerrada' (viene de
+    // una vista aparte, no es un filtro más sobre las activas) — el filtro
+    // de estado y el checkbox "sin tomar" no aplican ahí.
+    if (vistaActual === 'activas') {
+      if (estado && c.estado !== estado) return false;
+      if (sinTomar && !(c.estado === 'derivada_humano' && !c.tomada_por)) return false;
+    }
     if (q) {
       const nombre = (c.cliente_nombre || '').toLowerCase();
       const tel    = (c.telefono || '').toLowerCase();
@@ -168,12 +188,21 @@ function limpiarFiltros() {
   cont.querySelectorAll('.filtro-tab').forEach(b => { b.classList.remove('activa'); b.setAttribute('aria-selected', 'false'); });
   const _tabTodas = cont.querySelector('[data-key="todas"]');
   if (_tabTodas) { _tabTodas.classList.add('activa'); _tabTodas.setAttribute('aria-selected', 'true'); }
+
+  const veniaDeHistorial = vistaActual === 'historial';
+  vistaActual = 'activas';
+  if (veniaDeHistorial) { cargarConversaciones(); return; } // 'datos' tiene cerradas, hay que recargar
   aplicarFiltros();
 }
 
 // ── Render tabla ────────────────────────────────────────────────────────────
 function renderTabla() {
   const tbody = document.getElementById('tbody-conv');
+
+  const elTitulo = document.getElementById('tabla-conv-titulo');
+  if (elTitulo) elTitulo.textContent = vistaActual === 'historial' ? 'Historial de conversaciones' : 'Conversaciones en curso';
+  const elThAtencion = document.getElementById('th-atencion');
+  if (elThAtencion) elThAtencion.textContent = vistaActual === 'historial' ? 'Pedido' : 'Atención';
 
   if (datosVista.length === 0) {
     // Sin filtros activos y sin ninguna conversación cargada: si además
@@ -186,11 +215,13 @@ function renderTabla() {
       && !document.getElementById('filtro-estado').value
       && !document.getElementById('filtro-sin-tomar').checked;
 
-    if (sinFiltros && waEstado === 'no_conectado') {
+    if (sinFiltros && vistaActual === 'activas' && waEstado === 'no_conectado') {
       tbody.innerHTML = `<tr><td colspan="7" class="sin-resultados">
         WhatsApp no está conectado todavía para esta empresa.
         <a href="/admin/whatsapp-onboarding">Conectar WhatsApp</a>
       </td></tr>`;
+    } else if (vistaActual === 'historial') {
+      tbody.innerHTML = `<tr><td colspan="7" class="sin-resultados">Todavía no hay conversaciones cerradas</td></tr>`;
     } else {
       tbody.innerHTML = `<tr><td colspan="7" class="sin-resultados">Sin conversaciones para los filtros actuales</td></tr>`;
     }
@@ -234,7 +265,18 @@ function initFiltroTabsWhatsapp() {
     { key: 'esperando_confirmacion', label: 'Esperando confirmación' },
     { key: 'derivada_humano',        label: 'Derivadas' },
     { key: 'sin_tomar',   label: 'Derivadas sin tomar' },
+    { key: 'historial',   label: 'Historial' },
   ], 'todas', (key) => {
+    const veniaDeHistorial = vistaActual === 'historial';
+
+    if (key === 'historial') {
+      vistaActual = 'historial';
+      document.getElementById('filtro-estado').value = '';
+      document.getElementById('filtro-sin-tomar').checked = false;
+      cargarConversaciones(); // 'datos' no trae cerradas — hay que ir a buscarlas a la otra vista
+      return;
+    }
+
     if (key === 'sin_tomar') {
       document.getElementById('filtro-estado').value = 'derivada_humano';
       document.getElementById('filtro-sin-tomar').checked = true;
@@ -242,7 +284,13 @@ function initFiltroTabsWhatsapp() {
       document.getElementById('filtro-estado').value = key === 'todas' ? '' : key;
       document.getElementById('filtro-sin-tomar').checked = false;
     }
-    aplicarFiltros();
+
+    if (veniaDeHistorial) {
+      vistaActual = 'activas';
+      cargarConversaciones(); // idem, volviendo: 'datos' trae solo cerradas
+    } else {
+      aplicarFiltros();
+    }
   });
 }
 
@@ -294,11 +342,11 @@ async function refrescarChatModal(conversacionId) {
   const cont = document.getElementById('modal-conv-chat');
   const scrolleadoAlFondo = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 40;
 
-  const { data, error } = await sb
+  const { data, error } = await window.conTimeoutRed(sb
     .from('whatsapp_mensajes')
     .select('id, direccion, texto, tipo, created_at')
     .eq('conversacion_id', conversacionId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true }), 10000);
 
   if (error) {
     console.error('[WHATSAPP-CONV] Error cargando mensajes:', error);
@@ -323,6 +371,9 @@ function metaHtml(c) {
   if (c.motivo_derivacion) partes.push(`<strong>Motivo de derivación:</strong> ${esc(c.motivo_derivacion)}`);
   if (c.tomada_por) {
     partes.push(`<strong>Atendida por:</strong> ${esc(c.tomada_por_nombre || 'un usuario')} desde ${formatFechaHora(c.tomada_en)}`);
+  }
+  if (c.pedido_creado_id) {
+    partes.push(`<strong>Pedido generado:</strong> <a href="/admin/pedidos?id=${encodeURIComponent(c.pedido_creado_id)}">Ver pedido</a>`);
   }
   return partes.join(' &nbsp;·&nbsp; ');
 }
@@ -457,6 +508,7 @@ const ESTADO_LABEL = {
   activa: 'Bot conversando',
   esperando_confirmacion: 'Esperando confirmación',
   derivada_humano: 'Derivada',
+  cerrada: 'Cerrada',
 };
 
 // Un ícono distinto por estado ayuda a escanear la columna de un vistazo
@@ -468,6 +520,8 @@ const ESTADO_ICONO = {
   esperando_confirmacion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   // flecha hacia una persona / derivada a un vendedor
   derivada_humano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 8h6M19 5l3 3-3 3"/></svg>',
+  // check / conversación cerrada (historial)
+  cerrada: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>',
 };
 
 function badgeEstado(estado) {
@@ -476,6 +530,15 @@ function badgeEstado(estado) {
 }
 
 function badgeAtencion(c) {
+  if (vistaActual === 'historial') {
+    // Acá la columna se renombra a "Pedido" (ver renderTabla) — lo que
+    // importa de una conversación ya cerrada es a qué pedido terminó
+    // llevando, no quién la atendió (eso ya está en el meta del modal).
+    if (c.pedido_creado_id) {
+      return `<a href="/admin/pedidos?id=${encodeURIComponent(c.pedido_creado_id)}" class="badge-tomada" onclick="event.stopPropagation()">Ver pedido</a>`;
+    }
+    return '<span class="badge-libre">Sin pedido</span>';
+  }
   if (c.estado !== 'derivada_humano') return '<span class="badge-libre">—</span>';
   if (c.tomada_por) return `<span class="badge-tomada">${esc(c.tomada_por_nombre || 'Tomada')}</span>`;
   return `<span class="badge-libre">Sin tomar</span>`;

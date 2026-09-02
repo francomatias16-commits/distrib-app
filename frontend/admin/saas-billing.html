@@ -10,23 +10,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=197" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=197" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=195a" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=196">
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=197" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=197" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=699" />
-  <script src="/shared/responsive-mobile.js?v=699" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4">
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
+  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=1" />
-  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=1785554232617" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=1786751950483" />
-  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=2" />
-  <link rel="stylesheet" href="/frontend/admin/css/saas-billing-gentelella.css" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/saas-billing-gentelella.css?v=mtcen4r4" />
   <style>
     /* ── Config CBU banner ─────────────────────────────────── */
     .saas-cbu-banner {
@@ -152,6 +152,11 @@
     .plan-tarjeta__precio { font-size: 20px; font-weight: 800; color: #111827; }
     .plan-tarjeta__precio small { font-size: 12px; font-weight: 500; color: var(--color-text-muted); }
     .plan-tarjeta__limites { font-size: 12px; color: var(--color-text-muted); line-height: 1.6; flex: 1; }
+    .plan-tarjeta__feat { padding: 3px 0; border-bottom: 1px solid var(--color-border, #e5e7eb); }
+    .plan-tarjeta__feat:last-child { border-bottom: none; }
+    .plan-tarjeta__feat b { color: var(--color-text); font-weight: 600; }
+    .plan-tarjeta__feat.is-muted { color: var(--color-text-light, #9ca3af); }
+    .plan-tarjeta__feat-extra { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border, #e5e7eb); color: var(--color-text-light, #9ca3af); }
     .plan-tarjeta__btn {
       margin-top: 6px; border: none; border-radius: var(--radius-md); padding: 8px 12px;
       font-size: 13px; font-weight: 600; cursor: pointer;
@@ -219,7 +224,7 @@
   </div>
   <div class="f-group">
     <label>Precio mensual ($)</label>
-    <input type="number" id="cfg-precio" placeholder="15000" min="0" step="100">
+    <input type="number" id="cfg-precio" placeholder="30000" min="0" step="100">
   </div>
   <div class="f-group">
     <label>Email admin (recibe alertas)</label>
@@ -310,7 +315,7 @@
       <button type="button" class="btn-sec texto-chico" onclick="cargar()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="tabla-wrap table-responsive-cards">
       <table class="tabla-admin">
         <thead>
           <tr>
@@ -339,7 +344,7 @@
       <button type="button" class="btn-sec texto-chico" onclick="cargarMigraciones()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="tabla-wrap table-responsive-cards">
       <table class="tabla-admin">
         <thead>
             <tr>
@@ -390,7 +395,7 @@
       </div>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="tabla-wrap table-responsive-cards">
       <table class="tabla-admin">
         <thead>
           <tr>
@@ -492,7 +497,7 @@
       <h2 style="margin:0; font-size:15px;">Historial de facturas</h2>
       <button type="button" class="btn-sec texto-chico" onclick="cargarSuscripcionTenant()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
     </div>
-    <div style="overflow-x:auto;">
+    <div class="tabla-wrap table-responsive-cards">
       <table class="tabla-admin">
         <thead>
           <tr>
@@ -519,16 +524,16 @@
 </div>
 <!-- ── /Layout ── -->
 
-<script src="/frontend/env-config.js?v1782328742714"></script>
+<script src="/frontend/env-config.js?v=mtcen4r4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="/frontend/admin/js/export-utils.js?v1782328742714"></script>
-<script src="/frontend/admin/js/nav-data.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/nav.js?v=1787253387467"></script>
-<script src="/frontend/admin/js/nav-mobile.js?v=1785554232617"></script>
-<script src="/frontend/admin/js/ui-utils.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth-ready.js?v1782328742714"></script>
-<script src="/frontend/admin/js/auth.js?v=1787253387467"></script>
-<script src="/frontend/shared/filtro-tabs.js?v=1"></script>
+<script src="/frontend/admin/js/export-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/filtro-tabs.js?v=mtcen4r4"></script>
 
 <script>
 /* ── Estado ─────────────────────────────────────────────────────── */
@@ -635,12 +640,12 @@ function renderTabla() {
 
     return `
       <tr class="${needsAction ? 'saas-row--alerta' : ''}">
-        <td>
+        <td data-label="Empresa">
           <div style="font-weight:600; color:var(--color-text);">${escapeHtml(e.nombre)}</div>
           <div class="txt-muted">${escapeHtml(e.email || '')}</div>
           <div class="txt-muted">Alta: ${fmtFecha(e.alta)}</div>
         </td>
-        <td>
+        <td data-label="Estado">
           <span class="badge badge--${escapeHtml(e.saas_plan)}">${escapeHtml(e.saas_plan)}</span>
           ${e.saas_plan === 'trial' && e.saas_trial_fin
             ? `<div class="txt-muted" style="margin-top:3px;">hasta ${fmtFecha(e.saas_trial_fin)}</div>`
@@ -649,23 +654,23 @@ function renderTabla() {
             ? `<div class="txt-danger" style="margin-top:2px;">susp. ${fmtFecha(e.saas_suspendida_at)}</div>`
             : ''}
         </td>
-        <td>
+        <td data-label="Última factura">
           ${e.ultima_factura_numero
             ? `<div class="txt-mono">${escapeHtml(e.ultima_factura_numero)}</div>
                <div class="txt-muted">${escapeHtml(e.ultima_factura_periodo || '')}</div>
                <span class="badge badge--${escapeHtml(e.ultima_factura_estado)}" style="margin-top:3px;">${escapeHtml(e.ultima_factura_estado)}</span>`
             : `<span class="txt-empty">—</span>`}
         </td>
-        <td style="font-weight:600; color:var(--color-text);">
+        <td data-label="Monto" style="font-weight:600; color:var(--color-text);">
           ${fmtMonto(e.ultima_factura_monto)}
         </td>
-        <td>
+        <td data-label="Vencimiento">
           ${e.ultima_factura_vencimiento
             ? `<div>${fmtFecha(e.ultima_factura_vencimiento)}</div>
                <div class="${diasCls}">${diasLabel}</div>`
             : `<span class="txt-empty">—</span>`}
         </td>
-        <td>
+        <td data-label="Acción">
           ${needsAction
             ? `<button class="btn btn--success btn--sm" onclick="btnAsyncClick(this, () => confirmarPago('${e.ultima_factura_id}',${onclickArg(e.nombre)},this))">
 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar pago
@@ -680,7 +685,7 @@ function renderTabla() {
             : `<button class="btn-sec" style="font-size:11px;margin-top:4px;display:block;" onclick="suspenderEmpresa('${e.id}',${onclickArg(e.nombre)},this)">
                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Suspender
                </button>`}
-          <button class="btn-sec" style="font-size:11px;margin-top:4px;display:block;" onclick="cambiarPrecio('${e.id}',${onclickArg(e.nombre)},${e.saas_precio_mes || 15000})">
+          <button class="btn-sec" style="font-size:11px;margin-top:4px;display:block;" onclick="cambiarPrecio('${e.id}',${onclickArg(e.nombre)},${e.saas_precio_mes || 30000})">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Precio: ${fmtMonto(e.saas_precio_mes)}
           </button>
         </td>
@@ -749,7 +754,7 @@ async function abrirConfig() {
     document.getElementById('cfg-alias').value   = data.alias   || '';
     document.getElementById('cfg-titular').value = data.titular || '';
     document.getElementById('cfg-banco').value   = data.banco   || '';
-    document.getElementById('cfg-precio').value  = data.precio_mensual || 15000;
+    document.getElementById('cfg-precio').value  = data.precio_mensual || 30000;
     document.getElementById('cfg-email').value   = data.email_admin || '';
   }
   document.getElementById('modal-overlay').style.display = 'block';
@@ -767,7 +772,7 @@ async function guardarConfig() {
     alias:          document.getElementById('cfg-alias').value.trim(),
     titular:        document.getElementById('cfg-titular').value.trim(),
     banco:          document.getElementById('cfg-banco').value.trim(),
-    precio_mensual: parseFloat(document.getElementById('cfg-precio').value) || 15000,
+    precio_mensual: parseFloat(document.getElementById('cfg-precio').value) || 30000,
     email_admin:    document.getElementById('cfg-email').value.trim(),
     updated_at:     new Date().toISOString(),
   };
@@ -883,22 +888,22 @@ async function cargarSuscripcionTenant() {
   if (errFact) {
     console.error('[saas-billing] mis_facturas:', errFact);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-danger-mid);">No se pudo cargar el historial.</td></tr>`;
-    return;
-  }
-  if (!facturas || !facturas.length) {
+  } else if (!facturas || !facturas.length) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--color-text-light);">Todavía no tenés facturas generadas.</td></tr>`;
-    return;
+  } else {
+    tbody.innerHTML = facturas.map(f => `
+      <tr>
+        <td class="txt-mono" data-label="N° factura">${escapeHtml(f.numero)}</td>
+        <td data-label="Período">${escapeHtml(f.periodo)}</td>
+        <td style="font-weight:600;" data-label="Monto">${fmtMonto(f.monto)}</td>
+        <td data-label="Estado"><span class="badge badge--${escapeHtml(f.estado)}">${escapeHtml(f.estado)}</span></td>
+        <td data-label="Vencimiento">${fmtFecha(f.fecha_vencimiento)}</td>
+        <td data-label="Pagada el">${f.fecha_pago ? fmtFecha(f.fecha_pago) : '<span class="txt-empty">—</span>'}</td>
+      </tr>`).join('');
   }
-  tbody.innerHTML = facturas.map(f => `
-    <tr>
-      <td class="txt-mono">${escapeHtml(f.numero)}</td>
-      <td>${escapeHtml(f.periodo)}</td>
-      <td style="font-weight:600;">${fmtMonto(f.monto)}</td>
-      <td><span class="badge badge--${escapeHtml(f.estado)}">${escapeHtml(f.estado)}</span></td>
-      <td>${fmtFecha(f.fecha_vencimiento)}</td>
-      <td>${f.fecha_pago ? fmtFecha(f.fecha_pago) : '<span class="txt-empty">—</span>'}</td>
-    </tr>`).join('');
 
+  // Se llama siempre (antes quedaba colgado en "Cargando…" para cualquier
+  // tenant sin facturas todavía, porque el return de arriba lo salteaba)
   await cargarPlanesTenant(s);
 }
 
@@ -907,10 +912,68 @@ async function cargarSuscripcionTenant() {
    187). elegible usa s.plan/s.suspendida (saas_mi_suscripcion, ya
    corregido en 320); el tier actual viene de saas_mi_plan_tier()
    (migración 321) porque saas_mi_suscripcion() no lo expone. ────────── */
-function fmtPrecioPlan(n) {
+function fmtPrecioPlan(n, tier) {
   if (n == null) return 'A medida';
-  return n == 0 ? 'Gratis' : '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }) + ' <small>/mes</small>';
+  // Platinum se publica en la landing como "Desde $X/mes" (precio de entrada,
+  // no cerrado) — se replica el mismo matiz acá en vez de mostrarlo como precio fijo.
+  const prefijo = tier === 'enterprise' ? 'Desde ' : '';
+  return n == 0 ? 'Gratis' : prefijo + '$ ' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }) + ' <small>/mes</small>';
 }
+
+// Nombres comerciales (landing y resto del proyecto): Básico / Premium / Platinum.
+// La tabla planes_limites sigue usando los tiers e identificadores internos
+// basico/pro/enterprise (y nombre_visible: 'Pro'/'Enterprise') sin cambios;
+// este mapeo es solo de presentación, para no tocar DB/backend.
+const NOMBRE_VISIBLE_PLAN = { basico: 'Básico', pro: 'Premium', enterprise: 'Platinum' };
+
+// Detalle de funcionalidades por plan — copiado tal cual de la landing
+// (frontend/landing/bundle-part1.js, sección #precios) para que "Mi
+// suscripción" muestre exactamente lo mismo que el cliente vio al elegir
+// su plan. Si el contenido de la landing cambia, actualizar acá también.
+const FEATURES_PLAN_LANDING = {
+  basico: [
+    ['Pedidos', 'Pedidos, presupuestos, carrito (sin tienda online / catálogo público)'],
+    ['Stock', '1 depósito'],
+    ['Productos', 'Hasta 1.000 productos'],
+    ['POS', 'Venta, caja, devoluciones'],
+    ['Puntos de venta', 'No incluido'],
+    ['Etiquetas de precio', 'No incluido'],
+    ['Facturación', 'Notas de crédito y débito'],
+    ['Clientes', 'Cuenta corriente, score de riesgo por cliente y programa de fidelización con puntos'],
+    ['WhatsApp / Reparto', 'No incluido'],
+    ['Asistente IA', 'No incluido'],
+    ['Reportes', 'Ventas y stock de tu depósito'],
+    ['Alertas', 'Movimientos raros, avisos operativos y salud del sistema'],
+  ],
+  pro: [
+    ['Pedidos', 'Todo Básico + tienda online / catálogo público, con Mercado Pago integrado y reglas de descuento automático'],
+    ['Stock', 'Multi-depósito, lotes y vencimientos'],
+    ['Productos', 'Hasta 3.000 productos'],
+    ['POS', 'Todo Básico + ventas sin conexión, con Mercado Pago integrado'],
+    ['Puntos de venta', 'Hasta 2 puntos de venta'],
+    ['Etiquetas de precio', 'Generador de etiquetas con código de barras y precio promocional tachado, hasta 500 productos por tanda'],
+    ['Facturación', 'Facturación electrónica ARCA homologada + Exportación contable, conciliación bancaria, riesgo de cheques'],
+    ['Clientes', '+ Portal de proveedores, órdenes de compra y comparador de precios'],
+    ['WhatsApp / Reparto', 'WhatsApp bidireccional + reparto en vivo con choferes'],
+    ['Asistente IA', 'Con voz, solo consultas básicas (sin crear/modificar datos)'],
+    ['Reportes', '+ Finanzas, gastos generales y rentabilidad por zona, producto y vendedor'],
+    ['Alertas', 'Todo Básico'],
+  ],
+  enterprise: [
+    ['Pedidos', 'Todo Premium'],
+    ['Stock', 'Todo Premium'],
+    ['Productos', 'Más de 3.000 productos'],
+    ['POS', 'Todo Premium'],
+    ['Puntos de venta', 'Más de 2 puntos de venta'],
+    ['Etiquetas de precio', 'Todo Premium'],
+    ['Facturación', 'Todo Premium + auditoría y roles granulares'],
+    ['Clientes', 'Todo Premium'],
+    ['WhatsApp / Reparto', 'Todo Premium'],
+    ['Asistente IA', 'Con voz, acciones completas (crear pedidos, cobros, stock, anular facturas, etc.)'],
+    ['Reportes', 'Todo Premium'],
+    ['Alertas', 'Todo Premium + auditoría interna'],
+  ],
+};
 
 async function cargarPlanesTenant(s) {
   const grid = document.getElementById('tenant-planes-grid');
@@ -919,7 +982,7 @@ async function cargarPlanesTenant(s) {
 
   const [{ data: planes, error: errPlanes }, { data: tierActual, error: errTier }] = await Promise.all([
     sb.from('planes_limites')
-      .select('tier, nombre_visible, precio_mes, max_usuarios, max_clientes, max_pedidos_mes')
+      .select('tier, nombre_visible, precio_mes, max_usuarios')
       .in('tier', ['basico', 'pro', 'enterprise'])
       .order('precio_mes', { ascending: true, nullsFirst: false }),
     sb.rpc('saas_mi_plan_tier'),
@@ -936,17 +999,18 @@ async function cargarPlanesTenant(s) {
   grid.innerHTML = planes.map(p => {
     const esActual = tierActual === p.tier;
     const esEnterprise = p.tier === 'enterprise';
-    const limites = [
-      `Usuarios: ${p.max_usuarios ?? 'ilimitado'}`,
-      `Clientes: ${p.max_clientes ?? 'ilimitado'}`,
-      `Pedidos/mes: ${p.max_pedidos_mes ?? 'ilimitado'}`,
-    ].join('<br>');
+    const feats = FEATURES_PLAN_LANDING[p.tier] || [];
+    const limites = feats.map(([label, valor]) => {
+      const noIncluido = /^no incluido$/i.test(valor.trim());
+      return `<div class="plan-tarjeta__feat${noIncluido ? ' is-muted' : ''}"><b>${escapeHtml(label)}:</b> ${escapeHtml(valor)}</div>`;
+    }).join('')
+      + `<div class="plan-tarjeta__feat-extra">Usuarios: ${p.max_usuarios ?? 'ilimitado'}</div>`;
 
     let boton;
     if (esActual) {
       boton = `<span class="plan-tarjeta__badge-actual">Tu plan actual</span>`;
     } else if (esEnterprise) {
-      boton = `<button type="button" class="plan-tarjeta__btn plan-tarjeta__btn--downgrade" onclick="window.open('mailto:soporte@mfweb.com.ar?subject=Plan Enterprise')">Consultar</button>`;
+      boton = `<button type="button" class="plan-tarjeta__btn plan-tarjeta__btn--downgrade" onclick="window.open('mailto:soporte@mfweb.com.ar?subject=Plan Platinum')">Consultar</button>`;
     } else if (!elegible) {
       boton = `<button type="button" class="plan-tarjeta__btn" disabled>No disponible</button>`;
     } else {
@@ -958,8 +1022,8 @@ async function cargarPlanesTenant(s) {
 
     return `
       <div class="plan-tarjeta ${esActual ? 'plan-tarjeta--actual' : ''}">
-        <div class="plan-tarjeta__nombre">${escapeHtml(p.nombre_visible)}</div>
-        <div class="plan-tarjeta__precio">${fmtPrecioPlan(p.precio_mes)}</div>
+        <div class="plan-tarjeta__nombre">${escapeHtml(NOMBRE_VISIBLE_PLAN[p.tier] || p.nombre_visible)}</div>
+        <div class="plan-tarjeta__precio">${fmtPrecioPlan(p.precio_mes, p.tier)}</div>
         <div class="plan-tarjeta__limites">${limites}</div>
         ${boton}
       </div>`;
@@ -971,7 +1035,7 @@ async function cargarPlanesTenant(s) {
 }
 
 async function cambiarPlanTenant(tier) {
-  const nombrePlan = { basico: 'Básico', pro: 'Pro' }[tier] || tier;
+  const nombrePlan = NOMBRE_VISIBLE_PLAN[tier] || tier;
   if (!confirm(`¿Confirmás el cambio al plan ${nombrePlan}?`)) return;
 
   const { data, error } = await sb.rpc('saas_tenant_cambiar_plan', { p_tier: tier });
@@ -1147,13 +1211,13 @@ function renderTablaMigraciones(filas) {
     const esError = f.estado === 'error';
     return `
       <tr>
-        <td>${f.empresa_nombre || '—'}</td>
-        <td>${f.entidad}</td>
-        <td><span style="${esError ? 'color:var(--color-danger-mid);font-weight:600;' : ''}">${ETIQUETA_ESTADO_MIG[f.estado] || f.estado}</span></td>
-        <td>${f.total_filas ?? 0}</td>
-        <td>${f.filas_validas ?? 0}</td>
-        <td>${f.filas_con_error ?? 0}</td>
-        <td>${fmtFecha(f.created_at)}</td>
+        <td data-label="Empresa">${f.empresa_nombre || '—'}</td>
+        <td data-label="Entidad">${f.entidad}</td>
+        <td data-label="Estado"><span style="${esError ? 'color:var(--color-danger-mid);font-weight:600;' : ''}">${ETIQUETA_ESTADO_MIG[f.estado] || f.estado}</span></td>
+        <td data-label="Filas">${f.total_filas ?? 0}</td>
+        <td data-label="Válidas">${f.filas_validas ?? 0}</td>
+        <td data-label="Con error">${f.filas_con_error ?? 0}</td>
+        <td data-label="Fecha">${fmtFecha(f.created_at)}</td>
       </tr>`;
   }).join('');
 }
@@ -1277,12 +1341,12 @@ function renderTablaEventosNegocio(filas) {
     const fecha = ev.creado_en ? new Date(ev.creado_en).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
     const payloadTexto = (() => { try { return JSON.stringify(ev.payload); } catch { return ''; } })();
     return `<tr>
-      <td>${fecha}</td>
-      <td>${window.sanitize(ev.empresas?.nombre || ev.empresa_id || '—')}</td>
-      <td style="font-family:monospace">${window.sanitize(ev.tipo_evento)}</td>
-      <td><span class="badge ${estadoInfo.clase}">${window.sanitize(estadoInfo.texto)}</span></td>
-      <td>${window.sanitize(ev.origen || '—')}</td>
-      <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:monospace; font-size:12px;" title="${window.sanitize(payloadTexto)}">${window.sanitize(payloadTexto)}</td>
+      <td data-label="Fecha">${fecha}</td>
+      <td data-label="Empresa">${window.sanitize(ev.empresas?.nombre || ev.empresa_id || '—')}</td>
+      <td style="font-family:monospace" data-label="Tipo de evento">${window.sanitize(ev.tipo_evento)}</td>
+      <td data-label="Estado"><span class="badge ${estadoInfo.clase}">${window.sanitize(estadoInfo.texto)}</span></td>
+      <td data-label="Origen">${window.sanitize(ev.origen || '—')}</td>
+      <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:monospace; font-size:12px;" data-label="Payload" title="${window.sanitize(payloadTexto)}">${window.sanitize(payloadTexto)}</td>
     </tr>`;
   }).join('');
 }
@@ -1364,6 +1428,6 @@ async function exportarEventosNegocioCSV() {
 
 init();
 </script>
-<script src="/frontend/shared/tabla-agrupada.js"></script>
+<script src="/frontend/shared/tabla-agrupada.js?v=mtcen4r4"></script>
 </body>
 </html>

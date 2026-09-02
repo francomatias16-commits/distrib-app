@@ -294,17 +294,20 @@ body.dash-rutas-gentelella .chip-pendiente {
 /* ════════════════════════════════════════════════════════════
    Botones
    ════════════════════════════════════════════════════════════ */
-body.dash-rutas-gentelella .btn-primary {
+body.dash-rutas-gentelella .btn-primary,
+body.dash-rutas-gentelella .btn--primary {
   background: var(--ge-teal) !important;
   border: none !important;
   border-radius: var(--ge-radius-btn) !important;
   color: var(--ge-panel) !important;
   font-weight: 600 !important;
 }
-body.dash-rutas-gentelella .btn-primary:hover:not(:disabled) {
+body.dash-rutas-gentelella .btn-primary:hover:not(:disabled),
+body.dash-rutas-gentelella .btn--primary:hover:not(:disabled) {
   background: var(--ge-teal-dark) !important;
 }
-body.dash-rutas-gentelella .btn-primary:disabled {
+body.dash-rutas-gentelella .btn-primary:disabled,
+body.dash-rutas-gentelella .btn--primary:disabled {
   opacity: .45 !important;
   cursor: not-allowed !important;
 }
@@ -319,7 +322,8 @@ body.dash-rutas-gentelella .btn--secondary:hover {
   background: var(--ge-bg) !important;
   color: var(--ge-ink) !important;
 }
-body.dash-rutas-gentelella .btn-danger {
+body.dash-rutas-gentelella .btn-danger,
+body.dash-rutas-gentelella .btn--danger {
   background: var(--ge-red) !important;
   border: none !important;
   border-radius: var(--ge-radius-btn) !important;

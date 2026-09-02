@@ -148,16 +148,29 @@ test.describe('Cheques (admin) — Fase 2 P1', () => {
     const { chequesPage, paramsVistos } = await armarPagina(page);
 
     await chequesPage.goto();
+    // FIX: goto()/esperarAppLista() solo espera a que el preloader se
+    // oculte y #nav-root esté en el DOM — no a que la carga inicial de
+    // authReady (el `await Promise.all([cargarContadoresCheques(),
+    // cargarClientes()])` + `await filtrarCheques()` final) haya
+    // terminado. Esa carga inicial dispara su propia llamada a
+    // fn_cheques_lista, que puede seguir en vuelo acá; leer/resetear
+    // paramsVistos de forma sincrónica justo después de goto() es una
+    // carrera — puede pisar el reset o llegar después del `at(-1)` de la
+    // búsqueda. Se espera de forma robusta con expect.poll a que la carga
+    // inicial haya empujado su llamada antes de descartarla, y se lee
+    // cada assert siguiente también con expect.poll en vez de una lectura
+    // sincrónica del array.
+    await expect.poll(() => paramsVistos.length).toBeGreaterThan(0);
     paramsVistos.length = 0; // descarta la carga inicial
 
     await chequesPage.buscar('Cliente Test');
-    expect(paramsVistos.at(-1)).toMatchObject({ p_busqueda: 'Cliente Test', p_offset: 0 });
+    await expect.poll(() => paramsVistos.at(-1)).toMatchObject({ p_busqueda: 'Cliente Test', p_offset: 0 });
 
     await chequesPage.filtrarPorEstadoTab('rechazado');
-    expect(paramsVistos.at(-1)).toMatchObject({ p_estado: 'rechazado', p_offset: 0 });
+    await expect.poll(() => paramsVistos.at(-1)).toMatchObject({ p_estado: 'rechazado', p_offset: 0 });
 
     await chequesPage.filtroSoloVencidos.check();
-    expect(paramsVistos.at(-1)).toMatchObject({ p_solo_vencidos: true });
+    await expect.poll(() => paramsVistos.at(-1)).toMatchObject({ p_solo_vencidos: true });
   });
 
   test('paginación server-side: "Siguiente" vuelve a pedir la página con offset', async ({ page }) => {

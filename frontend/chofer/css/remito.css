@@ -39,14 +39,14 @@
     .chip-entregado { background: var(--color-border-soft); color: var(--color-text-muted); }
 
     .btn { width: 100%; padding: .85rem; border: none; border-radius: 10px; font-size: .95rem; font-weight: 600; cursor: pointer; margin-bottom: .65rem; }
-    .btn-primary { background: #2563EB; color: var(--color-surface); }
-    .btn-primary:hover { background: #134a82; }
+    .btn-primary, .btn--primary { background: #2563EB; color: var(--color-surface); }
+    .btn-primary:hover, .btn--primary:hover { background: #134a82; }
     .btn-success { background: #28a745; color: var(--color-surface); }
     .btn-success:hover { background: #1e7e34; }
     .btn-outline { background: var(--color-surface); color: var(--color-danger-mid); border: 1px solid #f1b0b7; }
     .btn-outline:hover { background: var(--color-danger-bg); }
-    .btn-danger { background: #dc3545; color: var(--color-surface); }
-    .btn-danger:hover { background: #b52a37; }
+    .btn-danger, .btn--danger { background: #dc3545; color: var(--color-surface); }
+    .btn-danger:hover, .btn--danger:hover { background: #b52a37; }
     .btn:disabled { opacity: .6; cursor: not-allowed; }
 
     /* ── Modal devolución ── */

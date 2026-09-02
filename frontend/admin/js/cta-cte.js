@@ -10,7 +10,7 @@ let todosClientes = []; // clientes de la página actual (server-side, ya no el 
 // Plan offline — Etapa 3, ítem 4: mismo criterio que stock.js/remito.html —
 // distingue "el servidor respondió con un error de negocio" (mostrarlo tal
 // cual) de "la llamada nunca llegó a completarse" (encolar y reintentar
-// solo). sb.rpc() no rechaza la promesa cuando falla la red: postgrest-js
+// solo). window.conTimeoutRed(sb.rpc(), 10000) no rechaza la promesa cuando falla la red: postgrest-js
 // atrapa el TypeError original y lo devuelve como `error`.
 function esErrorDeRed(e) {
   return e instanceof TypeError || /failed to fetch|network/i.test(e?.message || '');
@@ -84,13 +84,13 @@ async function cargarCtaCte() {
     const desde = (paginaActualCC - 1) * ITEMS_POR_PAGINA_CC;
 
     const [kpisRes, listaRes] = await Promise.all([
-      _sbCte.rpc('fn_cta_cte_kpis'),
-      _sbCte.rpc('fn_cta_cte_lista', {
+      window.conTimeoutRed(_sbCte.rpc('fn_cta_cte_kpis'), 10000),
+      window.conTimeoutRed(_sbCte.rpc('fn_cta_cte_lista', {
         p_busqueda: busq || null,
         p_estado: estado || null,
         p_limit: ITEMS_POR_PAGINA_CC,
         p_offset: desde,
-      }),
+      }), 10000),
     ]);
 
     if (kpisRes.error || listaRes.error) {
@@ -235,7 +235,7 @@ function renderTabla(datos) {
     const nombre = c.nombre_fantasia || c.razon_social;
     return `<tr onclick="abrirCliente('${c.cliente_id}')" data-testid="cc-fila" data-cliente-id="${c.cliente_id}">
       <td data-label="Cliente">
-        <div style="font-weight:600">${nombre}</div>
+        <div style="font-weight:600">${sanitize(nombre)}</div>
         ${c.razon_social !== nombre ? `<div style="font-size:11px;color:var(--color-text-light)">${sanitize(c.razon_social)}</div>` : ''}
       </td>
       <td data-label="Estado"><span class="semaforo ${estado.cls}"><span class="semaforo-dot"></span>${estado.label}</span></td>
@@ -243,7 +243,7 @@ function renderTabla(datos) {
       <td class="monto ${(c.deuda_vencida||0) > 0 ? 'monto-rojo' : 'monto-verde'}" data-label="Vencido">${formatPeso(c.deuda_vencida || 0)}</td>
       <td data-label="Último pago" style="font-size:12px;color:var(--color-text-muted)">${c.ultimo_pago ? formatFecha(c.ultimo_pago) : '—'}</td>
       <td class="col-sticky-end" data-label="Acciones">
-        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();abrirModalCobroDirecto('${c.cliente_id}')">Cobrar</button>
+        <button class="btn btn-sm btn-primary btn--primary" onclick="event.stopPropagation();abrirModalCobroDirecto('${c.cliente_id}')">Cobrar</button>
       </td>
     </tr>`;
   }).join('');
@@ -510,7 +510,7 @@ async function guardarCobro() {
       p_factura_id:  facturaVinculadaCobro || null,
     };
 
-    const { data, error } = await sb.rpc('registrar_cobro_completo', payloadCobro);
+    const { data, error } = await window.conTimeoutRed(sb.rpc('registrar_cobro_completo', payloadCobro), 10000);
 
     if (error) {
       // Plan offline — Etapa 3, ítem 4: si la RPC no llegó a responder por
@@ -533,11 +533,11 @@ async function guardarCobro() {
     } else {
       mostrarToast(`Cobro ${data.nro} registrado`, 'ok');
     }
-    sb.rpc('registrar_auditoria', {
+    window.conTimeoutRed(sb.rpc('registrar_auditoria', {
       p_tabla: 'cobros', p_accion: 'INSERT',
       p_registro_id: data.cobro_id || null,
       p_datos_despues: { monto, medio, cliente_id: clienteActivo.cliente_id, numero: data.nro, factura_id: facturaVinculadaCobro || null },
-    }).then(() => {}, () => {});
+    }).then(() => {}, () => {}), 10000);
     cerrarModalCobro();
     // FIX F3-04: invalidar siempre, no solo cuando hay factura vinculada.
     // Un cobro genérico también deja el caché de priorizada sucio (la deuda

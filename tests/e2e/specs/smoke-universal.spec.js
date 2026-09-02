@@ -68,12 +68,17 @@ const PAGINAS_CLIENTE_CON_SESION = [
   'inicio', 'catalogo', 'carrito', 'checkout', 'cuenta', 'notificaciones', 'pedidos',
 ];
 
-const PAGINAS_CHOFER_PUBLICAS = ['login', 'invitacion'];
+const PAGINAS_CHOFER_PUBLICAS = ['login', 'invitacion', 'restablecer-password'];
 const PAGINAS_CHOFER_CON_SESION = ['index', 'notificaciones', 'remito'];
 
 const PAGINAS_PUBLICAS_ROOT = [
   'completar-registro', 'eliminacion-datos', 'index', 'privacidad', 'registro', 'terminos',
 ];
+
+// 'index' es la landing nueva (v917) — vive en frontend/landing/index.html,
+// NO en frontend/index.html (que no existe). El resto sí coincide 1:1 con
+// su nombre de archivo bajo /frontend/.
+const RUTA_PUBLICA_ROOT = { index: 'landing/index' };
 
 // Errores de consola que NO son bugs de wiring — ruido esperado del
 // entorno de test (recursos externos que a propósito no mockeamos porque
@@ -213,7 +218,8 @@ test.describe('Smoke universal — Fase 0.5 (carga sin error, layout renderiza)'
     for (const nombre of PAGINAS_PUBLICAS_ROOT) {
       test(`/${nombre}.html carga sin error`, async ({ page }) => {
         await prepararRedComun(page);
-        await visitarYVerificar(page, `${staticServer.baseURL}/frontend/${nombre}.html`);
+        const ruta = RUTA_PUBLICA_ROOT[nombre] || nombre;
+        await visitarYVerificar(page, `${staticServer.baseURL}/frontend/${ruta}.html`);
       });
     }
   });

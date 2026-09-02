@@ -21,7 +21,7 @@
       'Facturación ARCA homologada': 'facturacion-arca',
       'Sistema de reparto en vivo': 'reparto-en-vivo',
       'Asistente IA incluido': 'asistente-ia',
-      'Importación y migración en un clic': 'importacion-migracion',
+      'Etiquetas de precio y código de barras': 'etiquetas-precio-codigo-barras',
       'Automatización del pedido al cobro': 'automatizacion-pedido-cobro',
     };
 
@@ -55,98 +55,10 @@
     subtree: true,
   });
 
-  function initHeroScroll() {
-    const hero = document.querySelector('.hero-stage');
-    if (!hero) {
-      window.setTimeout(initHeroScroll, 50);
-      return;
-    }
-    const railButtons = [...hero.querySelectorAll('.hero-rail button')];
-    if (!railButtons.length) {
-      window.setTimeout(initHeroScroll, 50);
-      return;
-    }
-    if (hero.dataset.scrollLocked === 'true') return;
-    hero.dataset.scrollLocked = 'true';
-
-    const slideCount = railButtons.length || 8;
-    let transitioning = false;
-    let touchStartY = null;
-    let currentIndex = 0;
-
-    function getState() {
-      const maxScroll = Math.max(0, hero.offsetHeight - window.innerHeight);
-      const start = hero.offsetTop;
-      const progress = maxScroll
-        ? Math.max(0, Math.min(1, (window.scrollY - start) / maxScroll))
-        : 0;
-      const activeIndex = railButtons.findIndex((button) =>
-        button.classList.contains('is-active'));
-      if (activeIndex >= 0) currentIndex = activeIndex;
-      return { maxScroll, start, index: currentIndex };
-    }
-
-    function goToSlide(index) {
-      const state = getState();
-      const next = Math.max(0, Math.min(slideCount - 1, index));
-      if (next === state.index || transitioning) return;
-      transitioning = true;
-      currentIndex = next;
-
-      // Cambiar el estado de React explícitamente es lo que actualiza la
-      // diapositiva. El scroll solo determina en qué tramo queda el hero.
-      railButtons[next]?.click();
-
-      const target = state.start + state.maxScroll * (next / (slideCount - 1));
-      window.scrollTo({ top: target, behavior: 'smooth' });
-      window.setTimeout(() => { transitioning = false; }, 720);
-    }
-
-    function isHeroActive() {
-      const rect = hero.getBoundingClientRect();
-      return rect.top <= window.innerHeight * 0.55 &&
-        rect.bottom >= window.innerHeight * 0.45;
-    }
-
-    window.addEventListener('wheel', (event) => {
-      if (!isHeroActive() || Math.abs(event.deltaY) < 8) return;
-      const state = getState();
-      const next = state.index + (event.deltaY > 0 ? 1 : -1);
-      if (next < 0 || next >= slideCount) return;
-      event.preventDefault();
-      goToSlide(next);
-    }, { capture: true, passive: false });
-
-    window.addEventListener('keydown', (event) => {
-      if (!isHeroActive()) return;
-      const direction = event.key === 'PageDown' || event.key === ' '
-        ? 1 : event.key === 'PageUp' ? -1 : 0;
-      if (!direction) return;
-      const next = getState().index + direction;
-      if (next < 0 || next >= slideCount) return;
-      event.preventDefault();
-      goToSlide(next);
-    }, { capture: true });
-
-    window.addEventListener('touchstart', (event) => {
-      if (isHeroActive()) touchStartY = event.touches[0].clientY;
-    }, { passive: true });
-
-    window.addEventListener('touchend', (event) => {
-      if (touchStartY === null || !isHeroActive()) {
-        touchStartY = null;
-        return;
-      }
-      const delta = touchStartY - event.changedTouches[0].clientY;
-      touchStartY = null;
-      if (Math.abs(delta) < 42) return;
-      const next = getState().index + (delta > 0 ? 1 : -1);
-      if (next < 0 || next >= slideCount) return;
-      goToSlide(next);
-    }, { passive: true });
-  }
-
-  window.setTimeout(initHeroScroll, 0);
+  // El carrusel del hero ya no bloquea el scroll de la página: las
+  // diapositivas avanzan solas por tiempo (setInterval en el bundle React)
+  // y el usuario puede desplazarse con normalidad para salir del hero en
+  // cualquier momento, sin captura de wheel/teclado/touch ni preventDefault.
 
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();

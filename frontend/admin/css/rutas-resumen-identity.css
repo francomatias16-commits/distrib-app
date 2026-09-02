@@ -1,0 +1,351 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   rutas-resumen-identity.css — v965
+   ───────────────────────────────────────────────────────────────────────
+   El tab "Resumen" venía con una piel de dashboard SaaS genérico (héroe en
+   degradé celeste/menta, chips de vidrio esmerilado, pill badges blandas)
+   que se armó en 2 capas sucesivas (rutas-command-center.css →
+   rutas-surface-v2.css) totalmente desconectadas de la identidad propia
+   que la app ya tiene en el resto del admin: "Hoja de Ruta" — superficie
+   de papel, tinta, verde y navy, tipografía Oswald/IBM Plex, sombras
+   planas tipo hoja-sobre-hoja (ver /shared/tokens.css). El resultado se
+   veía intercambiable con cualquier otro panel de control.
+
+   Esta capa no inventa una paleta nueva: retoma la que ya define
+   tokens.css (el propio brief del proyecto) y la aplica acá, con un
+   elemento de firma propio del rubro — el panel "Control del día" pasa a
+   leerse como la cabecera de un remito/manifiesto de despacho (borde
+   perforado tipo talón, línea de ruta punteada, cifras en mono como un
+   total impreso) en vez de una tarjeta de SaaS genérica.
+
+   También ataca el pedido de "evitar espacios vacíos": valor numérico
+   sobre cada barra de los mini-gráficos (antes solo el día de hoy tenía
+   un tooltip), línea de base en los gráficos de barras, estado vacío de
+   "Cobranzas de hoy" rediseñado como comprobante en blanco en vez de una
+   línea de texto perdida, y una textura de "ruta" bajo el camión para que
+   ese espacio libre tenga sentido en vez de leerse como un hueco.
+
+   Se carga al final (después de rutas-integrated.css) y le gana a las
+   capas anteriores por especificidad (incluye #tab-resumen-content), no
+   por !important — se puede seguir editando sin pelear cascada.
+   Scope: exclusivamente #tab-resumen-content. Las otras 5 pestañas de
+   Repartos no se tocan.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+body.dash-rutas-gentelella #tab-resumen-content {
+  --ri-paper:   var(--color-bg);
+  --ri-ink:     var(--color-text);
+  --ri-muted:   var(--color-text-muted);
+  --ri-line:    var(--color-border);
+  --ri-green:   var(--color-primary);
+  --ri-green-d: var(--color-primary-dark);
+  --ri-navy:    #1F3555;
+  --ri-navy-d:  #12233b;
+  --ri-amber:   var(--color-warning);
+}
+
+/* ── Tipografía: títulos en Oswald (la misma que usa el resto del admin
+   para KPIs y encabezados de sección), cifras en mono como un total
+   impreso en un remito. ─────────────────────────────────────────────── */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head h2,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus-head h2,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card-title {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-val,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-choferes-count,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pago-val,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pago-total-hoy,
+body.dash-rutas-gentelella #tab-resumen-content #resumen-pago-total-hoy,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card-insight strong,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pago-summary-item strong,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-tracking-id {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Panel "Control del día": cabecera de manifiesto, no tarjeta SaaS ─── */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-panel {
+  position: relative;
+  overflow: visible;
+  padding: 20px 20px 26px;
+  border: none;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 88% -10%, rgba(106,152,115,.22), transparent 42%),
+    linear-gradient(158deg, var(--ri-navy) 0%, var(--ri-navy-d) 100%);
+  box-shadow: 3px 5px 0 rgba(18,35,59,.18), 0 1px 0 rgba(18,35,59,.10);
+}
+/* Talón perforado — el borde inferior del panel se lee como el filo
+   troquelado de una hoja de despacho que se arranca del taco. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-panel::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 13px;
+  background-image: radial-gradient(circle at 7px 6px, var(--ri-paper) 5px, transparent 5.3px);
+  background-size: 14px 13px;
+  background-repeat: repeat-x;
+  background-position: -3px 0;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-panel::after {
+  content: "";
+  position: absolute;
+  right: 18px; top: 16px;
+  width: 30px; height: 30px;
+  border: 1px solid rgba(106,152,115,.35);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(106,152,115,.05);
+  pointer-events: none;
+}
+
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head {
+  border-bottom: none;
+  padding-bottom: 12px;
+  position: relative;
+}
+/* Línea de ruta punteada — reemplaza el borde sólido genérico y funciona
+   como divisor entre el encabezado y los indicadores, evocando el trazo
+   de un recorrido en vez de decorar sin motivo. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 1px;
+  background-image: repeating-linear-gradient(90deg,
+    rgba(255,255,255,.22) 0 6px, transparent 6px 13px);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-kicker {
+  color: #8FCBA0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head h2 {
+  color: #fff;
+  font-size: 23px;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head p {
+  color: #B7C4CE;
+}
+/* Estado "En vivo" — sello estampado en vez de pill de vidrio: sin
+   radio grande, rotado levemente, borde doble como una goma de sello. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-status {
+  border: 1.5px solid #8FCBA0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #8FCBA0;
+  font-family: var(--font-mono);
+  letter-spacing: .1em;
+  transform: rotate(-2deg);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-status span {
+  background: #8FCBA0;
+  box-shadow: 0 0 0 3px rgba(143,203,160,.22);
+  animation: riPulso 2.2s ease-in-out infinite;
+}
+@keyframes riPulso {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-status span { animation: none; }
+}
+
+/* ── Tarjetas de indicadores dentro del panel: papel sobre navy, no
+   vidrio esmerilado azulado. ─────────────────────────────────────────── */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card {
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  backdrop-filter: none;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card:hover {
+  border-color: rgba(143,203,160,.4);
+  background: rgba(255,255,255,.10);
+  box-shadow: none;
+  transform: none;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card-title { color: #F3F6F4; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card-sub,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card-insight span,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-income-sub {
+  color: #A9B8C2;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card-insight { border-top-color: rgba(255,255,255,.12); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-card-insight strong,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-income-val { color: #fff; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-badge {
+  border: 1px solid rgba(143,203,160,.3);
+  border-radius: var(--radius-sm);
+  background: rgba(143,203,160,.12);
+  color: #8FCBA0;
+  font-family: var(--font-mono);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-minibar { background: rgba(255,255,255,.16); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-minibar-col.is-today .resumen-minibar { background: #8FCBA0; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-minibar-label { color: #97A8B3; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-minibar-col.is-today .resumen-minibar-label { color: #8FCBA0; font-weight: 700; }
+
+/* Valor sobre cada barra (data-valor, ver rutas-resumen.js v965) — llena
+   la mitad superior del gráfico, que antes quedaba en blanco salvo por el
+   tooltip del día de hoy. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-minibar-wrap {
+  border-top: 1px dashed rgba(255,255,255,.14);
+  padding-top: 8px !important;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-minibar-col {
+  position: relative;
+  padding-top: 15px;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-minibar-col::before {
+  content: attr(data-valor);
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: #97A8B3;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-minibar-col.is-today::before { color: #8FCBA0; }
+
+/* Mismo tratamiento para el gráfico de "Total cobrado" (income chart). */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-chart {
+  border-top: 1px dashed rgba(255,255,255,.14);
+  padding-top: 16px !important;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar-col {
+  position: relative;
+  padding-top: 15px;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar-col::before {
+  content: attr(data-valor);
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #97A8B3;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar-col.is-max::before { color: #8FCBA0; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar { background: rgba(255,255,255,.16); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar-col.is-max .resumen-income-bar { background: #8FCBA0; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-income-bar-label { color: #97A8B3; }
+
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-label { color: #A9B8C2; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-val,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-summary-item strong { color: #fff; }
+/* "Total de hoy" / "Operaciones": la base (rutas-professional.css) las
+   pinta como fichas de papel claro (fondo casi blanco) porque en el resto
+   del admin viven sobre superficie clara. Acá adentro, sobre el panel
+   navy, esa ficha nunca se re-tematizó y el valor en blanco quedaba
+   blanco-sobre-blanco, ilegible. Se les da el mismo tratamiento oscuro
+   que el resto de las tarjetas del panel. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-summary-item {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.10);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-summary-item span { color: #A9B8C2; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-activity-item { border-top-color: rgba(255,255,255,.10); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-activity-cliente { color: #F3F6F4; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-activity-fecha { color: #97A8B3; }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-metrics .resumen-pago-activity-monto.ok { color: #8FCBA0; }
+
+/* Comprobante en blanco — "Cobranzas de hoy" sin datos ya no es una línea
+   de texto perdida en una caja vacía: se lee como un talón sin completar,
+   con el mismo alto que la versión con datos. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pago-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 14px;
+  border: 1px dashed rgba(255,255,255,.22);
+  border-radius: var(--radius-md);
+  color: #97A8B3;
+  font-size: 11.5px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── Área de operación (fondo blanco): superficie de papel, no vidrio
+   celeste. ────────────────────────────────────────────────────────────── */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus {
+  border: 1px solid var(--ri-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-fluffy);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus-head {
+  border-bottom: 1px solid var(--ri-line);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus-head h2 { color: var(--ri-ink); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus-note {
+  color: var(--ri-muted);
+  font-family: var(--font-mono);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-pedidos-focus .resumen-card {
+  border: 1px solid var(--ri-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: none;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-secondary-grid > .resumen-card {
+  border: 1px solid var(--ri-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-fluffy);
+}
+
+/* Las dos tarjetas de la columna derecha llevan un lavado tenue del mismo
+   color que su ícono (violeta = acciones de chofer, navy = choferes en
+   calle) — la estructura codifica algo, no decora al azar. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card--capacity {
+  background: linear-gradient(180deg, rgba(91,74,143,.045), var(--color-surface) 60%);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card--drivers {
+  background: linear-gradient(180deg, rgba(31,53,85,.045), var(--color-surface) 60%);
+}
+
+/* Camión de reparto: textura de ruta punteada por debajo, para que el
+   aire alrededor del ícono se lea como calle y no como hueco. */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-truck-wrap {
+  position: relative;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-truck-wrap::before {
+  content: "";
+  position: absolute;
+  left: -6px; right: -6px; bottom: 6px; height: 2px;
+  background-image: repeating-linear-gradient(90deg,
+    var(--ri-line) 0 7px, transparent 7px 15px);
+  z-index: 0;
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-choferes-count { color: var(--ri-ink); }
+body.dash-rutas-gentelella #tab-resumen-content .resumen-estado-legend { font-family: var(--font-mono); font-size: 11px; }
+
+/* ── Tracking / mapa y cobro rápido: mismo tratamiento de papel. ──────── */
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card--tracking,
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card--quick-pay {
+  border: 1px solid var(--ri-line);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-fluffy);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-card--tracking .panel-header {
+  background: transparent;
+  border-bottom: 1px solid var(--ri-line);
+}
+body.dash-rutas-gentelella #tab-resumen-content .resumen-tracking-info { border-left-color: var(--ri-line); }
+
+/* ── Responsive: la firma se simplifica en mobile, no desaparece. ────── */
+@media (max-width: 700px) {
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-panel { padding: 16px 16px 22px; }
+  body.dash-rutas-gentelella #tab-resumen-content .resumen-operativo-head h2 { font-size: 19px; }
+}

@@ -32,6 +32,19 @@ export class VencimientosPage extends PageObjectBase {
   async goto() {
     await this.page.goto(`${this.baseURL}/frontend/admin/vencimientos.html`);
     await this.esperarAppLista();
+    // FIX: vencimientos.html tampoco tiene `#app-preloader` — igual que
+    // compras.page.js, `esperarAppLista()` no da ninguna garantía de que
+    // `initLotes()` (`await cargarDepositos(); await cargarLotes();`,
+    // corridos tras `window.authReady.then(...)`) haya terminado. Abrir el
+    // modal y elegir depósito/producto antes de eso puede pasar con el
+    // `<select id="f-deposito_id">` todavía sin las `<option>` que inyecta
+    // `cargarDepositos()` — a diferencia del combo de compras esto no
+    // cuelga 30s (selectOption falla rápido si la opción no existe
+    // todavía), pero sigue siendo una carrera real. Como `cargarLotes()`
+    // corre DESPUÉS de `cargarDepositos()` en la misma cadena, esperar a
+    // que `#tbody-lotes` deje el placeholder "Cargando..." garantiza que
+    // ambas ya terminaron.
+    await expect(this.page.locator('#tbody-lotes')).not.toContainText('Cargando...');
   }
 
   // ── Toast (override — ver nota arriba) ────────────────────────────────
@@ -69,7 +82,14 @@ export class VencimientosPage extends PageObjectBase {
   get inputCostoUnitario() { return this.page.locator('#f-costo_unitario'); }
   get inputFechaFabricacion() { return this.page.locator('#f-fecha_fabricacion'); }
   get inputFechaVencimiento() { return this.page.locator('#f-fecha_vencimiento'); }
-  get btnGuardarLote() { return this.page.locator('.modal-box-footer .btn-guardar'); }
+  get btnGuardarLote() {
+    // FIX: el botón nunca tuvo clase `.btn-guardar` (solo `.btn
+    // .btn--primary`, sin id) — `.modal-box-footer .btn-guardar` nunca
+    // matcheaba nada, timeout de 30s clickeando un botón que en los
+    // hechos no existía con ese selector. Va por texto, que sí es único
+    // en la página.
+    return this.page.getByRole('button', { name: 'Guardar lote' });
+  }
 
   async abrirModalNuevo() {
     await this.btnNuevoLote.click();

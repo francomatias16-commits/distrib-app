@@ -23,6 +23,11 @@ import crypto from 'crypto';
 // ── Config ────────────────────────────────────────────────────────────────────
 const SUPABASE_URL  = process.env.SUPABASE_URL;
 const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Anon key: es pública (la misma que usa el frontend en env-config.js), solo
+// se usa acá para poder loguearnos como el usuario de prueba real y así
+// ejercitar las RPCs que dependen de auth.uid() (ver T25 más abajo).
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnaXF1emp3b2VkbXp3cWd6dWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzY0NjgsImV4cCI6MjA5NjcxMjQ2OH0.ZXmY5p-dHPJnltOU1Qo-WPqrNIWBwEOuV_ONrjIyugM';
 
 const VERBOSE    = process.argv.includes('--verbose');
 const NO_CLEANUP = process.argv.includes('--no-cleanup');
@@ -59,8 +64,18 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: false },
 });
 
+// Cliente autenticado como el usuario de prueba (se completa en T02).
+// Varias RPCs (ej. cancelar_pedido) son SECURITY DEFINER y filtran por
+// get_empresa_id(), que a su vez lee auth.uid() — con el service_role key
+// eso siempre da NULL, así que esas RPCs necesitan una sesión real de
+// usuario, igual que en producción (el panel llama con supabaseClient
+// autenticado, nunca con la service role key).
+let sbAuth = null;
+
 // ── Estado de la sesión de prueba ─────────────────────────────────────────────
 const TEST_TAG = `TEST_${Date.now()}`;
+const TEST_USER_EMAIL = `test_${Date.now()}@test.local`;
+const TEST_USER_PASSWORD = 'password123';
 const IDS = {};        // IDs de los registros creados
 const results = [];    // { group, id, desc, ok, ms, error?, data? }
 
@@ -127,10 +142,13 @@ async function grupoSetup() {
 
   // T02: usuario (con auth.users real, service_role)
   IDS.usuario = await run('setup', 'T02', 'Crear usuario admin de prueba (con auth.users real)', async () => {
-    // Crear un usuario real en auth.users para satisfacer la FK
+    // Crear un usuario real en auth.users para satisfacer la FK.
+    // email_confirm:true es necesario para poder loguearlo después con
+    // signInWithPassword (si no, Supabase lo trata como no confirmado).
     const { data: authUser, error: authError } = await sb.auth.admin.createUser({
-      email:    `test_${Date.now()}@test.local`,
-      password: 'password123',
+      email:         TEST_USER_EMAIL,
+      password:      TEST_USER_PASSWORD,
+      email_confirm: true,
     });
     if (authError) throw new Error(`Error creando auth user: ${authError.message}`);
 
@@ -142,6 +160,24 @@ async function grupoSetup() {
       rol:        'admin',
     }).select().single());
     assert(data.id, 'usuario sin id');
+
+    // Loguearse como este usuario para poder ejercitar RPCs que dependen
+    // de auth.uid() (ver T25). Si esto falla, no se aborta el resto de la
+    // suite — sbAuth queda null y esas RPCs puntuales fallarán con un
+    // mensaje claro en vez de romper todo el script.
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data: signInData, error: signInError } = await authClient.auth.signInWithPassword({
+      email:    TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD,
+    });
+    if (signInError) {
+      log(`${C.y}  ⚠ No se pudo loguear como usuario de prueba (${signInError.message}); las RPCs que dependen de auth.uid() van a fallar.${C.x}`);
+    } else {
+      sbAuth = authClient;
+    }
+
     return data.id;
   }, ['usuarios', 'auth.users']);
 
@@ -526,16 +562,28 @@ async function grupoPedidos() {
   }, ['pedidos']);
 
   // T25: cancelar pedido via RPC cancelar_pedido (firma única post etapa 4)
+  //
+  // OJO: cancelar_pedido es SECURITY DEFINER y filtra internamente por
+  // "empresa_id = get_empresa_id()", que lee auth.uid(). Llamada con el
+  // service_role key (sin sesión de usuario) auth.uid() es NULL, así que
+  // la RPC siempre devuelve "Pedido no encontrado" — no es un bug de la
+  // función, es el mismo motivo por el que lib/handlers/pedidos/index.js
+  // evita llamarla y replica la lógica a mano (ver comentario ahí). En
+  // producción la única que la invoca es el panel, con supabaseClient
+  // autenticado como el usuario logueado. Para probarla de verdad acá hay
+  // que usar sbAuth (logueado como el usuario de prueba de T02), no sb.
   await run('pedidos', 'T25', 'RPC cancelar_pedido(pedido_id, motivo)', async () => {
+    if (!sbAuth) throw new Error('No hay sesión de usuario de prueba (falló el login en T02); no se puede ejercitar esta RPC.');
     // Primero volver a confirmado para poder cancelar
     await q(sb.from('pedidos').update({ estado: 'confirmado' }).eq('id', IDS.pedido));
     const data = await q(
-      sb.rpc('cancelar_pedido', {
+      sbAuth.rpc('cancelar_pedido', {
         p_pedido_id: IDS.pedido,
         p_motivo:    'Test de cancelación automatizada',
       })
     );
     assert(data, 'RPC debe devolver resultado');
+    assert(data.ok !== false, `RPC devolvió error: ${data.error || 'desconocido'}`);
     // Verificar que el estado cambió
     const pedido = await q(sb.from('pedidos').select('estado').eq('id', IDS.pedido).single());
     assert(pedido.estado === 'cancelado', `estado debe ser 'cancelado', es '${pedido.estado}'`);
@@ -761,8 +809,10 @@ async function grupoImportar() {
     }));
     // Array vacío actualmente devuelve ok=true con resumen de 0s. Ajustar aserción al comportamiento actual.
     assert(data?.ok === true, `RPC debería devolver ok=true para array vacío, recibí: ${JSON.stringify(data)}`);
-    const { insertados = 0, actualizados = 0, errores = 0 } = data.resumen;
-    assert(insertados === 0 && actualizados === 0 && errores === 0, `No debería haber cambios para array vacío, resumen: ${JSON.stringify(data.resumen)}`);
+    // FIX: la RPC devuelve resumen.{nuevos,actualizados,sin_cambio,errores},
+    // no "insertados" (ver 500_importar_productos_foto_url.sql).
+    const { nuevos = 0, actualizados = 0, errores = 0 } = data.resumen;
+    assert(nuevos === 0 && actualizados === 0 && errores === 0, `No debería haber cambios para array vacío, resumen: ${JSON.stringify(data.resumen)}`);
     return { resultado: data?.error || 'OK' };
   }, ['productos']); // Asumiendo que importar_productos_lote impacta en productos
 
@@ -784,8 +834,9 @@ async function grupoImportar() {
     if (error) throw new Error(`RPC error: ${error.message}`);
     assert(data?.ok === true, `ok debe ser true, data: ${JSON.stringify(data)}`);
     assert(data?.resumen, 'resumen debe estar presente');
-    const { insertados = 0, actualizados = 0, errores = 0 } = data.resumen;
-    assert(insertados + actualizados >= 1, `debe haber inserción o actualización, resumen: ${JSON.stringify(data.resumen)}`);
+    // FIX: campo real es "nuevos", no "insertados"
+    const { nuevos = 0, actualizados = 0, errores = 0 } = data.resumen;
+    assert(nuevos + actualizados >= 1, `debe haber inserción o actualización, resumen: ${JSON.stringify(data.resumen)}`);
     assert(errores === 0, `no debe haber errores, resumen: ${JSON.stringify(data.resumen)}`);
     return { resumen: data.resumen, lista_precio_id: data.lista_precio_id };
   }, ['productos', 'listas_precios', 'categorias', 'stock', 'precios_items']); // Puede crear/actualizar productos, precios_items, categorias, stock
@@ -820,8 +871,9 @@ async function grupoImportar() {
     });
     if (error) throw new Error(`RPC error: ${error.message}`);
     assert(data?.ok === true, `ok debe ser true, data: ${JSON.stringify(data)}`);
-    const { insertados = 0, actualizados = 0, errores = 0 } = data.resumen || {};
-    assert(insertados + actualizados >= 2, `debe procesar al menos 2 filas válidas, resumen: ${JSON.stringify(data.resumen)}`);
+    // FIX: campo real es "nuevos", no "insertados"
+    const { nuevos = 0, actualizados = 0, errores = 0 } = data.resumen || {};
+    assert(nuevos + actualizados >= 2, `debe procesar al menos 2 filas válidas, resumen: ${JSON.stringify(data.resumen)}`);
     return { resumen: data.resumen };
   }, ['productos', 'listas_precios', 'categorias', 'stock', 'precios_items']);
 
@@ -856,7 +908,8 @@ async function grupoChequesYPush() {
       estado:     'pendiente',
     }).select('id, fecha_vto, monto').single();
     if (error) throw new Error(error.message);
-    assert(data.fecha_vto === venc, 'fecha_vto debe guardarse');
+    // FIX: la variable se llama "vence", no "venc"
+    assert(data.fecha_vto === vence, 'fecha_vto debe guardarse');
     assert(data.fecha_vto, 'fecha_vto debe ser no-null');
     return data.id;
   }, ['cheques']);
@@ -889,7 +942,12 @@ async function grupoChequesYPush() {
       tipo_dispositivo: 'web',
       activo:          true,
       updated_at:      new Date().toISOString(),
-    }, { onConflict: 'usuario_id,token_push' }).select().single();
+      // FIX: no existía índice único en (usuario_id, token_push) ni en
+      // token_push solo -> "no unique or exclusion constraint matching
+      // ON CONFLICT" (ver migración 567_dispositivos_push_unique_token).
+      // El código real (lib/repos/notif.js upsertDispositivoPush) ya
+      // hace onConflict:'token_push', así que el test se alinea a eso.
+    }, { onConflict: 'token_push' }).select().single();
     if (error) throw new Error(error.message);
     assert(data.token_push === fakeToken, 'token_push debe guardarse');
     assert(data.activo === true, 'activo debe ser true');
@@ -982,7 +1040,7 @@ async function grupoCoberturaMinima() {
   const tablesToCover = [
     'alertas_score', 'alertas_stock', 'audit_log', 'bloqueos_cliente', 'canjes_recompensas',
     'ciclos_compra', 'cobros', 'contadores_empresa', 'cta_cte', 'entregas', 'facturas',
-    'integraciones_pago', 'movimientos_stock', 'ordenes_compra',
+    'integraciones_pago', 'movimientos_stock', 'notas_internas', 'ordenes_compra',
     'ordenes_compra_items', 'presupuesto_items', 'presupuestos', 'programas_fidelizacion',
     'recompensas', 'reglas_score', 'rutas', 'scores_cliente', 'sugerencias_pedido',
     'transacciones_pago',
@@ -1002,7 +1060,7 @@ async function grupoCoberturaMinima() {
 }
 
 async function cleanupTable(tableName, queryBuilder) {
-  const { error, count } = await queryBuilder.delete({ count: 'exact' });
+  const { error, count } = await queryBuilder;
   if (error) throw new Error(error.message);
   return { eliminados: count };
 }
@@ -1016,32 +1074,52 @@ async function grupoCleanup() {
 
   log(`\n${C.h}── CLEANUP — Borrar datos de prueba ────────────────────────────────────${C.x}`);
 
-  // Orden de borrado respeta FK: primero hijos, luego padres
+  // Orden de borrado respeta FK: primero hijos, luego padres.
+  // FIX: `.delete()` debe ser el primer método de la cadena — encadenarlo
+  // después de `.select('*')` arma un query builder de SELECT que no
+  // expone `.delete` (de ahí "queryBuilder.delete is not a function").
+  const opts = { count: 'exact' };
   const steps = [
-    ['notif_log',           () => IDS.empresa ? sb.from('notif_log').select('*').eq('empresa_id', IDS.empresa) : sb.from('notif_log').select('*')],
-    ['notificaciones_push', () => IDS.empresa ? sb.from('notificaciones_push').select('*').eq('empresa_id', IDS.empresa) : sb.from('notificaciones_push').select('*')],
-    ['movimientos_puntos',  () => IDS.empresa ? sb.from('movimientos_puntos').select('*').eq('empresa_id', IDS.empresa) : sb.from('movimientos_puntos').select('*')],
-    ['saldo_puntos',        () => IDS.empresa ? sb.from('saldo_puntos').select('*').eq('empresa_id', IDS.empresa) : sb.from('saldo_puntos').select('*')],
-    ['dispositivos_push',   () => IDS.empresa ? sb.from('dispositivos_push').select('*').eq('empresa_id', IDS.empresa) : sb.from('dispositivos_push').select('*')],
-    ['cheques',             () => IDS.empresa ? sb.from('cheques').select('*').eq('empresa_id', IDS.empresa) : sb.from('cheques').select('*')],
-    ['pedido_items',        () => IDS.pedido ? sb.from('pedido_items').select('*').eq('pedido_id', IDS.pedido) : sb.from('pedido_items').select('*')],
-    ['pedidos',             () => IDS.empresa ? sb.from('pedidos').select('*').eq('empresa_id', IDS.empresa) : sb.from('pedidos').select('*')],
-    ['lotes',               () => IDS.empresa ? sb.from('lotes').select('*').eq('empresa_id', IDS.empresa) : sb.from('lotes').select('*')],
-    ['stock',               () => IDS.deposito ? sb.from('stock').select('*').eq('deposito_id', IDS.deposito) : sb.from('stock').select('*')],
-    ['clientes',            () => IDS.empresa ? sb.from('clientes').select('*').eq('empresa_id', IDS.empresa) : sb.from('clientes').select('*')],
-    ['productos',           () => IDS.empresa ? sb.from('productos').select('*').eq('empresa_id', IDS.empresa) : sb.from('productos').select('*')],
-    ['categorias',          () => IDS.empresa ? sb.from('categorias').select('*').eq('empresa_id', IDS.empresa) : sb.from('categorias').select('*')],
-    ['depositos',           () => IDS.empresa ? sb.from('depositos').select('*').eq('empresa_id', IDS.empresa) : sb.from('depositos').select('*')],
-    ['listas_precios',      () => IDS.empresa ? sb.from('listas_precios').select('*').eq('empresa_id', IDS.empresa) : sb.from('listas_precios').select('*')],
-    ['zonas',               () => IDS.empresa ? sb.from('zonas').select('*').eq('empresa_id', IDS.empresa) : sb.from('zonas').select('*')],
-    ['usuarios',            () => IDS.empresa ? sb.from('usuarios').select('*').eq('empresa_id', IDS.empresa) : sb.from('usuarios').select('*')],
-    ['empresas',            () => IDS.empresa ? sb.from('empresas').select('*').eq('id', IDS.empresa) : sb.from('empresas').select('*')],
+    ['notif_log',           () => IDS.empresa ? sb.from('notif_log').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('notif_log').delete(opts)],
+    ['notificaciones_push', () => IDS.empresa ? sb.from('notificaciones_push').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('notificaciones_push').delete(opts)],
+    ['movimientos_puntos',  () => IDS.empresa ? sb.from('movimientos_puntos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('movimientos_puntos').delete(opts)],
+    ['saldo_puntos',        () => IDS.empresa ? sb.from('saldo_puntos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('saldo_puntos').delete(opts)],
+    ['dispositivos_push',   () => IDS.empresa ? sb.from('dispositivos_push').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('dispositivos_push').delete(opts)],
+    ['cheques',             () => IDS.empresa ? sb.from('cheques').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cheques').delete(opts)],
+    ['pedido_items',        () => IDS.pedido ? sb.from('pedido_items').delete(opts).eq('pedido_id', IDS.pedido) : sb.from('pedido_items').delete(opts)],
+    ['pedidos',             () => IDS.empresa ? sb.from('pedidos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('pedidos').delete(opts)],
+    ['lotes',               () => IDS.empresa ? sb.from('lotes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('lotes').delete(opts)],
+    // Faltaba este paso: cancelar_pedido (T25, ahora que corre con sesión
+    // real via sbAuth) inserta filas de 'liberacion' acá, y otros tests
+    // dejan filas de 'reserva'/'ingreso'. Sin este DELETE, 'productos'
+    // queda bloqueado por movimientos_stock_producto_id_fkey.
+    ['movimientos_stock',   () => IDS.empresa ? sb.from('movimientos_stock').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('movimientos_stock').delete(opts)],
+    ['stock',               () => IDS.deposito ? sb.from('stock').delete(opts).eq('deposito_id', IDS.deposito) : sb.from('stock').delete(opts)],
+    ['clientes',            () => IDS.empresa ? sb.from('clientes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('clientes').delete(opts)],
+    ['productos',           () => IDS.empresa ? sb.from('productos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('productos').delete(opts)],
+    ['categorias',          () => IDS.empresa ? sb.from('categorias').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('categorias').delete(opts)],
+    ['depositos',           () => IDS.empresa ? sb.from('depositos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('depositos').delete(opts)],
+    ['listas_precios',      () => IDS.empresa ? sb.from('listas_precios').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('listas_precios').delete(opts)],
+    ['zonas',               () => IDS.empresa ? sb.from('zonas').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('zonas').delete(opts)],
+    ['usuarios',            () => IDS.empresa ? sb.from('usuarios').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('usuarios').delete(opts)],
+    ['empresas',            () => IDS.empresa ? sb.from('empresas').delete(opts).eq('id', IDS.empresa) : sb.from('empresas').delete(opts)],
   ];
 
    for (const [nombre, getQ] of steps) {
     await run('cleanup', `CL_${nombre}`, `DELETE ${nombre}`, async () => {
       const queryBuilder = getQ(); // Call the function to get the query builder
       return cleanupTable(nombre, queryBuilder);
+    });
+  }
+
+  // El usuario de T02 se crea con auth.admin.createUser (auth.users), y eso
+  // no se borra al eliminar la fila de `usuarios` — quedaba un usuario de
+  // auth huérfano por cada corrida del script. Se borra explícitamente acá.
+  if (IDS.usuario) {
+    await run('cleanup', 'CL_auth_users', 'DELETE auth.users (admin.deleteUser)', async () => {
+      const { error } = await sb.auth.admin.deleteUser(IDS.usuario);
+      if (error) throw new Error(error.message);
+      return { eliminados: 1 };
     });
   }
 }

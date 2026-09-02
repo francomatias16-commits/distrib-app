@@ -356,6 +356,20 @@
     }
   }
 
+  // Defensa en profundidad: OfflineCore.crearOutbox() NO tira excepción si
+  // Dexie no está cargado — devuelve `null` a propósito (ver offline-core.js,
+  // rama `typeof Dexie === 'undefined'`), para que un módulo pueda decidir
+  // su propio fallback. Sin este guard, cualquier uso de outbox.* de más
+  // abajo tira un TypeError síncrono DENTRO de este IIFE y window.PosOffline
+  // nunca llega a asignarse — el POS queda sin ningún rastro de por qué
+  // (mismo síntoma que "el script no cargó", pero mucho más difícil de
+  // diagnosticar porque el resto de la página sigue funcionando normal).
+  // Mismo fix que ya tenía proveedor-offline.js (OFFLINE-02).
+  if (!outbox) {
+    console.error('[PosOffline] OfflineCore.crearOutbox() devolvió null — Dexie no estaba disponible. Sin soporte offline en esta carga.');
+    return;
+  }
+
   // ─── Init ─────────────────────────────────────────────────────────────────
 
   async function init() {

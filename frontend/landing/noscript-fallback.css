@@ -1,0 +1,5 @@
+/* Cargado solo dentro de <noscript>: revierte la ocultación de
+   #ssr-fallback cuando JS está deshabilitado, para que el sitio siga
+   siendo utilizable e indexable. Separado de critical-fallback.css por
+   el mismo motivo de CSP (style-src 'self', sin 'unsafe-inline'). */
+#ssr-fallback { visibility: visible; }

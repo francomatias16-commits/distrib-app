@@ -46,6 +46,7 @@ function filaProducto(overrides = {}) {
     costo: 1980,
     stock_disponible: 342,
     stock_minimo: 10,
+    stock_objetivo: 0,
     foto_url: null,
     foto_fuente: null,
     total_count: 1,

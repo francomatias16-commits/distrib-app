@@ -104,21 +104,21 @@
       note: 'El asistente no reemplaza los controles del sistema: no puede hacer cualquier acción para cualquier usuario y las operaciones sensibles requieren confirmación.'
     },
     {
-      slug: 'importacion-migracion',
-      title: 'Importación y migración en un clic',
-       eyebrow: 'Empezar con tus datos',
-      lead: 'Traé productos, clientes y stock desde archivos conocidos, validá lo que se va a cargar y evitá comenzar tu operación desde cero.',
-      badges: ['CSV', 'XLSX', 'JSON', 'Validación'],
-      intro: 'La importación está pensada para la puesta en marcha y para cargas masivas posteriores. Fluxo recibe archivos, identifica su estructura, muestra problemas y transforma los datos al formato que utiliza la operación.',
+      slug: 'etiquetas-precio-codigo-barras',
+      title: 'Etiquetas de precio y código de barras',
+       eyebrow: 'Del depósito a la góndola',
+      lead: 'Elegí los productos y mandá a imprimir etiquetas con precio, código de barras real y oferta tachada cuando corresponda, hasta 500 productos por tanda.',
+      badges: ['EAN-13', 'CODE128', 'IVA opcional', 'Hasta 500 productos'],
+      intro: 'Fluxo genera la etiqueta con el código de barras que ya tiene cada producto: EAN-13 real si es válido, o CODE128 con el código interno cuando no lo es. La selección puede ser manual desde el listado o precargada automáticamente desde una recepción de mercadería, para no tener que volver a tipear cantidades.',
       steps: [
-        'El usuario arrastra o selecciona un archivo CSV, XLSX, XLS o JSON.',
-        'El sistema verifica el tipo de archivo, detecta encabezados y reconoce las columnas disponibles.',
-        'Se validan campos obligatorios, formatos, cantidades y relaciones necesarias.',
-        'El usuario revisa los resultados y los errores antes de confirmar la carga.',
-        'Fluxo incorpora los registros y deja el sistema listo para operar con esos datos.'
+        'El usuario selecciona productos desde el listado, o los trae ya precargados desde una recepción de mercadería reciente.',
+        'Fluxo resuelve el código de cada producto: EAN-13 si es un código de barras válido de 13 dígitos, CODE128 con el código interno en cualquier otro caso.',
+        'Se define si el precio se muestra con IVA incluido o no, y si corresponde mostrar el precio promocional tachado sobre el regular.',
+        'El usuario revisa la vista previa de las etiquetas antes de imprimir.',
+        'Fluxo genera la tanda de impresión, hasta 500 productos por vez.'
       ],
-      capabilities: ['Productos', 'Clientes', 'Stock', 'Detección de encabezados', 'Validación previa', 'Migración por etapas', 'Procesamiento de archivos', 'Mensajes de error accionables'],
-      note: 'La experiencia es simple para el usuario, pero una migración responsable siempre incluye validación y revisión. El sistema no debería presentar una carga masiva como exitosa si hay filas rechazadas.'
+      capabilities: ['Código de barras EAN-13 real', 'CODE128 con código interno', 'IVA incluido u opcional', 'Precio promocional tachado', 'Selección manual o desde Recepción', 'Vista previa antes de imprimir', 'Hasta 500 productos por tanda'],
+      note: 'El código de barras que se imprime es el mismo que usa el resto del sistema (POS, stock): no es una etiqueta genérica, es el código real del producto.'
     },
     {
       slug: 'automatizacion-pedido-cobro',
@@ -235,10 +235,10 @@
       connects: 'Pedidos · clientes · stock · cobros · compras · automatizaciones',
       outcome: 'Una intención convertida en información útil o en una acción confirmable.'
     },
-    'importacion-migracion': {
-      forWho: 'Empresas que empiezan con Fluxo o necesitan cargar grandes volúmenes de datos.',
-      connects: 'Archivos · productos · clientes · stock · validaciones',
-      outcome: 'Datos revisados y preparados para que el equipo pueda comenzar a operar.'
+    'etiquetas-precio-codigo-barras': {
+      forWho: 'Locales y depósitos que necesitan etiquetar góndola o reponer precio después de una recepción.',
+      connects: 'Productos · stock · recepción de mercadería · impresión',
+      outcome: 'Etiquetas listas para imprimir con el código de barras y el precio reales del producto.'
     },
     'automatizacion-pedido-cobro': {
       forWho: 'Dueños y equipos que necesitan ver el negocio como un circuito, no como pantallas separadas.',
