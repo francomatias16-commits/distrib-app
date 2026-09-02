@@ -52,6 +52,13 @@ jobs:
           echo "src_url=$SRC_URL" >> "$GITHUB_OUTPUT"
           echo "dst_url=$DST_URL" >> "$GITHUB_OUTPUT"
 
+      # --- Fix del error "schema public already exists" ---
+      # Desde Postgres 15+, pg_dump ya no asume que "public" existe de forma
+      # implícita: lo trata como un schema más y emite "CREATE SCHEMA public;"
+      # (más su COMMENT) al principio del dump. Como todo proyecto Supabase
+      # ya trae el schema public creado de fábrica, esa línea rompe el
+      # restore apenas arranca. Se filtra con sed antes de pasarle el dump
+      # a psql — el resto del contenido (tablas, datos, índices) no se toca.
       - name: Dump de prod → restore directo al proyecto de prueba
         env:
           SRC_URL: ${{ steps.buildurl.outputs.src_url }}
@@ -61,6 +68,7 @@ jobs:
             --schema=public \
             --no-owner \
             --no-privileges \
+          | sed -e '/^CREATE SCHEMA public;/d' -e '/^COMMENT ON SCHEMA public IS/d' \
           | psql "$DST_URL" -v ON_ERROR_STOP=1
 
       - name: Chequeo de integridad (conteo de filas por tabla)
