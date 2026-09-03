@@ -69,8 +69,15 @@ const toast = (msg, tipo='default') => window.mostrarToast(msg, tipo);
 // la red: postgrest-js atrapa el TypeError original y lo devuelve como
 // `error`, así que el `throw error;` de más abajo termina lanzando esa
 // misma instancia — por eso alcanza con este mismo chequeo.
+// FIX (auditoría etapa 2 — arrastrado desde Cobros/cta-cte, mismo patrón
+// acá): faltaba el timeout propio de conTimeoutRed. Ese timeout SÍ rechaza
+// la promesa (a diferencia del corte de red, que se resuelve como `error`
+// sin tirar), así que el `await conTimeoutRed(...)` de guardarMovimiento
+// tiraba directo al catch general sin pasar por el chequeo de más abajo —
+// un ajuste/transferencia/conteo con señal débil no se encolaba, se perdía
+// con un toast genérico.
 function esErrorDeRed(e) {
-  return e instanceof TypeError || /failed to fetch|network/i.test(e?.message || '');
+  return e instanceof TypeError || /failed to fetch|network|timeout/i.test(e?.message || '');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -1412,20 +1419,41 @@ async function guardarAjuste() {
       // llamadas RPC a ajustar_stock con reversión manual del lado cliente.
       // La atomicidad la garantiza la base — ya no existe una ventana donde
       // el stock pueda quedar débitado de origen sin acreditar en destino.
+      // FIX (auditoría etapa 2 — mismo hallazgo que cobros): id generado
+      // ANTES del primer intento online, no solo al encolar — si el intento
+      // online se aplica en el servidor pero se pierde la respuesta
+      // (timeout), reintentar/encolar con el MISMO id evita duplicar la
+      // transferencia real.
+      const offlineLocalIdTransf = crypto.randomUUID();
       const payloadRpcTransferencia = {
         p_producto_id: modalProductoId,
         p_deposito_origen: depOrigen,
         p_deposito_destino: depDest,
         p_cantidad: Math.abs(cantidad),
         p_motivo: motivo, p_notas: notas || null,
+        p_offline_local_id: offlineLocalIdTransf,
       };
-      const { data, error } = await window.conTimeoutRed(sb.rpc('transferir_stock', payloadRpcTransferencia), 10000);
+      let data, error;
+      try {
+        ({ data, error } = await window.conTimeoutRed(sb.rpc('transferir_stock', payloadRpcTransferencia), 10000));
+      } catch (errTimeout) {
+        // FIX: el timeout propio de conTimeoutRed rechaza en vez de resolver
+        // con `error` — sin este catch, se iba directo al catch general y la
+        // transferencia se perdía sin quedar encolada.
+        if (esErrorDeRed(errTimeout) && window.StockOffline) {
+          await window.StockOffline.encolarAccion('transferir_stock', payloadRpcTransferencia, offlineLocalIdTransf);
+          cerrarModal();
+          toast(`Sin conexión: guardamos la transferencia de ${modalNombre} en el dispositivo. Se va a enviar sola cuando vuelva internet.`, 'warning', 6000);
+          return;
+        }
+        throw errTimeout;
+      }
       if (error) {
         // Plan offline — Etapa 3, ítem 5: mismo criterio que ajuste/conteo —
         // encolar en vez de perder la transferencia si fue un corte de red,
         // no un error de negocio (stock insuficiente, etc.).
         if (esErrorDeRed(error) && window.StockOffline) {
-          await window.StockOffline.encolarAccion('transferir_stock', payloadRpcTransferencia);
+          await window.StockOffline.encolarAccion('transferir_stock', payloadRpcTransferencia, offlineLocalIdTransf);
           cerrarModal();
           toast(`Sin conexión: guardamos la transferencia de ${modalNombre} en el dispositivo. Se va a enviar sola cuando vuelva internet.`, 'warning', 6000);
           return;
@@ -1448,6 +1476,9 @@ async function guardarAjuste() {
       // (sistema vs. contado) en conteos_stock, que es lo que permite
       // auditar recuentos periódicos más adelante.
       const nuevo = modalStockTotal + cantidad; // cantidad = nuevo - modalStockTotal, con signo
+      // FIX (auditoría etapa 2 — mismo hallazgo que transferencia/cobros):
+      // id generado antes del primer intento online.
+      const offlineLocalIdConteo = crypto.randomUUID();
       const payloadRpcConteo = {
         p_producto_id: modalProductoId, p_deposito_id: depOrigen,
         p_cantidad_contada: nuevo,
@@ -1461,15 +1492,29 @@ async function guardarAjuste() {
         // outbox) este chequeo es redundante pero inofensivo: se manda y se
         // vuelve a comparar contra el mismo stock que se acaba de leer.
         p_stock_sistema_esperado: modalStockTotal,
+        p_offline_local_id: offlineLocalIdConteo,
       };
-      const { data, error } = await window.conTimeoutRed(sb.rpc('registrar_conteo_stock', payloadRpcConteo), 10000);
+      let data, error;
+      try {
+        ({ data, error } = await window.conTimeoutRed(sb.rpc('registrar_conteo_stock', payloadRpcConteo), 10000));
+      } catch (errTimeout) {
+        // FIX: ver nota de transferencia — el timeout propio de
+        // conTimeoutRed rechaza en vez de resolver con `error`.
+        if (esErrorDeRed(errTimeout) && window.StockOffline) {
+          await window.StockOffline.encolarAccion('registrar_conteo_stock', payloadRpcConteo, offlineLocalIdConteo);
+          cerrarModal();
+          toast(`Sin conexión: guardamos el conteo de ${modalNombre} en el dispositivo. Se va a enviar solo cuando vuelva internet.`, 'warning', 6000);
+          return;
+        }
+        throw errTimeout;
+      }
       if (error) {
         // Plan offline — Etapa 3, ítem 2: si la RPC no llegó a responder por
         // falta de red, encolamos el conteo en vez de perderlo — se envía
         // solo apenas vuelve la señal (idempotente por offline_local_id,
         // migración 443).
         if (esErrorDeRed(error) && window.StockOffline) {
-          await window.StockOffline.encolarAccion('registrar_conteo_stock', payloadRpcConteo);
+          await window.StockOffline.encolarAccion('registrar_conteo_stock', payloadRpcConteo, offlineLocalIdConteo);
           cerrarModal();
           toast(`Sin conexión: guardamos el conteo de ${modalNombre} en el dispositivo. Se va a enviar solo cuando vuelva internet.`, 'warning', 6000);
           return;
@@ -1507,18 +1552,35 @@ async function guardarAjuste() {
 
     } else {
       const delta = tipoActivo === 'egreso' ? -Math.abs(cantidad) : Math.abs(cantidad);
+      // FIX (auditoría etapa 2 — mismo hallazgo que arriba): id generado
+      // antes del primer intento online.
+      const offlineLocalIdAjuste = crypto.randomUUID();
       const payloadRpcAjuste = {
         p_producto_id: modalProductoId, p_deposito_id: depOrigen,
         p_delta: delta, p_tipo: tipoActivo,
         p_motivo: motivo, p_notas: notas || null,
+        p_offline_local_id: offlineLocalIdAjuste,
       };
-      const { data, error } = await window.conTimeoutRed(sb.rpc('ajustar_stock', payloadRpcAjuste), 10000);
+      let data, error;
+      try {
+        ({ data, error } = await window.conTimeoutRed(sb.rpc('ajustar_stock', payloadRpcAjuste), 10000));
+      } catch (errTimeout) {
+        // FIX: ver nota de transferencia/conteo — el timeout propio de
+        // conTimeoutRed rechaza en vez de resolver con `error`.
+        if (esErrorDeRed(errTimeout) && window.StockOffline) {
+          await window.StockOffline.encolarAccion('ajustar_stock', payloadRpcAjuste, offlineLocalIdAjuste);
+          cerrarModal();
+          toast(`Sin conexión: guardamos el movimiento de ${modalNombre} en el dispositivo. Se va a enviar solo cuando vuelva internet.`, 'warning', 6000);
+          return;
+        }
+        throw errTimeout;
+      }
       if (error) {
         // Plan offline — Etapa 3, ítem 2: mismo criterio que el conteo de
         // arriba — encolar en vez de perder el ingreso/egreso si fue un
         // corte de red, no un error de negocio.
         if (esErrorDeRed(error) && window.StockOffline) {
-          await window.StockOffline.encolarAccion('ajustar_stock', payloadRpcAjuste);
+          await window.StockOffline.encolarAccion('ajustar_stock', payloadRpcAjuste, offlineLocalIdAjuste);
           cerrarModal();
           toast(`Sin conexión: guardamos el movimiento de ${modalNombre} en el dispositivo. Se va a enviar solo cuando vuelva internet.`, 'warning', 6000);
           return;

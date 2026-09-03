@@ -12,8 +12,17 @@ let todosClientes = []; // clientes de la página actual (server-side, ya no el 
 // cual) de "la llamada nunca llegó a completarse" (encolar y reintentar
 // solo). window.conTimeoutRed(sb.rpc(), 10000) no rechaza la promesa cuando falla la red: postgrest-js
 // atrapa el TypeError original y lo devuelve como `error`.
+// FIX (auditoría etapa 2 — Cobros/cta-cte): faltaba el propio timeout de
+// conTimeoutRed. Ese timeout SÍ rechaza la promesa (a diferencia del corte
+// de red, que postgrest-js atrapa y devuelve como `error` en vez de tirar),
+// así que el `await conTimeoutRed(...)` de guardarCobro tiraba directo al
+// catch general de la función sin pasar por este chequeo — un cobro con
+// señal débil (4G con barras pero sin throughput, el caso que motivó
+// conTimeoutRed en ui-utils.js) no se encolaba: se perdía con un toast
+// genérico, y encima quedaba la duda de si el cobro se había aplicado del
+// lado del servidor o no.
 function esErrorDeRed(e) {
-  return e instanceof TypeError || /failed to fetch|network/i.test(e?.message || '');
+  return e instanceof TypeError || /failed to fetch|network|timeout/i.test(e?.message || '');
 }
 
 // migración 266: listado + KPIs paginados en SQL (fn_cta_cte_kpis / fn_cta_cte_lista)
@@ -499,6 +508,19 @@ async function guardarCobro() {
     const perfil = window.authCtx?.perfil;
     if (!sb || !perfil) throw new Error('Sin sesión');
 
+    // FIX (auditoría etapa 2 — Cobros/cta-cte): el id de dedup se genera
+    // ACÁ, antes del primer intento online, y viaja ya en el payload
+    // directo — no solo cuando se termina encolando. Antes solo se le
+    // ponía offline_local_id al cobro si esto pasaba por CobrosOffline; el
+    // intento online normal viajaba sin id. Si ese intento online se
+    // aplicaba en el servidor pero la respuesta se perdía (timeout de
+    // conTimeoutRed, no corte de red), el único camino de recuperación era
+    // encolar — y encolarAccion() generaba un id NUEVO, distinto al del
+    // intento que quizás ya se había aplicado. El índice único de
+    // registrar_cobro_completo no tenía forma de reconocer que era el
+    // mismo cobro y lo duplicaba de verdad. Con el mismo id en los dos
+    // intentos, el propio RPC lo dedupea.
+    const offlineLocalId = crypto.randomUUID();
     const payloadCobro = {
       p_empresa_id:  perfil.empresa_id,
       p_cliente_id:  clienteActivo.cliente_id,
@@ -508,16 +530,34 @@ async function guardarCobro() {
       p_referencia:  document.getElementById('cobro-comprobante').value || null,
       p_notas:       document.getElementById('cobro-obs').value || null,
       p_factura_id:  facturaVinculadaCobro || null,
+      p_offline_local_id: offlineLocalId,
     };
 
-    const { data, error } = await window.conTimeoutRed(sb.rpc('registrar_cobro_completo', payloadCobro), 10000);
+    let data, error;
+    try {
+      ({ data, error } = await window.conTimeoutRed(sb.rpc('registrar_cobro_completo', payloadCobro), 10000));
+    } catch (errTimeout) {
+      // FIX: conTimeoutRed rechaza (no resuelve con `error`) cuando es SU
+      // PROPIO timeout el que corta, a diferencia de un corte de red real
+      // (que postgrest-js atrapa y devuelve como `error` más abajo). Antes
+      // esto no se capturaba acá: se iba directo al catch general de la
+      // función, sin pasar por la cola offline, y el cobro se perdía sin
+      // que quedara ningún rastro local de que se había intentado.
+      if (esErrorDeRed(errTimeout) && window.CobrosOffline) {
+        await window.CobrosOffline.encolarAccion('registrar_cobro_completo', payloadCobro, offlineLocalId);
+        cerrarModalCobro();
+        mostrarToast('Sin conexión: guardamos el cobro en el dispositivo. Se va a enviar solo cuando vuelva internet.', 'warning', 6000);
+        return;
+      }
+      throw errTimeout;
+    }
 
     if (error) {
       // Plan offline — Etapa 3, ítem 4: si la RPC no llegó a responder por
       // falta de red, encolamos el cobro en vez de perderlo — se envía
       // solo apenas vuelve la señal (idempotente por offline_local_id).
       if (esErrorDeRed(error) && window.CobrosOffline) {
-        await window.CobrosOffline.encolarAccion('registrar_cobro_completo', payloadCobro);
+        await window.CobrosOffline.encolarAccion('registrar_cobro_completo', payloadCobro, offlineLocalId);
         cerrarModalCobro();
         mostrarToast('Sin conexión: guardamos el cobro en el dispositivo. Se va a enviar solo cuando vuelva internet.', 'warning', 6000);
         return;

@@ -1,0 +1,284 @@
+{
+  "generado_en": "2026-09-03T01:33:18.569Z",
+  "alcance": "páginas públicas servidas por tests/e2e/helpers/static-server.js — no cubre páginas admin autenticadas (sin red a Supabase en este entorno, ver pendiente #3)",
+  "paginas": [
+    {
+      "nombre": "Landing",
+      "path": "/",
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 12,
+          "selectores": [
+            ".featured-card",
+            "article[data-module-linked=\"whatsapp-business\"]",
+            "article[data-module-linked=\"punto-de-venta\"]",
+            "article[data-module-linked=\"facturacion-arca\"]",
+            "article[data-module-linked=\"reparto-en-vivo\"]"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".header-cta"
+          ]
+        },
+        {
+          "id": "image-redundant-alt",
+          "impacto": "minor",
+          "descripcion": "Ensure image alternative is not repeated as text",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/image-redundant-alt?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "a[aria-label=\"Fluxo inicio\"] > img",
+            ".brand-footer > img"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".wa-float"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Registro",
+      "path": "/registro",
+      "ok": true,
+      "total_violaciones": 1,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 6,
+          "selectores": [
+            ".login-link",
+            ".trial-badge",
+            ".btn-text",
+            "a[href$=\"terminos\"]",
+            "a[href$=\"privacidad\"]"
+          ]
+        }
+      ],
+      "errores_consola": [
+        "ReferenceError: supabase is not defined"
+      ]
+    },
+    {
+      "nombre": "Privacidad",
+      "path": "/privacidad",
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 6,
+          "selectores": [
+            ".logo",
+            ".volver",
+            "p:nth-child(5) > .contacto[href=\"mailto:soporte@distrib.com.ar\"]",
+            "p:nth-child(23) > .contacto[href=\"mailto:soporte@distrib.com.ar\"]",
+            "a[href$=\"eliminacion-datos.html\"]"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".top-bar"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Login admin",
+      "path": "/admin/login",
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            "#divider-social",
+            "label",
+            ".login-brand"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 9,
+          "selectores": [
+            "h1",
+            ".login-card > .login-subheading",
+            "#divider-social",
+            "#input-email",
+            "#input-pass"
+          ]
+        }
+      ],
+      "errores_consola": [
+        "ReferenceError: supabase is not defined"
+      ]
+    },
+    {
+      "nombre": "Login cliente",
+      "path": "/cliente/login",
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".brand"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 7,
+          "selectores": [
+            "h1",
+            "#nombreEmpresa",
+            "#inputEmail",
+            "#inputPass",
+            ".row-aux"
+          ]
+        }
+      ],
+      "errores_consola": [
+        "ReferenceError: supabase is not defined"
+      ]
+    },
+    {
+      "nombre": "Login chofer",
+      "path": "/chofer/login",
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btnIngresar"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 6,
+          "selectores": [
+            "h1",
+            ".login-header > p",
+            "#email",
+            "#password",
+            ".row-aux"
+          ]
+        }
+      ],
+      "errores_consola": [
+        "ReferenceError: supabase is not defined"
+      ]
+    },
+    {
+      "nombre": "Portal proveedor",
+      "path": "/proveedor/portal",
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "footer > p"
+          ]
+        },
+        {
+          "id": "page-has-heading-one",
+          "impacto": "moderate",
+          "descripcion": "Ensure that the page, or at least one of its frames contains a level-one heading",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/page-has-heading-one?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        }
+      ],
+      "errores_consola": []
+    }
+  ]
+}

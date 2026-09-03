@@ -91,6 +91,10 @@ function renderHistorialDevoluciones(devs) {
             `${i.cantidad_devuelta} × ${escapeHtml(i.productos?.nombre || 'Producto')} — ${fmt(i.monto)}`
           ).join('<br>')}
         </div>
+        ${d.aviso_compensacion ? `
+          <div style="background:var(--color-warning-bg,#FBE8C9);border:1px solid var(--color-warning-mid,#E0A53E);border-radius:6px;padding:6px 10px;margin-top:6px;font-size:11px;color:var(--color-warning,#8A5F13)">
+            ⚠ ${escapeHtml(d.aviso_compensacion)}
+          </div>` : ''}
       </div>
     `).join('');
 }

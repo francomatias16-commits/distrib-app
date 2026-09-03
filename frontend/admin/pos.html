@@ -655,7 +655,12 @@
 
     <!-- Panel: Hardware (Fase 5 — impresora térmica + terminal de pago) -->
     <div class="pos-admin-panel" id="panel-admin-hardware" style="display:none">
-      <p class="pos-cierre-sub">Configurá cómo imprime tickets esta caja y cómo se cobra con tarjeta/QR. Es por empresa: afecta a todas las cajas.</p>
+      <p class="pos-cierre-sub">Configurá cómo imprime tickets y cómo se cobra con tarjeta/QR en esta caja. Cada caja física tiene su propia configuración (dos cajas abiertas al mismo tiempo pueden usar terminales distintas).</p>
+
+      <label class="pos-field-label" for="hw-caja-select">Caja a configurar</label>
+      <select id="hw-caja-select" class="input-base" onchange="cargarConfigHardware()"></select>
+
+      <hr style="border:none;border-top:1px solid var(--color-border);margin:14px 0" />
 
       <p class="pos-sec-label">Impresora de tickets</p>
       <label class="pos-field-label" for="hw-imp-modo">Modo</label>

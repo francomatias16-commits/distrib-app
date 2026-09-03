@@ -1,6 +1,6 @@
 {
   "name": "distrib-app",
-  "version": "1.49.4",
+  "version": "1.49.9",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -58,6 +58,10 @@
     "audit:mobile:json": "node scripts/audit-mobile.js --json",
     "audit:breakpoints": "node scripts/audit-breakpoints.js",
     "audit:breakpoints:json": "node scripts/audit-breakpoints.js --json",
+    "audit:a11y": "node scripts/audit-accesibilidad.js",
+    "audit:a11y:json": "node scripts/audit-accesibilidad.js --json",
+    "audit:lighthouse": "node scripts/audit-lighthouse.js",
+    "audit:lighthouse:json": "node scripts/audit-lighthouse.js --json",
     "check:shared-selectors": "node scripts/check-shared-selectors.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -70,7 +74,10 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "autocannon": "^7.15.0",
+    "axe-core": "^4.13.0",
+    "chrome-launcher": "^1.2.1",
     "esbuild": "^0.28.2",
+    "lighthouse": "^13.4.1",
     "playwright": "^1.56.1",
     "vitest": "^4.1.10"
   }

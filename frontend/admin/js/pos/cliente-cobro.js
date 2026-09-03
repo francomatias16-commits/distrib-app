@@ -388,6 +388,11 @@ window.confirmarCobro = async function () {
         medio:      p.medio,
         monto:      p.medio === 'efectivo' ? p.monto : Math.min(p.monto, total),
         referencia: p.referencia || null,
+        // ID de pago real del gateway (Prisma/MP payment_id) — antes se
+        // capturaba en pos-terminal.js pero nunca viajaba al backend, así
+        // que se perdía. Necesario para poder reconciliar/reversar contra
+        // el proveedor en el futuro.
+        codigo:     p.codigo || null,
       })),
     };
     if (pinSupervisor) body.pin_supervisor = pinSupervisor;
