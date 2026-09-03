@@ -283,7 +283,7 @@ async function onClienteNC(clienteId) {
     const { data: facturas, error } = await window.conTimeoutRed(window.authCtx.sb.from('facturas')
       .select('id, numero')
       .eq('cliente_id', clienteId)
-      .in('estado', ['emitida', 'pagada'])
+      .in('estado', ['emitida', 'parcial'])
       .order('fecha_emision', { ascending: false })
       .limit(30), 10000);
     if (error) throw error;
