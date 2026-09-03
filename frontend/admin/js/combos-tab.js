@@ -79,6 +79,9 @@ async function cb_cargarCombos() {
     const { data, error } = await window.conTimeoutRed(sb
       .from('combos')
       .select('id, nombre, descripcion, precio, foto_url, activo, combo_items(producto_id, cantidad, productos(nombre))')
+      // Alfabético por decisión explícita (no updated_at) — mismo
+      // criterio que buscarStockPaginado en stock.js: se prioriza poder
+      // ubicar un combo puntual a simple vista sobre el "sube al tope".
       .order('nombre'), 10000);
 
     if (error) throw error;

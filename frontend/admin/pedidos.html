@@ -453,11 +453,13 @@
         <!-- REQ-13: Importe mínimo -->
         <input type="number" id="filtro-importe-min" onchange="aplicarFiltros()" class="select-filtro"
                placeholder="$ mínimo" min="0" step="100" style="width:100px" aria-label="Importe mínimo" />
-        <button type="button" class="btn btn--ghost" onclick="limpiarFiltros()">Limpiar</button>
-        <button type="button" class="btn btn--ghost" onclick="exportarPedidosExcel()" style="background:var(--color-success-bg);color:var(--color-success);border-color:var(--color-success)" title="Exportar pedidos a Excel">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Excel
-        </button>
+        <div class="filtros-der-acciones">
+          <button type="button" class="btn btn--ghost" onclick="limpiarFiltros()">Limpiar</button>
+          <button type="button" class="btn btn--ghost" onclick="exportarPedidosExcel()" style="background:var(--color-success-bg);color:var(--color-success);border-color:var(--color-success)" title="Exportar pedidos a Excel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Excel
+          </button>
+        </div>
       </div>
     </div>
 

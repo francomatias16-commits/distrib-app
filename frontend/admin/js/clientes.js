@@ -496,7 +496,9 @@ async function cargarClientes() {
       scores_cliente(score_pagos, score_frecuencia, score_deuda, score_devolucion, created_at)`,
       { count: 'exact' })
     .eq('empresa_id', empresaData.id)
-    .order('razon_social')
+    // Regla "ítem modificado sube al tope" (2026-09): antes ordenaba
+    // alfabéticamente, así que editar un cliente no lo traía a la vista.
+    .order('updated_at', { ascending: false })
     .range(desde, hasta);
 
   // Aplicar filtros de base de datos si es posible para eficiencia
