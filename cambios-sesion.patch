@@ -1,0 +1,179 @@
+diff --git a/checklist_pase_manual.md b/checklist_pase_manual.md
+index 5c29888..108cc9e 100644
+--- a/checklist_pase_manual.md
++++ b/checklist_pase_manual.md
+@@ -35,22 +35,33 @@ exactamente (pantalla, acción, resultado) para poder corregirlo.
+   riesgo que PUNTOS-001/COMPRAS-001/SCORE-001 — ver sección pendiente al
+   final de este documento.
+ 
+-## 1. F4-01 — Filtro "Borrador" en Pedidos (2 min) ✅ CONFIRMADO 2026-08-10
+-
+-**Antes:** el chip decía "Pendiente" y nunca traía resultados (estado
+-inexistente en la base).
++## 1. F4-01 — Filtro "Borrador" en Pedidos — ⚠️ REABIERTO Y CERRADO DISTINTO 2026-09-03
++
++**Esto que decía el checklist original ya no aplica** — la premisa de que
++el chip "decía Pendiente y había que renombrarlo a Borrador" no se
++verificó nunca en código; lo que sí se confirmó esta sesión (revisando
++`crear_pedido_cliente()`, migración `20260824070000_fix_secnew01...`) es
++que **ninguna de las 3 vías de creación de pedido (admin, portal cliente,
++bot de WhatsApp) crea pedidos en `'borrador'`** — las tres insertan
++directo en `'confirmado'` (reserva de stock + factura + puntos +
++notificación, todo en el mismo paso atómico).
++
++**Decisión tomada:** no vale la pena construir un flujo real de
++borrador/confirmación en dos pasos (implicaría separar facturación/
++puntos/reserva de stock de la creación, con revalidación de stock/
++crédito al confirmar — alcance de feature nueva, no de fix). Se sacó el
++chip "Borrador" del filtro de `/admin/pedidos` (`frontend/admin/js/pedidos.js`,
++`initFiltroTabsEstado()`) porque nunca iba a traer resultados con el
++diseño actual.
+ 
+ 1. Ir a `/admin/pedidos`.
+ 2. Mirar la fila de chips de filtro de estado (arriba de la tabla).
+-3. ✅ Verificar que el chip dice **"Borrador"** (no "Pendiente").
+-4. Hacer clic en el chip "Borrador".
+-5. ✅ Si hay algún pedido en estado borrador, tiene que aparecer en la
+-   lista. Si no hay ninguno, la lista debe quedar vacía con el mensaje de
+-   "sin resultados" — no debe romperse ni quedar cargando infinito.
++3. ✅ Verificar que **no** aparece ningún chip "Borrador" — la lista debe
++   ir directo de "Todos" a "Confirmado".
+ 
+ ---
+ 
+-## 2. F4-02 — Precio del catálogo vs. precio al confirmar (5-8 min) ⚠️ FIX APLICADO 2026-08-10, RE-PROBAR
++## 2. F4-02 — Precio del catálogo vs. precio al confirmar (5-8 min) ✅ RE-VERIFICADO EN NAVEGADOR 2026-09-03
+ 
+ - **Síntoma en el pase manual:** con "Supermercado La Esquina" (tiene
+   precio especial $1.600 en Coca Cola 2.25L) logueado por
+@@ -63,7 +74,9 @@ inexistente en la base).
+   servía el precio viejo cacheado y revalidaba recién en segundo
+   plano. Ver `CHANGELOG_v708_fix_sw_cachea_precio_catalogo_cliente.md`.
+ - **Fix:** `/api/cliente/productos` movido a `NETWORK_ONLY_PATTERNS`.
+-- **Pendiente:** repetir los pasos 1-8 de abajo con el fix deployado.
++- **Re-prueba:** pasos 1-8 de abajo confirmados en navegador real, con el
++  fix ya deployado. Precio con descuento visible en catálogo → carrito →
++  checkout, sin diferencias.
+ 
+ **Antes:** el catálogo del cliente mostraba `precio_base` crudo, ignorando
+ precios especiales/reglas; recién al confirmar el pedido se aplicaba el
+@@ -92,7 +105,7 @@ configurado.
+ 
+ ---
+ 
+-## 3. F4-03 — Portal proveedor no debe mostrar OCs en borrador/pendientes de aprobar (5 min)
++## 3. F4-03 — Portal proveedor no debe mostrar OCs en borrador/pendientes de aprobar (5 min) ✅ CONFIRMADO EN NAVEGADOR 2026-09-03
+ 
+ **Antes:** el proveedor veía órdenes de compra que el admin todavía no
+ había enviado ni aprobado internamente.
+@@ -161,7 +174,7 @@ Probar los 3 flujos que antes más se desincronizaban:
+ 
+ ---
+ 
+-## 5. UI-003 — Modal "Zona" en Rutas no debe abrirse solo (2 min)
++## 5. UI-003 — Modal "Zona" en Rutas no debe abrirse solo (2 min) ✅ CONFIRMADO EN NAVEGADOR 2026-09-03
+ 
+ 1. Ir a `/admin/rutas`.
+ 2. Hacer clic en la pestaña **"Zonas"**.
+@@ -190,7 +203,7 @@ siempre contaba 0.
+ 
+ ---
+ 
+-## 7. F3-04 — KPIs de Cobranzas se actualizan tras registrar un cobro (5 min)
++## 7. F3-04 — KPIs de Cobranzas se actualizan tras registrar un cobro (5 min) ✅ CONFIRMADO EN NAVEGADOR 2026-09-03
+ 
+ **Antes:** los KPIs ("Cobrado hoy", "Vence hoy", "Total vencido", medios
+ de pago) quedaban con el valor viejo hasta recargar la página a mano.
+diff --git a/frontend/admin/css/notas-gentelella.css b/frontend/admin/css/notas-gentelella.css
+index d591976..9c9ef54 100644
+--- a/frontend/admin/css/notas-gentelella.css
++++ b/frontend/admin/css/notas-gentelella.css
+@@ -117,6 +117,31 @@ body.dash-notas-gentelella .filtros-bar select:focus {
+   box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
+ }
+ 
++/* Escritorio: buscador + filtro de tipo en una sola fila, sin
++   espacios vacíos ni apilado. Puntual a esta pantalla — no toca
++   el layout mobile-first (columna) que sigue viniendo de
++   componentes-admin.css. */
++@media (min-width: 641px) {
++  body.dash-notas-gentelella .tabla-header .filtros-bar {
++    flex-direction: row !important;
++    flex-wrap: nowrap !important;
++    align-items: center !important;
++    width: auto !important;
++    padding: 8px 12px !important;
++    gap: 10px !important;
++  }
++  body.dash-notas-gentelella .tabla-header .filtros-bar input#buscar-nota {
++    flex: 1 1 260px !important;
++    width: auto !important;
++    max-width: 300px !important;
++  }
++  body.dash-notas-gentelella .tabla-header .filtros-bar select#filtro-tipo-nota {
++    flex: 0 0 auto !important;
++    width: auto !important;
++    min-width: 170px !important;
++  }
++}
++
+ /* ════════════════════════════════════════════════════════════
+    Tabla (thead / tbody)
+    ════════════════════════════════════════════════════════════ */
+diff --git a/frontend/admin/js/notas-credito.js b/frontend/admin/js/notas-credito.js
+index 7471ebb..2b90d98 100644
+--- a/frontend/admin/js/notas-credito.js
++++ b/frontend/admin/js/notas-credito.js
+@@ -283,7 +283,7 @@ async function onClienteNC(clienteId) {
+     const { data: facturas, error } = await window.conTimeoutRed(window.authCtx.sb.from('facturas')
+       .select('id, numero')
+       .eq('cliente_id', clienteId)
+-      .in('estado', ['emitida', 'pagada'])
++      .in('estado', ['emitida', 'parcial'])
+       .order('fecha_emision', { ascending: false })
+       .limit(30), 10000);
+     if (error) throw error;
+diff --git a/frontend/admin/js/pedidos.js b/frontend/admin/js/pedidos.js
+index 36a451d..eda7ace 100644
+--- a/frontend/admin/js/pedidos.js
++++ b/frontend/admin/js/pedidos.js
+@@ -39,6 +39,18 @@ let fefoModalPedidoId = null;
+ 
+ // Transiciones de estado válidas
+ const TRANSICIONES = {
++  // 'borrador' — confirmado de nuevo (2026-09) como estado teórico sin uso
++  // real: las 3 vías de creación de pedido (admin, portal cliente, bot de
++  // WhatsApp) comparten crear_pedido_cliente(), que hoy inserta el pedido
++  // directo en 'confirmado' (reserva stock + valida crédito + factura +
++  // puntos + notifica, todo en el mismo paso atómico — ver
++  // crearPedidoParaCliente() en lib/handlers/pedidos/crear-pedido.js).
++  // Por eso se sacó el chip "Borrador" del filtro de abajo (nunca iba a
++  // traer resultados). Si en algún momento se necesita un flujo real de
++  // pedido tentativo/a-confirmar, hay que diseñarlo aparte — no alcanza
++  // con cambiar el estado inicial, hay que separar la reserva de stock,
++  // la facturación y los puntos de la creación y moverlos a un paso de
++  // confirmación explícita con revalidación de stock/crédito.
+   borrador:   ['confirmado', 'cancelado'],
+   // FIX: rpc_crear_pedido (029) crea los pedidos con estado 'pendiente', no
+   // 'borrador' — 'borrador' quedó como estado teórico sin uso real (0 filas
+@@ -505,7 +517,6 @@ function initFiltroTabsEstado() {
+   if (!cont || typeof FiltroTabs === 'undefined') return;
+   FiltroTabs.crear(cont, [
+     { key: '',           label: 'Todos' },
+-    { key: 'borrador',   label: 'Borrador' },
+     { key: 'confirmado', label: 'Confirmado' },
+     { key: 'preparando', label: 'Preparando' },
+     { key: 'despachado', label: 'Despachado' },
+diff --git a/lib/repos/pedidos.js b/lib/repos/pedidos.js
+index 2aef534..cbbe3b5 100644
+--- a/lib/repos/pedidos.js
++++ b/lib/repos/pedidos.js
+@@ -909,7 +909,7 @@ export async function obtenerFacturaRecienteDePedido(pedido_id) {
+   const { data } = await db
+     .from('facturas').select('id')
+     .eq('pedido_id', pedido_id)
+-    .in('estado', ['emitida', 'pagada'])
++    .in('estado', ['emitida', 'parcial'])
+     .order('fecha_emision', { ascending: false })
+     .limit(1).maybeSingle();
+   return data;
