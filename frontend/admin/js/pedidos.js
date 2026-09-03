@@ -39,6 +39,18 @@ let fefoModalPedidoId = null;
 
 // Transiciones de estado válidas
 const TRANSICIONES = {
+  // 'borrador' — confirmado de nuevo (2026-09) como estado teórico sin uso
+  // real: las 3 vías de creación de pedido (admin, portal cliente, bot de
+  // WhatsApp) comparten crear_pedido_cliente(), que hoy inserta el pedido
+  // directo en 'confirmado' (reserva stock + valida crédito + factura +
+  // puntos + notifica, todo en el mismo paso atómico — ver
+  // crearPedidoParaCliente() en lib/handlers/pedidos/crear-pedido.js).
+  // Por eso se sacó el chip "Borrador" del filtro de abajo (nunca iba a
+  // traer resultados). Si en algún momento se necesita un flujo real de
+  // pedido tentativo/a-confirmar, hay que diseñarlo aparte — no alcanza
+  // con cambiar el estado inicial, hay que separar la reserva de stock,
+  // la facturación y los puntos de la creación y moverlos a un paso de
+  // confirmación explícita con revalidación de stock/crédito.
   borrador:   ['confirmado', 'cancelado'],
   // FIX: rpc_crear_pedido (029) crea los pedidos con estado 'pendiente', no
   // 'borrador' — 'borrador' quedó como estado teórico sin uso real (0 filas
@@ -505,7 +517,6 @@ function initFiltroTabsEstado() {
   if (!cont || typeof FiltroTabs === 'undefined') return;
   FiltroTabs.crear(cont, [
     { key: '',           label: 'Todos' },
-    { key: 'borrador',   label: 'Borrador' },
     { key: 'confirmado', label: 'Confirmado' },
     { key: 'preparando', label: 'Preparando' },
     { key: 'despachado', label: 'Despachado' },
