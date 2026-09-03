@@ -26,9 +26,40 @@ window.toggleHardwareTerminalFields = function () {
   document.getElementById('hw-term-desc').textContent = info?.descripcion || '';
 };
 
+// AUDITORÍA 584 — la config de impresora/terminal es por caja, no por
+// empresa (cajas_pos soporta varias cajas físicas en simultáneo desde el
+// origen, cada una con su propia terminal). El selector de caja de este
+// panel (`hw-caja-select`) se puebla con la misma lista que ya carga
+// `cargarCajas()` para abrir turno (turnos-caja.js) — no hace falta pedirla
+// de nuevo.
+function _cajaHardwareSeleccionada() {
+  return document.getElementById('hw-caja-select')?.value || '';
+}
+
+window.poblarSelectorCajaHardware = function () {
+  const select = document.getElementById('hw-caja-select');
+  if (!select) return;
+  const previaSeleccion = select.value;
+  select.innerHTML = (cajas || []).map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('')
+    || '<option value="">No hay cajas configuradas</option>';
+  // Preferí mantener la selección previa; si no hay, arrancá en la caja
+  // donde el cajero tiene el turno abierto (si hay una); si no, la primera.
+  if (previaSeleccion && cajas?.some(c => c.id === previaSeleccion)) {
+    select.value = previaSeleccion;
+  } else if (cajaActual?.id && cajas?.some(c => c.id === cajaActual.id)) {
+    select.value = cajaActual.id;
+  }
+};
+
 window.cargarConfigHardware = async function () {
+  poblarSelectorCajaHardware();
+  const caja_id = _cajaHardwareSeleccionada();
+  if (!caja_id) {
+    window.toast('No hay ninguna caja creada todavía — creá una caja primero.', 'error');
+    return;
+  }
   try {
-    const cfg = await apiGet('/api/pos/config-hardware');
+    const cfg = await apiGet(`/api/pos/config-hardware?caja_id=${caja_id}`);
     const imp  = cfg.impresora || {};
     const term = cfg.terminal  || {};
 
@@ -51,6 +82,22 @@ window.cargarConfigHardware = async function () {
   } catch (e) {
     console.error(e);
     window.toast('No se pudo cargar la configuración de hardware', 'error');
+  }
+};
+
+// Runtime (no el panel de admin): aplica la config de impresora/terminal de
+// la caja donde el cajero está parado ahora — se llama desde
+// turnos-caja.js apenas se sabe con qué caja se está operando (usarTurno /
+// abrirTurno), porque al arrancar el POS (nucleo.js) todavía no se sabe.
+window.aplicarHardwareDeCajaActiva = async function (caja_id) {
+  if (!caja_id) return;
+  try {
+    const cfg = await apiGet(`/api/pos/config-hardware?caja_id=${caja_id}`);
+    empresaData = cfg.empresa || empresaData;
+    window.PosPrinter?.init(cfg.impresora || { modo: 'browser' });
+    window.PosTerminal?.init(cfg.terminal  || { driver: 'manual' });
+  } catch (e) {
+    console.warn('[POS] No se pudo cargar el hardware de esta caja, uso defaults:', e.message);
   }
 };
 
@@ -130,6 +177,17 @@ window.guardarConfigHardware = async function () {
   const errEl = document.getElementById('hw-error');
   errEl.style.display = 'none';
 
+  // AUDITORÍA 584 — guardar también quedó scopeado por caja (antes solo se
+  // había corregido la lectura). Sin caja_id el backend nuevo devuelve 400
+  // ("Falta caja_id"), así que hay que resolverlo acá igual que en
+  // cargarConfigHardware(), no asumir que ya está poblado el select.
+  const caja_id = _cajaHardwareSeleccionada();
+  if (!caja_id) {
+    errEl.textContent = 'Elegí primero para qué caja estás guardando esta configuración.';
+    errEl.style.display = '';
+    return;
+  }
+
   const impresora = {
     modo:       document.getElementById('hw-imp-modo').value,
     red_ip:     document.getElementById('hw-imp-ip').value.trim(),
@@ -165,10 +223,17 @@ window.guardarConfigHardware = async function () {
   const btn = document.getElementById('btn-guardar-hardware');
   btn.disabled = true;
   try {
-    await apiPost('/api/pos/config-hardware', { impresora, terminal });
-    window.PosPrinter?.init(impresora);
-    window.PosTerminal?.init(terminal);
-    window.toast('Configuración de hardware guardada. Se aplica a todas las cajas de la empresa.', 'exito');
+    await apiPost('/api/pos/config-hardware', { caja_id, impresora, terminal });
+    // Solo aplicar en caliente al hardware de ESTA sesión si la caja que se
+    // guardó es la caja donde el cajero está parado ahora mismo — si el
+    // dueño está configurando otra caja desde acá, no corresponde tocar el
+    // driver activo de la caja en la que él mismo está operando.
+    if (cajaActual?.id === caja_id) {
+      window.PosPrinter?.init(impresora);
+      window.PosTerminal?.init(terminal);
+    }
+    const nombreCaja = cajas?.find(c => c.id === caja_id)?.nombre || 'esta caja';
+    window.toast(`Configuración de hardware guardada para "${nombreCaja}".`, 'exito');
   } catch (e) {
     errEl.textContent = e.message || 'No se pudo guardar la configuración';
     errEl.style.display = '';

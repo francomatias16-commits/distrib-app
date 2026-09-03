@@ -106,7 +106,7 @@ function renderKpis(filas) {
   cont.innerHTML = `
     <div class="dato-sello" title="Gastos cargados con los filtros actuales"><div class="dato-sello-valor">${total}</div><div class="dato-sello-etiqueta">Gastos</div></div>
     <div class="dato-sello" data-tono="verde" title="Suman al cálculo de Ganancia Neta"><div class="dato-sello-valor">${activos}</div><div class="dato-sello-etiqueta">Activos</div></div>
-    <div class="dato-sello" title="Se repiten todos los meses"><div class="dato-sello-valor">${recurrentes}</div><div class="dato-sello-etiqueta">Recurrentes</div></div>
+    <div class="dato-sello" title="Marcados como gasto fijo — no se vuelven a cargar solos, es solo una etiqueta"><div class="dato-sello-valor">${recurrentes}</div><div class="dato-sello-etiqueta">Recurrentes</div></div>
     <div class="dato-sello" data-tono="ambar" title="Suma de los gastos activos listados"><div class="dato-sello-valor">${fmtPeso(montoTotal)}</div><div class="dato-sello-etiqueta">Monto total</div></div>
   `;
 }
@@ -310,8 +310,18 @@ async function eliminarGasto(id) {
 function fmtPeso(n) {
   return '$' + Math.round(+n || 0).toLocaleString('es-AR');
 }
+// FIX (auditoría etapa 3 — Gastos generales): `d.toISOString().slice(0,10)`
+// convierte a UTC antes de recortar la fecha. Para Argentina (UTC-3), cargar
+// un gasto entre las 21:00 y las 23:59 hora local hacía que este campo se
+// autocompletara con la fecha de MAÑANA (el mismo bug sistémico ya
+// documentado y corregido en otros módulos — ver fechaLocalISO() en
+// facturacion.js). Se usa el mismo criterio acá: componer la fecha con los
+// getters locales (getFullYear/getMonth/getDate), sin pasar por UTC.
 function fmtFechaInput(d) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 async function getFreshToken() {
   const { data: { session } } = await window.authCtx.sb.auth.getSession();

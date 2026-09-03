@@ -82,6 +82,16 @@ const EMPRESA_AJENA  = 'empresa-ajena-2';
 // obtenerCredencialesWhatsapp necesita su propio id para no pegarle a un
 // resultado cacheado de un test anterior en el mismo archivo.
 const EMPRESA_PROPIA_2 = 'empresa-legitima-3';
+// Idem EMPRESA_PROPIA_2: el último test del describe de FIX
+// AUTOMATIZACION-003 reusaba EMPRESA_PROPIA, que ya había sido resuelta
+// (y cacheada 60s) por el test "permite a un rol autorizado (vendedor)
+// enviar" más arriba en el mismo archivo — resolverCredencialesWhatsapp
+// devolvía el valor cacheado sin llamar a obtenerCredencialesWhatsapp de
+// nuevo, así que credencialesMock.llamadas quedaba vacío y la aserción
+// fallaba (no por un bug de whatsappHandler, sino por colisión de cache
+// entre tests). Se le da su propio empresa_id, igual que ya se hizo para
+// EMPRESA_PROPIA_2.
+const EMPRESA_PROPIA_3 = 'empresa-legitima-4';
 const BODY_OK = { template: 'pedido_despachado', telefono: '+5493405123456', params: {} };
 
 beforeEach(() => {
@@ -162,5 +172,85 @@ describe('whatsappHandler — control de acceso (regresión hallazgo Crítico #1
     await whatsappHandler({ method: 'POST', body: { template: 'pedido_despachado' } }, res);
 
     expect(res.statusCode).toBe(400);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// FIX AUTOMATIZACION-003 (auditoría etapa 6): el guard de v960 de arriba
+// era correcto contra un cliente HTTP externo, pero dejó sin forma de
+// pasar a los 6 callers server-to-server del propio repo (notificarEstado/
+// notificarPedidoConfirmado en pedidos/notificaciones.js, el recordatorio
+// de cierre.js, el reset de contraseña de auth.js, la oferta de plan de
+// pago de score.js, y la acción 'enviar_whatsapp' de
+// reglas-automatizacion.js) — ninguno manda Authorization porque corren en
+// background sin sesión de usuario. Se agrega un segundo camino de auth
+// (CRON_SECRET, mismo secreto que ya usan los demás crons de este mismo
+// archivo), fail-closed si no está configurada. Estos tests cubren ese
+// camino nuevo — no reemplazan a los de arriba, que siguen cubriendo el
+// camino de usuario logueado.
+// ─────────────────────────────────────────────────────────────────────────
+describe('whatsappHandler — auth interna server-to-server (FIX AUTOMATIZACION-003)', () => {
+  beforeEach(() => {
+    delete process.env.CRON_SECRET;
+  });
+
+  it('sin CRON_SECRET configurado, un Bearer cualquiera NO bypassea — cae al chequeo normal de usuario y rechaza (fail-closed)', async () => {
+    verificarToken.mockResolvedValue(null); // sin sesión real
+    const res = mockRes();
+
+    await whatsappHandler({
+      method: 'POST',
+      headers: { authorization: 'Bearer lo-que-sea' },
+      body: { ...BODY_OK, empresa_id: EMPRESA_PROPIA },
+    }, res);
+
+    expect(res.statusCode).toBe(401);
+    expect(credencialesMock.llamadas).toHaveLength(0);
+  });
+
+  it('con CRON_SECRET configurado pero el header trae un secreto incorrecto, cae al chequeo normal de usuario (no bypassea)', async () => {
+    process.env.CRON_SECRET = 'secreto-real';
+    verificarToken.mockResolvedValue(null);
+    const res = mockRes();
+
+    await whatsappHandler({
+      method: 'POST',
+      headers: { authorization: 'Bearer secreto-incorrecto' },
+      body: { ...BODY_OK, empresa_id: EMPRESA_PROPIA },
+    }, res);
+
+    expect(res.statusCode).toBe(401);
+    expect(credencialesMock.llamadas).toHaveLength(0);
+  });
+
+  it('con CRON_SECRET correcto pero sin empresa_id en el body, responde 400 (no hay perfil del que sacarlo)', async () => {
+    process.env.CRON_SECRET = 'secreto-real';
+    const res = mockRes();
+
+    await whatsappHandler({
+      method: 'POST',
+      headers: { authorization: 'Bearer secreto-real' },
+      body: BODY_OK, // sin empresa_id
+    }, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(verificarToken).not.toHaveBeenCalled();
+    expect(credencialesMock.llamadas).toHaveLength(0);
+  });
+
+  it('con CRON_SECRET correcto y empresa_id en el body, pasa el guard SIN pedir sesión de usuario y resuelve credenciales con ese empresa_id', async () => {
+    process.env.CRON_SECRET = 'secreto-real';
+    const res = mockRes();
+
+    await whatsappHandler({
+      method: 'POST',
+      headers: { authorization: 'Bearer secreto-real' },
+      body: { ...BODY_OK, empresa_id: EMPRESA_PROPIA_3 },
+    }, res);
+
+    expect(res.statusCode).not.toBe(401);
+    expect(res.statusCode).not.toBe(403);
+    expect(verificarToken).not.toHaveBeenCalled(); // camino interno, no pasa por auth de usuario
+    expect(credencialesMock.llamadas).toEqual([EMPRESA_PROPIA_3]);
   });
 });

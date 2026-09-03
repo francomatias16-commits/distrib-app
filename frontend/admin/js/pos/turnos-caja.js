@@ -52,6 +52,11 @@ async function usarTurno(turnoId, turnosConocidos) {
   cajaActual  = cajas.find(c => c.id === t.caja_id) || { id: t.caja_id, deposito_id: t.cajas_pos?.deposito_id, nombre: t.cajas_pos?.nombre };
   mostrarPantallaVenta();
   await cargarFavoritos();
+  // AUDITORÍA 584 — recién acá se sabe con qué caja física va a operar este
+  // cajero; hasta ahora PosPrinter/PosTerminal seguían en sus defaults
+  // ('browser'/'manual') porque config-hardware ya no se puede resolver sin
+  // caja_id. No se espera esta promesa (no debe trabar la pantalla de venta).
+  window.aplicarHardwareDeCajaActiva?.(t.caja_id);
   // Si había un celular vinculado a esta caja de una visita anterior (antes
   // de recargar o navegar a otra pantalla), reconecta el canal en silencio
   // sin pedir un QR nuevo — ver pos-scanner-remoto.js.
@@ -182,6 +187,8 @@ window.abrirTurno = async function () {
     window.toast('Caja abierta', 'exito');
     mostrarPantallaVenta();
     await cargarFavoritos();
+    // AUDITORÍA 584 — ver mismo comentario en usarTurno().
+    window.aplicarHardwareDeCajaActiva?.(caja_id);
   } catch (e) {
     if (e.tipo === 'turno_abierto') {
       mostrarAlertaTurnoConflicto(errEl, e);

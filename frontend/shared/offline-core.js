@@ -534,7 +534,7 @@ var OfflineCore = (function () {
       return Promise.resolve(opts.getEmpresaId());
     }
 
-    async function encolarAccion(tipo, payload) {
+    async function encolarAccion(tipo, payload, offlineLocalId) {
       if (typeof opts.validarTipo === 'function' && !opts.validarTipo(tipo)) {
         throw new Error(`[OfflineCore:${opts.portal}] Tipo de acción offline desconocido: ${tipo}`);
       }
@@ -547,7 +547,17 @@ var OfflineCore = (function () {
         tipo,
         payload,
         empresa_id, // Etapa 4, aislamiento multi-tenant — ver nota de getEmpresaId más arriba
-        offline_local_id: crypto.randomUUID(),
+        // FIX (auditoría etapa 2, v584→): si quien llama ya intentó la RPC
+        // online primero (patrón cta-cte.js/stock.js: online → si falla,
+        // encolar) y ese intento directo viajó con su propio
+        // p_offline_local_id, hay que reusar EXACTAMENTE ese mismo id acá —
+        // no generar uno nuevo. Si no se reusa, un timeout que en realidad
+        // ya se aplicó del lado del servidor (la respuesta se perdió, no la
+        // request) termina reintentándose con un id distinto: el índice
+        // único de dedup del RPC no lo reconoce como el mismo intento y el
+        // cobro/movimiento de stock se duplica de verdad. Con id reusado,
+        // el propio RPC lo deduplica y devuelve el resultado ya existente.
+        offline_local_id: offlineLocalId || crypto.randomUUID(),
         estado:     'pendiente', // pendiente | sincronizado | error_permanente
         intentos:   0,
         created_at: new Date().toISOString(),

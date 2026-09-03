@@ -139,14 +139,19 @@ Promise.all([window.authReady, _domListo()]).then(async () => {
     window.toast('Error al iniciar el POS', 'error');
   }
   // ── Hardware: impresora térmica + terminal de pago (Fase 5) ────────────
-  // No bloquea el arranque del POS si falla: degrada a 'browser'/'manual'.
+  // AUDITORÍA 584 — la config de impresora/terminal es por caja, no por
+  // empresa, así que ya no se puede pedir acá (todavía no se sabe con qué
+  // caja va a operar el cajero). Solo se pide sin caja_id para tener los
+  // datos de encabezado de ticket (nombre/cuit/domicilio) disponibles cuanto
+  // antes; PosPrinter/PosTerminal arrancan en 'browser'/'manual' hasta que
+  // usarTurno()/abrirTurno() (turnos-caja.js) llaman a
+  // window.aplicarHardwareDeCajaActiva(caja_id) con la caja real.
+  // No bloquea el arranque del POS si falla.
   try {
     const cfg = await apiGet('/api/pos/config-hardware');
     empresaData = cfg.empresa || null;
-    window.PosPrinter?.init(cfg.impresora || { modo: 'browser' });
-    window.PosTerminal?.init(cfg.terminal  || { driver: 'manual' });
   } catch (e) {
-    console.warn('[POS] No se pudo cargar config de hardware, uso defaults:', e.message);
+    console.warn('[POS] No se pudo cargar los datos de la empresa para el ticket:', e.message);
   }
 }).catch(() => {});
 

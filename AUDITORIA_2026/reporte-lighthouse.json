@@ -1,0 +1,114 @@
+{
+  "generado_en": "2026-09-03T01:31:43.930Z",
+  "alcance": "páginas públicas servidas por tests/e2e/helpers/static-server.js — no cubre páginas admin autenticadas (sin red a Supabase en este entorno, ver pendiente #3)",
+  "paginas": [
+    {
+      "nombre": "Landing",
+      "path": "/",
+      "scores": {
+        "performance": 55,
+        "accessibility": 93,
+        "best-practices": 96,
+        "seo": 100
+      },
+      "oportunidades": [
+        {
+          "id": "unminified-css",
+          "titulo": "Minify CSS",
+          "ahorro_ms": 0
+        },
+        {
+          "id": "unused-css-rules",
+          "titulo": "Reduce unused CSS",
+          "ahorro_ms": 150
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "ahorro_ms": 1200
+        }
+      ]
+    },
+    {
+      "nombre": "Registro",
+      "path": "/registro",
+      "scores": {
+        "performance": 92,
+        "accessibility": 95,
+        "best-practices": 96,
+        "seo": 90
+      },
+      "oportunidades": [
+        {
+          "id": "unminified-css",
+          "titulo": "Minify CSS",
+          "ahorro_ms": 450
+        },
+        {
+          "id": "unminified-javascript",
+          "titulo": "Minify JavaScript",
+          "ahorro_ms": 0
+        },
+        {
+          "id": "unused-css-rules",
+          "titulo": "Reduce unused CSS",
+          "ahorro_ms": 600
+        }
+      ]
+    },
+    {
+      "nombre": "Privacidad",
+      "path": "/privacidad",
+      "scores": {
+        "performance": 95,
+        "accessibility": 92,
+        "best-practices": 96,
+        "seo": 100
+      },
+      "oportunidades": [
+        {
+          "id": "unminified-css",
+          "titulo": "Minify CSS",
+          "ahorro_ms": 300
+        },
+        {
+          "id": "unminified-javascript",
+          "titulo": "Minify JavaScript",
+          "ahorro_ms": 0
+        },
+        {
+          "id": "unused-css-rules",
+          "titulo": "Reduce unused CSS",
+          "ahorro_ms": 450
+        }
+      ]
+    },
+    {
+      "nombre": "Login admin",
+      "path": "/admin/login",
+      "scores": {
+        "performance": 90,
+        "accessibility": 94,
+        "best-practices": 96,
+        "seo": 91
+      },
+      "oportunidades": [
+        {
+          "id": "unminified-css",
+          "titulo": "Minify CSS",
+          "ahorro_ms": 450
+        },
+        {
+          "id": "unminified-javascript",
+          "titulo": "Minify JavaScript",
+          "ahorro_ms": 0
+        },
+        {
+          "id": "unused-css-rules",
+          "titulo": "Reduce unused CSS",
+          "ahorro_ms": 600
+        }
+      ]
+    }
+  ]
+}

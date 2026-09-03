@@ -1,7 +1,8 @@
 # Etapa 9 (cont.) — Setup del backup automatizado (opción 2 de BACKUP-01)
 
-**Estado:** 🟢 Resuelto — workflow corriendo en verde, backups semanales
-automáticos activos. Pendiente solo la prueba de restauración (ver abajo).
+**Estado:** 🟢 Resuelto por completo — workflow de backup corriendo en
+verde, backups semanales automáticos activos, Y la prueba de restauración
+(ver abajo) ya se corrió con éxito. BACKUP-01 cerrado.
 
 ## Qué se hizo (2026-08-15/16)
 
@@ -89,10 +90,18 @@ pg_restore --no-owner --no-privileges \
     backup_2026-08-16.dump
 ```
 
-**Pendiente de verificación (marcar cuando se haga):** correr este proceso de
-restauración al menos una vez contra un proyecto Supabase de prueba — un
-backup nunca probado no es un backup confiable. Es el único punto que falta
-para cerrar BACKUP-01 del todo.
+**✅ Verificado (2026-09-02):** se corrió `Restaurar a proyecto de prueba
+(manual)` contra un proyecto Supabase de prueba real.
+
+- Run #8 (15:12 GMT-3) falló — error de FK contra `auth.users` (esperado,
+  ver comentario del workflow). Se corrigió agregando `NOT VALID` a las FKs
+  del dump antes de aplicarlas (PR #10, "Modify foreign key constraints to
+  NOT VALID during restore").
+- Run #9 (15:21 GMT-3) — ✅ verde, 50s. Ciclo completo backup→restore
+  funcionando de punta a punta.
+
+Con esto, BACKUP-01 queda cerrado del todo — el punto que faltaba
+(restauración nunca antes probada) ya se probó y funciona.
 
 ## Límites de esta solución (por qué no reemplaza el upgrade a Pro)
 - Retención de 90 días en artifacts (no indefinida).
