@@ -187,18 +187,33 @@ async function escenarioPos() {
     console.error('[loadtest-etapa4] No se pudo listar cajas activas de la empresa demo (¿el usuario tiene permiso "vender" en POS? ¿hay al menos una caja activa?). Se omite este escenario.');
     return true;
   }
-  const caja_id = cajas.data[0].id;
 
-  const apertura = await apiFetch('/api/pos?accion=abrir-turno', { token, method: 'POST', body: { caja_id, monto_inicial: 0 } });
-  if (apertura.status === 409) {
-    console.error('[loadtest-etapa4] La caja ya tiene un turno abierto (de una corrida anterior sin cerrar, quizás). Se omite este escenario — cerralo manualmente o esperá al reset de la demo.');
+  // /api/pos?accion=cajas no informa si una caja ya tiene turno abierto, así
+  // que no alcanza con tomar cajas.data[0] a ciegas: en la empresa demo es
+  // habitual que alguna caja quede con un turno abierto de una corrida
+  // anterior (o directamente ya lo tenga así el propio snapshot de reset).
+  // Se prueba abrir turno en cada caja activa, en orden, hasta encontrar una
+  // libre (409 = ya tiene turno abierto → se prueba la siguiente).
+  let caja_id = null;
+  let turno_id = null;
+  for (const caja of cajas.data) {
+    const apertura = await apiFetch('/api/pos?accion=abrir-turno', { token, method: 'POST', body: { caja_id: caja.id, monto_inicial: 0 } });
+    if (apertura.status === 409) {
+      console.log(`[loadtest-etapa4] Caja "${caja.nombre}" (${caja.id}) ya tiene un turno abierto — probando la siguiente.`);
+      continue;
+    }
+    if (apertura.status !== 201 || !apertura.data?.id) {
+      console.error(`[loadtest-etapa4] No se pudo abrir turno en caja "${caja.nombre}" (${caja.id}):`, apertura.data?.error || apertura.status);
+      continue;
+    }
+    caja_id = caja.id;
+    turno_id = apertura.data.id;
+    break;
+  }
+  if (!turno_id) {
+    console.error('[loadtest-etapa4] Ninguna de las cajas activas de la empresa demo tiene un turno libre para abrir (¿quedaron todas con turnos abiertos de corridas anteriores? revisá/cerrálas manualmente desde el panel POS, o re-generá el snapshot de la demo con fn_snapshot_demo_v2 después de cerrarlas). Se omite este escenario.');
     return true;
   }
-  if (apertura.status !== 201 || !apertura.data?.id) {
-    console.error('[loadtest-etapa4] No se pudo abrir turno de caja:', apertura.data?.error || apertura.status);
-    return true;
-  }
-  const turno_id = apertura.data.id;
 
   const productos = await apiFetch(`/api/pos?accion=productos&q=a&caja_id=${caja_id}`, { token });
   if (productos.status !== 200 || !productos.data?.length) {
