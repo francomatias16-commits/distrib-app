@@ -91,7 +91,10 @@ describe('gate de tareas (ROLES_TAREAS original — más permisivo, se resuelve 
       await handler(req, res);
 
       expect(res.status).not.toHaveBeenCalledWith(403);
-      expect(reposMock.listarTareasAutomatizacion).toHaveBeenCalledWith('e1', rol);
+      // v1060 (Fase 2 de PLAN_CLIENTES_EN_FUGA.md): listarTareasAutomatizacion
+      // ahora recibe también el usuario_id, para que cada quien vea también
+      // las tareas dirigidas puntualmente a él (no solo las de su rol).
+      expect(reposMock.listarTareasAutomatizacion).toHaveBeenCalledWith('e1', rol, 'u1');
     }
   );
 

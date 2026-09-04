@@ -121,6 +121,7 @@ const LOADERS = {
   'banco-codigos':         () => import('../lib/handlers/banco-codigos.js'), // 440 — banco de códigos de barras compartido entre empresas
   'captura-competencia':   () => import('../lib/handlers/captura-competencia.js'), // 551/552 — Fase 1 (PLAN_CAPTURA_COMPETENCIA.md): captura y comparación de factura de competencia en el mostrador
   'prospectos-competencia': () => import('../lib/handlers/prospectos-competencia.js'), // 557 — Fase 3 (PLAN_CAPTURA_COMPETENCIA.md, Capa 1): prospección geográfica sobre rutas existentes
+  'clientes-fuga':          () => import('../lib/handlers/clientes-fuga.js'), // v1060+ — Fase 3 (PLAN_CLIENTES_EN_FUGA.md): pantalla de clientes en fuga
 };
 
 // Cache de módulos ya cargados en ESTE lambda (sobrevive entre invocaciones

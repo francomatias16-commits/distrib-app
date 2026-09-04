@@ -719,6 +719,10 @@
       "destination": "/api/index?_mod=notif&_svc=deuda-cron"
     },
     {
+      "source": "/api/notif/clientes-en-fuga",
+      "destination": "/api/index?_mod=notif&_svc=fuga-cron"
+    },
+    {
       "source": "/api/notif/eventos-reprocesar",
       "destination": "/api/index?_mod=notif&_svc=eventos-reprocesar-cron"
     },
@@ -939,6 +943,10 @@
       "destination": "/api/index?_mod=asistente"
     },
     {
+      "source": "/api/clientes-fuga",
+      "destination": "/api/index?_mod=clientes-fuga"
+    },
+    {
       "source": "/api/clientes(.*)",
       "destination": "/api/index?_mod=clientes"
     },
@@ -1113,6 +1121,10 @@
     {
       "source": "/admin/riesgo-cheques",
       "destination": "/frontend/admin/riesgo-cheques.html"
+    },
+    {
+      "source": "/admin/clientes-fuga",
+      "destination": "/frontend/admin/clientes-fuga.html"
     },
     {
       "source": "/admin/cobranzas",
@@ -1467,6 +1479,10 @@
     {
       "path": "/api/notif/cheques-por-vencer",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/notif/clientes-en-fuga",
+      "schedule": "15 8 * * *"
     },
     {
       "path": "/api/piloto?accion=generar",
