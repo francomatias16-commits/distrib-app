@@ -565,10 +565,7 @@ async function cargarRutasDelDia() {
     `)
     .eq('empresa_id', empresaId)
     .eq('fecha', fecha)
-    // Regla "ítem modificado sube al tope" (2026-09): antes ordenaba por
-    // creación, así que cambiar el estado de una ruta vieja del día no la
-    // traía a la vista.
-    .order('updated_at', { ascending: false }), 10000);
+    .order('created_at', { ascending: false }), 10000);
 
   rutasHoy = data || [];
   renderRutasDelDia();
