@@ -1005,21 +1005,39 @@ function inicializarMapa(entregas) {
 }
 
 /** Lista, debajo del mapa, las entregas sin ninguna coordenada (no tienen
- *  marcador). Oculta el bloque si no hay ninguna. */
+ *  marcador). Oculta el bloque si no hay ninguna. Guarda los clientes sin
+ *  ubicar en _clientesSinUbicar para que el botón "Geocodificar direcciones"
+ *  sepa a quiénes geocodificar. */
+let _clientesSinUbicar = [];
+
 function pintarSinUbicar(entregas) {
   const cont = document.getElementById('mapa-sin-ubicar');
   if (!cont) return;
 
   if (!entregas || entregas.length === 0) {
+    _clientesSinUbicar = [];
     cont.style.display = 'none';
     cont.innerHTML = '';
     return;
   }
 
+  // Solo se pueden geocodificar los que tienen domicilio cargado (sin
+  // domicilio no hay nada de qué partir) — a esos se limita el botón.
+  _clientesSinUbicar = entregas
+    .map(e => e.pedidos?.clientes)
+    .filter(cl => cl?.id && cl?.domicilio);
+
   const items = entregas
     .map(e => e.pedidos?.clientes?.razon_social || 'Cliente sin nombre')
     .map(nombre => `<span class="mapa-sin-ubicar-item">${esc(nombre)}</span>`)
     .join('');
+
+  const botonGeocodificar = _clientesSinUbicar.length > 0
+    ? `<button type="button" id="btn-geocodificar-sin-ubicar" class="btn btn--ghost" style="margin-top:8px;" onclick="geocodificarEntregasSinUbicar()">
+         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+         <span id="btn-geocodificar-sin-ubicar-texto">Geocodificar ${_clientesSinUbicar.length === entregas.length ? 'direcciones' : `${_clientesSinUbicar.length} de ${entregas.length}`}</span>
+       </button>`
+    : '';
 
   cont.innerHTML = `
     <div class="mapa-sin-ubicar-titulo">
@@ -1027,9 +1045,47 @@ function pintarSinUbicar(entregas) {
       Sin ubicar (${entregas.length}): sin GPS del chofer ni domicilio geocodificado
     </div>
     <div class="mapa-sin-ubicar-lista">${items}</div>
+    ${botonGeocodificar}
   `;
   cont.style.display = 'block';
 }
+
+/** Geocodifica en lote los clientes de _clientesSinUbicar a partir de su
+ *  domicilio (mismo endpoint que "Geocodificar pendientes" en Clientes) y
+ *  refresca el mapa al terminar. Nominatim exige 1 request/segundo, así
+ *  que se procesan de a uno con pausa entre llamadas. */
+async function geocodificarEntregasSinUbicar() {
+  if (_clientesSinUbicar.length === 0) return;
+  const rutaId = document.getElementById('sel-ruta-seguimiento')?.value;
+  if (!rutaId) return;
+
+  const btn = document.getElementById('btn-geocodificar-sin-ubicar');
+  const texto = document.getElementById('btn-geocodificar-sin-ubicar-texto');
+  const clientes = [..._clientesSinUbicar];
+
+  if (btn) btn.disabled = true;
+  let ok = 0, fallidos = 0;
+
+  for (let i = 0; i < clientes.length; i++) {
+    if (texto) texto.textContent = `Geocodificando ${i + 1}/${clientes.length}...`;
+    try {
+      const resp = await fetch('/api/clientes/geocodificar?_svc=geocodificar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader() },
+        body: JSON.stringify({ cliente_id: clientes[i].id }),
+      });
+      if (resp.ok) ok++; else fallidos++;
+    } catch {
+      fallidos++;
+    }
+    // Respeta el límite de 1 request/segundo de Nominatim
+    if (i < clientes.length - 1) await new Promise(r => setTimeout(r, 1100));
+  }
+
+  window.toast(`Geocodificación terminada: ${ok} encontrados, ${fallidos} sin resultado`);
+  await actualizarSeguimiento(rutaId);
+}
+window.geocodificarEntregasSinUbicar = geocodificarEntregasSinUbicar;
 
 async function actualizarSeguimiento(rutaId) {
   const { data } = await window.conTimeoutRed(sb
@@ -1037,7 +1093,7 @@ async function actualizarSeguimiento(rutaId) {
     .select(`
       id, orden, estado, receptor, notas_entrega, fecha_confirmacion,
       monto_cobrado, medio_cobro,
-      pedidos(id, total, ubicacion_entrega, clientes(razon_social, domicilio, localidad, telefono, lat, lng))
+      pedidos(id, total, ubicacion_entrega, clientes(id, razon_social, domicilio, localidad, telefono, lat, lng))
     `)
     .eq('ruta_id', rutaId)
     .order('orden'), 10000);
