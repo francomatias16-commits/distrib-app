@@ -1,6 +1,6 @@
 # Estado del proyecto distrib-app — loadtest etapa4
 
-_Última actualización: 02/09/2026_
+_Última actualización: 04/09/2026_
 
 ## Resuelto en esta sesión
 
@@ -34,6 +34,13 @@ _Última actualización: 02/09/2026_
    `ESCENARIOS=checkout`: 0 errores, 0 timeouts, 0 5xx. Único aviso: p99 de
    latencia (~6.4s) supera el umbral interno de 5s — pendiente de revisar
    performance, no es un error funcional.
+
+   **Actualización 04/09/2026:** se aplicó el fix de paralelización
+   (lecturas cliente/combos/productos y depósito/precios con `Promise.all`
+   en vez de en secuencia; efectos secundarios post-respuesta como
+   fire-and-forget) y se volvió a correr `npm run loadtest:etapa4` —
+   **OK, confirmado**. No se registró acá el valor exacto del p99 de esta
+   corrida; si lo tenés a mano decímelo y lo agrego.
 
 5. **POS probado bajo carga** — funciona, pero cada corrida deja un turno
    de caja abierto. Sin el reset automático (ver pendiente #1 abajo), hay

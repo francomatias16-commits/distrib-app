@@ -471,7 +471,7 @@ async function cargarPaginaEventos(pagina) {
     const desde = (pagina - 1) * PAGE_SIZE_EVENTOS;
     const hasta = desde + PAGE_SIZE_EVENTOS - 1;
 
-    let q = _sb.from('eventos_negocio')
+    let q = _sb.from('eventos_negocio_completo')
       .select('*', { count: 'exact' })
       .order('creado_en', { ascending: false })
       .range(desde, hasta);
@@ -581,7 +581,7 @@ async function exportarEventosCSV() {
   const tipo   = document.getElementById('filtro-tipo-evt').value;
   const estado = document.getElementById('filtro-estado-evt').value;
 
-  let q = _sb.from('eventos_negocio')
+  let q = _sb.from('eventos_negocio_completo')
     .select('*')
     .order('creado_en', { ascending: false })
     .limit(EXPORT_CSV_TOPE);

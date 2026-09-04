@@ -763,6 +763,23 @@ body{
 .card-nav{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
 .card-nav:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,24,29,.14)}
 .card-nav:active{transform:translateY(0)}
+/* Tilt 3D (dashboard-tilt3d.js): la tarjeta necesita perspectiva propia
+   para que rotateX/rotateY luzcan como profundidad real, y el brillo
+   especular es un ::before que sigue al puntero vía --mx/--my (seteadas
+   por JS en cada pointermove). Con reduced-motion o sin puntero fino el
+   JS nunca agrega .gc-tilt-activa, así que esto queda inerte. */
+.card-nav{transform-style:preserve-3d;will-change:transform;position:relative}
+.card-nav.gc-tilt-activa{box-shadow:0 18px 38px rgba(22,24,29,.28)}
+.card-nav::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  opacity:0;transition:opacity .25s ease;z-index:1;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.16),transparent 55%);
+}
+.card-nav.gc-tilt-activa::before{opacity:1}
+@media (prefers-reduced-motion: reduce){
+  .card-nav{transform-style:flat}
+  .card-nav::before{display:none}
+}
 .cob-vencida-btn{cursor:pointer;border-radius:2px;padding:1px 4px;margin:-1px -4px;transition:background .12s ease}
 .cob-vencida-btn:hover{background:rgba(var(--danger-rgb),.16)}
 .cob-vencida-btn.activo{background:rgba(var(--danger-rgb),.22);outline:1px solid rgba(var(--danger-rgb),.5)}
@@ -1789,6 +1806,7 @@ body.zoom-open{overflow:hidden}
 <script src="/frontend/admin/js/api-client.js?v=mtcen4r4" defer></script>
 <script src="/frontend/admin/js/nav-data.js?v=mtcen4r4" defer></script>
 <script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4" defer></script>
+<script src="/frontend/admin/js/dashboard-tilt3d.js?v=mtcen4r4" defer></script>
 <script src="/frontend/shared/realtime.js?v=mtcen4r4" defer></script>
 <!-- v960: sin FAB — el panel de chat-widget.js se abre desde el ítem
      "Trabajar con IA" del mega-menú (ver nav-data.js). El flag va en un
