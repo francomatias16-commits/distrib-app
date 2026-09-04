@@ -21,8 +21,8 @@
 //    caso el hover plano existente (.card-nav:hover) sigue funcionando
 //    igual que antes, sin ningún cambio.
 (function () {
-  var MAX_TILT_DEG = 8;      // inclinación máxima
-  var MAX_LIFT_PX = 10;      // cuánto "sale" la tarjeta hacia el usuario
+  var MAX_TILT_DEG = 3;      // inclinación máxima (antes 8: se sentía muy fuerte en las esquinas)
+  var MAX_LIFT_PX = 4;       // cuánto "sale" la tarjeta hacia el usuario (antes 10)
   var EASE_BACK_MS = 350;    // duración del regreso a plano al salir
 
   var mqReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -39,12 +39,29 @@
 
   var activo = null; // tarjeta bajo el puntero en este momento
 
+  // Suaviza el valor -0.5..0.5 con una curva (raíz) en vez de lineal:
+  // así la inclinación crece rápido cerca del centro y se "aplana" cerca
+  // del borde, en lugar de acelerar hacia el máximo justo en las esquinas
+  // (que es lo que generaba el titileo fuerte al acercarse a los 4 extremos).
+  function suavizar(v) {
+    var s = v < 0 ? -1 : 1;
+    return s * Math.sqrt(Math.abs(v) * 2) * 0.5;
+  }
+
   function aplicarTilt(card, evt) {
+    // No aplicar tilt a una tarjeta que está en modo modal (pantalla
+    // completa): ahí el transform de tilt competía con el posicionamiento
+    // fijo del modal y hacía "temblar" la tarjeta, corriendo el botón de
+    // cerrar (X) justo cuando el cursor se acercaba a una esquina.
+    if (card.classList.contains('zoom-active')) return;
+
     var r = card.getBoundingClientRect();
     var px = (evt.clientX - r.left) / r.width;   // 0..1
     var py = (evt.clientY - r.top) / r.height;   // 0..1
-    var rotateY = (px - 0.5) * (MAX_TILT_DEG * 2);
-    var rotateX = (0.5 - py) * (MAX_TILT_DEG * 2);
+    var nx = suavizar(px - 0.5); // -0.5..0.5 suavizado
+    var ny = suavizar(py - 0.5);
+    var rotateY = nx * (MAX_TILT_DEG * 2);
+    var rotateX = -ny * (MAX_TILT_DEG * 2);
 
     card.style.transition = 'none';
     card.style.transform =
@@ -65,6 +82,7 @@
     if (!tiltHabilitado()) return;
     var card = evt.target.closest && evt.target.closest('.card-nav');
     if (!card || !grid.contains(card)) return;
+    if (card.classList.contains('zoom-active')) return; // tarjeta en modal: sin tilt
     activo = card;
     card.classList.add('gc-tilt-activa');
     aplicarTilt(card, evt);
@@ -74,6 +92,7 @@
     if (!tiltHabilitado() || !activo) return;
     var card = evt.target.closest && evt.target.closest('.card-nav');
     if (!card) return;
+    if (card.classList.contains('zoom-active')) { resetTilt(card); activo = null; return; }
     aplicarTilt(card, evt);
   });
 
