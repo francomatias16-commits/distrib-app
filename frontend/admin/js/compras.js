@@ -1230,7 +1230,7 @@ function _mostrarMiniatura(fotoUrl) {
     mini.target = '_blank';
     mini.rel    = 'noopener';
     mini.style.cssText = 'display:inline-block;margin-left:8px;vertical-align:middle';
-    mini.innerHTML = `<img style="height:40px;border-radius:4px;border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(22,24,29,.15)" alt="remito">`;
+    mini.innerHTML = `<img style="height:40px;border-radius:4px;border:1px solid var(--color-border);box-shadow:0 1px 4px rgba(17,26,23,.15)" alt="remito">`;
     zonaOcr.querySelector('div').appendChild(mini);
   }
   mini.href = fotoUrl;
