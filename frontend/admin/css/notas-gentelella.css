@@ -117,31 +117,6 @@ body.dash-notas-gentelella .filtros-bar select:focus {
   box-shadow: 0 0 0 3px var(--ge-teal-light) !important;
 }
 
-/* Escritorio: buscador + filtro de tipo en una sola fila, sin
-   espacios vacíos ni apilado. Puntual a esta pantalla — no toca
-   el layout mobile-first (columna) que sigue viniendo de
-   componentes-admin.css. */
-@media (min-width: 641px) {
-  body.dash-notas-gentelella .tabla-header .filtros-bar {
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    width: auto !important;
-    padding: 8px 12px !important;
-    gap: 10px !important;
-  }
-  body.dash-notas-gentelella .tabla-header .filtros-bar input#buscar-nota {
-    flex: 1 1 260px !important;
-    width: auto !important;
-    max-width: 300px !important;
-  }
-  body.dash-notas-gentelella .tabla-header .filtros-bar select#filtro-tipo-nota {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 170px !important;
-  }
-}
-
 /* ════════════════════════════════════════════════════════════
    Tabla (thead / tbody)
    ════════════════════════════════════════════════════════════ */

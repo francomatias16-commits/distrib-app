@@ -108,28 +108,6 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   max-width: 100%;
 }
 
-/* Agrupa "Limpiar" + "Excel" para que envuelvan juntos (nunca separados)
-   y, con margin-left:auto, se ancle el par al borde derecho del renglón
-   en el que caigan dentro de #filtros-der. Antes "Excel" era el último
-   flex item suelto: cuando no entraba en la fila de los selects, bajaba
-   solo a su propia línea pegado a la izquierda, dejando una franja de
-   espacio en blanco desprolija a la derecha (ver captura auditoría UX
-   escritorio). Con el auto-margin, si el par no entra, cae junto y
-   pegado a la derecha — el espacio en blanco remanente queda a la
-   izquierda, que es el patrón esperable (acciones ancladas al borde). */
-.filtros-der-acciones {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-/* margin-left:auto solo en desktop — en mobile #filtros-der es columna
-   (ver @media max-width:900px más abajo) y el auto-margin ahí alinearía
-   este grupo a la derecha, rompiendo el layout mobile ya optimizado. */
-@media (min-width: 901px) {
-  .filtros-der-acciones { margin-left: auto; }
-}
-
 .search-wrap {
   display: flex;
   align-items: center;
