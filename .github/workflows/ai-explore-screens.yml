@@ -1,0 +1,71 @@
+name: AI Exploración de Pantallas (informativo)
+
+on:
+  # Semanal, no en cada commit: usar visión gasta cuota de Gemini mucho
+  # más rápido que el reviewer de texto (ai-review.yml). Lunes a la
+  # mañana (Argentina) para tener el reporte listo al arrancar la semana.
+  schedule:
+    - cron: '0 13 * * 1'
+  # Manual, para poder correrlo bajo demanda (ej. después de un cambio
+  # grande de UI) sin esperar al cron semanal.
+  workflow_dispatch:
+    inputs:
+      paginas:
+        description: 'Páginas a explorar, separadas por coma (vacío = subset default del script)'
+        required: false
+        default: ''
+
+# No abre/actualiza PRs, así que no necesita pull-requests: write como
+# ai-review.yml — pero sí necesita issues: write para el issue de
+# hallazgos (ver upsertIssue en el script).
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ai-explore-screens
+  cancel-in-progress: true
+
+jobs:
+  ai-explore:
+    name: explorador IA con visión (Gemini free tier)
+    runs-on: ubuntu-latest
+    # Igual que ai-review.yml: informativo, nunca bloquea nada. El script
+    # ya atrapa sus propios errores (por página y generales) y nunca
+    # hace process.exit(1), pero el "if: always()" de abajo asegura que
+    # subimos los screenshots aunque algo inesperado tire el job.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Explorar pantallas del admin con IA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          EXPLORE_PAGINAS: ${{ github.event.inputs.paginas }}
+          # Opcionales, mismos defaults que el script si no se setean:
+          # GEMINI_MODEL: gemini-flash-latest
+          # GEMINI_FALLBACK_MODEL: gemini-2.5-flash
+          # EXPLORE_DELAY_MS: 4500
+        run: node scripts/ai-explore-screens.js
+
+      - name: Subir screenshots como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-explore-screenshots
+          path: ai-explore-screenshots/
+          retention-days: 14
+          if-no-files-found: ignore
