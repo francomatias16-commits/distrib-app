@@ -184,6 +184,17 @@ test.describe('Proveedores (admin) — Fase 2 P1', () => {
     });
 
     await proveedoresPage.goto();
+    // FIX (CI 2026-09-05): "Nuevo proveedor" es 100% síncrono (abrirModalNuevo()
+    // no hace ningún await, a diferencia de abrirModalEditar()) — nada obliga
+    // a que init() de proveedores.js ya haya corrido y asignado `sb` antes de
+    // que este test llegue a guardar(). Bajo contención de CPU eso alcanzaba
+    // a ganarle a `window.authReady.then(() => init())`, y guardarProveedor()
+    // reventaba con "Cannot read properties of null (reading 'auth')" — no
+    // es un bug de la app, es una carrera del test. Esperar a que la fila
+    // inicial esté en pantalla garantiza que cargarProveedores() (y por lo
+    // tanto init()) ya terminó, igual que hacen el resto de los tests de este
+    // archivo que arrancan leyendo la tabla antes de interactuar.
+    await expect(proveedoresPage.fila(PROV_ACTIVO_ID)).toBeVisible();
     await proveedoresPage.abrirModalNuevo();
     await expect(proveedoresPage.modalTitulo).toHaveText('Nuevo proveedor');
 

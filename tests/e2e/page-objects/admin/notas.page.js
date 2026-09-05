@@ -60,27 +60,30 @@ export class NotasPage extends PageObjectBase {
   get filtroTipo()    { return this.page.locator('#filtro-tipo-nota'); }
 
   async buscar(texto) {
+    // FIX (CI 2026-09-05): un waitForTimeout(600) fijo esperando el
+    // debounce de 250ms + la RPC seguía flakeando bajo contención de CPU
+    // (2 workers de Playwright en paralelo en el runner de GH Actions) —
+    // ver comentario viejo de este mismo método. En vez de dormir un
+    // tiempo fijo y cruzar los dedos, esperamos la request real a
+    // fn_notas_lista con el querystring que ya disparó el debounce:
+    // determinista sin importar cuánto tarde la CPU esa corrida.
+    const esperaRpc = this.page.waitForRequest((req) =>
+      req.url().includes('/rest/v1/rpc/fn_notas_lista') && req.method() === 'POST'
+    );
     await this.inputBusqueda.fill(texto);
-    // Debounce de 250ms (ver notas.js::init) antes de disparar
-    // cargarNotas() de nuevo — dispara la RPC, no filtra en el DOM.
-    // Margen subido de 350ms a 600ms: con 2 workers de Playwright en
-    // paralelo sobre un runner de GitHub Actions compartido, un colchón
-    // de 100ms sobre el debounce real se comió de vez en cuando por
-    // contención de CPU (ver CI run del 2026-09-05, no reproducible local).
-    await this.page.waitForTimeout(600);
+    await esperaRpc;
   }
 
   async filtrarPorTipo(valor) {
+    // FIX (CI 2026-09-05): mismo motivo que buscar() — el select no tiene
+    // debounce, pero la RPC sigue siendo async, y un waitForTimeout fijo
+    // podía leer `ultimosParams` de la llamada anterior bajo contención de
+    // CPU. Esperamos la request real en vez de un tiempo fijo.
+    const esperaRpc = this.page.waitForRequest((req) =>
+      req.url().includes('/rest/v1/rpc/fn_notas_lista') && req.method() === 'POST'
+    );
     await this.filtroTipo.selectOption(valor);
-    // FIX (test): a diferencia de buscar() (debounce de 250ms, con su
-    // propia espera de 350ms), el `onchange="filtrarNotas()"` inline
-    // dispara cargarNotas() de una sin debounce — pero sigue siendo
-    // async (la RPC mockeada no resuelve en el mismo tick). Un spec que
-    // chequea `ultimosParams` justo después de `filtrarPorTipo()` está
-    // leyendo una variable JS plana (no un locator con auto-retry de
-    // Playwright), así que sin esta espera puede leer el valor de la
-    // llamada ANTERIOR. Mismo margen que buscar() para curarse en salud.
-    await this.page.waitForTimeout(600);
+    await esperaRpc;
   }
 
   // ── Paginación (inyectada por JS — ver inyectarControlesPaginacionNotas) ──

@@ -62,13 +62,19 @@ export class ProveedoresPage extends PageObjectBase {
   get filtroActivo()  { return this.page.locator('#filtro-activo'); }
 
   async buscar(texto) {
+    // FIX (CI 2026-09-05): esperar un tiempo fijo (250ms de debounce +
+    // colchón) para el fetch de búsqueda flakeaba bajo contención de CPU
+    // en el runner de GH Actions (2 workers en paralelo) — mismo hallazgo
+    // que notas.page.js. Esperamos la request real a /api/proveedores con
+    // el querystring de búsqueda que ya disparó el debounce, determinista
+    // sin importar cuánto tarde la CPU esa corrida.
+    const esperaBusqueda = this.page.waitForRequest((req) => {
+      if (!req.url().includes('/api/proveedores') || req.method() !== 'GET') return false;
+      const url = new URL(req.url());
+      return url.searchParams.get('busqueda') === texto;
+    });
     await this.inputBusqueda.fill(texto);
-    // Debounce de 250ms (ver proveedores.js::init) antes de disparar
-    // cargarProveedores() de nuevo — es una request nueva, no filtrado
-    // in-memory (a diferencia de usuarios.html).
-    // Margen subido de 350ms a 600ms: mismo motivo que notas.page.js
-    // (contención de CPU con 2 workers en paralelo en CI).
-    await this.page.waitForTimeout(600);
+    await esperaBusqueda;
   }
 
   async filtrarPorActivo(valor) {
