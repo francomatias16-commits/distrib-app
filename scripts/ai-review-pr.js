@@ -28,6 +28,9 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // versiones nuevas, así este script no se rompe cada vez que deprecan un modelo puntual.
 // Si preferís fijar una versión exacta, seteá GEMINI_MODEL como secret/variable del repo.
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+// Modelo de respaldo si el principal responde 503 (sobrecarga) o 429 (rate limit)
+// después de los reintentos. Versión fija y estable, no un alias que puede rotar.
+const GEMINI_FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
 
 // Marcador oculto para poder encontrar y actualizar el mismo comentario
 // en pushes sucesivos al PR, en vez de spamear un comentario por commit.
@@ -132,8 +135,12 @@ ${diff}
 `;
 }
 
-async function callGemini(prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function callGeminiOnce(model, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -147,12 +154,46 @@ async function callGemini(prompt) {
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`Gemini API -> ${res.status}: ${body.slice(0, 500)}`);
+    const err = new Error(`Gemini API (${model}) -> ${res.status}: ${body.slice(0, 500)}`);
+    err.status = res.status;
+    throw err;
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Respuesta de Gemini sin contenido utilizable.');
+  if (!text) throw new Error(`Respuesta de Gemini (${model}) sin contenido utilizable.`);
   return JSON.parse(text);
+}
+
+// Reintenta el modelo principal ante 503 (sobrecarga) o 429 (rate limit) con
+// backoff corto, y si sigue sin responder, cae a un modelo fijo de respaldo.
+// Cualquier otro error (400, JSON inválido, etc.) no tiene sentido reintentarlo
+// y se propaga directo.
+async function callGemini(prompt) {
+  const RETRYABLE = [503, 429];
+  const delaysMs = [2000, 5000];
+
+  let lastErr;
+  for (let attempt = 0; attempt <= delaysMs.length; attempt++) {
+    try {
+      return await callGeminiOnce(GEMINI_MODEL, prompt);
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE.includes(err.status) || attempt === delaysMs.length) break;
+      console.warn(`[ai-review-pr] ${GEMINI_MODEL} respondió ${err.status}, reintentando en ${delaysMs[attempt]}ms...`);
+      await sleep(delaysMs[attempt]);
+    }
+  }
+
+  if (RETRYABLE.includes(lastErr.status) && GEMINI_FALLBACK_MODEL && GEMINI_FALLBACK_MODEL !== GEMINI_MODEL) {
+    console.warn(`[ai-review-pr] ${GEMINI_MODEL} no respondió tras los reintentos, probando modelo de respaldo ${GEMINI_FALLBACK_MODEL}...`);
+    try {
+      return await callGeminiOnce(GEMINI_FALLBACK_MODEL, prompt);
+    } catch (fallbackErr) {
+      throw fallbackErr;
+    }
+  }
+
+  throw lastErr;
 }
 
 function severityEmoji(sev) {
