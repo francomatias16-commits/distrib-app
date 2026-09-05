@@ -96,6 +96,12 @@ const RUIDO_IGNORADO = [
   // Realtime — el host real está bloqueado en este sandbox, mismo origen
   // que ya cubre filtrarRuidoRed() para el texto crudo del WebSocket.
   /\[DistribRealtime\]/,
+  // scan-pos/portal.html intenta abrir la cámara del dispositivo al
+  // cargar. Los runners de GitHub Actions (y la mayoría de entornos CI)
+  // son headless y no tienen webcam real, así que este error es esperable
+  // ahí — no refleja un problema de la app, que además maneja el caso
+  // sin cámara sin romper el resto de la página.
+  /\[scan-pos\] no se pudo iniciar la cámara/,
 ];
 
 function esRuidoIgnorado(texto) {

@@ -63,7 +63,11 @@ export class NotasPage extends PageObjectBase {
     await this.inputBusqueda.fill(texto);
     // Debounce de 250ms (ver notas.js::init) antes de disparar
     // cargarNotas() de nuevo — dispara la RPC, no filtra en el DOM.
-    await this.page.waitForTimeout(350);
+    // Margen subido de 350ms a 600ms: con 2 workers de Playwright en
+    // paralelo sobre un runner de GitHub Actions compartido, un colchón
+    // de 100ms sobre el debounce real se comió de vez en cuando por
+    // contención de CPU (ver CI run del 2026-09-05, no reproducible local).
+    await this.page.waitForTimeout(600);
   }
 
   async filtrarPorTipo(valor) {
@@ -76,7 +80,7 @@ export class NotasPage extends PageObjectBase {
     // leyendo una variable JS plana (no un locator con auto-retry de
     // Playwright), así que sin esta espera puede leer el valor de la
     // llamada ANTERIOR. Mismo margen que buscar() para curarse en salud.
-    await this.page.waitForTimeout(350);
+    await this.page.waitForTimeout(600);
   }
 
   // ── Paginación (inyectada por JS — ver inyectarControlesPaginacionNotas) ──

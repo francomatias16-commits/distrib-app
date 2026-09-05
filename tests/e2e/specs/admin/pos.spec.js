@@ -138,7 +138,11 @@ test.describe('POS (admin) — Fase 1', () => {
       turno_id: 'turno-1',
       items: [{ producto_id: PRODUCTO.id, cantidad: 1 }],
     });
-    expect(bodyVenta.pagos).toEqual([{ medio: 'efectivo', monto: 1210, referencia: null }]);
+    // v(actual): cliente-cobro.js manda también `codigo` (payment_id del
+    // gateway MP/Prisma, ver comentario junto al .map de pagos) para poder
+    // reconciliar/reversar contra el proveedor a futuro — antes se
+    // capturaba y se perdía. En efectivo no hay gateway, así que viaja null.
+    expect(bodyVenta.pagos).toEqual([{ medio: 'efectivo', monto: 1210, referencia: null, codigo: null }]);
 
     // El carrito se vacía después de una venta exitosa.
     await expect(pos.filasCarrito).toHaveCount(0);

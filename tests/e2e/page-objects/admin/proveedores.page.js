@@ -66,7 +66,9 @@ export class ProveedoresPage extends PageObjectBase {
     // Debounce de 250ms (ver proveedores.js::init) antes de disparar
     // cargarProveedores() de nuevo — es una request nueva, no filtrado
     // in-memory (a diferencia de usuarios.html).
-    await this.page.waitForTimeout(350);
+    // Margen subido de 350ms a 600ms: mismo motivo que notas.page.js
+    // (contención de CPU con 2 workers en paralelo en CI).
+    await this.page.waitForTimeout(600);
   }
 
   async filtrarPorActivo(valor) {
