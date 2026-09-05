@@ -23,7 +23,11 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO = process.env.GITHUB_REPOSITORY; // owner/repo
 const PR_NUMBER = process.env.PR_NUMBER;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+// Usamos el alias oficial de Google en vez de una versión fija (ej. "gemini-2.0-flash"):
+// Google va rotando qué modelo hay detrás de "gemini-flash-latest" a medida que salen
+// versiones nuevas, así este script no se rompe cada vez que deprecan un modelo puntual.
+// Si preferís fijar una versión exacta, seteá GEMINI_MODEL como secret/variable del repo.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
 // Marcador oculto para poder encontrar y actualizar el mismo comentario
 // en pushes sucesivos al PR, en vez de spamear un comentario por commit.
