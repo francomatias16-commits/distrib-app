@@ -170,7 +170,16 @@ async function callGeminiVisionOnce(model, prompt, imageBase64) {
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error(`Respuesta de Gemini (${model}) sin contenido utilizable.`);
-  return JSON.parse(text);
+  // A pesar de pedir responseMimeType: 'application/json', Gemini a veces
+  // igual envuelve la respuesta en un bloque markdown (```json ... ```).
+  // Sacamos los backticks antes de parsear para no perder el veredicto de
+  // la página entera por un problema de formato, no de contenido.
+  const textLimpio = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  try {
+    return JSON.parse(textLimpio);
+  } catch (err) {
+    throw new Error(`Respuesta de Gemini (${model}) no es JSON válido tras limpiar markdown: ${err.message}`);
+  }
 }
 
 async function callGeminiVision(prompt, imageBase64) {
