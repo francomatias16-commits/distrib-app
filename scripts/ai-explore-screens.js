@@ -182,15 +182,47 @@ async function callGeminiVisionOnce(model, prompt, imageBase64) {
   }
 }
 
+// Mismo patrón que scripts/ai-review-pr.js: reintenta el modelo principal
+// ante 503 (sobrecarga) o 429 (rate limit) con backoff corto, y si sigue
+// sin responder, cae al modelo de respaldo (con un reintento propio más
+// corto, porque en la práctica el free tier de Gemini puede tener el
+// mismo pico de demanda pegándole a los dos modelos a la vez — ver la
+// corrida real del 2026-09, donde ambos devolvieron 503 seguido en varias
+// páginas). Cualquier otro error (400, JSON inválido, etc.) no tiene
+// sentido reintentarlo y se propaga directo.
 async function callGeminiVision(prompt, imageBase64) {
   const RETRYABLE = [503, 429];
-  try {
-    return await callGeminiVisionOnce(GEMINI_MODEL, prompt, imageBase64);
-  } catch (err) {
-    if (!RETRYABLE.includes(err.status)) throw err;
-    console.warn(`[ai-explore] ${GEMINI_MODEL} respondió ${err.status}, probando ${GEMINI_FALLBACK_MODEL}...`);
-    return callGeminiVisionOnce(GEMINI_FALLBACK_MODEL, prompt, imageBase64);
+  const delaysMs = [2000, 5000];
+
+  let lastErr;
+  for (let attempt = 0; attempt <= delaysMs.length; attempt++) {
+    try {
+      return await callGeminiVisionOnce(GEMINI_MODEL, prompt, imageBase64);
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE.includes(err.status) || attempt === delaysMs.length) break;
+      console.warn(`[ai-explore] ${GEMINI_MODEL} respondió ${err.status}, reintentando en ${delaysMs[attempt]}ms...`);
+      await sleep(delaysMs[attempt]);
+    }
   }
+
+  if (!RETRYABLE.includes(lastErr.status) || !GEMINI_FALLBACK_MODEL || GEMINI_FALLBACK_MODEL === GEMINI_MODEL) {
+    throw lastErr;
+  }
+
+  console.warn(`[ai-explore] ${GEMINI_MODEL} no respondió tras los reintentos, probando modelo de respaldo ${GEMINI_FALLBACK_MODEL}...`);
+  const fallbackDelaysMs = [3000];
+  for (let attempt = 0; attempt <= fallbackDelaysMs.length; attempt++) {
+    try {
+      return await callGeminiVisionOnce(GEMINI_FALLBACK_MODEL, prompt, imageBase64);
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE.includes(err.status) || attempt === fallbackDelaysMs.length) break;
+      console.warn(`[ai-explore] ${GEMINI_FALLBACK_MODEL} también respondió ${err.status}, reintentando en ${fallbackDelaysMs[attempt]}ms...`);
+      await sleep(fallbackDelaysMs[attempt]);
+    }
+  }
+  throw lastErr;
 }
 
 function buildPrompt(nombrePagina) {
