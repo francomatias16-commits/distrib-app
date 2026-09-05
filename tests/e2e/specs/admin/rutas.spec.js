@@ -3,13 +3,19 @@
 // usuario sobre el resto de las 20 páginas de P1).
 //
 // A diferencia de las 9 páginas de Fase 1 (que en su mayoría hablan con
-// `/api/*`), `rutas.js` arma la ruta con 3 escrituras PostgREST directas
-// vía `sb.from()` en secuencia (`rutas` insert → `entregas` insert →
-// `pedidos` update a `preparando`) y recién después notifica al chofer
-// por WhatsApp/push (`/api/notif/*`, fuera de alcance de aserción acá —
-// cubierto por el catch-all genérico). El mock de las 3 tablas lleva
-// estado en memoria (no fixtures estáticos) para poder confirmar el
-// efecto real de punta a punta: el pedido recién ruteado desaparece del
+// `/api/*`), `rutas.js` arma la ruta con UNA RPC transaccional
+// (`rpc_confirmar_ruta`, migración 576) que hace las 3 escrituras (INSERT
+// rutas, INSERT entregas, UPDATE pedidos) del lado del servidor — antes
+// (hasta v1054) eran 3 escrituras PostgREST sueltas desde el cliente; se
+// migró a v1055 para que un fallo a mitad de camino no deje estado
+// inconsistente. El test mockea la RPC, no las tablas directamente — el
+// detalle interno de las 3 escrituras queda fuera del alcance de este
+// E2E (vive en la función de Postgres, no en el cliente) y recién después
+// notifica al chofer por WhatsApp/push (`/api/notif/*`, fuera de alcance
+// de aserción acá — cubierto por el catch-all genérico). El mock de
+// las tablas `rutas`/`entregas`/`pedidos` sigue llevando estado en
+// memoria (no fixtures estáticos) para poder confirmar el efecto real
+// de punta a punta tras la RPC: el pedido recién ruteado desaparece del
 // panel de pendientes en el siguiente `cargarDatos()`.
 //
 // Alcance deliberado (mismo criterio que compras/cta-cte de Fase 1): NO
@@ -23,7 +29,7 @@
 import { test, expect } from '@playwright/test';
 import { startStaticServer } from '../../helpers/static-server.js';
 import { loguearComoAdmin } from '../../helpers/auth-helper.js';
-import { mockearTabla, mockearRestGenerico, mockearApiGenerico, HEADER_SINGLE } from '../../helpers/supabase-rest-mock.js';
+import { mockearTabla, mockearRestGenerico, mockearApiGenerico, mockearRpc, HEADER_SINGLE } from '../../helpers/supabase-rest-mock.js';
 import { vendorizarSupabase, filtrarRuidoRed } from '../../helpers/mock-network.js';
 import { RutasPage } from '../../page-objects/admin/rutas.page.js';
 
@@ -75,11 +81,11 @@ test.afterAll(async () => { staticServer.server.close(); });
 /**
  * Setup de red compartido por los tests. A diferencia de Fase 1, acá se
  * mantiene estado mutable de `rutas`/`entregas` en closures (no fixtures
- * fijos) porque `confirmarRuta()` hace 3 escrituras PostgREST directas
- * cuyo efecto (pedido ya no aparece como despachable) el propio
- * `cargarPedidosDespachables()` vuelve a consultar en el siguiente
- * `cargarDatos()` — ver Hallazgo 2 en la exploración previa del código
- * (filtro `pedidosYaEnRuta` contra `entregas` activas).
+ * fijos) porque el mock de `rpc_confirmar_ruta` aplica sobre esos mocks
+ * de tabla el mismo efecto que la RPC real aplica del lado del servidor,
+ * y `cargarPedidosDespachables()` vuelve a consultar ese estado en el
+ * siguiente `cargarDatos()` — ver Hallazgo 2 en la exploración previa del
+ * código (filtro `pedidosYaEnRuta` contra `entregas` activas).
  */
 async function armarPagina(page, { pedidosIniciales = [pedidoDespachable()], rutasIniciales = [rutaExistente()] } = {}) {
   mockearRestGenerico(page);
@@ -123,27 +129,10 @@ async function armarPagina(page, { pedidosIniciales = [pedidoDespachable()], rut
 
   const contadorRutas = mockearTabla(page, 'rutas', {
     onSelect: () => rutasCreadas,
-    onInsert: ({ body }) => {
-      const nueva = { id: RUTA_NUEVA_ID, ...body };
-      rutasCreadas = [
-        ...rutasCreadas,
-        {
-          ...nueva,
-          usuarios: { nombre: CHOFERES.find((c) => c.id === body.chofer_id)?.nombre || '?' },
-          entregas: [],
-        },
-      ];
-      return nueva;
-    },
   });
 
   const contadorEntregas = mockearTabla(page, 'entregas', {
     onSelect: () => entregasActivas,
-    onInsert: ({ body }) => {
-      const items = Array.isArray(body) ? body : [body];
-      entregasActivas = [...entregasActivas, ...items.map((e) => ({ pedido_id: e.pedido_id }))];
-      return items;
-    },
   });
 
   const contadorPedidos = mockearTabla(page, 'pedidos', {
@@ -151,8 +140,39 @@ async function armarPagina(page, { pedidosIniciales = [pedidoDespachable()], rut
     onUpdate: () => ({}),
   });
 
+  // Mock de la RPC transaccional real (ver comentario de cabecera). Éxito
+  // por defecto: aplica a los mocks de tabla de arriba el mismo efecto que
+  // antes aplicaban los onInsert sueltos (así `cargarDatos()` después de
+  // confirmar ve la ruta/entrega nuevas y el pedido ya no aparece como
+  // despachable) — un test puntual puede pisar este mock después de
+  // `armarPagina()` para forzar el camino de error (mismo criterio de
+  // "el último registrado gana" ya documentado en el resto del archivo).
+  let ultimaLlamadaConfirmarRuta = null;
+  const contadorConfirmarRuta = mockearRpc(page, 'rpc_confirmar_ruta', ({ params }) => {
+    ultimaLlamadaConfirmarRuta = params;
+    const nueva = {
+      id:        RUTA_NUEVA_ID,
+      chofer_id: params.p_chofer_id,
+      fecha:     params.p_fecha,
+      estado:    'pendiente',
+      notas:     params.p_notas ?? null,
+    };
+    rutasCreadas = [
+      ...rutasCreadas,
+      { ...nueva, usuarios: { nombre: CHOFERES.find((c) => c.id === params.p_chofer_id)?.nombre || '?' }, entregas: [] },
+    ];
+    entregasActivas = [
+      ...entregasActivas,
+      ...(params.p_pedido_ids || []).map((pedidoId, idx) => ({ pedido_id: pedidoId, orden: idx + 1, estado: 'pendiente' })),
+    ];
+    return { ok: true, ruta: nueva };
+  });
+
   const rutasPage = new RutasPage(page, staticServer.baseURL);
-  return { rutasPage, contadorRutas, contadorEntregas, contadorPedidos };
+  return {
+    rutasPage, contadorRutas, contadorEntregas, contadorPedidos, contadorConfirmarRuta,
+    obtenerUltimaLlamadaConfirmarRuta: () => ultimaLlamadaConfirmarRuta,
+  };
 }
 
 test.describe('Rutas (admin) — Fase 2 P1', () => {
@@ -184,23 +204,18 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
   });
 
   test('armar la ruta con un pedido y confirmar crea la ruta, las entregas y notifica al chofer', async ({ page }) => {
-    const { rutasPage } = await armarPagina(page);
-
-    let bodyRuta = null;
-    let bodyEntregas = null;
-    let bodyUpdatePedidos = null;
-    await page.route('**/rest/v1/rutas**', async (route, request = route.request()) => {
-      if (request.method() === 'POST') bodyRuta = request.postDataJSON();
-      return route.fallback();
-    });
-    await page.route('**/rest/v1/entregas**', async (route, request = route.request()) => {
-      if (request.method() === 'POST') bodyEntregas = request.postDataJSON();
-      return route.fallback();
-    });
-    await page.route('**/rest/v1/pedidos**', async (route, request = route.request()) => {
-      if (request.method() === 'PATCH') bodyUpdatePedidos = request.postDataJSON();
-      return route.fallback();
-    });
+    // FIX (v1054 → v1055): las 3 escrituras (INSERT rutas, INSERT entregas,
+    // UPDATE pedidos) ya no salen del cliente como requests PostgREST
+    // sueltas — viven del lado del servidor dentro de `rpc_confirmar_ruta`
+    // (ver comentario de cabecera y `armarPagina()`). Este test ya no puede
+    // interceptar `POST /rest/v1/rutas|entregas` ni `PATCH /rest/v1/pedidos`
+    // porque esas rutas nunca se disparan; lo que SÍ podemos seguir
+    // verificando desde el E2E es que el cliente arma correctamente el
+    // payload que le manda a la RPC — `obtenerUltimaLlamadaConfirmarRuta()`
+    // expone justamente eso. El detalle de que la RPC efectivamente haga
+    // las 3 escrituras es responsabilidad de la función de Postgres, fuera
+    // del alcance de este test (documentado también en la cabecera).
+    const { rutasPage, obtenerUltimaLlamadaConfirmarRuta } = await armarPagina(page);
 
     await rutasPage.goto();
 
@@ -221,16 +236,14 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
 
     await rutasPage.esperarToastExito('Matías Gómez notificado');
 
-    expect(bodyRuta).toMatchObject({
-      chofer_id: CHOFER_ID,
-      fecha: '2026-08-10',
-      estado: 'pendiente',
-      notas: null,
+    // Payload que el cliente le mandó a rpc_confirmar_ruta — reemplaza a
+    // los bodyRuta/bodyEntregas/bodyUpdatePedidos de la versión pre-v1055.
+    expect(obtenerUltimaLlamadaConfirmarRuta()).toMatchObject({
+      p_chofer_id:  CHOFER_ID,
+      p_fecha:      '2026-08-10',
+      p_notas:      null,
+      p_pedido_ids: [PEDIDO_ID],
     });
-    expect(bodyEntregas).toEqual([
-      expect.objectContaining({ pedido_id: PEDIDO_ID, orden: 1, estado: 'pendiente' }),
-    ]);
-    expect(bodyUpdatePedidos).toMatchObject({ estado: 'preparando' });
 
     // limpiarRuta() + cargarDatos() de vuelta: el panel de armado queda
     // vacío y el pedido recién ruteado ya no vuelve a aparecer como
@@ -242,13 +255,13 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
   });
 
   test('sin chofer elegido no dispara ningún request — validación de cliente', async ({ page }) => {
-    const { rutasPage } = await armarPagina(page);
-
-    let huboInsertRuta = false;
-    await page.route('**/rest/v1/rutas**', async (route) => {
-      if (route.request().method() === 'POST') huboInsertRuta = true;
-      await route.fallback();
-    });
+    // FIX (v1054 → v1055): "ningún request" ahora se verifica contra la
+    // RPC (`rpc_confirmar_ruta`), no contra `POST /rest/v1/rutas` — esa
+    // ruta REST ya no existe en el camino de confirmarRuta() (ver test
+    // de armado más arriba). `contadorConfirmarRuta` cuenta llamadas
+    // reales a la RPC, así que sigue probando lo mismo que antes:
+    // la validación de cliente corta ANTES de tocar la red.
+    const { rutasPage, contadorConfirmarRuta } = await armarPagina(page);
 
     await rutasPage.goto();
     await rutasPage.agregarPedido(PEDIDO_ID);
@@ -261,17 +274,11 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
     // confirmarRuta() corta antes de pedir confirmación — no hay diálogo.
     await expect(rutasPage.dialogoConfirmar).not.toBeVisible();
     await expect(rutasPage.statPedidos).toHaveText('1'); // la ruta armada no se pierde
-    expect(huboInsertRuta).toBe(false);
+    expect(contadorConfirmarRuta()).toBe(0);
   });
 
   test('sin pedidos en la ruta no dispara ningún request — validación de cliente', async ({ page }) => {
-    const { rutasPage } = await armarPagina(page);
-
-    let huboInsertRuta = false;
-    await page.route('**/rest/v1/rutas**', async (route) => {
-      if (route.request().method() === 'POST') huboInsertRuta = true;
-      await route.fallback();
-    });
+    const { rutasPage, contadorConfirmarRuta } = await armarPagina(page);
 
     await rutasPage.goto();
     // Sin agregar ningún pedido a la ruta.
@@ -281,17 +288,20 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
 
     await rutasPage.esperarToastExito('Agregá al menos un pedido a la ruta');
     await expect(rutasPage.dialogoConfirmar).not.toBeVisible();
-    expect(huboInsertRuta).toBe(false);
+    expect(contadorConfirmarRuta()).toBe(0);
   });
 
   test('rechazo del servidor al crear la ruta muestra el error y no pierde la ruta armada', async ({ page }) => {
     const { rutasPage } = await armarPagina(page);
 
-    // Pisa el insert de `rutas` para forzar el error — registrado DESPUÉS
-    // de armarPagina(), gana por orden (mismo criterio que compras.spec.js).
-    await page.route('**/rest/v1/rutas**', async (route) => {
-      const request = route.request();
-      if (request.method() !== 'POST') return route.fallback();
+    // FIX (v1054 → v1055): el error ya no se fuerza pisando el INSERT de
+    // `rutas` (esa request no existe más en este flujo) — hay que pisar
+    // la RPC misma. Un status no-2xx hace que supabase-js resuelva
+    // `rpcErr` con verdad, así que `confirmarRuta()` toma el mismo camino
+    // (`if (rpcErr) throw rpcErr`) que un error real de red/servidor —
+    // registrado DESPUÉS de armarPagina(), gana por orden (mismo criterio
+    // que compras.spec.js).
+    await page.route('**/rest/v1/rpc/rpc_confirmar_ruta**', async (route) => {
       await route.fulfill({
         status: 400,
         contentType: 'application/json; charset=utf-8',
@@ -314,7 +324,7 @@ test.describe('Rutas (admin) — Fase 2 P1', () => {
     await rutasPage.esperarToastExito('Error al crear la ruta — revisá la consola');
 
     // La ruta armada sigue en pantalla — limpiarRuta() solo corre en el
-    // camino feliz, después de que las 3 escrituras resuelven OK.
+    // camino feliz, después de que la RPC resuelve OK.
     await expect(rutasPage.dropEmpty).not.toBeVisible();
     await expect(rutasPage.statPedidos).toHaveText('1');
     await expect(rutasPage.rutaChofer).toHaveValue(CHOFER_ID);
