@@ -193,15 +193,33 @@ function renderTablaFuga() {
       ? `<small class="empty-hint" style="display:block;margin-top:2px;">${new Date(c.accion_fecha).toLocaleDateString('es-AR')}</small>`
       : '';
 
+    // A1 (PLAN_CLIENTES_FUGA_ACCIONES.md, Fase A): el nombre lleva a la
+    // ficha real del cliente — clientes.js ya soporta abrir directo con
+    // ?id=<uuid>, no hace falta ningún endpoint nuevo.
+    const nombreCliente = c.cliente_id
+      ? `<a href="/admin/clientes?id=${encodeURIComponent(c.cliente_id)}">${window.sanitize(c.razon_social || '—')}</a>`
+      : `<strong>${window.sanitize(c.razon_social || '—')}</strong>`;
+
+    // A2: si ya hay una tarea (pendiente o completada) para este cliente,
+    // el badge lleva a Automatización → Tareas, que es donde esa tarea se
+    // ve y se puede completar de verdad — acá no se duplica esa lógica.
+    // whatsapp_enviado no linkea a ningún lado: no hay nada más para hacer
+    // sobre un envío ya hecho.
+    const accionEsTarea = c.accion_disparada === 'tarea_pendiente' || c.accion_disparada === 'tarea_completada';
+    const badge = `<span class="badge-estado ${accion.cls}"><span class="badge-dot"></span>${accion.label}</span>`;
+    const accionHTML = accionEsTarea
+      ? `<a href="/admin/automatizacion#tareas-auto-card" title="Ver en Automatización → Tareas">${badge}</a>`
+      : badge;
+
     return `
       <tr>
-        <td data-label="Cliente"><strong>${window.sanitize(c.razon_social || '—')}</strong></td>
+        <td data-label="Cliente"><strong>${nombreCliente}</strong></td>
         <td data-label="Hace">${c.dias_atraso ?? '—'} días</td>
         <td data-label="Solía pedir">${window.sanitize(c.producto_principal || '—')}</td>
         <td data-label="Valor anual">${formatPeso(c.valor_anual_estimado)}</td>
         <td data-label="Motivo probable" class="thead-sep">${window.sanitize(motivoLabel)}</td>
         <td data-label="Acción ya disparada">
-          <span class="badge-estado ${accion.cls}"><span class="badge-dot"></span>${accion.label}</span>
+          ${accionHTML}
           ${accionFecha}
         </td>
       </tr>`;
