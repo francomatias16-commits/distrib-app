@@ -526,15 +526,15 @@ body.dash-pedidos-gentelella .btn-remito:hover {
 }
 
 /* Notif badges */
-body.dash-pedidos-gentelella .notif-badge--ok {
+body.dash-pedidos-gentelella .pedenv-badge--ok {
   background: var(--ge-teal-light) !important;
   color: var(--ge-teal-dark) !important;
 }
-body.dash-pedidos-gentelella .notif-badge--fail {
+body.dash-pedidos-gentelella .pedenv-badge--fail {
   background: rgba(231,76,60,.10) !important;
   color: var(--ge-red) !important;
 }
-body.dash-pedidos-gentelella .notif-badge--pendiente {
+body.dash-pedidos-gentelella .pedenv-badge--pendiente {
   background: var(--ge-chip-bg) !important;
   color: var(--ge-ink-soft) !important;
 }
