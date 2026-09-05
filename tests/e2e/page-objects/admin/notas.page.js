@@ -60,23 +60,31 @@ export class NotasPage extends PageObjectBase {
   get filtroTipo()    { return this.page.locator('#filtro-tipo-nota'); }
 
   async buscar(texto) {
+    // FIX (CI 2026-09-05, ronda 2): la primera versión de este fix usaba
+    // waitForRequest, pero ese evento puede dispararse ANTES de que el
+    // handler de page.route() (donde el mock de notas.spec.js asigna
+    // `ultimosParams`) termine de correr — no hay orden garantizado entre
+    // el evento 'request' de Playwright y la resolución del handler async
+    // registrado con page.route(). Esperar la RESPUESTA en cambio sí
+    // garantiza que el handler ya terminó (tuvo que llamar a
+    // route.fulfill() para que la respuesta exista), así que cuando el
+    // test lee la variable capturada por el mock, ya está actualizada.
+    const esperaRpc = this.page.waitForResponse((res) =>
+      res.url().includes('/rest/v1/rpc/fn_notas_lista') && res.request().method() === 'POST'
+    );
     await this.inputBusqueda.fill(texto);
-    // Debounce de 250ms (ver notas.js::init) antes de disparar
-    // cargarNotas() de nuevo — dispara la RPC, no filtra en el DOM.
-    await this.page.waitForTimeout(350);
+    await esperaRpc;
   }
 
   async filtrarPorTipo(valor) {
+    // FIX (CI 2026-09-05, ronda 2): mismo motivo que buscar() — esperar la
+    // respuesta en vez de la request garantiza que el handler de
+    // page.route() ya asignó `ultimosParams` antes de que el test lo lea.
+    const esperaRpc = this.page.waitForResponse((res) =>
+      res.url().includes('/rest/v1/rpc/fn_notas_lista') && res.request().method() === 'POST'
+    );
     await this.filtroTipo.selectOption(valor);
-    // FIX (test): a diferencia de buscar() (debounce de 250ms, con su
-    // propia espera de 350ms), el `onchange="filtrarNotas()"` inline
-    // dispara cargarNotas() de una sin debounce — pero sigue siendo
-    // async (la RPC mockeada no resuelve en el mismo tick). Un spec que
-    // chequea `ultimosParams` justo después de `filtrarPorTipo()` está
-    // leyendo una variable JS plana (no un locator con auto-retry de
-    // Playwright), así que sin esta espera puede leer el valor de la
-    // llamada ANTERIOR. Mismo margen que buscar() para curarse en salud.
-    await this.page.waitForTimeout(350);
+    await esperaRpc;
   }
 
   // ── Paginación (inyectada por JS — ver inyectarControlesPaginacionNotas) ──

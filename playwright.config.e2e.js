@@ -8,7 +8,13 @@ export default defineConfig({
   testDir: './tests/e2e/specs',
   timeout: 30_000,
   fullyParallel: true,
-  retries: 0,
+  // En local (retries:0) un fallo siempre es real: la notebook corre un
+  // solo proceso pesado y no compite por CPU. En GitHub Actions los
+  // runners gratuitos son compartidos y con 2 workers en paralelo un
+  // debounce/timeout ajustado puede perder margen por contención de CPU,
+  // no por un bug de la app — 2 reintentos ahí absorben ese ruido sin
+  // esconder una falla que se repite de verdad (si repite 3 veces, es real).
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
     trace: 'retain-on-failure',

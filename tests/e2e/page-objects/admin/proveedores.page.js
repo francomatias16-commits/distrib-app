@@ -62,11 +62,21 @@ export class ProveedoresPage extends PageObjectBase {
   get filtroActivo()  { return this.page.locator('#filtro-activo'); }
 
   async buscar(texto) {
+    // FIX (CI 2026-09-05, ronda 2): la primera versión usaba waitForRequest,
+    // pero ese evento puede llegar ANTES de que el handler de page.route()
+    // (donde el mock de proveedores.spec.js asigna `ultimaBusqueda`) termine
+    // de correr — no hay orden garantizado entre el evento 'request' y la
+    // resolución del handler async de page.route(). Esperar la RESPUESTA
+    // en cambio sí garantiza que el handler ya terminó (tuvo que llamar
+    // route.fulfill() para que exista una respuesta), así que cuando el
+    // test lee la variable capturada por el mock, ya está actualizada.
+    const esperaBusqueda = this.page.waitForResponse((res) => {
+      if (!res.url().includes('/api/proveedores') || res.request().method() !== 'GET') return false;
+      const url = new URL(res.url());
+      return url.searchParams.get('busqueda') === texto;
+    });
     await this.inputBusqueda.fill(texto);
-    // Debounce de 250ms (ver proveedores.js::init) antes de disparar
-    // cargarProveedores() de nuevo — es una request nueva, no filtrado
-    // in-memory (a diferencia de usuarios.html).
-    await this.page.waitForTimeout(350);
+    await esperaBusqueda;
   }
 
   async filtrarPorActivo(valor) {
