@@ -34,6 +34,14 @@
   <link rel="stylesheet" href="/frontend/shared/filtro-tabs.css?v=mtcen4r4" />
   <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
 <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
+<style>
+  /* PLAN_CLIENTES_FUGA_ACCIONES.md, Fase A: links nuevos dentro de la
+     tabla (nombre de cliente → ficha; badge de tarea → Automatización).
+     Heredan el color del texto, sin subrayado hasta hover, para no competir
+     visualmente con los badges de estado que ya tiene la fila. */
+  #tbody-clientes-fuga td a { color: inherit; text-decoration: none; }
+  #tbody-clientes-fuga td a:hover { text-decoration: underline; }
+</style>
 </head>
 <body class="dash-clientes-fuga-gentelella dash-gentelella">
 
