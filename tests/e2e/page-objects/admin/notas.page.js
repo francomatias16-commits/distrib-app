@@ -60,27 +60,28 @@ export class NotasPage extends PageObjectBase {
   get filtroTipo()    { return this.page.locator('#filtro-tipo-nota'); }
 
   async buscar(texto) {
-    // FIX (CI 2026-09-05): un waitForTimeout(600) fijo esperando el
-    // debounce de 250ms + la RPC seguía flakeando bajo contención de CPU
-    // (2 workers de Playwright en paralelo en el runner de GH Actions) —
-    // ver comentario viejo de este mismo método. En vez de dormir un
-    // tiempo fijo y cruzar los dedos, esperamos la request real a
-    // fn_notas_lista con el querystring que ya disparó el debounce:
-    // determinista sin importar cuánto tarde la CPU esa corrida.
-    const esperaRpc = this.page.waitForRequest((req) =>
-      req.url().includes('/rest/v1/rpc/fn_notas_lista') && req.method() === 'POST'
+    // FIX (CI 2026-09-05, ronda 2): la primera versión de este fix usaba
+    // waitForRequest, pero ese evento puede dispararse ANTES de que el
+    // handler de page.route() (donde el mock de notas.spec.js asigna
+    // `ultimosParams`) termine de correr — no hay orden garantizado entre
+    // el evento 'request' de Playwright y la resolución del handler async
+    // registrado con page.route(). Esperar la RESPUESTA en cambio sí
+    // garantiza que el handler ya terminó (tuvo que llamar a
+    // route.fulfill() para que la respuesta exista), así que cuando el
+    // test lee la variable capturada por el mock, ya está actualizada.
+    const esperaRpc = this.page.waitForResponse((res) =>
+      res.url().includes('/rest/v1/rpc/fn_notas_lista') && res.request().method() === 'POST'
     );
     await this.inputBusqueda.fill(texto);
     await esperaRpc;
   }
 
   async filtrarPorTipo(valor) {
-    // FIX (CI 2026-09-05): mismo motivo que buscar() — el select no tiene
-    // debounce, pero la RPC sigue siendo async, y un waitForTimeout fijo
-    // podía leer `ultimosParams` de la llamada anterior bajo contención de
-    // CPU. Esperamos la request real en vez de un tiempo fijo.
-    const esperaRpc = this.page.waitForRequest((req) =>
-      req.url().includes('/rest/v1/rpc/fn_notas_lista') && req.method() === 'POST'
+    // FIX (CI 2026-09-05, ronda 2): mismo motivo que buscar() — esperar la
+    // respuesta en vez de la request garantiza que el handler de
+    // page.route() ya asignó `ultimosParams` antes de que el test lo lea.
+    const esperaRpc = this.page.waitForResponse((res) =>
+      res.url().includes('/rest/v1/rpc/fn_notas_lista') && res.request().method() === 'POST'
     );
     await this.filtroTipo.selectOption(valor);
     await esperaRpc;
