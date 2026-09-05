@@ -729,15 +729,15 @@ async function _renderNotifStatus(pedidoId) {
   wrap.style.display = 'block';
   lista.innerHTML = logs.map(l => {
     const canalLabel = NOTIF_CANAL_LABEL[l.canal] || l.canal;
-    const badgeClass = l.entregada ? 'notif-badge--ok' : 'notif-badge--fail';
+    const badgeClass = l.entregada ? 'pedenv-badge--ok' : 'pedenv-badge--fail';
     const badgeTexto = l.entregada ? 'Entregada' : 'No entregada';
     const motivo = !l.entregada && l.motivo
       ? `<span class="info-row" style="font-size:12px;color:var(--color-text-muted)">${sanitize(NOTIF_MOTIVO_LABEL[l.motivo] || l.motivo)}</span>`
       : '';
     return `
-      <div class="notif-item">
-        <span class="notif-canal">${sanitize(canalLabel)}</span>
-        <span class="notif-badge ${badgeClass}">${badgeTexto}</span>
+      <div class="pedenv-item">
+        <span class="pedenv-canal">${sanitize(canalLabel)}</span>
+        <span class="pedenv-badge ${badgeClass}">${badgeTexto}</span>
       </div>
       ${motivo}`;
   }).join('');
@@ -771,11 +771,11 @@ async function _renderDevolucionesPedido(pedidoId) {
   }
 
   wrap.style.display = 'block';
-  const badgeClasePorEstado = { pendiente: 'notif-badge--pendiente', aprobada: 'notif-badge--ok', rechazada: 'notif-badge--fail' };
+  const badgeClasePorEstado = { pendiente: 'pedenv-badge--pendiente', aprobada: 'pedenv-badge--ok', rechazada: 'pedenv-badge--fail' };
   lista.innerHTML = devs.map(d => `
-    <div class="notif-item">
-      <span class="notif-canal">${DEVOLUCION_MOTIVO_LABEL[d.motivo] || d.motivo} · ${fmtFecha(d.created_at)}</span>
-      <span class="notif-badge ${badgeClasePorEstado[d.estado] || 'notif-badge--fail'}">${DEVOLUCION_ESTADO_LABEL[d.estado] || d.estado}</span>
+    <div class="pedenv-item">
+      <span class="pedenv-canal">${DEVOLUCION_MOTIVO_LABEL[d.motivo] || d.motivo} · ${fmtFecha(d.created_at)}</span>
+      <span class="pedenv-badge ${badgeClasePorEstado[d.estado] || 'pedenv-badge--fail'}">${DEVOLUCION_ESTADO_LABEL[d.estado] || d.estado}</span>
     </div>
   `).join('') + `
     <a href="/admin/devoluciones?pedido_id=${encodeURIComponent(pedidoId)}" class="btn-link" style="display:inline-block;margin-top:6px;">

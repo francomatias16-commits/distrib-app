@@ -488,7 +488,7 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   gap: 6px;
 }
 
-.notif-item {
+.pedenv-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -497,17 +497,17 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   color: var(--color-text);
 }
 
-.notif-item .notif-canal {
+.pedenv-item .pedenv-canal {
   display: flex;
   align-items: center;
   gap: 6px;
   color: var(--color-text-muted);
 }
 
-.notif-badge           { display: inline-flex; align-items: center; padding: 1px 9px; border-radius: var(--radius-sm); border-width: 3px; border-style: double; font-family: var(--font-family-display); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
-.notif-badge--ok       { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
-.notif-badge--fail     { background: var(--color-danger-bg);  color: var(--color-danger); border-color: var(--color-danger); }
-.notif-badge--pendiente{ background: var(--color-surface-2); color: var(--color-text-muted); border-color: var(--color-text-light); }
+.pedenv-badge           { display: inline-flex; align-items: center; padding: 1px 9px; border-radius: var(--radius-sm); border-width: 3px; border-style: double; font-family: var(--font-family-display); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.pedenv-badge--ok       { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.pedenv-badge--fail     { background: var(--color-danger-bg);  color: var(--color-danger); border-color: var(--color-danger); }
+.pedenv-badge--pendiente{ background: var(--color-surface-2); color: var(--color-text-muted); border-color: var(--color-text-light); }
 
 .info-row {
   font-size: 14px;
