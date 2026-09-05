@@ -271,8 +271,15 @@
 
     const wrap = document.createElement('div');
     wrap.className = 'topbar-notif-wrap';
-    wrap.style.position = 'relative';
-    wrap.style.display = 'inline-flex';
+    // v(fix desfasaje mobile): antes acá se ponía wrap.style.position =
+    // 'relative' e inline-flex por JS. Un inline style SIEMPRE le gana a
+    // cualquier regla de un archivo CSS, así que la regla responsive de
+    // adminlte-components.css (position:absolute + anclaje a la esquina
+    // en @media ≤768px) nunca podía aplicarse — la campana quedaba suelta
+    // en el flujo normal en vez de anclada, especialmente visible en
+    // pantallas con topbar de varias filas (ej. Punto de venta). Ahora
+    // position/display viven en la clase .topbar-notif-wrap (ver CSS),
+    // así el media query de mobile puede pisarlos con normalidad.
 
     const btn = document.createElement('button');
     btn.type = 'button';

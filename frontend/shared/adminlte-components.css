@@ -325,6 +325,16 @@ body[data-ws] .topbar-title::before {
 /* ═══════════════════════════════════════════════════
    NOTIFICACIONES
    ═══════════════════════════════════════════════════ */
+/* Contenedor de la campanita (botón + badge + dropdown). En desktop es
+   simplemente el ancla relativa para el badge/dropdown absolutos de
+   adentro; en mobile (ver @media más abajo) esta MISMA clase pasa a
+   position:absolute para anclarse a la esquina del topbar. Antes esto
+   se seteaba por JS (wrap.style.position), que es un inline style y
+   siempre le gana a una regla de hoja de estilos — el @media de mobile
+   quedaba sin efecto y la campana se veía "desfasada" (suelta en el
+   flujo en vez de anclada). Ahora vive acá para que el media query
+   pueda pisarlo con normalidad. */
+.topbar-notif-wrap { position: relative; display: inline-flex; }
 .notif-btn {
   position: relative; width: 36px; height: 36px;
   border-radius: var(--radius-full); border: none;
