@@ -5,6 +5,10 @@ on:
     - cron: '0 6 * * 1'  # todos los lunes 06:00 UTC (03:00 hora Argentina)
   workflow_dispatch: {}   # permite dispararlo manualmente desde la pestaña Actions
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   audits:
     name: Auditorías (security, mobile, a11y, lighthouse)
@@ -60,10 +64,12 @@ jobs:
       - name: Abrir o actualizar issue si hubo fallas
         if: steps.run_audits.outputs.failed != ''
         uses: actions/github-script@v7
+        env:
+          FAILED_AUDITS: ${{ steps.run_audits.outputs.failed }}
         with:
           script: |
             const fs = require('fs');
-            const failed = `${{ steps.run_audits.outputs.failed }}`.trim().split(/\s+/);
+            const failed = process.env.FAILED_AUDITS.trim().split(/\s+/);
 
             let body = `Auditorías programadas con fallas — ${new Date().toISOString()}\n\n`;
             for (const name of failed) {
