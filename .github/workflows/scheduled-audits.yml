@@ -1,0 +1,103 @@
+name: Auditorías programadas
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # todos los lunes 06:00 UTC (03:00 hora Argentina)
+  workflow_dispatch: {}   # permite dispararlo manualmente desde la pestaña Actions
+
+jobs:
+  audits:
+    name: Auditorías (security, mobile, a11y, lighthouse)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run audits
+        id: run_audits
+        shell: bash
+        run: |
+          set +e
+          FAILED=""
+
+          run_check() {
+            name="$1"
+            cmd="$2"
+            echo "== $name =="
+            output=$(eval "$cmd" 2>&1)
+            status=$?
+            echo "$output"
+            echo "$output" > "/tmp/${name}.log"
+            if [ $status -ne 0 ]; then
+              FAILED="$FAILED $name"
+            fi
+          }
+
+          run_check "security" "npm run audit:security"
+          run_check "mobile" "npm run audit:mobile"
+          run_check "a11y" "npm run audit:a11y"
+          run_check "lighthouse" "npm run audit:lighthouse"
+
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+
+      - name: Subir logs como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-logs
+          path: /tmp/*.log
+          retention-days: 14
+
+      - name: Abrir o actualizar issue si hubo fallas
+        if: steps.run_audits.outputs.failed != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const failed = `${{ steps.run_audits.outputs.failed }}`.trim().split(/\s+/);
+
+            let body = `Auditorías programadas con fallas — ${new Date().toISOString()}\n\n`;
+            for (const name of failed) {
+              body += `### ${name}\n`;
+              try {
+                const log = fs.readFileSync(`/tmp/${name}.log`, 'utf8');
+                const truncated = log.length > 3000 ? log.slice(0, 3000) + '\n...(truncado, ver artifact completo)' : log;
+                body += "```\n" + truncated + "\n```\n\n";
+              } catch (e) {
+                body += "(no se pudo leer el log)\n\n";
+              }
+            }
+            body += `Run completo: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'audit-automatico'
+            });
+
+            if (existing.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing[0].number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🔍 Auditorías programadas: fallas detectadas (${failed.join(', ')})`,
+                body,
+                labels: ['audit-automatico']
+              });
+            }
