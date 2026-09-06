@@ -137,6 +137,12 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   gap: 8px;
   flex-wrap: wrap;
   flex-shrink: 0;
+  /* FIX (v953): evita que .filtros-der se fragmente internamente en un
+     ancho "intermedio" y deje el último botón huérfano y desalineado —
+     ver el detalle completo en pedidos.css (mismo patrón, mismo bug).
+     Reseteado a min-width:0 en el media query de 900px de más abajo,
+     donde ya no hay lugar para compartir fila con nada. */
+  min-width: max-content;
 }
 
 .search-wrap {
@@ -523,6 +529,12 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 /* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .kpis-grid { grid-template-columns: repeat(2,1fr); }
+  /* min-width:0 pisa el min-width:max-content de la regla base de
+     .filtros-der (ver comentario ahí) — a este ancho no hay lugar para
+     compartir fila con nada más, y sin este reset forzaría overflow-x
+     horizontal en mobile. Este archivo no tenía ningún override mobile
+     para .filtros-der; se agrega junto con el fix. */
+  .filtros-der { width: 100%; min-width: 0; }
 }
 
 @media (max-width: 640px) {

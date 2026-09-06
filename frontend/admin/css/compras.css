@@ -149,6 +149,12 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   gap: 8px;
   margin-left: auto;
 }
+/* NOTA: a diferencia de pedidos/stock/clientes/facturacion, este archivo
+   no tiene flex-wrap acá a nivel base (solo en el media query de abajo),
+   así que NO sufre el bug del botón huérfano (ese requiere que
+   .filtros-der ya wrapee internamente en desktop) — el fix de
+   min-width:max-content no aplica sin cambiar antes ese comportamiento
+   base, que es una decisión de diseño aparte y no se toca acá. */
 
 /* FIX (v707): a diferencia de otras páginas, este archivo no tenía
    ningún ajuste responsive para .filtros-der — en mobile el padre

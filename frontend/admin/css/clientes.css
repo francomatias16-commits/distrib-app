@@ -181,6 +181,10 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   gap: 8px;
   flex-wrap: wrap;
   margin-left: auto;
+  /* FIX (v953): evita que .filtros-der se fragmente internamente en un
+     ancho "intermedio" y deje el último botón huérfano y desalineado —
+     ver el detalle completo en pedidos.css (mismo patrón, mismo bug). */
+  min-width: max-content;
 }
 
 .select-filtro {
@@ -656,7 +660,11 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 
 /* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .filtros-der  { width: 100%; margin-left: 0; }
+  /* min-width:0 pisa el min-width:max-content de la regla base — a este
+     ancho ya no hay lugar para compartir fila con nada más (todo pasa a
+     ancho completo), y sin este reset el min-width:max-content forzaría
+     overflow-x horizontal en mobile. */
+  .filtros-der  { width: 100%; margin-left: 0; min-width: 0; }
   .form-row     { grid-template-columns: 1fr; }
   .credito-grid { grid-template-columns: 1fr; }
 }
