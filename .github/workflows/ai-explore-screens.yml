@@ -14,6 +14,10 @@ on:
         description: 'Páginas a explorar, separadas por coma (vacío = subset default del script)'
         required: false
         default: ''
+      viewports:
+        description: 'Anchos a probar, formato "1280x800,1920x1080" (vacío = default del script)'
+        required: false
+        default: ''
 
 # No abre/actualiza PRs, así que no necesita pull-requests: write como
 # ai-review.yml — pero sí necesita issues: write para el issue de
@@ -53,8 +57,16 @@ jobs:
       - name: Explorar pantallas del admin con IA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Se concatenan acá los secrets individuales (GitHub Actions no
+          # tiene un tipo "lista" de secret). Slots para 5 keys — las que
+          # no existan todavía como secret se resuelven a "" y el script
+          # las descarta solo (split(',').filter(Boolean)), así que se
+          # puede declarar GEMINI_API_KEY_2 recién cuando exista, sin
+          # tocar este archivo de nuevo. Para una 6ta key, sumar
+          # ${{ secrets.GEMINI_API_KEY_6 }} acá.
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEY }},${{ secrets.GEMINI_API_KEY_2 }},${{ secrets.GEMINI_API_KEY_3 }},${{ secrets.GEMINI_API_KEY_4 }},${{ secrets.GEMINI_API_KEY_5 }}
           EXPLORE_PAGINAS: ${{ github.event.inputs.paginas }}
+          EXPLORE_VIEWPORTS: ${{ github.event.inputs.viewports }}
           # Opcionales, mismos defaults que el script si no se setean:
           # GEMINI_MODEL: gemini-flash-latest
           # GEMINI_FALLBACK_MODEL: gemini-2.5-flash

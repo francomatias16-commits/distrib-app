@@ -89,22 +89,34 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   flex-shrink: 0;
 }
 
-/* FIX: overflow-x real a 1200px (y en general entre 901px y ~1250px) —
-   #filtros-der tiene 7 campos + 3 botones, ~1207px sin envolver. El
-   reset de escritorio en componentes-admin.css (`@media (min-width:
-   641px) { .filtros-bar > * { width: auto; max-width: none; } }`)
-   pisa cualquier max-width que se ponga en `.filtros-der` acá (misma
-   especificidad, una clase — gana por orden de carga, ese archivo se
-   sirve después). Se usa el id para tener más especificidad y no
-   depender del orden de los <link>. min-width:0 hace falta además de
-   max-width: sin eso, el tamaño mínimo automático del flex item usa el
-   ancho "sin envolver" de sus propios hijos (es a la vez flex item de
-   .filtros-bar y flex container de los suyos), no el del hijo más
-   angosto — así igual se renderiza más ancho que el viewport en vez de
-   envolver sus hijos dentro del espacio disponible, aunque
-   .filtros-bar ya lo mandó a su propia fila. */
+/* FIX (v953, reemplaza el FIX anterior de min-width:0/max-width:100%):
+   el div de abajo tiene class="filtros-der" e id="filtros-der" a la vez
+   — antes esta regla por id ponía min-width:0 para que #filtros-der
+   pudiera achicarse por debajo del ancho de sus 9 hijos (7 selects/
+   inputs + Limpiar + Excel, ~1207px sin envolver) y así evitar overflow-x
+   real en la franja 901px-1250px. Pero eso mismo es lo que causaba el
+   bug reportado a ~1846px: en ese ancho SÍ entraban .filtros-izq y
+   .filtros-der juntos en una fila, pero a .filtros-der le quedaba menos
+   de 1207px libres — como podía achicarse (min-width:0), no pasaba
+   entero a su propia fila: envolvía ÉL MISMO sus hijos, y el botón
+   Excel quedaba solo en una segunda línea que arranca en el borde
+   izquierdo de la propia caja de .filtros-der (que puede estar a mitad
+   de página), no en x=0 — de ahí que se viera "descolgado".
+   min-width:max-content revierte eso: ahora .filtros-der se comporta
+   como un bloque de ancho fijo (su ancho sin envolver) frente a
+   .filtros-bar — o entra completo en la fila de .filtros-izq, o
+   .filtros-bar (que también tiene flex-wrap) lo manda entero a su
+   propia fila nueva, alineada a la izquierda — nunca a un ancho
+   intermedio que lo obligue a fragmentarse él mismo. La franja
+   901-1250px que motivó el fix original queda cubierta por el
+   min-width:max-content igual: si de verdad no entra en su propia fila
+   completa, ahí sí wrapea internamente sus 9 hijos, pero ya alineados
+   contra el borde izquierdo real del contenedor, no a mitad de camino.
+   Por debajo de 900px, el media query de abajo lo pasa a columna al
+   100% de ancho de todos modos. Mismo fix en stock.css y clientes.css
+   (mismo patrón, mismo bug); facturacion.css no tenía este id extra. */
 #filtros-der {
-  min-width: 0;
+  min-width: max-content;
   max-width: 100%;
 }
 
