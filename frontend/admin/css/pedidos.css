@@ -89,35 +89,24 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   flex-shrink: 0;
 }
 
-/* FIX (v953, reemplaza el FIX anterior de min-width:0/max-width:100%):
-   el div de abajo tiene class="filtros-der" e id="filtros-der" a la vez
-   — antes esta regla por id ponía min-width:0 para que #filtros-der
-   pudiera achicarse por debajo del ancho de sus 9 hijos (7 selects/
-   inputs + Limpiar + Excel, ~1207px sin envolver) y así evitar overflow-x
-   real en la franja 901px-1250px. Pero eso mismo es lo que causaba el
-   bug reportado a ~1846px: en ese ancho SÍ entraban .filtros-izq y
-   .filtros-der juntos en una fila, pero a .filtros-der le quedaba menos
-   de 1207px libres — como podía achicarse (min-width:0), no pasaba
-   entero a su propia fila: envolvía ÉL MISMO sus hijos, y el botón
-   Excel quedaba solo en una segunda línea que arranca en el borde
-   izquierdo de la propia caja de .filtros-der (que puede estar a mitad
-   de página), no en x=0 — de ahí que se viera "descolgado".
-   min-width:max-content revierte eso: ahora .filtros-der se comporta
-   como un bloque de ancho fijo (su ancho sin envolver) frente a
-   .filtros-bar — o entra completo en la fila de .filtros-izq, o
-   .filtros-bar (que también tiene flex-wrap) lo manda entero a su
-   propia fila nueva, alineada a la izquierda — nunca a un ancho
-   intermedio que lo obligue a fragmentarse él mismo. La franja
-   901-1250px que motivó el fix original queda cubierta por el
-   min-width:max-content igual: si de verdad no entra en su propia fila
-   completa, ahí sí wrapea internamente sus 9 hijos, pero ya alineados
-   contra el borde izquierdo real del contenedor, no a mitad de camino.
-   Por debajo de 900px, el media query de abajo lo pasa a columna al
-   100% de ancho de todos modos. Mismo fix en stock.css y clientes.css
-   (mismo patrón, mismo bug); facturacion.css no tenía este id extra. */
-#filtros-der {
-  min-width: max-content;
-  max-width: 100%;
+/* FIX (reemplaza el intento anterior con min-width:max-content +
+   max-width:100% en #filtros-der): ese enfoque trataba a los 9 hijos
+   (7 selects/inputs + Limpiar + Excel) como un bloque atómico, pero
+   max-width:100% lo achicaba por debajo de su max-content apenas el
+   contenedor no tenía los ~1207px libres que necesita sin envolver
+   (pasa en la franja ~1250-1850px) — ahí volvía a wrapear internamente
+   y Excel quedaba solo y descolgado en su propia línea. En vez de forzar
+   el bloque entero, se agrupan solo Limpiar+Excel (los dos últimos
+   hijos, ver .filtros-der-acciones más abajo y el wrapper en el HTML)
+   en su propio flex item que no se puede partir: los selects son libres
+   de wrapear entre sí a cualquier ancho, pero Limpiar y Excel siempre
+   caen juntos en la misma línea, nunca uno solo y huérfano. Mismo patrón
+   a replicar en stock.css y clientes.css. */
+.filtros-der-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .search-wrap {
