@@ -270,6 +270,15 @@
 .chat-asistente-opcion:disabled { opacity: .5; cursor: default; }
 .chat-asistente-opcion:hover:not(:disabled) { background: var(--color-border, rgba(0,0,0,.07)); }
 
+/* Pista bajo la lista de opciones (Fase 6): recuerda que además de tocar
+   un botón alcanza con escribir/decir el número — ver resolverAtajoOpcion()
+   en chat-widget.js. Texto chico y apagado, no compite con las opciones. */
+.chat-asistente-opciones-pista {
+  font-size: 12px;
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+
 .chat-asistente-typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
 .chat-asistente-typing span {
   width: 6px; height: 6px; border-radius: 50%;
