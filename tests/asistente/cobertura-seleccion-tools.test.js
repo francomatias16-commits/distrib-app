@@ -131,10 +131,17 @@ describe('cobertura del selector de tools (seleccionarToolsRelevantes)', () => {
 // contexto (como arma el handler real) se recupera.
 // ────────────────────────────────────────────────────────────────────────
 describe('repreguntas cortas — requieren el contexto de la pregunta anterior', () => {
+  // OJO al agregar casos acá: si la tool esperada está en
+  // TOOLS_NUCLEO_FALLBACK (arriba en index.js), el caso "sola" va a
+  // aparecer igual aunque no haya match real de keywords — porque
+  // CUALQUIER pregunta sin match cae a ese set fijo. Eso no prueba nada
+  // sobre el bug de contexto perdido. Elegí una tool que NO esté en el
+  // fallback para que "sola" de verdad falle y "con contexto" de verdad
+  // la recupere.
   const CASOS_SEGUIMIENTO = [
     { rol: 'dueno', anterior: 'cuántos clientes tienen más de 150000 en deuda', repregunta: 'y 20000', esperada: 'listar_clientes_por_deuda' },
     { rol: 'admin', anterior: 'qué lotes vencen esta semana', repregunta: 'y el mes que viene', esperada: 'listar_lotes_por_vencer' },
-    { rol: 'contador', anterior: 'cuánto le debo al proveedor distrilac', repregunta: 'y a mercolac', esperada: 'consultar_deuda_proveedor' },
+    { rol: 'contador', anterior: 'el cheque 12345 figura denunciado en el bcra', repregunta: 'y el 67890', esperada: 'consultar_cheque_denunciado_bcra' },
   ];
 
   it.each(CASOS_SEGUIMIENTO)(
