@@ -85,23 +85,26 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.filtros-der::-webkit-scrollbar { display: none; }
 
-/* FIX (reemplaza el intento anterior con min-width:max-content +
-   max-width:100% en #filtros-der): ese enfoque trataba a los 9 hijos
-   (7 selects/inputs + Limpiar + Excel) como un bloque atómico, pero
-   max-width:100% lo achicaba por debajo de su max-content apenas el
-   contenedor no tenía los ~1207px libres que necesita sin envolver
-   (pasa en la franja ~1250-1850px) — ahí volvía a wrapear internamente
-   y Excel quedaba solo y descolgado en su propia línea. En vez de forzar
-   el bloque entero, se agrupan solo Limpiar+Excel (los dos últimos
-   hijos, ver .filtros-der-acciones más abajo y el wrapper en el HTML)
-   en su propio flex item que no se puede partir: los selects son libres
-   de wrapear entre sí a cualquier ancho, pero Limpiar y Excel siempre
-   caen juntos en la misma línea, nunca uno solo y huérfano. Mismo patrón
-   a replicar en stock.css y clientes.css. */
+/* FIX v2 (reemplaza el intento con flex-wrap:wrap + grupo atómico
+   Limpiar+Excel): agrupar el bloque evitaba que Excel quedara solo,
+   pero el bloque igual caía a su propia línea en la franja ~1250-1850px
+   porque los 7 selects/inputs no cedían ancho (tenían max-width fijo,
+   no flex-shrink real) — entre ellos y el bloque de acciones no entraban
+   nunca en una sola fila. Ahora .filtros-der no envuelve más
+   (flex-wrap:nowrap): los selects/inputs son flexibles (flex:1 1 90px,
+   ver más abajo) y se achican primero para ceder el espacio que
+   Limpiar+Excel necesitan, que mantienen flex-shrink:0 y por lo tanto
+   siempre están en la misma fila. overflow-x:auto queda como red de
+   seguridad para anchos de escritorio angostos donde ni comprimiendo
+   los selects alcanza. Mismo patrón a replicar en stock.css y
+   clientes.css. */
 .filtros-der-acciones {
   display: flex;
   align-items: center;
@@ -183,8 +186,9 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
    soportado por Chrome/Edge/Firefox en el control cerrado) para que los
    9 hijos de #filtros-der entren en una fila a los anchos de escritorio
    habituales, sin tocar el layout mobile (que ya colapsa a columna). */
-.select-filtro { max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#filtro-fecha-desde, #filtro-fecha-hasta { max-width: 132px; }
+.select-filtro { flex: 1 1 90px; min-width: 70px; max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#filtro-fecha-desde, #filtro-fecha-hasta { flex: 1 1 90px; min-width: 70px; max-width: 132px; }
+#filtro-importe-min { flex: 0 1 100px; min-width: 70px; }
 
 .btn-limpiar {
   padding: 6px 14px;
