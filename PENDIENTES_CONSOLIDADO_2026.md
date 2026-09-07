@@ -1,6 +1,8 @@
 # Pendientes consolidados — distrib-app (auditoría del ZIP, sept. 2026)
 
-> Compilado a partir de ~470 archivos: `SEGUIMIENTO_HOJA_DE_RUTA.md`, `AUDITORIA_PRE_LANZAMIENTO.md`, los 13 `PLAN_*.md`, `resultado.txt` (última corrida de Playwright), `RESUMEN_FIXES_SESION.md`, `ESTADO_LOADTEST_ETAPA4.md`, `MERGE_REPORT_2026-08-23.md` y el changelog más reciente (v952). El repo tiene 404 changelogs versionados; la mayoría de los "pendientes" antiguos ya están cerrados — esto es lo que **sigue abierto de verdad** al día de hoy.
+> Compilado a partir de ~470 archivos: `SEGUIMIENTO_HOJA_DE_RUTA.md`, `AUDITORIA_PRE_LANZAMIENTO.md`, los 13 `PLAN_*.md`, `resultado.txt` (última corrida de Playwright), `RESUMEN_FIXES_SESION.md`, `ESTADO_LOADTEST_ETAPA4.md`, `MERGE_REPORT_2026-08-23.md` y el changelog más reciente. El repo tiene changelogs versionados; la mayoría de los "pendientes" antiguos ya están cerrados — esto es lo que **sigue abierto de verdad** al día de hoy.
+>
+> **Actualizado hoy contra v1066** (el documento venía fechado en base a v952). Todo lo que sigue marcado como abierto en las secciones 🔴/🟠/🟡/🔵 de abajo fue re-revisado hoy y sigue vigente sin cambios. Lo nuevo detectado entre v955 y v1066 está en su propia sección, más abajo del todo, antes del resumen ejecutivo.
 
 ---
 
@@ -101,6 +103,22 @@
 
 ---
 
+## 🆕 NUEVO — detectado entre v955 y v1066 (no reflejado en la versión anterior de este documento)
+
+26. ~~**Etapa 7 transversal** (v1047-v1054) — 2 race conditions~~ ✅ **cerrado hoy**. Las dos ya estaban resueltas *en código y en producción* desde v1055 — lo que faltaba era la migración en el repo:
+    - `confirmarRuta()`: ya usa `rpc_confirmar_ruta` (transacción única + advisory lock + revalidación server-side). El comentario del código citaba "migración 576", pero ese número es otro archivo sin relación (`576_plan_limites_whatsapp_etiquetas_mercadopago.sql`) — la función real nunca se había guardado como migración. Verificado hoy que `pg_get_functiondef` en vivo es byte a byte igual al backfill; se agregó como `598_backfill_rpc_confirmar_ruta_v1055.sql`.
+    - Lock por conversación de WhatsApp: ya está wireado (`adquirirLockConversacion`/`liberarLockConversacion` en `lib/repos/whatsapp-bot.js`, llamado desde `procesarMensajeTexto` en `notif.js`, con `finally` que libera). Mismo problema: el comentario citaba "migración 577", que es otro archivo sin relación (`577_webhooks_recibidos.sql`). La columna `whatsapp_conversaciones.procesando_desde` sí existe en prod pero no estaba en el repo — se agregó como `599_backfill_whatsapp_conversaciones_procesando_desde_v1055.sql`.
+    - Ambas migraciones registradas en `schema_migrations_registry` (proyecto `jgiquzjwoedmzwqgzubr`); `check-migraciones-registro.js` corre sin colisiones (477 archivos).
+    - El test de devoluciones tras el fix de v1047 (`tests/repos/crear-devolucion-core.test.js`) ya estaba reescrito y actualizado en el repo — 11/11 verdes.
+    - Sigue pendiente, y no bloquea nada de lo anterior: el pase manual en navegador de los 4 bloques enteros de Etapa 7 (verificación con datos/voz reales, no solo código).
+27. **v1058 — colisión de acceso al portal cliente**: el fix aplicado hace visible el error (antes fallaba silencioso), pero el diseño de fondo queda como decisión de producto pendiente — hoy un teléfono mapea a un solo perfil global, no un perfil por empresa/tenant.
+28. ~~**v1066 — suite de Vitest sin correr**~~ ✅ **cerrado hoy**. `npm install` corrió sin problemas en este entorno (519 paquetes) y `npm test` completo: **125 archivos / 1721 tests, todos verdes**. También se corrió `npm run predeploy` completo (registro de migraciones, smoke test de frontend, wiring de assets/API/handlers) sin ningún hallazgo.
+29. **Clientes en fuga** (v1060-v1064) — Fases 2 y 3 cerradas (detección + pantalla). Sigue pendiente **a propósito**: la prueba end-to-end con WhatsApp real, bloqueada porque el template `recuperacion_cliente` todavía no está dado de alta en Meta Business Manager. Mismo bloqueo de fondo que el punto 10 (WhatsApp bidireccional) — vale la pena resolver el alta de Meta una sola vez y destrabar los dos puntos juntos.
+
+*(Informativo, sin acción pendiente: v1065 — Fase 3 de migración de tools del asistente cerrada en su alcance, 13/16 archivos. No genera un pendiente real.)*
+
+---
+
 ## Resumen ejecutivo — por dónde empezar
 
 1. ~~Rotar la service role key filtrada~~ ✅ hecho.
@@ -108,12 +126,19 @@
 3. ~~Terminar el checklist de pase manual~~ ✅ hecho — los 9 ítems cerrados, incluyendo el fix de `listUsers()` confirmado en Vercel producción.
 4. ~~Probar la restauración del backup semanal de Supabase~~ ✅ hecho — y se confirmó que el proyecto está activo (sigue en plan Free, por decisión propia; plan de activación del upgrade ya armado para cuando llegue el primer cliente pago).
 5. ~~Seguir el orden de `PLAN_AUDITORIA_FUNCIONAL_PRELANZAMIENTO_2026`: Etapa 4 → Etapa 5 → Etapa 6~~ ✅ hecho — las 6 etapas del plan quedaron cerradas y reverificadas contra código/DB real.
-6. ~~Medios de pago POS (punto 9)~~ ✅ prácticamente cerrado — MP Point migrado y verificado (con un bug de deploy real destapado y corregido de paso), Getnet/Naranja X sacados del selector por decisión de producto. Solo queda Prisma (cobro real en sandbox) como cabo suelto de este punto. **Siguiente frente real: los ítems 🟡 MEDIO que quedan abiertos (12-13: RLS sin policy/índices sin usar; 21: `PLAN_E2E_RECORTADO`; 22: QA responsive en dispositivo real) y el 🟠 ALTO restante (10: WhatsApp bidireccional).**
-6. **Recordatorio con fecha de vencimiento:** pasar a Supabase Pro no es urgente hoy, pero es lo primero a resolver apenas se firme el primer cliente pago — no dejarlo para cuando ya esté en producción con ese cliente.
+6. ~~Medios de pago POS (punto 9)~~ ✅ prácticamente cerrado — MP Point migrado y verificado (con un bug de deploy real destapado y corregido de paso), Getnet/Naranja X sacados del selector por decisión de producto. Solo queda Prisma (cobro real en sandbox) como cabo suelto de este punto.
+7. **Recordatorio con fecha de vencimiento:** pasar a Supabase Pro no es urgente hoy, pero es lo primero a resolver apenas se firme el primer cliente pago — no dejarlo para cuando ya esté en producción con ese cliente.
+8. **Siguiente frente real (actualizado con lo nuevo de v955-v1066):**
+   - ~~Decidir el fix de las 2 race conditions de Etapa 7 (punto 26)~~ ✅ cerrado — ya estaban resueltas en prod, solo faltaban las migraciones en el repo (598 y 599).
+   - ~~Correr `npm test` en local contra v1066 antes del próximo deploy (punto 28)~~ ✅ cerrado — 1721/1721 verdes, predeploy completo sin hallazgos.
+   - Dar de alta el template `recuperacion_cliente` en Meta Business Manager — destraba de una sola vez el punto 10 (WhatsApp bidireccional) y el punto 29 (Clientes en fuga).
+   - Queda el pase manual en navegador de los 4 bloques de Etapa 7 (parte residual del punto 26).
+   - Detrás de eso, lo de siempre: los 🟡 MEDIO que quedan abiertos (12-13 RLS/índices, ya sin acción urgente por diseño; 14 SEO; 23 loadtest) y la decisión de producto pendiente del punto 27 (portal cliente, un teléfono = un perfil global).
 
 ---
 
 **Actualizaciones sobre este documento:**
+- *(hoy)* **Puntos 26 y 28, cierre**: las 2 race conditions de Etapa 7 resultaron ya resueltas en código y en producción desde v1055 — el gap real era que las migraciones (`rpc_confirmar_ruta` y la columna `whatsapp_conversaciones.procesando_desde`) nunca se habían guardado en el repo, con comentarios de código citando números de migración equivocados (576 y 577, que son archivos sin relación). Se verificó cada una byte a byte contra `pg_get_functiondef`/`information_schema.columns` en vivo, se backfillearon como `598` y `599`, y se registraron en `schema_migrations_registry`. De paso se confirmó que `npm test` corre limpio en este entorno (1721/1721) y `npm run predeploy` no encuentra hallazgos — quedan cerrados los puntos 26 (salvo el pase manual en navegador, que sigue pendiente) y 28.
 - *(hoy)* Punto 3 (deploy en Vercel de fixes de seguridad) confirmado resuelto vía captura de GitHub Actions — CI en verde, merges recientes a `main`.
 - *(hoy)* Punto 1 (Supabase Free) reclasificado: no es un pendiente sin resolver, es una decisión consciente de posponer el upgrade hasta tener clientes reales. Se mantiene como alerta a reactivar en ese momento, no como bloqueante actual.
 - *(hoy)* Punto 4 (tests E2E): confirmado con corrida completa (296 tests) que los 6 fallos originales están resueltos. Aparecieron 3 fallos nuevos (`pos.spec.js`, 2× `rutas.spec.js`).
@@ -131,3 +156,4 @@
 - *(hoy)* **Punto 22, cierre** — QA responsive confirmado a mano en Android real: pinch-to-zoom libre, teclado virtual no tapa el modal "Confirmar entrega", rotación landscape sin romper layout ni firma. El ítem de zoom automático en inputs es específico de iOS/Safari, ya descartado por código.
 - *(hoy)* **Punto 21, cierre total**: Fase 2 completa de E2E (`smoke-universal.spec.js` + resto de la suite, incluido `chofer/remito.spec.js`) corrida contra Chromium real en el entorno del usuario — todo verde. `PLAN_E2E_RECORTADO` queda cerrado.
 - *(hoy)* **Extra fuera de esta lista**: se detectó y corrigió un bug real en `fn_stock_lista_agrupada` (filtro "Sin stock" de `/admin/stock`) — un `JOIN` (INNER) contra la tabla `stock` escondía del filtro a cualquier producto sin ninguna fila de stock cargada (386 de 452 productos en Distribuidora del Litoral). Fix aplicado directo en Supabase como migración 589 (`LEFT JOIN`), verificado y backfilleado al repo. No estaba en ningún PLAN — se sugiere agregarlo al historial de bugs de datos, junto con el hallazgo de que Distribuidora del Litoral tiene 386 productos sin stock cargado en ningún depósito (pendiente de decisión: ¿cargar stock real de este tenant, o es un tenant de prueba a descartar?).
+- *(hoy)* **Actualización de versión v952 → v1066**: se re-revisaron los 24 puntos anteriores (secciones 🔴/🟠/🟡/🔵) contra el estado actual del repo — ninguno cambió de estado, todos siguen tal cual estaban. Se agregó la sección **🆕 NUEVO** con lo detectado entre v955 y v1066, que no estaba reflejado en este documento: Etapa 7 transversal (2 race conditions sin fix, punto 26), colisión de portal cliente en v1058 (decisión de producto pendiente, punto 27), suite de Vitest sin correr en v1066 por falla de `npm install` (punto 28), y el bloqueo compartido de Clientes en fuga con el punto 10 por el template de Meta sin dar de alta (punto 29). v1065 (migración de tools del asistente) quedó como nota informativa, sin pendiente real.
