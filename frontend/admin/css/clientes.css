@@ -179,13 +179,21 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-left: auto;
-  /* FIX (v953): evita que .filtros-der se fragmente internamente en un
-     ancho "intermedio" y deje el último botón huérfano y desalineado —
-     ver el detalle completo en pedidos.css (mismo patrón, mismo bug). */
-  min-width: max-content;
+  /* FIX v2 (reemplaza min-width:max-content, ver pedidos.css para el
+     detalle completo del bug): ese enfoque evitaba que .filtros-der se
+     fragmentara wrapeando, pero a cambio lo dejaba libre de desbordar
+     el ancho del contenedor padre en vez de ceder espacio — mismo
+     resultado visual roto, causa distinta. Ahora nowrap + el único
+     select flexible (ver flex/min-width abajo) hacen que el select se
+     achique primero; overflow-x:auto es la red de seguridad si ni así
+     entran los botones (Ver catálogo/Exportar/Accesos al portal, etc). */
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.filtros-der::-webkit-scrollbar { display: none; }
+.filtros-der > button { flex-shrink: 0; }
 
 .select-filtro {
   padding: 6px 10px;
@@ -196,6 +204,9 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
   color: var(--color-text);
   cursor: pointer;
   outline: none;
+  flex: 1 1 90px;
+  min-width: 70px;
+  max-width: 160px;
 }
 .select-filtro:focus { border-color: var(--color-primary); }
 
@@ -660,11 +671,10 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 
 /* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  /* min-width:0 pisa el min-width:max-content de la regla base — a este
-     ancho ya no hay lugar para compartir fila con nada más (todo pasa a
-     ancho completo), y sin este reset el min-width:max-content forzaría
-     overflow-x horizontal en mobile. */
-  .filtros-der  { width: 100%; margin-left: 0; min-width: 0; }
+  /* flex-wrap:wrap pisa el nowrap de la regla base — ese nowrap+scroll
+     horizontal es para escritorio; en mobile los botones (Ver catálogo/
+     Exportar/Accesos al portal, etc) necesitan apilarse, no scrollear. */
+  .filtros-der  { width: 100%; margin-left: 0; min-width: 0; flex-wrap: wrap; overflow-x: visible; }
   .form-row     { grid-template-columns: 1fr; }
   .credito-grid { grid-template-columns: 1fr; }
 }
