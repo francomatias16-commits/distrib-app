@@ -111,6 +111,34 @@ const CASOS = [
 
   // notificaciones
   { rol: 'admin', pregunta: 'qué notificaciones tengo configuradas', esperada: 'consultar_preferencias_notificaciones' },
+
+  // reportes / resúmenes de negocio (2026-09-07)
+  { rol: 'dueno', pregunta: 'dame un resumen ejecutivo del negocio', esperada: 'consultar_resumen_ejecutivo' },
+  { rol: 'dueno', pregunta: 'cómo venimos este mes contra el mes pasado', esperada: 'consultar_comparativa_mensual' },
+  { rol: 'admin', pregunta: 'cómo se reparten las ventas por canal', esperada: 'consultar_ventas_por_canal' },
+  { rol: 'contador', pregunta: 'cuánto le compramos a los proveedores este mes', esperada: 'consultar_resumen_compras_proveedor' },
+  { rol: 'contador', pregunta: 'cuánto gastamos este mes', esperada: 'consultar_resumen_gastos_generales' },
+  { rol: 'dueno', pregunta: 'cuál es nuestro patrimonio neto', esperada: 'consultar_estado_financiero_integral' },
+
+  // clientes en fuga (frente 2, 2026-09-07)
+  { rol: 'dueno', pregunta: 'qué clientes dejaron de comprarnos', esperada: 'consultar_clientes_en_fuga' },
+  { rol: 'vendedor', pregunta: 'clientes en fuga que tengo que llamar', esperada: 'consultar_clientes_en_fuga' },
+
+  // stock: valorización y distribución (frente 3, 2026-09-07)
+  { rol: 'dueno', pregunta: 'cuánto vale mi stock total', esperada: 'consultar_stock_valorizacion' },
+  { rol: 'depositero', pregunta: 'valorización de stock por depósito', esperada: 'consultar_stock_valorizacion' },
+  { rol: 'admin', pregunta: 'cómo se distribuye el valor del stock por categoría', esperada: 'consultar_stock_distribucion' },
+
+  // facturación: listado general (frente 4, 2026-09-07)
+  { rol: 'contador', pregunta: 'cuánto facturamos este mes', esperada: 'consultar_resumen_facturacion' },
+  { rol: 'dueno', pregunta: 'cuántas facturas están pendientes con error afip', esperada: 'consultar_resumen_facturacion' },
+  { rol: 'contador', pregunta: 'facturas del mes pasado', esperada: 'listar_facturas' },
+  { rol: 'admin', pregunta: 'facturas de la distribuidora sur', esperada: 'listar_facturas' },
+
+  // pedidos: filtros más allá de "pendientes" (frente 5, 2026-09-07)
+  { rol: 'vendedor', pregunta: 'pedidos entregados esta semana', esperada: 'listar_pedidos_por_filtro' },
+  { rol: 'admin', pregunta: 'historial de pedidos de tal cliente', esperada: 'listar_pedidos_por_filtro' },
+  { rol: 'dueno', pregunta: 'pedidos cancelados del mes', esperada: 'listar_pedidos_por_filtro' },
 ];
 
 describe('cobertura del selector de tools (seleccionarToolsRelevantes)', () => {
