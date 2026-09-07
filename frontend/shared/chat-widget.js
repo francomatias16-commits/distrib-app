@@ -30,6 +30,60 @@
  * pasar por nav.js) no tocan ese flag y siguen viendo el botón de siempre.
  */
 
+// Fase 4 (voz) del plan de asistente por voz: hablar() le pasaba el texto
+// de la respuesta directo a SpeechSynthesisUtterance. Los montos vienen
+// formateados en formato argentino (toLocaleString('es-AR')): punto como
+// separador de miles, coma como separador decimal — ej. "$45.000" o
+// "$1.234,50". La mayoría de los motores de TTS del navegador (incluso
+// con lang="es-AR") interpretan el punto como separador DECIMAL sin
+// importar el locale, así que "$45.000" termina leído como "cuarenta y
+// cinco punto cero cero cero" en vez de "cuarenta y cinco mil". Esta
+// función normaliza esos números (y algunos símbolos que tampoco se leen
+// bien) ANTES de mandar el texto a hablar(). Declarada a nivel de módulo
+// (fuera del IIFE de abajo) para poder testearla con cargarScripts() —
+// ver tests/frontend/chat-widget-voz.test.js.
+function normalizarNumerosParaVoz(texto) {
+  if (!texto) return texto;
+  let resultado = texto;
+
+  // 1) Montos en pesos: "$1.234,50" / "$45.000" / "$450" → sin separador
+  //    de miles, coma decimal como "con N centavos", y la palabra "pesos"
+  //    en vez del símbolo (varias voces no leen "$", o lo leen "dólar").
+  resultado = resultado.replace(
+    /\$\s?(\d{1,3}(?:\.\d{3})*)(?:,(\d{1,2}))?/g,
+    (_match, entero, centavos) => {
+      const enteroPlano = entero.replace(/\./g, '');
+      return centavos
+        ? `${enteroPlano} pesos con ${centavos} centavos`
+        : `${enteroPlano} pesos`;
+    }
+  );
+
+  // 2) Cualquier otro número con separador de miles que haya quedado sin
+  //    el símbolo $ (ej. cantidades de stock) — mismo problema de
+  //    lectura del punto, sin agregar "pesos". Requiere al menos un
+  //    grupo de miles (4+ dígitos) para no tocar cantidades chicas
+  //    ("3 x Coca Cola") que ya se leen bien tal cual.
+  resultado = resultado.replace(
+    /\b(\d{1,3}(?:\.\d{3})+)(?:,(\d{1,2}))?\b/g,
+    (_match, entero, decimales) => {
+      const enteroPlano = entero.replace(/\./g, '');
+      return decimales ? `${enteroPlano} coma ${decimales}` : enteroPlano;
+    }
+  );
+
+  // 3) Porcentajes: "10%" → "10 por ciento" ("%" muchas voces lo saltean
+  //    directo, o lo cortan como "por cien").
+  resultado = resultado.replace(/(\d+)\s?%/g, '$1 por ciento');
+
+  // 4) "×" como separador cantidad-producto en el detalle de items (ej.
+  //    "3 × Coca Cola 500ml") no es una multiplicación real — sacarlo
+  //    deja "3 Coca Cola 500ml", más parecido a como se diría en voz.
+  resultado = resultado.replace(/\s×\s/g, ' ');
+
+  return resultado;
+}
+
 (function () {
   'use strict';
 
@@ -157,7 +211,7 @@
   // diseño y con botones Confirmar/Cancelar debajo (ver chat-widget.css).
   // onResolverAccion(id, confirmar) lo define iniciar() más abajo, donde sí
   // tiene a mano el cliente de supabase y el conversacionId de la sesión.
-  function agregarMensaje(cont, { texto, propio, fuentes, accionPendiente, onResolverAccion, imagenPreviewUrl }) {
+  function agregarMensaje(cont, { texto, propio, fuentes, accionPendiente, onResolverAccion, opciones, onElegirOpcion, imagenPreviewUrl }) {
     const fila = document.createElement('div');
     fila.className = 'chat-asistente-mensaje' + (propio ? ' chat-asistente-mensaje--propio' : '');
 
@@ -226,6 +280,35 @@
       acciones.appendChild(btnConfirmar);
       acciones.appendChild(btnCancelar);
       fila.appendChild(acciones);
+    }
+
+    // Fase 3 del plan de robustez conversacional: `opciones` ({id,label})
+    // viene cuando una tool de búsqueda (cliente/producto/proveedor/etc.)
+    // encontró más de un candidato parecido y no pudo elegir solo (ver
+    // ambiguo() en lib/asistente-tools/_respuestas.js y
+    // extraerOpcionesAmbiguas() en lib/handlers/asistente.js). En vez de
+    // obligar al usuario a retipear/redictar el nombre completo de una
+    // opción (con el riesgo de transcribirlo mal otra vez), se pinta un
+    // botón por opción — al tocarlo se manda el `label` EXACTO como el
+    // próximo mensaje, igual que si el usuario lo hubiera escrito tal cual.
+    if (Array.isArray(opciones) && opciones.length && typeof onElegirOpcion === 'function') {
+      const listaOpciones = document.createElement('div');
+      listaOpciones.className = 'chat-asistente-opciones-lista';
+
+      const botones = opciones.map((opcion) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-asistente-opcion';
+        btn.textContent = opcion.label;
+        btn.addEventListener('click', () => {
+          botones.forEach((b) => { b.disabled = true; });
+          onElegirOpcion(opcion.label);
+          listaOpciones.remove(); // ya se eligió: no dejar botones reusables
+        });
+        return btn;
+      });
+      botones.forEach((btn) => listaOpciones.appendChild(btn));
+      fila.appendChild(listaOpciones);
     }
 
     cont.appendChild(fila);
@@ -669,7 +752,7 @@
     function hablar(texto, cb) {
       if (!ttsDisponible) { if (cb) cb(); return; }
       window.speechSynthesis.cancel(); // corta cualquier lectura anterior que siguiera sonando
-      const utterance = new SpeechSynthesisUtterance(texto);
+      const utterance = new SpeechSynthesisUtterance(normalizarNumerosParaVoz(texto));
       utterance.lang = 'es-AR';
       const voces = window.speechSynthesis.getVoices();
       const vozEs = voces.find((v) => v.lang === 'es-AR') || voces.find((v) => v.lang && v.lang.startsWith('es'));
@@ -714,6 +797,8 @@
         fuentes: data.articulos_consultados,
         accionPendiente: data.accion_pendiente,
         onResolverAccion: resolverAccionPendiente,
+        opciones: data.opciones,
+        onElegirOpcion: (label) => enviarMensajeUsuario(label, null),
       });
 
       if (!manosLibres) return;
@@ -932,37 +1017,20 @@
       }
     });
 
-    form.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
-
-      if (grabando) {
-        // Tocaste enviar mientras seguías dictando: es tu forma explícita
-        // de decir "ya terminé, mandalo" sin esperar los 5-6s de silencio.
-        // reconocimiento.stop() dispara 'end', que toma lo transcrito
-        // hasta ahora y llama a form.requestSubmit() por su cuenta.
-        reconocimiento.stop();
-        return;
-      }
-
-      const pregunta = input.value.trim();
-      const adjunto = adjuntoPendiente; // se guarda antes de limpiar el estado
-      // Ahora se puede enviar solo con una imagen (sin texto) — antes
-      // hacía falta sí o sí una pregunta.
+    // Envío real de un mensaje del usuario al asistente — factorizado del
+    // submit handler para que también lo pueda disparar el click en un
+    // botón de "opciones" (ver agregarMensaje/opciones más arriba, Fase 3
+    // del plan de robustez conversacional): un click ahí manda el `label`
+    // exacto de la opción elegida como si el usuario lo hubiera tipeado,
+    // con el mismo flujo de burbuja propia + typing + respuesta que un
+    // envío normal por el form.
+    async function enviarMensajeUsuario(pregunta, adjunto) {
       if ((!pregunta && !adjunto) || enviando) return;
 
       enviando = true;
       btnEnviar.disabled = true;
       if (btnMic) btnMic.disabled = true;
-      input.value = '';
-      autoAjustarAltoInput(); // vuelve el textarea a su alto mínimo
-      // No se usa limpiarAdjunto() acá: esa función revoca el previewUrl,
-      // y todavía lo necesitamos para la miniatura de la burbuja propia
-      // que se agrega a continuación. Solo se resetea el chip/estado.
-      adjuntoPendiente = null;
-      cajaAdjunto.hidden = true;
-      miniaturaAdjunto.src = '';
-      nombreAdjunto.textContent = '';
-      inputArchivo.value = '';
+
       agregarMensaje(cont, {
         texto: pregunta || '(imagen adjunta)',
         propio: true,
@@ -986,6 +1054,38 @@
         if (btnMic) btnMic.disabled = false;
         input.focus();
       }
+    }
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+
+      if (grabando) {
+        // Tocaste enviar mientras seguías dictando: es tu forma explícita
+        // de decir "ya terminé, mandalo" sin esperar los 5-6s de silencio.
+        // reconocimiento.stop() dispara 'end', que toma lo transcrito
+        // hasta ahora y llama a form.requestSubmit() por su cuenta.
+        reconocimiento.stop();
+        return;
+      }
+
+      const pregunta = input.value.trim();
+      const adjunto = adjuntoPendiente; // se guarda antes de limpiar el estado
+      // Ahora se puede enviar solo con una imagen (sin texto) — antes
+      // hacía falta sí o sí una pregunta.
+      if ((!pregunta && !adjunto) || enviando) return;
+
+      input.value = '';
+      autoAjustarAltoInput(); // vuelve el textarea a su alto mínimo
+      // No se usa limpiarAdjunto() acá: esa función revoca el previewUrl,
+      // y todavía lo necesitamos para la miniatura de la burbuja propia
+      // que arma enviarMensajeUsuario(). Solo se resetea el chip/estado.
+      adjuntoPendiente = null;
+      cajaAdjunto.hidden = true;
+      miniaturaAdjunto.src = '';
+      nombreAdjunto.textContent = '';
+      inputArchivo.value = '';
+
+      await enviarMensajeUsuario(pregunta, adjunto);
     });
   }
 

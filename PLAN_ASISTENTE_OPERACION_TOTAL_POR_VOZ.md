@@ -103,13 +103,13 @@ un gap pendiente (ver §4).
 | automatizacion.html | automatizacion.js + reglas-automatizacion.js | ejecutar motor automatización + listar/crear/editar regla de automatización | 🟢 (es una sola página física — la sección "reglas personalizadas" de `automatizacion.html` es la que llamábamos "reglas-automatizacion.html" en filas anteriores de esta tabla; ambas partes ya tienen tool) |
 | **productos.html** | *(RPC directa, sin handler)* | crear_producto, editar_producto | 🟢 (ver limitación de reactivación en §5, ítem 2) |
 | **facturacion.html** | facturas.js (parcial) | listar por vencer (proveedor), `emitir_factura`, `anular_factura` | 🟢 |
-| **cta-cte.html / cobranzas.html** | *(RPC directa)* | `listar_cobros`, `registrar_cobro_cliente` (sobre `registrar_cobro_completo`) | 🟢 (falta prueba funcional contra datos reales, ver §6) |
-| **compras.html** | *(RPC directa)* | listar órdenes de compra, `crear_orden_compra_asistente`, `recepcionar_orden_compra_asistente`, `ajustar_stock_asistente`, `registrar_conteo_stock_asistente` | 🟢 (falta prueba funcional contra datos reales, ver §6) |
+| **cta-cte.html / cobranzas.html** | *(RPC directa)* | `listar_cobros`, `registrar_cobro_cliente` (sobre `registrar_cobro_completo`) | 🟢 (prueba funcional OK, ver §5) |
+| **compras.html** | *(RPC directa)* | listar órdenes de compra, `crear_orden_compra_asistente`, `recepcionar_orden_compra_asistente`, `ajustar_stock_asistente`, `registrar_conteo_stock_asistente` | 🟢 (prueba funcional OK, ver §5) |
 | **reglas-precio.html** | reglas-precio.js | comparar precios proveedor-producto, `crear_regla_precio_asistente`, `editar_regla_precio_asistente` | 🟢 |
 | pos.html | pos.js | diagnosticar/anular venta POS | 🟡 registrar venta manual por voz excluido a propósito — ver §4 |
 | fidelizacion.html | fidelizacion.js | canjear recompensa, `crear_recompensa_asistente`, `editar_recompensa_asistente` | 🟢 |
 | devoluciones.html | — | registrar devolución pedido | 🟢 |
-| liquidacion.html | stock.js (`_svc=liquidacion`) | `consultar_ofertas_liquidacion_asistente`, `consultar_reglas_liquidacion_asistente`, `generar_ofertas_liquidacion_asistente`, `guardar_reglas_liquidacion_asistente` | 🟢 (Fase D, ver CHANGELOG_v716; falta prueba funcional contra datos reales, ver §6) |
+| liquidacion.html | stock.js (`_svc=liquidacion`) | `consultar_ofertas_liquidacion_asistente`, `consultar_reglas_liquidacion_asistente`, `generar_ofertas_liquidacion_asistente`, `guardar_reglas_liquidacion_asistente` | 🟢 (Fase D, ver CHANGELOG_v716; prueba funcional OK, ver §5) |
 | rentabilidad-*.html, reportes-*.html | varios | — | 🟡 son reportes; evaluar tools de "resumen ejecutivo" (baja prioridad, ver §5) |
 | saas-billing.html, mercadopago-config.html | saas.js | — | 🔴 fuera de alcance a propósito (ver §4, exclusiones) |
 | setup.html / setup-wizard.html | setup.js | — | 🔴 fuera de alcance a propósito (alta inicial, no operación diaria) |
@@ -222,9 +222,10 @@ Orden sugerido por frecuencia de uso real, no por facilidad técnica:
 
 1. ✅ **`registrar_cobro_cliente` (sobre `registrar_cobro_completo`)** —
    cableada. Ver `CHANGELOG_v709_asistente_registrar_cobro_cliente_por_voz.md`.
-   Sintaxis verificada; **falta la prueba funcional contra datos reales**
-   (sin credenciales de Supabase en este entorno) antes de considerarla
-   lista para producción — ver checklist de §6.
+   Sintaxis verificada; **prueba funcional contra datos reales OK**
+   (2026-09-06, con acceso real a Supabase vía MCP): `registrar_cobro_completo`
+   ejecutado en transacción con `ROLLBACK` (cobro de $1.500 en efectivo,
+   sin persistir), respuesta `{ok:true, cobro_id, nro}` correcta.
 2. ✅ **CRUD de productos** — `crear_producto` y `editar_producto`.
    Ver `CHANGELOG_v710_asistente_crud_productos_por_voz.md`. Nota
    importante que cambia el diagnóstico original de este ítem: no se
@@ -238,7 +239,9 @@ Orden sugerido por frecuencia de uso real, no por facilidad técnica:
    **Limitación conocida y documentada:** reactivar un producto YA
    inactivo no se puede resolver por voz (la búsqueda difusa de
    productos solo indexa activos) — sigue siendo manual desde el panel.
-   Falta la prueba funcional (ver §6).
+   Prueba funcional OK (2026-09-06, ROLLBACK): alta de producto + fila de
+   stock inicial, y edición de precio/costo/stock_mínimo sobre un
+   producto real — ambas verificadas contra Supabase sin persistir.
 3. ✅ **Emitir / anular factura** — `emitir_factura` y `anular_factura`
    ya existían en el archivo desde antes de escribir este plan (no en
    `CHANGELOG_v70x`, son más viejas) — el diagnóstico original de este
@@ -251,9 +254,12 @@ Orden sugerido por frecuencia de uso real, no por facilidad técnica:
    `registrar_conteo_stock_asistente`) y **orden de compra**
    (`crear_orden_compra_asistente`, `recepcionar_orden_compra_asistente`) —
    cierre de `compras.html`. Ver
-   `CHANGELOG_v713_asistente_stock_y_ordenes_compra_por_voz.md`. Sintaxis
-   verificada; falta la prueba funcional contra datos reales (sin
-   credenciales de Supabase en este entorno) — ver checklist de §6.
+   `CHANGELOG_v713_asistente_stock_y_ordenes_compra_por_voz.md`. Prueba
+   funcional contra datos reales OK (2026-09-06, todo en transacciones con
+   `ROLLBACK`): `ajustar_stock` (+10), `registrar_conteo_stock` (conteo
+   físico de 25), y el flujo completo `crear_orden_compra` →
+   `recepcionar_orden_compra` (20 unidades a $550 + IVA, total recibido
+   $13.310, coherente con el fix de IVA de la migración 453).
 
 ### Fase B — Brechas de cobertura simples (🟡 de §2) — ✅ cerrada
 Extender tools existentes con las operaciones de escritura que faltaban:
@@ -307,8 +313,15 @@ restringida a `['dueno','admin']`, calcada del chequeo explícito que hace
 el handler para `generar` y `guardar-reglas` (vendedor/depositero pueden
 ver pero no disparar la generación ni tocar reglas).
 
-Falta la prueba funcional contra datos reales (sin credenciales de
-Supabase en este entorno) — ver checklist de §6.
+Prueba funcional contra datos reales OK (2026-09-06): lectura real de
+`consultar_ofertas_liquidacion_asistente` (0 ofertas activas hoy) y
+`consultar_reglas_liquidacion_asistente` (reglas vigentes de la
+empresa); `generar_ofertas_liquidacion_asistente` corrida en
+`p_dry_run:true` y en modo real dentro de una transacción con
+`ROLLBACK` (sin lotes por vencer hoy, 0 creadas/desactivadas en ambos
+modos — comportamiento correcto); `guardar_reglas_liquidacion_asistente`
+verificada con un `UPDATE` de prueba sobre `reglas_liquidacion`, también
+con `ROLLBACK`.
 
 ### Fase C — Evaluación caso por caso — ✅ cerrada
 Los dos casos dudosos se evaluaron contra el código real de sus handlers
@@ -345,9 +358,17 @@ Antes de dar el plan por cerrado:
       qué no conviene (POS manual) o no se puede (migración) resolverlos
       por voz. El plan ya no tiene ninguna fila de la tabla de §2 ni
       ningún ítem de fase sin una decisión explícita tomada.
+- [x] Nivel RPC/base de datos: las 5 RPCs nuevas de Fase A y D
+      (`registrar_cobro_completo`, alta/edición de producto,
+      `ajustar_stock`, `registrar_conteo_stock`,
+      `crear_orden_compra`+`recepcionar_orden_compra`,
+      `generar_ofertas_liquidacion`, reglas de liquidación) probadas
+      contra datos reales con `ROLLBACK` (2026-09-06, ver §5 de cada fase).
 - [ ] Cada tool de escritura nueva tiene `requiereConfirmacion: true` y
-      un `resumen()` probado con al menos un caso real por voz (dictado,
-      no solo texto tipeado) antes de pasar a producción.
+      un `resumen()` probado con al menos un caso real **por voz
+      dictada** (no solo a nivel RPC) antes de pasar a producción —
+      esto sigue pendiente: requiere una sesión real con micrófono
+      contra el frontend desplegado, no verificable desde este entorno.
 - [ ] Se corrió al menos una sesión de prueba end-to-end por fase: usuario
       dicta el pedido, el asistente arma el resumen correcto, el usuario
       confirma, la acción queda idéntica a como habría quedado hecha a
