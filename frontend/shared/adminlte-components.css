@@ -817,11 +817,23 @@ body[data-ws] .topbar-title::before {
 
   /* Campana de notificaciones: al envolver .topbar-right en mobile, la
      campana (último elemento del flex) quedaba "huérfana" en su propia
-     fila, descolgada del resto del contenido. Se ancla en la esquina
-     superior derecha del topbar (que es position:sticky, sirve de
-     referencia) para que siempre quede a la altura del título/logo,
-     prolija y alineada, sin depender del wrap de los demás elementos. */
-  .topbar-notif-wrap { position: absolute; top: 10px; right: 16px; }
+     fila, descolgada del resto del contenido. Antes se anclaba con
+     position:absolute a la esquina superior derecha del .topbar (que es
+     position:sticky, servía de referencia).
+     FIX (desalineamiento vs. ☰ hamburguesa): ese anclaje a .topbar
+     dependía de dos cosas que varían por pantalla — el padding del
+     <body> (dashboard.html tiene padding propio de 8px que corre el
+     .topbar, y con él la campana, 8px hacia abajo) y el offset "top"
+     elegido por separado del de .mnav-fab (nav.css), que en cambio es
+     position:fixed al viewport e ignora ese padding. Resultado: la
+     campana quedaba visualmente más abajo que el ☰ en dashboard.html, y
+     con un desfasaje fino de unos px en el resto de las pantallas.
+     Ahora .topbar-notif-wrap pasa a position:fixed, igual que
+     .mnav-fab, ancladas ambas al viewport con el mismo sistema de
+     referencia. El top (14px) está calculado para que el centro
+     vertical del ícono de 36px coincida exactamente con el centro del
+     FAB de 40px (top:12px → centro en 32px ⇒ 32 − 36/2 = 14px). */
+  .topbar-notif-wrap { position: fixed; top: 14px; right: 16px; z-index: var(--z-mnav-toggle); }
   /* Deja lugar para no tapar el resto de .topbar-right al envolver */
   .topbar-right { padding-right: 38px; }
 

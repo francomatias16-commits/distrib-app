@@ -183,6 +183,20 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
 
 .select-filtro:focus { border-color: var(--color-primary); }
 
+/* FIX (botón Excel colgado en fila propia en escritorio): los <select>
+   de filtros-der no tenían ancho fijo, así que su ancho lo daba el texto
+   de la opción más larga ("Todos los vendedores", etc). Sumado a los 2
+   inputs de fecha + $ mínimo + Limpiar + Excel, el ancho total sin
+   envolver rondaba ~1200px (ver comentario de #filtros-der más arriba) —
+   en escritorios de ~1366-1600px de ancho útil eso ya no entraba en una
+   sola fila y el último hijo (Excel) quedaba solo. Se limita el ancho de
+   selects e inputs de fecha a un máximo fijo (con ellipsis en el select,
+   soportado por Chrome/Edge/Firefox en el control cerrado) para que los
+   9 hijos de #filtros-der entren en una fila a los anchos de escritorio
+   habituales, sin tocar el layout mobile (que ya colapsa a columna). */
+.select-filtro { max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#filtro-fecha-desde, #filtro-fecha-hasta { max-width: 132px; }
+
 .btn-limpiar {
   padding: 6px 14px;
   border: 1px solid rgba(0,0,0,.07);
