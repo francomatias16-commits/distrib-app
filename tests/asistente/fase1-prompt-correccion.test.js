@@ -31,6 +31,7 @@ vi.mock('../../lib/repos/asistente.js', () => ({
   insertarMensajes: vi.fn(),
   tocarConversacion: vi.fn(),
   buscarArticulosAsistenteRpc: vi.fn(),
+  buscarToolsAsistenteRpc: vi.fn(), // Frente 2 (PLAN_OPTIMIZACION_ASISTENTE_2026.md)
   insertarUsoAsistente: vi.fn(),
   obtenerAccionPendienteVigente: repoMock.obtenerAccionPendienteVigente,
 }));
