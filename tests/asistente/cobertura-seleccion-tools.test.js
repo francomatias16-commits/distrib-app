@@ -33,7 +33,7 @@
 // 9 repreguntas cortas más a las 3 que ya existían.
 
 import { describe, it, expect } from 'vitest';
-import { TOOLS, seleccionarToolsRelevantes } from '../../lib/asistente-tools.js';
+import { TOOLS, seleccionarToolsRelevantes, esquemaParaOpenAI } from '../../lib/asistente-tools.js';
 
 function toolsDelRol(rol) {
   return TOOLS.filter((t) => !t.roles || t.roles.includes(rol));
@@ -375,4 +375,178 @@ describe('repreguntas cortas — requieren el contexto de la pregunta anterior',
       expect(elegidas).toContain(esperada);
     },
   );
+});
+
+// ────────────────────────────────────────────────────────────────────────
+// Frente 3 de PLAN_OPTIMIZACION_ASISTENTE_2026.md (logging de fallas de
+// selección): seleccionarToolsRelevantes() acepta un 3er parámetro
+// opcional `metaOut` que muta con { cayoEnNucleoFallback,
+// cantidadToolsConMatch } — lib/handlers/asistente.js lo usa para
+// registrar esos datos en asistente_uso. Se prueba acá, no en un test de
+// handler, porque toda la lógica de scoring vive en esta función pura.
+// ────────────────────────────────────────────────────────────────────────
+describe('metaOut de seleccionarToolsRelevantes() — Frente 3 (logging)', () => {
+  it('pregunta sin ningún match: metaOut marca cayoEnNucleoFallback=true y cantidadToolsConMatch=0', () => {
+    const meta = {};
+    const elegidas = seleccionarToolsRelevantes(toolsDelRol('dueno'), 'hola, ¿cómo estás?', meta);
+    expect(meta.cayoEnNucleoFallback).toBe(true);
+    expect(meta.cantidadToolsConMatch).toBe(0);
+    expect(elegidas.length).toBeGreaterThan(0); // igual devuelve el set núcleo, no vacío
+  });
+
+  it('pregunta con match real: metaOut marca cayoEnNucleoFallback=false y cuenta los matches', () => {
+    const meta = {};
+    seleccionarToolsRelevantes(toolsDelRol('dueno'), 'cuánto vale mi stock total', meta);
+    expect(meta.cayoEnNucleoFallback).toBe(false);
+    expect(meta.cantidadToolsConMatch).toBeGreaterThan(0);
+  });
+
+  it('sin pasar metaOut, no rompe nada (parámetro opcional)', () => {
+    expect(() => seleccionarToolsRelevantes(toolsDelRol('dueno'), 'qué lotes vencen esta semana')).not.toThrow();
+  });
+
+  it('esquemaParaOpenAI propaga metaOut a seleccionarToolsRelevantes() sin cambiar su forma de retorno', () => {
+    const meta = {};
+    const esquema = esquemaParaOpenAI('dueno', 'hola', meta);
+    expect(meta.cayoEnNucleoFallback).toBe(true);
+    expect(Array.isArray(esquema)).toBe(true);
+    expect(esquema[0]).toHaveProperty('type', 'function');
+  });
+
+  it('metodoSeleccion queda en "keywords" cuando matcheó por palabra clave', () => {
+    const meta = {};
+    seleccionarToolsRelevantes(toolsDelRol('dueno'), 'cuánto vale mi stock total', meta);
+    expect(meta.metodoSeleccion).toBe('keywords');
+  });
+
+  it('metodoSeleccion queda en "nucleo_fallback" cuando no matcheó nada', () => {
+    const meta = {};
+    seleccionarToolsRelevantes(toolsDelRol('dueno'), 'hola, ¿cómo estás?', meta);
+    expect(meta.metodoSeleccion).toBe('nucleo_fallback');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────
+// Frente 2 de PLAN_OPTIMIZACION_ASISTENTE_2026.md (selección semántica):
+// seleccionarToolsRelevantes()/esquemaParaOpenAI() aceptan un 4to
+// parámetro opcional `sugerenciasSemanticas` — un array de tool_nombre ya
+// ordenado por similitud (la salida cruda, sin el objeto {similarity}, de
+// buscar_tools_asistente_rpc()). Estos tests documentan PRIMERO los casos
+// de sinónimo que el matcheo por keyword no resuelve (mismo criterio que
+// pide el propio plan: "documentarlos ANTES de arreglar"), y después
+// confirman que, pasando la sugerencia semántica que en producción vendría
+// de la RPC, el caso SÍ se resuelve. No se llama a Gemini ni a Supabase
+// acá: `sugerenciasSemanticas` se simula a mano, la función que la
+// consume es pura.
+// ────────────────────────────────────────────────────────────────────────
+describe('sinónimos que el matcheo por keyword no resuelve (documentado ANTES del Frente 2)', () => {
+  const CASOS_SINONIMO = [
+    // "moroso"/"morosos" no aparece en ningún lado de
+    // listar_clientes_por_deuda (ni nombre ni description) — ver
+    // lib/asistente-tools/clientes.js. Keyword no lo encuentra.
+    // OJO: tiene que ser la palabra sola ("morosos"), sin "clientes" —
+    // "clientes morosos" SÍ matchea igual por keyword, pero por la
+    // palabra "clientes" (aparece literal en el nombre de la tool,
+    // listar_CLIENTES_por_deuda), no por ningún sinónimo de "moroso". Eso
+    // haría que el caso "documentara" un gap que en realidad no existe.
+    { rol: 'dueno', pregunta: 'morosos', esperada: 'listar_clientes_por_deuda' },
+  ];
+
+  it.each(CASOS_SINONIMO)(
+    'rol=$rol · "$pregunta" → SIN sugerencia semántica, NO incluye $esperada (matchea por keyword, sin sinónimo)',
+    ({ rol, pregunta, esperada }) => {
+      const elegidas = nombresElegidos(rol, pregunta);
+      expect(elegidas).not.toContain(esperada);
+    },
+  );
+
+  it.each(CASOS_SINONIMO)(
+    'rol=$rol · "$pregunta" → CON sugerencia semántica (como la traería la RPC), SÍ incluye $esperada',
+    ({ rol, pregunta, esperada }) => {
+      const elegidas = seleccionarToolsRelevantes(toolsDelRol(rol), pregunta, undefined, [esperada]).map((t) => t.name);
+      expect(elegidas).toContain(esperada);
+    },
+  );
+});
+
+describe('sugerenciasSemanticas de seleccionarToolsRelevantes() — Frente 2', () => {
+  it('con sugerencia semántica válida para el rol: la usa directamente, sin evaluar keywords, metodoSeleccion="semantica"', () => {
+    const meta = {};
+    // Pregunta irrelevante a propósito (no matchea nada por keyword) para
+    // dejar en claro que lo que decide acá es la sugerencia, no el texto.
+    const elegidas = seleccionarToolsRelevantes(
+      toolsDelRol('dueno'),
+      'xyz sin relación alguna',
+      meta,
+      ['listar_clientes_por_deuda', 'consultar_stock_critico'],
+    );
+    expect(elegidas.map((t) => t.name)).toEqual(['listar_clientes_por_deuda', 'consultar_stock_critico']);
+    expect(meta.cayoEnNucleoFallback).toBe(false);
+    expect(meta.cantidadToolsConMatch).toBe(2);
+    expect(meta.metodoSeleccion).toBe('semantica');
+  });
+
+  it('respeta el orden por similitud recibido (no reordena)', () => {
+    const elegidas = seleccionarToolsRelevantes(
+      toolsDelRol('dueno'),
+      'algo',
+      undefined,
+      ['consultar_stock_critico', 'listar_clientes_por_deuda'],
+    ).map((t) => t.name);
+    expect(elegidas).toEqual(['consultar_stock_critico', 'listar_clientes_por_deuda']);
+  });
+
+  it('sugerencia con una tool que el rol actual no puede ver: se descarta esa entrada, se queda con el resto', () => {
+    // consultar_situacion_bcra_cliente no está en los roles de 'vendedor'
+    // (ver clientes.js) — no debería colarse aunque la RPC la sugiera.
+    const elegidas = seleccionarToolsRelevantes(
+      toolsDelRol('vendedor'),
+      'algo',
+      undefined,
+      ['consultar_situacion_bcra_cliente', 'consultar_bloqueo_cliente'],
+    ).map((t) => t.name);
+    expect(elegidas).not.toContain('consultar_situacion_bcra_cliente');
+    expect(elegidas).toContain('consultar_bloqueo_cliente');
+  });
+
+  it('sugerencia semántica sin NINGUNA tool válida para el rol: cae al matcheo por keyword (no rompe, no devuelve vacío si hay match)', () => {
+    const meta = {};
+    // 'depositero' (no 'vendedor'): consultar_stock_critico tiene
+    // roles ['dueno','admin','depositero'] — con 'vendedor' la tool ni
+    // siquiera está en toolsDelRol, así que nunca podría aparecer pase
+    // lo que pase con la selección, y el test no probaría nada real.
+    const elegidas = seleccionarToolsRelevantes(
+      toolsDelRol('depositero'),
+      'qué productos tienen stock crítico',
+      meta,
+      ['consultar_situacion_bcra_cliente'], // única sugerencia, y no es del rol
+    ).map((t) => t.name);
+    expect(elegidas).toContain('consultar_stock_critico'); // lo resolvió el keyword, no la semántica
+    expect(meta.metodoSeleccion).toBe('keywords');
+  });
+
+  it('sugerenciasSemanticas vacío ([]) : se comporta como si no se hubiera pasado, usa keyword', () => {
+    const meta = {};
+    seleccionarToolsRelevantes(toolsDelRol('dueno'), 'cuánto vale mi stock total', meta, []);
+    expect(meta.metodoSeleccion).toBe('keywords');
+  });
+
+  it('sugerenciasSemanticas null/undefined: no rompe, mismo comportamiento que antes del Frente 2', () => {
+    expect(() => seleccionarToolsRelevantes(toolsDelRol('dueno'), 'qué lotes vencen esta semana', undefined, null)).not.toThrow();
+  });
+
+  it('esquemaParaOpenAI propaga sugerenciasSemanticas (4to parámetro) sin cambiar la forma del esquema', () => {
+    const meta = {};
+    const esquema = esquemaParaOpenAI('dueno', 'algo sin relación', meta, ['listar_clientes_por_deuda']);
+    expect(meta.metodoSeleccion).toBe('semantica');
+    expect(esquema.some((f) => f.function.name === 'listar_clientes_por_deuda')).toBe(true);
+  });
+
+  it('respeta el tope TOOLS_MAX_PROVEEDOR_TPM_CHICO también en la rama semántica', () => {
+    const nombresDeSobra = toolsDelRol('dueno').map((t) => t.name); // todas, de sobra para pasar el tope
+    const meta = {};
+    const elegidas = seleccionarToolsRelevantes(toolsDelRol('dueno'), 'algo', meta, nombresDeSobra);
+    expect(elegidas.length).toBeLessThanOrEqual(20);
+    expect(meta.cantidadToolsConMatch).toBeLessThanOrEqual(20);
+  });
 });

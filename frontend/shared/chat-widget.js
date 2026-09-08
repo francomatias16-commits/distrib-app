@@ -123,6 +123,40 @@ function normalizarNumerosParaVoz(texto) {
   const IMAGEN_MIME_TYPES_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
   const MAX_IMAGEN_BASE64_CHARS = 5_600_000;
 
+  // Frente 5 (PLAN_OPTIMIZACION_ASISTENTE_2026.md): mismos formatos de
+  // documento que DOCUMENTO_MIME_TYPES_PERMITIDOS en
+  // lib/handlers/asistente.js. El navegador no siempre setea el MIME
+  // correcto para .docx/.xlsx/.csv (depende del SO), así que además de
+  // chequear `archivo.type` se resuelve por extensión como respaldo — la
+  // validación real y autoritativa sigue siendo la del servidor
+  // (validarArchivoPorContenido, por contenido real).
+  const MIME_DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const MIME_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const DOCUMENTO_MIME_TYPES_PERMITIDOS = ['application/pdf', MIME_DOCX, MIME_XLSX, 'text/csv'];
+  const MAX_DOCUMENTO_BASE64_CHARS = 14_000_000;
+  const EXTENSION_A_MIME = {
+    '.pdf': 'application/pdf',
+    '.docx': MIME_DOCX,
+    '.xlsx': MIME_XLSX,
+    '.csv': 'text/csv',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.webp': 'image/webp',
+  };
+
+  // Devuelve el mime "efectivo" a declarar al backend: el que reportó el
+  // navegador si es uno de los soportados, o el que corresponde a la
+  // extensión del archivo como respaldo (ej. Windows a veces manda '' o
+  // 'application/octet-stream' para .docx/.csv). Null si no matchea nada.
+  function resolverMimeDeArchivo(archivo) {
+    const tipos = [...IMAGEN_MIME_TYPES_PERMITIDOS, ...DOCUMENTO_MIME_TYPES_PERMITIDOS];
+    if (archivo.type && tipos.indexOf(archivo.type) !== -1) return archivo.type;
+    const nombre = (archivo.name || '').toLowerCase();
+    const ext = nombre.slice(nombre.lastIndexOf('.'));
+    return EXTENSION_A_MIME[ext] || null;
+  }
+
   // Cada portal (admin/cliente/chofer) ahora persiste su sesión bajo un
   // storageKey propio (ver auth.js / login.html de cada portal) para que
   // abrir un portal ajeno en otra pestaña del mismo origen no pise la
@@ -176,21 +210,21 @@ function normalizarNumerosParaVoz(texto) {
       '</div>' +
       '<div class="chat-asistente-mensajes"></div>' +
       '<div class="chat-asistente-adjunto" hidden>' +
-      '  <img class="chat-asistente-adjunto-miniatura" alt="Imagen adjunta" />' +
+      '  <img class="chat-asistente-adjunto-miniatura" alt="Vista previa del adjunto" />' +
       '  <span class="chat-asistente-adjunto-nombre"></span>' +
-      '  <button type="button" class="chat-asistente-adjunto-quitar" aria-label="Quitar imagen adjunta">&times;</button>' +
+      '  <button type="button" class="chat-asistente-adjunto-quitar" aria-label="Quitar adjunto">&times;</button>' +
       '</div>' +
       '<form class="chat-asistente-form">' +
-      '  <button type="button" class="chat-asistente-adjuntar" aria-label="Adjuntar imagen (foto o captura de un pedido/lista)">' +
+      '  <button type="button" class="chat-asistente-adjuntar" aria-label="Adjuntar imagen, PDF, Word o Excel">' +
       '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>' +
       '  </button>' +
-      '  <input type="file" class="chat-asistente-adjuntar-input" accept="image/jpeg,image/png,image/webp" hidden />' +
+      '  <input type="file" class="chat-asistente-adjuntar-input" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv,text/csv" hidden />' +
       // textarea en vez de input de una línea: se puede pegar texto largo
       // (lista de stock, pedido dictado) y crece hasta un máximo (ver CSS).
       // Enter envía (como antes); Shift+Enter inserta un salto de línea
       // (ver el keydown que se agrega más abajo, junto al resto de los
       // listeners del form).
-      '  <textarea class="chat-asistente-input" placeholder="Escribí tu consulta, pegá un texto largo o adjuntá una imagen..." maxlength="' + MAX_LARGO_PREGUNTA + '" rows="1"></textarea>' +
+      '  <textarea class="chat-asistente-input" placeholder="Escribí tu consulta, pegá un texto largo o adjuntá una imagen, PDF, Word o Excel..." maxlength="' + MAX_LARGO_PREGUNTA + '" rows="1"></textarea>' +
       '  <button type="button" class="chat-asistente-mic" aria-label="Dictar por voz" hidden>' +
       '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>' +
       '  </button>' +
@@ -331,7 +365,7 @@ function normalizarNumerosParaVoz(texto) {
 
     const reqBody = { pregunta };
     if (conversacionId) reqBody.conversacion_id = conversacionId;
-    // adjunto: { mimeType, base64 } — ver mostrarAdjunto()/procesarArchivoImagen()
+    // adjunto: { mimeType, base64 } — ver mostrarAdjunto()/procesarArchivoAdjunto()
     // en iniciar(). Nombres de campo iguales a los que espera el handler
     // (imagen_base64/imagen_mime_type, ver lib/handlers/asistente.js).
     if (adjunto) {
@@ -432,36 +466,51 @@ function normalizarNumerosParaVoz(texto) {
       inputArchivo.value = '';
     }
 
-    function mostrarAdjunto(archivo, base64) {
+    function mostrarAdjunto(archivo, base64, mimeEfectivo) {
       if (adjuntoPendiente?.previewUrl) URL.revokeObjectURL(adjuntoPendiente.previewUrl);
-      const previewUrl = URL.createObjectURL(archivo);
-      adjuntoPendiente = { mimeType: archivo.type, base64, previewUrl };
-      miniaturaAdjunto.src = previewUrl;
-      nombreAdjunto.textContent = archivo.name || 'Imagen adjunta';
+      const esImagen = IMAGEN_MIME_TYPES_PERMITIDOS.indexOf(mimeEfectivo) !== -1;
+      // Solo las imágenes tienen preview visual — un PDF/docx/xlsx no se
+      // puede mostrar como <img>; se muestra el chip con el nombre nomás.
+      const previewUrl = esImagen ? URL.createObjectURL(archivo) : null;
+      adjuntoPendiente = { mimeType: mimeEfectivo, base64, previewUrl };
+      miniaturaAdjunto.hidden = !esImagen;
+      miniaturaAdjunto.src = previewUrl || '';
+      nombreAdjunto.textContent = archivo.name || 'Archivo adjunto';
       cajaAdjunto.hidden = false;
     }
 
     // Valida tipo/tamaño (mismos límites que el backend, ver constantes al
     // inicio del archivo) y arma el base64 sin el prefijo data:... — lo que
-    // espera lib/handlers/asistente.js en imagen_base64.
-    function procesarArchivoImagen(archivo) {
+    // espera lib/handlers/asistente.js en imagen_base64. Acepta imagen,
+    // PDF, Word (.docx), Excel (.xlsx) o CSV (Frente 5 de
+    // PLAN_OPTIMIZACION_ASISTENTE_2026.md) — la validación de contenido
+    // real (magic bytes) la termina de hacer el servidor.
+    function procesarArchivoAdjunto(archivo) {
       if (!archivo) return;
-      if (IMAGEN_MIME_TYPES_PERMITIDOS.indexOf(archivo.type) === -1) {
-        agregarMensaje(cont, { texto: 'Ese tipo de imagen no está soportado. Usá JPG, PNG o WEBP.', propio: false });
+      const mimeEfectivo = resolverMimeDeArchivo(archivo);
+      if (!mimeEfectivo) {
+        agregarMensaje(cont, { texto: 'Ese tipo de archivo no está soportado. Usá JPG, PNG, WEBP, PDF, Word (.docx), Excel (.xlsx) o CSV.', propio: false });
         return;
       }
+      const esImagen = IMAGEN_MIME_TYPES_PERMITIDOS.indexOf(mimeEfectivo) !== -1;
+      const limite = esImagen ? MAX_IMAGEN_BASE64_CHARS : MAX_DOCUMENTO_BASE64_CHARS;
       const lector = new FileReader();
       lector.onload = () => {
         const resultado = String(lector.result || '');
         const base64 = resultado.slice(resultado.indexOf(',') + 1);
-        if (base64.length > MAX_IMAGEN_BASE64_CHARS) {
-          agregarMensaje(cont, { texto: 'La imagen es demasiado pesada. Probá con una más chica o comprimida.', propio: false });
+        if (base64.length > limite) {
+          agregarMensaje(cont, {
+            texto: esImagen
+              ? 'La imagen es demasiado pesada. Probá con una más chica o comprimida.'
+              : 'El archivo es demasiado pesado. Probá con uno más liviano.',
+            propio: false,
+          });
           return;
         }
-        mostrarAdjunto(archivo, base64);
+        mostrarAdjunto(archivo, base64, mimeEfectivo);
       };
       lector.onerror = () => {
-        agregarMensaje(cont, { texto: 'No se pudo leer la imagen. Probá de nuevo.', propio: false });
+        agregarMensaje(cont, { texto: 'No se pudo leer el archivo. Probá de nuevo.', propio: false });
       };
       lector.readAsDataURL(archivo);
     }
@@ -801,6 +850,16 @@ function normalizarNumerosParaVoz(texto) {
         onElegirOpcion: (label) => enviarMensajeUsuario(label, null),
       });
 
+      // Frente 5 (PLAN_OPTIMIZACION_ASISTENTE_2026.md): el archivo adjunto
+      // tenía más texto del que entra en una consulta — se avisa aparte
+      // para que quede claro que la respuesta pudo no ver todo el contenido.
+      if (data.archivo_truncado) {
+        agregarMensaje(cont, {
+          texto: 'El archivo adjunto era más largo de lo que puedo procesar de una — es posible que la respuesta no contemple todo su contenido.',
+          propio: false,
+        });
+      }
+
       if (!manosLibres) return;
 
       const accion = data.accion_pendiente;
@@ -987,7 +1046,7 @@ function normalizarNumerosParaVoz(texto) {
 
     // ── Adjuntar imagen: botón (abre el selector de archivos) ──────────
     btnAdjuntar.addEventListener('click', () => inputArchivo.click());
-    inputArchivo.addEventListener('change', () => procesarArchivoImagen(inputArchivo.files?.[0]));
+    inputArchivo.addEventListener('change', () => procesarArchivoAdjunto(inputArchivo.files?.[0]));
     btnQuitarAdjunto.addEventListener('click', limpiarAdjunto);
 
     // ── Pegar imagen (Ctrl+V de una captura, ej. de WhatsApp Web) ───────
@@ -997,7 +1056,7 @@ function normalizarNumerosParaVoz(texto) {
       for (const item of items) {
         if (item.kind === 'file' && item.type.startsWith('image/')) {
           ev.preventDefault(); // no pegar el archivo como texto/binario en el textarea
-          procesarArchivoImagen(item.getAsFile());
+          procesarArchivoAdjunto(item.getAsFile());
           break;
         }
       }
