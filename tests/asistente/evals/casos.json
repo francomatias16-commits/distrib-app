@@ -1,0 +1,101 @@
+[
+  {
+    "id": "clientes-deuda-01",
+    "rol": "dueno",
+    "pregunta": "cuántos clientes tienen más de 150000 en deuda",
+    "historial": [],
+    "tool_esperada": "listar_clientes_por_deuda",
+    "criterio_respuesta": "Debe dar una cantidad concreta de clientes y mencionar el umbral de $150.000, sin inventar nombres si la tool no los devolvió."
+  },
+  {
+    "id": "clientes-deuda-repregunta-01",
+    "rol": "dueno",
+    "pregunta": "y 20000",
+    "historial": [
+      { "rol": "user", "contenido": "cuántos clientes tienen más de 150000 en deuda" },
+      { "rol": "model", "contenido": "Tenés 4 clientes con más de $150.000 en deuda." }
+    ],
+    "tool_esperada": "listar_clientes_por_deuda",
+    "criterio_respuesta": "Debe interpretar la repregunta como el mismo tipo de consulta con el umbral cambiado a $20.000, no responder como si fuera una pregunta nueva sin contexto."
+  },
+  {
+    "id": "pedidos-diagnostico-01",
+    "rol": "admin",
+    "pregunta": "por qué falló el pedido 4521",
+    "historial": [],
+    "tool_esperada": "diagnosticar_pedido",
+    "criterio_respuesta": "Debe dar una causa concreta o decir explícitamente que no encontró el pedido, nunca una respuesta genérica de 'no tengo esa información' sin haber intentado la tool."
+  },
+  {
+    "id": "pedidos-listado-filtro-01",
+    "rol": "vendedor",
+    "pregunta": "pedidos entregados esta semana",
+    "historial": [],
+    "tool_esperada": "listar_pedidos_por_filtro",
+    "criterio_respuesta": "Debe filtrar por estado entregado y por el rango de la semana actual, no devolver todos los pedidos pendientes."
+  },
+  {
+    "id": "stock-critico-01",
+    "rol": "depositero",
+    "pregunta": "qe productos tienen poco stock",
+    "historial": [],
+    "tool_esperada": "consultar_stock_critico",
+    "criterio_respuesta": "A pesar del error de tipeo ('qe'), debe interpretar la pregunta y listar productos con stock crítico."
+  },
+  {
+    "id": "stock-valorizacion-01",
+    "rol": "dueno",
+    "pregunta": "cuánto vale todo el stock que tengo hoy",
+    "historial": [],
+    "tool_esperada": "consultar_stock_valorizacion",
+    "criterio_respuesta": "Debe dar un monto total de valorización de stock, no confundir con precio de un producto puntual."
+  },
+  {
+    "id": "facturacion-resumen-01",
+    "rol": "contador",
+    "pregunta": "cuánto facturamos este mes",
+    "historial": [],
+    "tool_esperada": "consultar_resumen_facturacion",
+    "criterio_respuesta": "Debe dar un monto de facturación del mes en curso."
+  },
+  {
+    "id": "facturacion-listado-cliente-01",
+    "rol": "contador",
+    "pregunta": "las facturas del cliente distribuidora sur del mes pasado",
+    "historial": [],
+    "tool_esperada": "listar_facturas",
+    "criterio_respuesta": "Debe filtrar por el cliente mencionado y por el mes anterior al actual, no traer todas las facturas."
+  },
+  {
+    "id": "cheques-alerta-01",
+    "rol": "contador",
+    "pregunta": "que cheques vencen pronto",
+    "historial": [],
+    "tool_esperada": "listar_cheques_alerta",
+    "criterio_respuesta": "Debe listar cheques próximos a vencer con sus fechas, no confundir con cheques ya vencidos o rechazados."
+  },
+  {
+    "id": "escritura-anular-factura-01",
+    "rol": "admin",
+    "pregunta": "anulá la factura 0001-00004521",
+    "historial": [],
+    "tool_esperada": "anular_factura",
+    "criterio_respuesta": "NO debe decir que ya se anuló la factura: debe pedir confirmación mostrando un resumen claro con el número de factura y (si está disponible) el monto/cliente, y aclarar que hay que confirmar con el botón."
+  },
+  {
+    "id": "compuesta-deuda-y-bloqueo-01",
+    "rol": "vendedor",
+    "pregunta": "el cliente juan perez está bloqueado y cuánto debe",
+    "historial": [],
+    "tool_esperada": "consultar_bloqueo_cliente",
+    "criterio_respuesta": "Debe responder sobre el estado de bloqueo del cliente; si no cubre también la deuda en la misma respuesta, no debe inventar un monto de deuda sin haber consultado esa tool."
+  },
+  {
+    "id": "fuera-de-dominio-saludo-01",
+    "rol": "vendedor",
+    "pregunta": "hola, ¿cómo estás?",
+    "historial": [],
+    "tool_esperada": null,
+    "criterio_respuesta": "No debe forzar el uso de ninguna tool de datos; debe responder de forma conversacional y, si corresponde, ofrecer ayuda sobre qué puede consultar."
+  }
+]
