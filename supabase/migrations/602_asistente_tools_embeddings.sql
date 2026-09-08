@@ -64,6 +64,11 @@ REVOKE ALL ON public.asistente_tools_embeddings FROM anon, authenticated;
 -- esconderle una tool al modelo que el keyword sí hubiera encontrado
 -- (seleccionarToolsRelevantes cae a keyword si la sugerencia semántica
 -- no trae nada usable para el rol).
+--
+-- search_path incluye 'extensions' porque vector vive en ese schema
+-- desde la migración fase5_1_mover_pg_trgm_vector_a_extensions — sin
+-- esto, la función falla en producción al no encontrar el tipo/operador
+-- vector.
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.buscar_tools_asistente_rpc(
   query_embedding  vector(768),
@@ -77,7 +82,7 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT
     t.tool_nombre,
