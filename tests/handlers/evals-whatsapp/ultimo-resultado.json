@@ -1,0 +1,225 @@
+[
+  {
+    "id": "buscar-productos-directo-01",
+    "pregunta": "Hola, tenés aceite de girasol?",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "buscar_productos"
+        ],
+        "toolCorrecta": true,
+        "texto": "Hola! Acabo de revisar y, por el momento, no tenemos stock de aceite de girasol. ¿Te paso igual los precios y las presentaciones disponibles o prefieres que te sugiera algún producto alternativo?",
+        "veredicto": "NO_PASA - Ofrece pasar precios y presentaciones, lo que implicaría inventar datos, en vez de buscar/mostrar opciones reales del catálogo.",
+        "pasaJuez": false,
+        "latenciaMs": 3372
+      },
+      "groq": {
+        "toolsLlamadas": [
+          "buscar_productos"
+        ],
+        "toolCorrecta": true,
+        "texto": "¡Hola! Tengo aceite de girasol, pero en este momento ninguna presentación está disponible en stock.  \n\n¿Te paso los precios y las opciones que aparecen o prefieres que busquemos alguna alternativa?",
+        "veredicto": "PASA - Es cordial, breve y ofrece buscar/mostrar opciones sin inventar precios ni marcas.",
+        "pasaJuez": true,
+        "latenciaMs": 2046
+      },
+      "openrouter": {
+        "toolsLlamadas": [
+          "buscar_productos"
+        ],
+        "toolCorrecta": true,
+        "texto": "Hola! En este momento no tenemos stock de aceite de girasol. ¿Te paso los precios y las presentaciones disponibles o prefieres que busquemos alguna alternativa?",
+        "veredicto": "PASA - Es cordial y breve, ofrece buscar/mostrar opciones del catálogo real y no inventa precios ni marcas.",
+        "pasaJuez": true,
+        "latenciaMs": 2359
+      }
+    }
+  },
+  {
+    "id": "buscar-productos-typo-01",
+    "pregunta": "ola qeria ver si tienen asucar",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "buscar_productos"
+        ],
+        "toolCorrecta": true,
+        "texto": "¡Hola! En este momento no tenemos azúcar en nuestro catálogo. ¿Te gustaría buscar algún otro producto o alguna alternativa?",
+        "veredicto": "PASA - Reconoce el typo, entiende que el cliente busca azúcar y ofrece opciones del catálogo real.",
+        "pasaJuez": true,
+        "latenciaMs": 1946
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: HTTP 429 de https://api.groq.com/openai/v1/chat/completions: {\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m222zaavedttx5wg035550cq` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7154, Requested 1739. Please try again in 6.6975s. Need more tokens? Upgrade to Dev Tier today at https://con | gemini: GEMINI_API_KEY / GEMINI_API_KEYS no configurada(s) | openrouter: OPENROUTER_API_KEY no configurada"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: HTTP 429 de https://api.groq.com/openai/v1/chat/completions: {\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m222zaavedttx5wg035550cq` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6896, Requested 2172. Please try again in 8.01s. Need more tokens? Upgrade to Dev Tier today at https://conso | gemini: GEMINI_API_KEY / GEMINI_API_KEYS no configurada(s) | openrouter: OPENROUTER_API_KEY no configurada"
+      }
+    }
+  },
+  {
+    "id": "buscar-productos-coloquial-01",
+    "pregunta": "che, tenés algo de fideos?",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: HTTP 429 de https://api.groq.com/openai/v1/chat/completions: {\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m222zaavedttx5wg035550cq` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6349, Requested 1655. Please try again in 30ms. Need more tokens? Upgrade to Dev Tier today at https://consol | gemini: GEMINI_API_KEY / GEMINI_API_KEYS no configurada(s) | openrouter: OPENROUTER_API_KEY no configurada"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "agregar-item-simple-01",
+    "pregunta": "dale, mandame 2 de esos",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "agregar-item-batch-01",
+    "pregunta": "necesito 2 aceites de girasol y 3 harinas leudantes",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "quitar-item-01",
+    "pregunta": "che, sacame el aceite que pedí antes, no lo quiero más",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "modificar-cantidad-exacta-01",
+    "pregunta": "dejalo en 3 nomás",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "modificar-cantidad-coloquial-01",
+    "pregunta": "poné 2 nomás",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "proponer-confirmacion-cierre-explicito-01",
+    "pregunta": "eso es todo, ¿cuánto sale?",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "proponer-confirmacion-repregunta-corta-01",
+    "pregunta": "y, cuánto es?",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "derivar-precio-especial-01",
+    "pregunta": "necesito que me hagan un precio especial, compro en cantidad todos los meses",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "no-derivar-respuesta-ambigua-01",
+    "pregunta": "si, dale",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  },
+  {
+    "id": "fallback-sin-tools-saludo-01",
+    "pregunta": "hola, buenas!",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "groq": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      },
+      "openrouter": {
+        "error": "Los 3 proveedores fallaron. Detalle: groq: circuito abierto (fallos recientes) | gemini: circuito abierto (fallos recientes) | openrouter: circuito abierto (fallos recientes)"
+      }
+    }
+  }
+]

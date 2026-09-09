@@ -1,0 +1,177 @@
+[
+  {
+    "id": "clientes-deuda-01",
+    "pregunta": "cuántos clientes tienen más de 150000 en deuda",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "listar_clientes_por_deuda"
+        ],
+        "toolCorrecta": true,
+        "texto": "Actualmente no hay clientes con deuda superior a $150.000.",
+        "veredicto": "PASA - La respuesta da una cantidad concreta (cero) y menciona el umbral de $150.000.",
+        "pasaJuez": true,
+        "latenciaMs": 3661
+      }
+    }
+  },
+  {
+    "id": "clientes-deuda-repregunta-01",
+    "pregunta": "y 20000",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [],
+        "toolCorrecta": false,
+        "texto": "Tenés 4 clientes con más de $20.000 en deuda.",
+        "veredicto": "PASA - La respuesta interpreta correctamente la repregunta como un cambio de umbral y proporciona el número de clientes con deuda superior a $20.000.",
+        "pasaJuez": true,
+        "latenciaMs": 2789
+      }
+    }
+  },
+  {
+    "id": "pedidos-diagnostico-01",
+    "pregunta": "por qué falló el pedido 4521",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "diagnosticar_pedido"
+        ],
+        "toolCorrecta": true,
+        "texto": "No se encontró ningún pedido con la referencia 4521. ¿Hay algún otro número de pedido o nombre de cliente que pueda usar para buscarlo?",
+        "veredicto": "PASA - La respuesta indica explícitamente que no se encontró el pedido, cumpliendo con el criterio de no dar una respuesta genérica.",
+        "pasaJuez": true,
+        "latenciaMs": 3790
+      }
+    }
+  },
+  {
+    "id": "pedidos-listado-filtro-01",
+    "pregunta": "pedidos entregados esta semana",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "listar_pedidos_por_filtro"
+        ],
+        "toolCorrecta": true,
+        "texto": "Se entregaron 2 pedidos esta semana:\n\n*   **33A14C** de Almacén Don Pedro por $12329.9\n*   **327D1B** de Carnicería Zalazar por $14132.8",
+        "veredicto": "PASA - La respuesta filtra correctamente por estado \"entregado\" y por el rango de la semana actual, sin devolver pedidos pendientes.",
+        "pasaJuez": true,
+        "latenciaMs": 4278
+      }
+    }
+  },
+  {
+    "id": "stock-critico-01",
+    "pregunta": "qe productos tienen poco stock",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "consultar_analisis_stock_predictivo"
+        ],
+        "toolCorrecta": false,
+        "texto": "Los productos con poco stock que necesitan reposición son:\n\n*   **Fideos Tallarín 500g**: Stock actual 0, urgencia crítica.\n*   **Aceite girasol 4 5l**: Stock actual 0.\n*   **Aceite girasol 5l**: Stock actual 0.\n*   **Aceituna entera n1 1kg**: Stock actual 0.\n*   **Aceituna entera n1 2kg**: Stock actual 0.\n*   **Aceituna entera n1 5kg**: Stock actual 0.\n*   **Aceituna fileteada n1**: Stock actual 0.\n*   **Aceituna fileteada n1 tarro grande**: Stock actual 0.\n*   **Alimento perro sabrosito 15kg**: Stock actual 0.\n*   **Alimento perro sabrosito 22kg**: Stock actual 0.\n*   **Arroz largo fino fardo 10x1kg**: Stock actual 0.\n*   **Arveja mora 340g**: Stock actual 0.\n*   **Azucar impalpable 1kg**: Stock actual 0.\n*   **Azucar impalpable 5kg**: Stock actual 0.\n*   **Bicarbonato de sodio 1kg**: Stock actual 0.",
+        "veredicto": "PASA - La respuesta interpreta correctamente la pregunta a pesar del error de tipeo y lista productos con stock crítico (stock 0).",
+        "pasaJuez": true,
+        "latenciaMs": 5318
+      }
+    }
+  },
+  {
+    "id": "stock-valorizacion-01",
+    "pregunta": "cuánto vale todo el stock que tengo hoy",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "consultar_stock_valorizacion",
+          "consultar_stock_valorizacion"
+        ],
+        "toolCorrecta": true,
+        "texto": "El valor de todo el stock en el \"Depósito Central\" es de $422.300, en 9856 unidades de 66 productos.",
+        "veredicto": "PASA - La respuesta proporciona un monto total de valorización de stock y no el precio de un producto puntual.",
+        "pasaJuez": true,
+        "latenciaMs": 6654
+      }
+    }
+  },
+  {
+    "id": "facturacion-resumen-01",
+    "pregunta": "cuánto facturamos este mes",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "consultar_resumen_facturacion"
+        ],
+        "toolCorrecta": true,
+        "texto": "Este mes se facturaron 10 comprobantes por un total de $426.162. Hay 1 factura pendiente y 1 con error de AFIP.",
+        "veredicto": "PASA - La respuesta proporciona un monto total de facturación para el mes en curso.",
+        "pasaJuez": true,
+        "latenciaMs": 3741
+      }
+    }
+  },
+  {
+    "id": "facturacion-listado-cliente-01",
+    "pregunta": "las facturas del cliente distribuidora sur del mes pasado",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "listar_facturas"
+        ],
+        "toolCorrecta": true,
+        "texto": "No se encontraron facturas para Distribuidora Sur el mes pasado.",
+        "veredicto": "PASA - La respuesta filtra correctamente por el cliente \"Distribuidora Sur\" y por el \"mes pasado\", indicando que no se encontraron facturas bajo esos criterios, lo cual cumple con el requisito de no traer todas las facturas.",
+        "pasaJuez": true,
+        "latenciaMs": 5220
+      }
+    }
+  },
+  {
+    "id": "cheques-alerta-01",
+    "pregunta": "que cheques vencen pronto",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [
+          "listar_cheques_alerta"
+        ],
+        "toolCorrecta": true,
+        "texto": "Hay 7 cheques en alerta: 5 rechazados y 2 por vencer en los próximos 7 días.\n\n**Cheques rechazados:**\n\n*   Minimercado Basualdo - Banco Nación - $29900 (vence 2026-06-15)\n*   Hotel Álvarez e Hijos - Banco Santander - $61500 (vence 2026-07-10)\n*   Parrilla El Yacaré - Banco Municipal - $38000 (vence 2026-08-02)\n*   Almacén La Costa - Banco Municipal - $18000 (vence 2026-08-05)\n*   Rotisería Duarte - Banco Macro - $30000 (vence 2026-08-17)\n\n**Cheques en cartera (por vencer):**\n\n*   Hotel Álvarez e Hijos - Banco Nación - $260000 (vence 2026-09-12)\n*   Hotel Litoral S.A. - Banco Nación - $50000 (vence 2026-09-15)",
+        "veredicto": "NO_PASA - La respuesta confunde cheques rechazados con cheques próximos a vencer y los lista juntos, cuando el criterio pide específicamente no confundirlos.",
+        "pasaJuez": false,
+        "latenciaMs": 5111
+      }
+    }
+  },
+  {
+    "id": "escritura-anular-factura-01",
+    "pregunta": "anulá la factura 0001-00004521",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "toolsLlamadas": [],
+        "toolCorrecta": false,
+        "texto": "Para anular la factura 0001-00004521, necesito que me indiques el motivo de la anulación.",
+        "veredicto": "NO_PASA - La respuesta no pide confirmación mostrando un resumen claro con el número de factura y no aclara que hay que confirmar con un botón.",
+        "pasaJuez": false,
+        "latenciaMs": 2248
+      }
+    }
+  },
+  {
+    "id": "compuesta-deuda-y-bloqueo-01",
+    "pregunta": "el cliente juan perez está bloqueado y cuánto debe",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: gemini: Sin GEMINI_API_KEYS configuradas. | groq: GROQ_API_KEY no configurada | openrouter: OPENROUTER_API_KEY no configurada"
+      }
+    }
+  },
+  {
+    "id": "fuera-de-dominio-saludo-01",
+    "pregunta": "hola, ¿cómo estás?",
+    "resultadosPorProveedor": {
+      "gemini": {
+        "error": "Los 3 proveedores fallaron. Detalle: gemini: Sin GEMINI_API_KEYS configuradas. | groq: GROQ_API_KEY no configurada | openrouter: OPENROUTER_API_KEY no configurada"
+      }
+    }
+  }
+]
