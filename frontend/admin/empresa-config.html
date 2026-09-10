@@ -232,6 +232,34 @@
             <input type="text" id="link-compartir-input" readonly aria-label="Link del catálogo público">
             <button type="button" class="btn btn--secondary" id="btn-copiar-link">Copiar</button>
           </div>
+<<<<<<< HEAD
+=======
+
+          <!-- 951: compartir directo (Web Share API, con fallback a copiar en
+               desktop/navegadores sin soporte) + QR descargable para
+               cartel/vidriera del local. Mismo contenedor y misma condición
+               de visibilidad que #link-compartir de arriba (solo con
+               catálogo público habilitado). -->
+          <div id="acciones-compartir-catalogo" style="margin-top:10px;display:none;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn--secondary" id="btn-compartir-catalogo">Compartir</button>
+            <button type="button" class="btn btn--secondary" id="btn-descargar-qr">Descargar QR</button>
+            <button type="button" class="btn btn--secondary" id="btn-ver-visitas">Ver visitas por canal</button>
+          </div>
+
+          <!-- 605: resumen de visitas por canal de origen (?src= en el
+               link). Oculto hasta que se pide, mismo criterio que
+               acciones-compartir-catalogo (solo con catálogo público
+               habilitado). -->
+          <div id="visitas-catalogo" style="margin-top:14px;display:none">
+            <p class="hint" style="margin-bottom:8px">
+              Últimos 30 días. Agregá <code>?src=nombre-del-canal</code> al final del link
+              (ej. <code>?src=ig-bio</code>) antes de compartirlo por cada canal, para
+              distinguirlos acá.
+            </p>
+            <div id="visitas-catalogo-contenido"></div>
+          </div>
+        </div>
+>>>>>>> origin/main
 
           <!-- 954: compartir directo (Web Share API, con fallback a copiar en
                desktop/navegadores sin soporte) + QR descargable para
@@ -375,7 +403,11 @@ async function init() {
   document.getElementById('sw-catalogo-publico').addEventListener('change', toggleCatalogoPublico);
   document.getElementById('btn-copiar-link').addEventListener('click', copiarLinkCatalogo);
 
+<<<<<<< HEAD
   // 954: compartir (Web Share API + fallback) y QR descargable
+=======
+  // 951: compartir (Web Share API + fallback) y QR descargable
+>>>>>>> origin/main
   document.getElementById('btn-compartir-catalogo').addEventListener('click', compartirCatalogo);
   document.getElementById('btn-descargar-qr').addEventListener('click', descargarQr);
 
@@ -474,7 +506,11 @@ function actualizarLinkCatalogo(mostrar) {
   acciones.style.display = 'flex';
 }
 
+<<<<<<< HEAD
 // 954: navigator.share abre el selector nativo del sistema (WhatsApp,
+=======
+// 951: navigator.share abre el selector nativo del sistema (WhatsApp,
+>>>>>>> origin/main
 // Instagram, etc. en mobile); no existe en todos los navegadores/desktop,
 // así que cae a copiar el link como fallback — mismo comportamiento que ya
 // tenía "Copiar" en ese caso, solo que ahora es automático en vez de que
@@ -495,7 +531,11 @@ async function compartirCatalogo() {
   await copiarLink('link-compartir-input', 'btn-compartir-catalogo');
 }
 
+<<<<<<< HEAD
 // 954: descarga el PNG del QR generado en el server (GET /api/empresa/
+=======
+// 951: descarga el PNG del QR generado en el server (GET /api/empresa/
+>>>>>>> origin/main
 // catalogo-qr, reutiliza bwip-js). Se pide con fetch (no un <a href> directo)
 // porque el endpoint requiere Authorization — un link crudo no podría llevar
 // el header, y el server igual recalcula el link del catálogo del lado
