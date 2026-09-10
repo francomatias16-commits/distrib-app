@@ -23,7 +23,7 @@
       .cfg-wrap { max-width: 1280px; }
       .cfg-grid-2col { display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; align-items:start; }
       .cfg-grid-2col .cfg-card { margin-bottom:0; }
-      .cfg-col-left { display:flex; flex-direction:column; gap:20px; }
+      .cfg-col-left, .cfg-col-right { display:flex; flex-direction:column; gap:20px; }
     }
     .cfg-card {
       background: var(--color-surface);
@@ -258,34 +258,9 @@
           </div>
         </div>
 
-        <!-- v477 (SQL) — antes /admin/login y /cliente/login no tenían forma
-             de saber a qué empresa pertenecían antes de iniciar sesión: con
-             varias empresas activas al mismo tiempo (esto es una SaaS
-             multi-tenant, no un deploy por-cliente), el login podía llegar a
-             mostrar el nombre/logo de otra empresa. Ahora exige empresa_id
-             explícito en la URL — este es el link estable con tu marca para
-             que tu equipo/clientes lo guarden como favorito. -->
-        <div class="cfg-card">
-          <div class="card-head">
-            <div class="card-icon" style="background:rgba(var(--violeta-rgb),.15);color:var(--violeta-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
-            <h2>Link de acceso con tu marca</h2>
-          </div>
-          <p class="sub">Usá este link (en vez de la URL genérica) para que la pantalla de inicio de sesión muestre el nombre y logo de tu empresa desde el primer momento.</p>
-
-          <div class="link-compartir" id="link-acceso-admin">
-            <input type="text" id="link-acceso-admin-input" readonly aria-label="Link de acceso al panel admin">
-            <button type="button" class="btn btn--secondary" id="btn-copiar-link-admin">Copiar</button>
-          </div>
-          <p class="hint" style="margin-top:6px">Para tu equipo (panel admin).</p>
-
-          <div class="link-compartir" id="link-acceso-cliente" style="margin-top:10px">
-            <input type="text" id="link-acceso-cliente-input" readonly aria-label="Link de acceso al portal de clientes">
-            <button type="button" class="btn btn--secondary" id="btn-copiar-link-cliente">Copiar</button>
-          </div>
-          <p class="hint" style="margin-top:6px">Para tus clientes (portal de clientes).</p>
-        </div>
-
         </div><!-- /cfg-col-left -->
+
+        <div class="cfg-col-right">
 
         <!-- Formulario -->
         <div class="cfg-card">
@@ -330,6 +305,35 @@
             </span>
           </div>
         </div>
+
+        <!-- v477 (SQL) — antes /admin/login y /cliente/login no tenían forma
+             de saber a qué empresa pertenecían antes de iniciar sesión: con
+             varias empresas activas al mismo tiempo (esto es una SaaS
+             multi-tenant, no un deploy por-cliente), el login podía llegar a
+             mostrar el nombre/logo de otra empresa. Ahora exige empresa_id
+             explícito en la URL — este es el link estable con tu marca para
+             que tu equipo/clientes lo guarden como favorito. -->
+        <div class="cfg-card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(var(--violeta-rgb),.15);color:var(--violeta-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
+            <h2>Link de acceso con tu marca</h2>
+          </div>
+          <p class="sub">Usá este link (en vez de la URL genérica) para que la pantalla de inicio de sesión muestre el nombre y logo de tu empresa desde el primer momento.</p>
+
+          <div class="link-compartir" id="link-acceso-admin">
+            <input type="text" id="link-acceso-admin-input" readonly aria-label="Link de acceso al panel admin">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-admin">Copiar</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Para tu equipo (panel admin).</p>
+
+          <div class="link-compartir" id="link-acceso-cliente" style="margin-top:10px">
+            <input type="text" id="link-acceso-cliente-input" readonly aria-label="Link de acceso al portal de clientes">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-cliente">Copiar</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Para tus clientes (portal de clientes).</p>
+        </div>
+
+        </div><!-- /cfg-col-right -->
 
         </div><!-- /cfg-grid-2col -->
 
