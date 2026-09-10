@@ -1,49 +1,58 @@
 #!/usr/bin/env node
 /**
- * scripts/eval-asistente.js — Eval de Capa 2 (ver PLAN_QA_ASISTENTE.md)
+ * scripts/eval-asistente-whatsapp.js — Eval de Capa 2 del asistente de
+ * pedidos por WhatsApp (ver PLAN_QA_ASISTENTE_WHATSAPP.md, secciones 1 y 2).
  *
- * Motivo: tests/asistente/*.test.js prueba ejecución de tools con DB
- * mockeada; cobertura-seleccion-tools.test.js prueba el selector de
- * keywords como función pura. Ninguno de los dos llama de verdad a un
- * modelo. Este script sí: corre tests/asistente/evals/casos.json contra
- * un proveedor real (Gemini/Groq/OpenRouter), reusando las mismas
- * funciones que usa producción (armarSystemPrompt, buscarArticulosRelevantes,
- * esquemaParaGemini/OpenAI, ejecutarTool, responderConFallback) — no
- * reimplementa nada del pipeline real, para que el eval mida lo mismo
- * que le va a pasar a un usuario de verdad.
+ * Mismo patrón que scripts/eval-asistente.js (asistente de ayuda del
+ * dashboard), adaptado al contrato distinto del asistente de WhatsApp: acá
+ * no hay usuario logueado con rol, hay un cliente identificado por teléfono
+ * y solo 6 tools (siempre declaradas todas, sin selector por keyword — ver
+ * sección 1 del plan). Por eso esta capa absorbe también lo que hubiera
+ * sido la Capa 1: el dataset (tests/handlers/evals-whatsapp/casos.json)
+ * incluye variantes de typo/coloquial que en el asistente del dashboard
+ * viven en cobertura-seleccion-tools.test.js como test unitario aparte —
+ * acá no hay función pura de selección para testear así, así que se miden
+ * junto con todo lo demás, contra el modelo real.
+ *
+ * Reusa las mismas funciones que usa producción (armarSystemPromptWhatsApp
+ * de lib/handlers/notif.js, esquemaPedidoWhatsAppGemini/OpenAI y
+ * ejecutarToolPedidoWhatsApp de lib/whatsapp-pedido-tools.js,
+ * responderConFallback de lib/asistente-providers.js) — no reimplementa
+ * nada del pipeline real.
  *
  * NO corre en CI: consume cuota real de los 3 proveedores y necesita una
- * empresa de prueba real en Supabase (mismo criterio que
- * scripts/seed-demo-loadtest.js — nunca una empresa productiva).
+ * empresa + cliente de prueba reales en Supabase (mismo criterio que
+ * scripts/eval-asistente.js — nunca una empresa/cliente productivo).
  *
  * Requiere en el entorno:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *   GEMINI_API_KEY (o GEMINI_API_KEYS), GROQ_API_KEY, OPENROUTER_API_KEY
  *     (según qué proveedor(es) quieras evaluar)
- *   EMPRESA_ID   — empresa de prueba real (ver scripts/seed-demo-loadtest.js)
- *   USUARIO_ID   — un usuario real de esa empresa (para el rol y para las
- *                  tools de escritura, que insertan en
- *                  asistente_acciones_pendientes con FK a usuarios)
+ *   EMPRESA_ID   — empresa de prueba real
+ *   CLIENTE_ID   — un cliente real de esa empresa (para resolver precios y
+ *                  para las tools que validan cliente/stock)
  *
  * Uso:
- *   node scripts/eval-asistente.js
- *   node scripts/eval-asistente.js --provider=gemini
- *   node scripts/eval-asistente.js --provider=groq --json
- *   node scripts/eval-asistente.js --solo=clientes-deuda-01,pedidos-diagnostico-01
+ *   node scripts/eval-asistente-whatsapp.js
+ *   node scripts/eval-asistente-whatsapp.js --provider=gemini
+ *   node scripts/eval-asistente-whatsapp.js --provider=groq --json
+ *   node scripts/eval-asistente-whatsapp.js --solo=buscar-productos-directo-01,derivar-precio-especial-01
  *
  * Qué hace por cada caso:
- *   1. Crea una fila real en asistente_conversaciones (se borra al final).
- *   2. Arma el prompt igual que lib/handlers/asistente.js (mismo
- *      armarSystemPrompt/buscarArticulosRelevantes/esquemas de tools).
- *   3. Llama al proveedor pedido (o a los 3, uno por uno, sin pasar por
- *      la cadena de fallback completa — así se puede comparar cada uno
- *      por separado).
+ *   1. Crea una fila real en whatsapp_conversaciones con un teléfono
+ *      descartable único por caso (se borra al final — el índice único
+ *      idx_whatsapp_conv_telefono_abierta exige un teléfono distinto por
+ *      conversación abierta a la vez).
+ *   2. Arma el prompt igual que lib/handlers/notif.js
+ *      (armarSystemPromptWhatsApp real, no una copia).
+ *   3. Llama al proveedor pedido (o a los 3, uno por uno, sin pasar por la
+ *      cadena de fallback completa — así se puede comparar cada uno).
  *   4. Compara la tool llamada contra `tool_esperada` (null = no debía
- *      llamar ninguna).
+ *      llamar ninguna — casos de fallback/no-derivación).
  *   5. Le pide a un juez LLM (mismo responderConFallback, sin tools) que
  *      diga si el texto final cumple `criterio_respuesta`.
  *   6. Imprime un resumen final por proveedor y guarda el detalle en
- *      tests/asistente/evals/ultimo-resultado.json.
+ *      tests/handlers/evals-whatsapp/ultimo-resultado.json.
  *
  * Los casos NO_PASA hay que revisarlos siempre a mano antes de asumir que
  * es un bug real — el juez es un primer filtro barato, no un reemplazo.
@@ -53,12 +62,12 @@ import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { responderConFallback } from '../lib/asistente-providers.js';
-import { esquemaParaGemini, esquemaParaOpenAI, ejecutarTool } from '../lib/asistente-tools.js';
-import { armarSystemPrompt, buscarArticulosRelevantes } from '../lib/handlers/asistente.js';
+import { esquemaPedidoWhatsAppGemini, esquemaPedidoWhatsAppOpenAI, ejecutarToolPedidoWhatsApp } from '../lib/whatsapp-pedido-tools.js';
+import { armarSystemPromptWhatsApp } from '../lib/handlers/notif.js';
 
 const ROOT = process.cwd();
-const CASOS_PATH = path.join(ROOT, 'tests', 'asistente', 'evals', 'casos.json');
-const RESULTADO_PATH = path.join(ROOT, 'tests', 'asistente', 'evals', 'ultimo-resultado.json');
+const CASOS_PATH = path.join(ROOT, 'tests', 'handlers', 'evals-whatsapp', 'casos.json');
+const RESULTADO_PATH = path.join(ROOT, 'tests', 'handlers', 'evals-whatsapp', 'ultimo-resultado.json');
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -72,7 +81,7 @@ function requireEnv(name) {
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 const EMPRESA_ID = requireEnv('EMPRESA_ID');
-const USUARIO_ID = requireEnv('USUARIO_ID');
+const CLIENTE_ID = requireEnv('CLIENTE_ID');
 
 const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -84,10 +93,9 @@ const flagSolo = args.find((a) => a.startsWith('--solo='))?.split('=')[1]?.split
 const modoJson = args.includes('--json');
 const PROVEEDORES = flagProvider ? [flagProvider] : ['gemini', 'groq', 'openrouter'];
 
-// FIX: responderConFallback() encadena los 3 proveedores automáticamente.
-// Para evaluar cada uno POR SEPARADO (y así poder comparar), se le pasa
-// una lista de override con un solo proveedor — ver la firma real en
-// lib/asistente-providers.js antes de tocar esto si cambia la API.
+// FIX: mismo motivo que en eval-asistente.js — responderConFallback()
+// encadena los 3 proveedores automáticamente; para evaluar cada uno POR
+// SEPARADO se le pasa un override con un solo proveedor.
 async function llamarProveedor(proveedor, { systemPromptConTools, systemPromptSinTools, historial, mensaje, tools }) {
   return responderConFallback({
     systemPromptConTools,
@@ -95,17 +103,30 @@ async function llamarProveedor(proveedor, { systemPromptConTools, systemPromptSi
     historial,
     mensaje,
     tools,
-    soloProveedor: proveedor, // si asistente-providers.js no soporta este override
-    // todavía, agregarlo ahí primero (debería ser un cambio chico: usar
-    // esta opción para saltear los proveedores que no matcheen en la
-    // cadena de fallback existente, en vez de duplicar la lógica acá).
+    soloProveedor: proveedor,
   });
 }
 
-async function crearConversacionDePrueba() {
+// Teléfono descartable único por corrida de caso — idx_whatsapp_conv_
+// telefono_abierta es un índice único parcial sobre conversaciones no
+// cerradas, así que dos casos no pueden compartir teléfono mientras estén
+// corriendo (aunque se corran en distintas invocaciones del script).
+function telefonoDePrueba(casoId) {
+  const sufijo = `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-9);
+  return `+549eval${casoId.slice(0, 8)}${sufijo}`.replace(/[^0-9+]/g, '').slice(0, 20);
+}
+
+async function crearConversacionDePrueba(casoId) {
   const { data, error } = await db
-    .from('asistente_conversaciones')
-    .insert({ empresa_id: EMPRESA_ID, usuario_id: USUARIO_ID })
+    .from('whatsapp_conversaciones')
+    .insert({
+      telefono: telefonoDePrueba(casoId),
+      empresa_id: EMPRESA_ID,
+      cliente_id: CLIENTE_ID,
+      estado: 'activa',
+      pedido_borrador: { items: [] },
+      turno_desde: new Date().toISOString(),
+    })
     .select('id')
     .single();
   if (error) throw new Error(`No se pudo crear conversación de prueba: ${error.message}`);
@@ -113,20 +134,13 @@ async function crearConversacionDePrueba() {
 }
 
 async function borrarConversacionDePrueba(id) {
-  // ON DELETE CASCADE se lleva puesto asistente_mensajes y
-  // asistente_acciones_pendientes de esta conversación — no dejar
-  // basura de eval en la tabla real.
-  await db.from('asistente_conversaciones').delete().eq('id', id);
-}
-
-async function obtenerRolUsuario() {
-  const { data, error } = await db.from('usuarios').select('rol').eq('id', USUARIO_ID).single();
-  if (error) throw new Error(`No se pudo leer el rol de USUARIO_ID: ${error.message}`);
-  return data.rol;
+  // ON DELETE CASCADE se lleva puesto whatsapp_mensajes de esta
+  // conversación (migración 247) — no dejar basura de eval en la tabla real.
+  await db.from('whatsapp_conversaciones').delete().eq('id', id);
 }
 
 async function juzgarRespuesta({ pregunta, texto, criterio }) {
-  const promptJuez = `Pregunta del usuario: "${pregunta}"\nRespuesta del asistente: "${texto}"\nCriterio a cumplir: "${criterio}"\n\n¿La respuesta cumple el criterio? Contestá SOLO "PASA" o "NO_PASA" seguido de " - " y un motivo en una línea.`;
+  const promptJuez = `Mensaje del cliente: "${pregunta}"\nRespuesta del bot: "${texto}"\nCriterio a cumplir: "${criterio}"\n\n¿La respuesta cumple el criterio? Contestá SOLO "PASA" o "NO_PASA" seguido de " - " y un motivo en una línea.`;
   const { texto: veredicto } = await responderConFallback({
     systemPromptConTools: promptJuez,
     systemPromptSinTools: promptJuez,
@@ -137,26 +151,20 @@ async function juzgarRespuesta({ pregunta, texto, criterio }) {
   return veredicto.trim();
 }
 
-async function correrCaso(caso, rol) {
-  const conversacionId = await crearConversacionDePrueba();
+async function correrCaso(caso) {
+  const conversacionId = await crearConversacionDePrueba(caso.id);
   try {
-    const articulos = await buscarArticulosRelevantes({ pregunta: caso.pregunta, rol });
-    const { conTools: systemPromptConTools, sinTools: systemPromptSinTools } = armarSystemPrompt({
-      articulos,
-      rol,
-      propuestaVigente: null,
-    });
+    const { systemPromptConTools, systemPromptSinTools } = armarSystemPromptWhatsApp();
 
     const toolsLlamadas = [];
     const tools = {
-      esquemaGemini: esquemaParaGemini(rol),
-      esquemaOpenAI: esquemaParaOpenAI(rol, caso.pregunta),
+      esquemaGemini: esquemaPedidoWhatsAppGemini(),
+      esquemaOpenAI: esquemaPedidoWhatsAppOpenAI(),
       ejecutar: async (nombre, argsTool) => {
         toolsLlamadas.push(nombre);
-        return ejecutarTool(nombre, {
+        return ejecutarToolPedidoWhatsApp(nombre, {
           empresaId: EMPRESA_ID,
-          rol,
-          usuarioId: USUARIO_ID,
+          clienteId: CLIENTE_ID,
           conversacionId,
           args: argsTool,
         });
@@ -207,14 +215,13 @@ async function correrCaso(caso, rol) {
 async function main() {
   const todosLosCasos = JSON.parse(fs.readFileSync(CASOS_PATH, 'utf8'));
   const casos = flagSolo ? todosLosCasos.filter((c) => flagSolo.includes(c.id)) : todosLosCasos;
-  const rol = await obtenerRolUsuario();
 
-  console.log(`Corriendo ${casos.length} caso(s) contra: ${PROVEEDORES.join(', ')} (rol=${rol})\n`);
+  console.log(`Corriendo ${casos.length} caso(s) contra: ${PROVEEDORES.join(', ')} (empresa=${EMPRESA_ID})\n`);
 
   const resultados = [];
   for (const caso of casos) {
     process.stdout.write(`- ${caso.id}... `);
-    const resultado = await correrCaso(caso, rol);
+    const resultado = await correrCaso(caso);
     resultados.push(resultado);
     const resumenLinea = PROVEEDORES.map((p) => {
       const r = resultado.resultadosPorProveedor[p];

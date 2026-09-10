@@ -1,0 +1,116 @@
+[
+  {
+    "id": "buscar-productos-directo-01",
+    "pregunta": "Hola, tenés aceite de girasol?",
+    "historial": [],
+    "tool_esperada": "buscar_productos",
+    "criterio_respuesta": "Responde en tono cordial y breve, ofreciendo buscar/mostrar opciones de aceite de girasol del catálogo real, sin inventar precios ni marcas."
+  },
+  {
+    "id": "buscar-productos-typo-01",
+    "pregunta": "ola qeria ver si tienen asucar",
+    "historial": [],
+    "tool_esperada": "buscar_productos",
+    "criterio_respuesta": "A pesar del typo, entiende que el cliente pregunta por azúcar y responde ofreciendo las opciones del catálogo real."
+  },
+  {
+    "id": "buscar-productos-coloquial-01",
+    "pregunta": "che, tenés algo de fideos?",
+    "historial": [],
+    "tool_esperada": "buscar_productos",
+    "criterio_respuesta": "Entiende el tono coloquial rioplatense y responde ofreciendo opciones de fideos del catálogo real, en el mismo tono cordial."
+  },
+  {
+    "id": "agregar-item-simple-01",
+    "pregunta": "dale, mandame 2 de esos",
+    "historial": [
+      { "rol": "user", "contenido": "tenés harina leudante?" },
+      { "rol": "model", "contenido": "Sí, tenemos Harina Leudante 000 x 1kg. ¿Cuántas querés?" }
+    ],
+    "tool_esperada": "agregar_item",
+    "criterio_respuesta": "Confirma que agregó el producto al pedido con la cantidad pedida (2), sin pedir datos que las tools no usan (dirección, pago, etc.)."
+  },
+  {
+    "id": "agregar-item-batch-01",
+    "pregunta": "necesito 2 aceites de girasol y 3 harinas leudantes",
+    "historial": [],
+    "tool_esperada": "buscar_productos",
+    "criterio_respuesta": "Busca ambos productos antes de agregarlos y termina agregando los dos al borrador en el mismo armado, sin pedir confirmación producto por producto."
+  },
+  {
+    "id": "quitar-item-01",
+    "pregunta": "che, sacame el aceite que pedí antes, no lo quiero más",
+    "historial": [
+      { "rol": "user", "contenido": "dame 2 aceites de girasol" },
+      { "rol": "model", "contenido": "Listo, agregué 2 Aceite de Girasol 1.5L. ¿Algo más?" }
+    ],
+    "tool_esperada": "quitar_item",
+    "criterio_respuesta": "Confirma que sacó el aceite del pedido, sin inventar que quedaron otros productos que no se mencionaron."
+  },
+  {
+    "id": "modificar-cantidad-exacta-01",
+    "pregunta": "dejalo en 3 nomás",
+    "historial": [
+      { "rol": "user", "contenido": "quiero 10 harinas leudantes" },
+      { "rol": "model", "contenido": "No tenemos stock para 10 unidades de Harina Leudante, el máximo disponible ahora es 3. ¿Querés que te deje esa cantidad o preferís otro producto?" }
+    ],
+    "tool_esperada": "modificar_cantidad",
+    "criterio_respuesta": "Deja la cantidad exacta en 3 usando modificar_cantidad (no vuelve a agregar el ítem desde cero) y lo confirma en el texto."
+  },
+  {
+    "id": "modificar-cantidad-coloquial-01",
+    "pregunta": "poné 2 nomás",
+    "historial": [
+      { "rol": "user", "contenido": "agregame 5 gaseosas coca cola 2.25L" },
+      { "rol": "model", "contenido": "Agregué 5 Coca Cola 2.25L al pedido. ¿Necesitás algo más?" }
+    ],
+    "tool_esperada": "modificar_cantidad",
+    "criterio_respuesta": "Entiende que 'poné 2 nomás' es cambiar la cantidad del producto recién mencionado a 2 exactas, y lo confirma."
+  },
+  {
+    "id": "proponer-confirmacion-cierre-explicito-01",
+    "pregunta": "eso es todo, ¿cuánto sale?",
+    "historial": [
+      { "rol": "user", "contenido": "dame 2 aceites de girasol y 3 harinas leudantes" },
+      { "rol": "model", "contenido": "Listo, agregué 2 Aceite de Girasol 1.5L y 3 Harina Leudante 000. ¿Algo más?" }
+    ],
+    "tool_esperada": "proponer_confirmacion",
+    "criterio_respuesta": "Resume el pedido con ítems, cantidades y el total exacto devuelto por la tool (sin sumarlo a mano), y pide explícitamente que conteste SÍ para confirmar."
+  },
+  {
+    "id": "proponer-confirmacion-repregunta-corta-01",
+    "pregunta": "y, cuánto es?",
+    "historial": [
+      { "rol": "user", "contenido": "quiero 4 gaseosas coca cola 2.25L" },
+      { "rol": "model", "contenido": "Agregué 4 Coca Cola 2.25L. ¿Necesitás algo más?" },
+      { "rol": "user", "contenido": "no, nada más" },
+      { "rol": "model", "contenido": "Perfecto, ¿confirmamos así como está?" }
+    ],
+    "tool_esperada": "proponer_confirmacion",
+    "criterio_respuesta": "Ante la repregunta corta sobre el total, cierra el armado con proponer_confirmacion y responde con el total exacto calculado por la tool."
+  },
+  {
+    "id": "derivar-precio-especial-01",
+    "pregunta": "necesito que me hagan un precio especial, compro en cantidad todos los meses",
+    "historial": [],
+    "tool_esperada": "derivar_humano",
+    "criterio_respuesta": "Deriva la conversación a un vendedor humano y le avisa al cliente que ya lo está comunicando con alguien, sin prometer un precio ni un descuento por su cuenta."
+  },
+  {
+    "id": "no-derivar-respuesta-ambigua-01",
+    "pregunta": "si, dale",
+    "historial": [
+      { "rol": "user", "contenido": "quiero pedir algo" },
+      { "rol": "model", "contenido": "Buenísimo, ¿qué productos necesitás?" }
+    ],
+    "tool_esperada": null,
+    "criterio_respuesta": "No deriva a un humano solo por una respuesta ambigua sin un producto concreto; reformula la pregunta o pide explícitamente qué productos quiere el cliente."
+  },
+  {
+    "id": "fallback-sin-tools-saludo-01",
+    "pregunta": "hola, buenas!",
+    "historial": [],
+    "tool_esperada": null,
+    "criterio_respuesta": "Saluda de forma cordial y breve, y ofrece ayudar a armar un pedido, sin inventar productos, precios ni llamar ninguna herramienta."
+  }
+]
