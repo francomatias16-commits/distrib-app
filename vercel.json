@@ -391,6 +391,14 @@
       "destination": "/api/index?_mod=empresa&_svc=catalogo-publico"
     },
     {
+      "source": "/api/empresa/catalogo-qr",
+      "destination": "/api/index?_mod=empresa&_svc=catalogo-qr"
+    },
+    {
+      "source": "/api/empresa/catalogo-visitas",
+      "destination": "/api/index?_mod=empresa&_svc=catalogo-visitas"
+    },
+    {
       "source": "/api/empresa",
       "destination": "/api/index?_mod=empresa"
     },
