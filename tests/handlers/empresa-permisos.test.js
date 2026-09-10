@@ -33,7 +33,7 @@ const catalogoVisitasMock = vi.hoisted(() => ({
 }));
 vi.mock('../../lib/repos/catalogo-visitas.js', () => catalogoVisitasMock);
 
-// 951: bwip-js real genera un PNG de verdad (lento e innecesario en un test
+// 954: bwip-js real genera un PNG de verdad (lento e innecesario en un test
 // de permisos/headers) — se mockea al mínimo contrato que usa el handler.
 const bwipToBufferMock = vi.hoisted(() => vi.fn((opts, cb) => cb(null, Buffer.from('png-fake'))));
 vi.mock('bwip-js', () => ({ default: { toBuffer: bwipToBufferMock } }));
@@ -93,7 +93,7 @@ describe('gate único de configuración (ROLES_ADMIN original)', () => {
   });
 });
 
-// 951: GET /api/empresa/catalogo-qr
+// 954: GET /api/empresa/catalogo-qr
 describe('GET /api/empresa/catalogo-qr', () => {
   function reqQr(extra = {}) {
     return {

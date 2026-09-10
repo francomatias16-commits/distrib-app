@@ -92,6 +92,7 @@ const LOADERS = {
   importar:                () => import('../lib/handlers/importar.js'),
   'auto-imagenes':         () => import('../lib/handlers/auto-imagenes.js'), // Auto-carga de fotos de productos (barcode → banco de fotos → ícono fallback en frontend)
   notif:                   () => import('../lib/handlers/notif.js'),
+  'whatsapp-catalog':      () => import('../lib/handlers/whatsapp-catalog.js'), // 610 — sync catálogo con WhatsApp/Commerce Manager
   pagos:                   () => import('../lib/handlers/pagos.js'),
   pedidos:                 () => import('../lib/handlers/pedidos.js'),
   piloto:                  () => import('../lib/handlers/piloto.js'),

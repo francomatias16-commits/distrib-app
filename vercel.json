@@ -599,6 +599,10 @@
       "destination": "/api/index?_mod=etiquetas"
     },
     {
+      "source": "/api/whatsapp-catalog(.*)",
+      "destination": "/api/index?_mod=whatsapp-catalog"
+    },
+    {
       "source": "/api/reglas-automatizacion(.*)",
       "destination": "/api/index?_mod=reglas-automatizacion"
     },
@@ -1547,6 +1551,10 @@
     {
       "path": "/api/retencion",
       "schedule": "50 3 * * *"
+    },
+    {
+      "path": "/api/whatsapp-catalog?_svc=cron",
+      "schedule": "0 12 * * *"
     }
   ],
   "functions": {
