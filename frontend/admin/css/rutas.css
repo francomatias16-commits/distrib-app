@@ -836,8 +836,18 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
    #modal-invitar-chofer) con display:none fijo, aunque JS sacara .hidden
    correctamente. :not(.hidden) suma especificidad (2 clases) para ganarle
    a compras.css sin tocarlo (lo sigue necesitando la pestaña "Zonas" tal
-   cual está). */
-.modal-overlay:not(.hidden) { display: flex; }
+   cual está).
+
+   El mismo conflicto de cascada afectaba silenciosamente al z-index:
+   compras.css también redefine .modal-overlay con z-index: var(--z-sticky)
+   (200) en vez de var(--z-flyout) (500), y por la misma regla de "misma
+   especificidad + orden de carga" esa era la que quedaba aplicada acá.
+   Con el modal en z-index 200, quedaba por debajo de las capas internas
+   de Leaflet (mapa de "Seguimiento en vivo"): markerPane (600), tooltipPane
+   (650), popupPane (700) y los controles de zoom (800) — el mapa pisaba
+   visualmente al modal (#modal-entrega) en vez de quedar detrás. Se
+   reafirma z-index acá, mismo mecanismo de especificidad que display. */
+.modal-overlay:not(.hidden) { display: flex; z-index: var(--z-flyout); }
 
 .modal {
   background: var(--color-surface);
