@@ -23,7 +23,7 @@
       .cfg-wrap { max-width: 1280px; }
       .cfg-grid-2col { display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; align-items:start; }
       .cfg-grid-2col .cfg-card { margin-bottom:0; }
-      .cfg-col-left, .cfg-col-right { display:flex; flex-direction:column; gap:20px; }
+      .cfg-col-left { display:flex; flex-direction:column; gap:20px; }
     }
     .cfg-card {
       background: var(--color-surface);
@@ -232,35 +232,36 @@
             <input type="text" id="link-compartir-input" readonly aria-label="Link del catálogo público">
             <button type="button" class="btn btn--secondary" id="btn-copiar-link">Copiar</button>
           </div>
+        </div>
 
-          <!-- 954: compartir directo (Web Share API, con fallback a copiar en
-               desktop/navegadores sin soporte) + QR descargable para
-               cartel/vidriera del local. Mismo contenedor y misma condición
-               de visibilidad que #link-compartir de arriba (solo con
-               catálogo público habilitado). -->
-          <div id="acciones-compartir-catalogo" style="margin-top:10px;display:none;gap:8px;flex-wrap:wrap">
-            <button type="button" class="btn btn--secondary" id="btn-compartir-catalogo">Compartir</button>
-            <button type="button" class="btn btn--secondary" id="btn-descargar-qr">Descargar QR</button>
-            <button type="button" class="btn btn--secondary" id="btn-ver-visitas">Ver visitas por canal</button>
+        <!-- v477 (SQL) — antes /admin/login y /cliente/login no tenían forma
+             de saber a qué empresa pertenecían antes de iniciar sesión: con
+             varias empresas activas al mismo tiempo (esto es una SaaS
+             multi-tenant, no un deploy por-cliente), el login podía llegar a
+             mostrar el nombre/logo de otra empresa. Ahora exige empresa_id
+             explícito en la URL — este es el link estable con tu marca para
+             que tu equipo/clientes lo guarden como favorito. -->
+        <div class="cfg-card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(var(--violeta-rgb),.15);color:var(--violeta-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
+            <h2>Link de acceso con tu marca</h2>
           </div>
+          <p class="sub">Usá este link (en vez de la URL genérica) para que la pantalla de inicio de sesión muestre el nombre y logo de tu empresa desde el primer momento.</p>
 
-          <!-- 605: resumen de visitas por canal de origen (?src= en el
-               link). Oculto hasta que se pide, mismo criterio que
-               acciones-compartir-catalogo (solo con catálogo público
-               habilitado). -->
-          <div id="visitas-catalogo" style="margin-top:14px;display:none">
-            <p class="hint" style="margin-bottom:8px">
-              Últimos 30 días. Agregá <code>?src=nombre-del-canal</code> al final del link
-              (ej. <code>?src=ig-bio</code>) antes de compartirlo por cada canal, para
-              distinguirlos acá.
-            </p>
-            <div id="visitas-catalogo-contenido"></div>
+          <div class="link-compartir" id="link-acceso-admin">
+            <input type="text" id="link-acceso-admin-input" readonly aria-label="Link de acceso al panel admin">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-admin">Copiar</button>
           </div>
+          <p class="hint" style="margin-top:6px">Para tu equipo (panel admin).</p>
+
+          <div class="link-compartir" id="link-acceso-cliente" style="margin-top:10px">
+            <input type="text" id="link-acceso-cliente-input" readonly aria-label="Link de acceso al portal de clientes">
+            <button type="button" class="btn btn--secondary" id="btn-copiar-link-cliente">Copiar</button>
+          </div>
+          <p class="hint" style="margin-top:6px">Para tus clientes (portal de clientes).</p>
         </div>
 
         </div><!-- /cfg-col-left -->
-
-        <div class="cfg-col-right">
 
         <!-- Formulario -->
         <div class="cfg-card">
@@ -306,35 +307,6 @@
           </div>
         </div>
 
-        <!-- v477 (SQL) — antes /admin/login y /cliente/login no tenían forma
-             de saber a qué empresa pertenecían antes de iniciar sesión: con
-             varias empresas activas al mismo tiempo (esto es una SaaS
-             multi-tenant, no un deploy por-cliente), el login podía llegar a
-             mostrar el nombre/logo de otra empresa. Ahora exige empresa_id
-             explícito en la URL — este es el link estable con tu marca para
-             que tu equipo/clientes lo guarden como favorito. -->
-        <div class="cfg-card">
-          <div class="card-head">
-            <div class="card-icon" style="background:rgba(var(--violeta-rgb),.15);color:var(--violeta-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
-            <h2>Link de acceso con tu marca</h2>
-          </div>
-          <p class="sub">Usá este link (en vez de la URL genérica) para que la pantalla de inicio de sesión muestre el nombre y logo de tu empresa desde el primer momento.</p>
-
-          <div class="link-compartir" id="link-acceso-admin">
-            <input type="text" id="link-acceso-admin-input" readonly aria-label="Link de acceso al panel admin">
-            <button type="button" class="btn btn--secondary" id="btn-copiar-link-admin">Copiar</button>
-          </div>
-          <p class="hint" style="margin-top:6px">Para tu equipo (panel admin).</p>
-
-          <div class="link-compartir" id="link-acceso-cliente" style="margin-top:10px">
-            <input type="text" id="link-acceso-cliente-input" readonly aria-label="Link de acceso al portal de clientes">
-            <button type="button" class="btn btn--secondary" id="btn-copiar-link-cliente">Copiar</button>
-          </div>
-          <p class="hint" style="margin-top:6px">Para tus clientes (portal de clientes).</p>
-        </div>
-
-        </div><!-- /cfg-col-right -->
-
         </div><!-- /cfg-grid-2col -->
 
       </div>
@@ -374,13 +346,6 @@ async function init() {
   // FIX v477: toggle de catálogo público
   document.getElementById('sw-catalogo-publico').addEventListener('change', toggleCatalogoPublico);
   document.getElementById('btn-copiar-link').addEventListener('click', copiarLinkCatalogo);
-
-  // 954: compartir (Web Share API + fallback) y QR descargable
-  document.getElementById('btn-compartir-catalogo').addEventListener('click', compartirCatalogo);
-  document.getElementById('btn-descargar-qr').addEventListener('click', descargarQr);
-
-  // 605: tracking de origen — resumen de visitas por canal
-  document.getElementById('btn-ver-visitas').addEventListener('click', toggleVisitasCatalogo);
 
   // 501: slug editable del link de catálogo
   document.getElementById('btn-guardar-slug').addEventListener('click', guardarSlug);
@@ -458,12 +423,7 @@ let slugActual = null;
 
 function actualizarLinkCatalogo(mostrar) {
   const cont = document.getElementById('link-compartir');
-  const acciones = document.getElementById('acciones-compartir-catalogo');
-  if (!mostrar) {
-    cont.style.display = 'none';
-    acciones.style.display = 'none';
-    return;
-  }
+  if (!mostrar) { cont.style.display = 'none'; return; }
 
   const empresaId = window.authCtx?.perfil?.empresa_id || window.authCtx?.perfil?.empresas?.id || '';
   const input = document.getElementById('link-compartir-input');
@@ -471,152 +431,8 @@ function actualizarLinkCatalogo(mostrar) {
     ? `${window.location.origin}/cliente/catalogo/${slugActual}`
     : `${window.location.origin}/cliente/catalogo?empresa_id=${empresaId}`;
   cont.style.display = 'flex';
-  acciones.style.display = 'flex';
 }
 
-// 954: navigator.share abre el selector nativo del sistema (WhatsApp,
-// Instagram, etc. en mobile); no existe en todos los navegadores/desktop,
-// así que cae a copiar el link como fallback — mismo comportamiento que ya
-// tenía "Copiar" en ese caso, solo que ahora es automático en vez de que
-// el usuario tenga que elegir el otro botón a mano.
-async function compartirCatalogo() {
-  const link = document.getElementById('link-compartir-input').value;
-  const nombreEmpresa = window.authCtx?.perfil?.empresas?.nombre || document.getElementById('e-nombre').value || 'nuestro catálogo';
-
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: `Catálogo de ${nombreEmpresa}`, url: link });
-      return; // el usuario eligió una app del selector nativo (o lo cerró) — no hace falta feedback propio
-    } catch (e) {
-      if (e?.name === 'AbortError') return; // cerró el selector sin elegir nada — no es un error a mostrar
-      // cualquier otro error (ej. navigator.share tira pero no soporta bien) → cae al fallback de copiar
-    }
-  }
-  await copiarLink('link-compartir-input', 'btn-compartir-catalogo');
-}
-
-// 954: descarga el PNG del QR generado en el server (GET /api/empresa/
-// catalogo-qr, reutiliza bwip-js). Se pide con fetch (no un <a href> directo)
-// porque el endpoint requiere Authorization — un link crudo no podría llevar
-// el header, y el server igual recalcula el link del catálogo del lado
-// propio (no confía en lo que haya en el input).
-async function descargarQr() {
-  const btn = document.getElementById('btn-descargar-qr');
-  const original = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Generando...';
-
-  try {
-    const r = await fetch(`${API_BASE}/api/empresa/catalogo-qr`, {
-      headers: { Authorization: `Bearer ${await getToken()}` }
-    });
-    if (!r.ok) {
-      const d = await r.json().catch(() => ({}));
-      mostrarAlerta('err', d.error || 'No se pudo generar el QR.');
-      return;
-    }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'qr-catalogo.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    mostrarAlerta('err', 'Error de conexión al generar el QR.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = original;
-  }
-}
-
-// 605: resumen de visitas por canal de origen (GET /api/empresa/
-// catalogo-visitas). El botón funciona como acordeón simple: primer click
-// carga y muestra, segundo click oculta sin volver a pedir — solo se
-// vuelve a pedir al servidor si se cierra y se abre de nuevo, para no
-// pegarle al backend en cada toggle.
-let visitasCatalogoCargadas = false;
-
-async function toggleVisitasCatalogo() {
-  const cont = document.getElementById('visitas-catalogo');
-  const yaVisible = cont.style.display !== 'none';
-  if (yaVisible) {
-    cont.style.display = 'none';
-    return;
-  }
-  cont.style.display = 'block';
-  if (!visitasCatalogoCargadas) await cargarVisitasCatalogo();
-}
-
-async function cargarVisitasCatalogo() {
-  const destino = document.getElementById('visitas-catalogo-contenido');
-  destino.textContent = 'Cargando...';
-
-  try {
-    const r = await fetch(`${API_BASE}/api/empresa/catalogo-visitas?dias=30`, {
-      headers: { Authorization: `Bearer ${await getToken()}` }
-    });
-    if (!r.ok) {
-      const d = await r.json().catch(() => ({}));
-      destino.textContent = d.error || 'No se pudieron cargar las visitas.';
-      return;
-    }
-    const { resumen } = await r.json();
-    visitasCatalogoCargadas = true;
-
-    if (!resumen || !resumen.length) {
-      destino.textContent = 'Todavía no hay visitas registradas en este período.';
-      return;
-    }
-
-    // Se arma con textContent (nunca innerHTML con datos del servidor):
-    // `origen` viene de un ?src= elegido por el propio dueño al armar el
-    // link, pero igual no hay razón para confiar en que no tenga
-    // caracteres raros si lo escribió a mano.
-    //
-    // .tabla-admin (componentes-admin.css) es el componente vigente para
-    // tablas del panel — .tabla (finanzas.css / riesgo-cheques-gentelella.css)
-    // ni siquiera está cargado acá, y el proyecto lo está retirando en favor
-    // de este. Requiere thead/tbody explícitos (el CSS apunta a
-    // "thead th" / "tbody tr") y el wrapper .tabla-wrap de afuera.
-    const wrap = document.createElement('div');
-    wrap.className = 'tabla-wrap';
-
-    const tabla = document.createElement('table');
-    tabla.className = 'tabla-admin';
-
-    const thead = document.createElement('thead');
-    const encabezado = document.createElement('tr');
-    ['Canal', 'Visitas', 'Última visita'].forEach(txt => {
-      const th = document.createElement('th');
-      th.textContent = txt;
-      encabezado.appendChild(th);
-    });
-    thead.appendChild(encabezado);
-    tabla.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    resumen.forEach(fila => {
-      const tr = document.createElement('tr');
-      const tdOrigen = document.createElement('td');
-      tdOrigen.textContent = fila.origen;
-      const tdVisitas = document.createElement('td');
-      tdVisitas.textContent = fila.visitas;
-      const tdUltima = document.createElement('td');
-      tdUltima.textContent = fila.ultima_visita ? new Date(fila.ultima_visita).toLocaleString('es-AR') : '-';
-      tr.append(tdOrigen, tdVisitas, tdUltima);
-      tbody.appendChild(tr);
-    });
-    tabla.appendChild(tbody);
-
-    wrap.appendChild(tabla);
-    destino.replaceChildren(wrap);
-  } catch (e) {
-    destino.textContent = 'Error de conexión al cargar las visitas.';
-  }
-}
 
 async function guardarSlug() {
   const input = document.getElementById('e-slug');

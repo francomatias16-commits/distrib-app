@@ -92,7 +92,6 @@ const LOADERS = {
   importar:                () => import('../lib/handlers/importar.js'),
   'auto-imagenes':         () => import('../lib/handlers/auto-imagenes.js'), // Auto-carga de fotos de productos (barcode → banco de fotos → ícono fallback en frontend)
   notif:                   () => import('../lib/handlers/notif.js'),
-  'whatsapp-catalog':      () => import('../lib/handlers/whatsapp-catalog.js'), // 610 — sync catálogo con WhatsApp/Commerce Manager
   pagos:                   () => import('../lib/handlers/pagos.js'),
   pedidos:                 () => import('../lib/handlers/pedidos.js'),
   piloto:                  () => import('../lib/handlers/piloto.js'),
@@ -123,6 +122,7 @@ const LOADERS = {
   'captura-competencia':   () => import('../lib/handlers/captura-competencia.js'), // 551/552 — Fase 1 (PLAN_CAPTURA_COMPETENCIA.md): captura y comparación de factura de competencia en el mostrador
   'prospectos-competencia': () => import('../lib/handlers/prospectos-competencia.js'), // 557 — Fase 3 (PLAN_CAPTURA_COMPETENCIA.md, Capa 1): prospección geográfica sobre rutas existentes
   'clientes-fuga':          () => import('../lib/handlers/clientes-fuga.js'), // v1060+ — Fase 3 (PLAN_CLIENTES_EN_FUGA.md): pantalla de clientes en fuga
+  'catalogo-meta':          () => import('../lib/handlers/catalogo-meta.js'), // Sincronización con el catálogo de Meta (WhatsApp/Commerce Manager) por empresa
 };
 
 // Cache de módulos ya cargados en ESTE lambda (sobrevive entre invocaciones

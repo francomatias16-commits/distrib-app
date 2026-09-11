@@ -124,46 +124,6 @@
         </ol>
       </div>
     </div>
-
-    <!-- Migración 610 — Sincronización con catálogo de WhatsApp (Commerce
-         Manager). Tarjeta independiente de la de arriba a propósito: una
-         empresa puede conectar catálogo sin mensajería propia (o viceversa),
-         son dos permisos distintos de la misma cuenta de Meta. -->
-    <div class="onboarding-wrap" style="margin-top:24px;">
-      <div class="onboarding-card" id="catalogo-card">
-        <h2>Sincronizar catálogo con WhatsApp</h2>
-        <p class="subtitulo">Traé a distrib los productos que ya tenés cargados en tu catálogo de WhatsApp, y mantené nombre, descripción, imagen y disponibilidad al día en los dos lados. El precio y el stock siguen gobernados acá — si un precio no coincide, te avisamos en vez de pisarlo.</p>
-
-        <div id="catalogo-estado-actual">
-          <div class="estado-box no-conectado">
-            <span class="estado-icono">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </span>
-            <span>Verificando estado del catálogo...</span>
-          </div>
-        </div>
-
-        <div id="catalogo-form-conectar" style="display:none; text-align:left; margin-bottom:18px;">
-          <label for="input-catalog-id" style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">ID del catálogo de Meta (Commerce Manager)</label>
-          <input type="text" id="input-catalog-id" placeholder="Ej: 1234567890123456" style="width:100%; padding:8px 10px; border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:13px; margin-bottom:10px;" />
-          <p style="font-size:12px; color:var(--color-text-light); margin-bottom:14px;">Lo encontrás en Commerce Manager → Configuración → Información del negocio.</p>
-        </div>
-
-        <div class="onboarding-opciones" style="gap:10px;">
-          <button type="button" class="btn btn--primary" id="btn-conectar-catalogo" style="min-width:260px;">
-            Conectar catálogo de WhatsApp
-          </button>
-          <button type="button" class="btn btn--secondary" id="btn-sincronizar-catalogo" style="min-width:260px; display:none;">
-            Sincronizar ahora
-          </button>
-          <button type="button" class="btn btn--link" id="btn-desconectar-catalogo" style="display:none; color:var(--color-danger, #dc2626);">
-            Desconectar catálogo
-          </button>
-        </div>
-
-        <div id="catalogo-resumen" style="display:none; margin-top:18px; text-align:left; font-size:13px; color:var(--color-text-secondary); background:#f8fafc; border-radius:var(--radius-sm); padding:12px 14px;"></div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -179,6 +139,5 @@
 <script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/whatsapp-onboarding.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/whatsapp-catalog.js?v=mtcen4r4"></script>
 </body>
 </html>

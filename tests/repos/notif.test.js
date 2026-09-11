@@ -170,13 +170,13 @@ describe('listarChequesPorIds', () => {
 // ── listarChequesPorVencer ───────────────────────────────────────────────
 
 describe('listarChequesPorVencer', () => {
-  it('filtra por estado en_cartera y rango de vencimiento', async () => {
+  it('filtra por estado pendiente y rango de vencimiento', async () => {
     const query = fakeQuery({ data: [{ id: 'ch1' }], error: null });
     dbMock.from.mockReturnValue(query);
 
     const cheques = await listarChequesPorVencer('2026-08-02', '2026-08-05');
 
-    expect(query.eq).toHaveBeenCalledWith('estado', 'en_cartera');
+    expect(query.eq).toHaveBeenCalledWith('estado', 'pendiente');
     expect(query.gte).toHaveBeenCalledWith('vencimiento', '2026-08-02');
     expect(query.lte).toHaveBeenCalledWith('vencimiento', '2026-08-05');
     expect(cheques).toEqual([{ id: 'ch1' }]);
