@@ -22,6 +22,18 @@ window.ENV = {
   WA_APP_ID:             '2765961223784707',    // app "empresa" (Business-type, confirmada Etapa 7.1)
   WA_EMBEDDED_CONFIG_ID: '1408147427895687',    // migración a Embedded Signup v4 (config con plantilla "60 Expiration Token", creada 29 ago 2026 — reemplaza la v2/v3 previa por el deprecation del 15/10/2026)
 
+  // ── Catálogo de Meta (WhatsApp/Commerce Manager) ─────────────────────
+  // Configuración DISTINTA a WA_EMBEDDED_CONFIG_ID: catalog_management no
+  // se puede pedir con el diálogo de login clásico (scope) — Meta lo
+  // rechaza con "Invalid Scopes". Hace falta una Configuración de
+  // "Facebook Login for Business" en developers.facebook.com (misma app
+  // WA_APP_ID), token de tipo "Token de acceso de usuario", pidiendo solo
+  // catalog_management (business_management NO está disponible para este
+  // tipo de token y tampoco lo necesita el código: el único endpoint que
+  // se llama con este token es /me/owned_product_catalogs). Ver
+  // CHANGELOG_catalogo_meta_sync.md y CHANGELOG_v1070_fix_duplicados_catalogo_meta.md.
+  META_CATALOG_LOGIN_CONFIG_ID: '28469338942706245', // config "Catalogo Meta - Panel" (creada 10/9/2026, solo catalog_management)
+
   // ── Sentry (Fase 4.1, plan de acción) — error tracking del frontend ──
   // Igual que el resto de las claves de este archivo, el DSN de Sentry no
   // es secreto (está pensado para viajar en código cliente — cualquiera

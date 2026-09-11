@@ -1384,6 +1384,24 @@ async function aportarBancoCodigos(codigo, nombre, fotoUrl, fuente = 'manual') {
 
 window.aportarBancoCodigos = aportarBancoCodigos;
 
+// v1068: sync puntual panel→Meta tras crear/editar un producto (ver
+// lib/handlers/catalogo-meta.js, _svc=sync-producto). A propósito NO se
+// espera el fetch (fire-and-forget): si Meta está lento o caído, o la
+// empresa no tiene catálogo conectado, no tiene que frenar ni ensuciar el
+// guardado del producto en el panel — el endpoint ya responde 200 en
+// cualquier caso, esto es solo defensa extra por si la red falla antes de
+// llegar al backend.
+function sincronizarProductoConCatalogoMeta(productoId) {
+  if (!productoId) return;
+  getToken()
+    .then(token => fetch('/api/catalogo-meta/sync-producto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ producto_id: productoId }),
+    }))
+    .catch(err => console.warn('[productos] no se pudo sincronizar con el catálogo de Meta:', err?.message));
+}
+
 async function guardarProducto() {
   const nombre = document.getElementById('fp-nombre').value.trim();
   if (!nombre) { toast('El nombre es obligatorio', 'warning'); return; }
@@ -1472,6 +1490,7 @@ async function guardarProducto() {
       toast('Producto creado', 'success');
       aportarBancoCodigos(payload.codigo, payload.nombre, fotoUrlNueva);
     }
+    sincronizarProductoConCatalogoMeta(modalProductoId);
     cerrarModalProducto();
     await cargarProductos();
   } catch (err) {

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/frontend/admin/manifest.json" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Catálogo de WhatsApp — Admin</title>
+  <link rel="icon" type="image/png" href="/frontend/admin/img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/frontend/admin/img/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/tokens.css?v=cmeta1" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=cmeta1" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=cmeta1" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=cmeta1" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=cmeta1" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=cmeta1" />
+  <script src="/shared/responsive-mobile.js?v=cmeta1" defer></script>
+
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=cmeta1" />
+  <link rel="stylesheet" href="/frontend/admin/css/whatsapp-onboarding-gentelella.css?v=cmeta1" />
+  <script src="/frontend/env-config.js?v=cmeta1"></script>
+  <style>
+    .onboarding-wrap { max-width: 660px; margin: 0 auto; }
+
+    .onboarding-card {
+      background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius);
+      padding: 28px; text-align: center;
+    }
+    .onboarding-card .wa-icono {
+      width: 56px; height: 56px; margin: 0 auto 16px; color: #25D366;
+    }
+    .onboarding-card h2 { font-size: 18px; margin-bottom: 6px; }
+    .onboarding-card p.subtitulo {
+      font-size: 13px; color: var(--color-text-light); margin-bottom: 22px; line-height: 1.5;
+    }
+
+    .estado-box {
+      display: flex; align-items: flex-start; gap: 8px; text-align: left;
+      padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.4;
+      margin-bottom: 20px;
+    }
+    .estado-box.no-conectado { background: #fef3c7; color: #92400e; }
+    .estado-box.conectado    { background: #dcfce7; color: #15803d; }
+    .estado-icono { flex-shrink: 0; margin-top: 1px; }
+
+    .spinner-inline {
+      display: inline-block; width: 14px; height: 14px; margin-right: 6px;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sync-bloque {
+      text-align: left; border-top: 1px dashed var(--color-border); margin-top: 22px; padding-top: 18px;
+    }
+    .sync-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .sync-item p { font-size: 12px; color: var(--color-text-light); margin: 2px 0 0; }
+    .sync-item strong { font-size: 13px; }
+    #resultado-sync {
+      display: none; font-size: 12px; background: var(--color-bg-subtle, #f5f5f5);
+      border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 8px;
+    }
+    .ayuda-opciones { font-size: 12px; color: var(--color-text-light); margin-top: 14px; line-height: 1.5; }
+
+    @media (max-width: 480px) {
+      .onboarding-card { padding: 18px 14px; }
+      .sync-item { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body class="dash-whatsapp-onboarding-gentelella dash-gentelella">
+
+<div id="nav-root"></div>
+
+<div class="layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="topbar-title">Catálogo de WhatsApp</h1>
+      <span class="topbar-fecha" id="topbar-fecha"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-usuario" id="topbar-usuario">Cargando...</span>
+    </div>
+  </header>
+
+  <div class="page-intro">
+    Sincronizá los productos de tu panel con el catálogo de tu WhatsApp Business, para que se vean iguales de los dos lados (precio, nombre, foto y disponibilidad).
+  </div>
+
+  <main class="main">
+    <div class="onboarding-wrap">
+      <div class="onboarding-card">
+        <svg class="wa-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5"/><circle cx="8" cy="14" r="2"/><path d="M12 14h6M12 17h6"/>
+        </svg>
+        <h2>Catálogo de productos de WhatsApp</h2>
+        <p class="subtitulo">Conectá el catálogo asociado a tu WhatsApp Business (Commerce Manager) para mantenerlo sincronizado con los productos que cargás acá.</p>
+
+        <div id="estado-actual">
+          <div class="estado-box no-conectado">
+            <span class="estado-icono">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <span>Verificando estado de conexión...</span>
+          </div>
+        </div>
+
+        <div id="bloque-desconectado" style="display:none;">
+          <button type="button" class="btn btn--primary" id="btn-conectar-catalogo" style="min-width:260px;">
+            Conectar catálogo de WhatsApp
+          </button>
+          <p class="ayuda-opciones">Vas a iniciar sesión con la cuenta de Facebook que administra el catálogo de tu negocio. No hace falta tocar tu número de WhatsApp ni volver a hacer el onboarding de mensajería.</p>
+        </div>
+
+        <div id="bloque-conectado" style="display:none;">
+          <div class="sync-bloque">
+            <div class="sync-item">
+              <div>
+                <strong>Subir productos del panel al catálogo</strong>
+                <p id="info-sync-push">—</p>
+              </div>
+              <button type="button" class="btn btn--secondary" id="btn-carga-inicial">Subir ahora</button>
+            </div>
+            <div class="sync-item">
+              <div>
+                <strong>Traer productos desde WhatsApp</strong>
+                <p id="info-sync-pull">—</p>
+              </div>
+              <button type="button" class="btn btn--secondary" id="btn-importar-meta">Importar ahora</button>
+            </div>
+            <div id="resultado-sync"></div>
+          </div>
+          <p class="ayuda-opciones">
+            "Subir productos" manda lo que tenés cargado en el panel hacia el catálogo (no borra lo que ya tenías ahí).
+            "Traer productos" trae todo lo que está en WhatsApp: crea los que falten (con imagen incluida) y actualiza precio/nombre/foto/disponibilidad de los que ya coinciden. Los productos nuevos quedan en la categoría "Importado de WhatsApp" para que les asignes la categoría real.
+          </p>
+          <div style="margin-top:16px; text-align:center;">
+            <button type="button" class="btn btn--danger" id="btn-desconectar-catalogo">Desconectar catálogo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/frontend/admin/js/nav-data.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/nav.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/auth.js?v=cmeta1"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/busqueda-global.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=cmeta1"></script>
+<script src="/frontend/admin/js/catalogo-meta.js?v=cmeta1"></script>
+</body>
+</html>

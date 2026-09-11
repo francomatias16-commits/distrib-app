@@ -493,7 +493,7 @@ Estructura:
 | 983 | [CHANGELOG_v983_dep03_remover_sharp_sin_uso.md](v800-984/CHANGELOG_v983_dep03_remover_sharp_sin_uso.md) | v983 — DEP-03: remover `sharp` (devDependency sin uso) | feature/otros |
 | 984 | [CHANGELOG_v984_fix_migraciones_orden_secnew_y_test_fragil.md](v800-984/CHANGELOG_v984_fix_migraciones_orden_secnew_y_test_fragil.md) | v984 — Fix hallazgo #3 (3ra recurrencia) + test estructuralmente frágil | auditoría |
 
-## Sin número de versión (12 archivos)
+## Sin número de versión (11 archivos)
 
 | Versión | Archivo | Título | Categoría |
 |---|---|---|---|
@@ -505,7 +505,6 @@ Estructura:
 | - | [CHANGELOG_eliminar_descripciones_paginas.md](sin-numero/CHANGELOG_eliminar_descripciones_paginas.md) | Limpieza de descripciones introductorias | feature/otros |
 | - | [CHANGELOG_etapa0.2_auditoria_bridges_window.md](sin-numero/CHANGELOG_etapa0.2_auditoria_bridges_window.md) | Etapa 0.2 — Auditoría automatizada de bridges `window.*` faltantes | auditoría |
 | - | [CHANGELOG_fix_devoluciones_revisar_accion_query.md](sin-numero/CHANGELOG_fix_devoluciones_revisar_accion_query.md) | Fix — "No se pudo registrar la revisión" al aprobar/rechazar una devolución | fix |
-| - | [CHANGELOG_limpieza_monolitos_huerfanos_frontend.md](sin-numero/CHANGELOG_limpieza_monolitos_huerfanos_frontend.md) | Limpieza de monolitos JS huérfanos en frontend/admin/js (pos.js, migracion.js, productos.js, clientes.js) | refactor |
 | - | [CHANGELOG_lotes_robustecimiento_etapas2_3_4.md](sin-numero/CHANGELOG_lotes_robustecimiento_etapas2_3_4.md) | Robustecimiento de trazabilidad de lotes — Etapas 2, 3 y 4 | fase/etapa (plan) |
 | - | [CHANGELOG_onboarding_checklist_frontend.md](sin-numero/CHANGELOG_onboarding_checklist_frontend.md) | CHANGELOG — Checklist de activación (onboarding cliente) | feature/otros |
 | - | [CHANGELOG_quitar_cobros_por_medio_pago.md](sin-numero/CHANGELOG_quitar_cobros_por_medio_pago.md) | Eliminación de la sección de cobros por medio de pago | feature/otros |

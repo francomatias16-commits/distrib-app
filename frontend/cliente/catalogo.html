@@ -214,30 +214,12 @@
 
       if (clienteId) await cargarCarritoActual();
 
-      registrarVisitaOrigen();
-
       cargarLogoEmpresa();
       await cargarCategorias();
       await cargarProductos(true);
       cargarDestacados(); // independiente del listado principal, no bloquea su carga
       cargarCombos();     // ídem — sección fija propia
     });
-
-    // 605: tracking de origen del link del catálogo público (?src=ig-bio,
-    // ?src=qr-local, etc.) — para que el dueño vea de qué canal le llegan
-    // más visitas. Se registra una sola vez por carga de página, después de
-    // resolver empresaId, y solo para visitantes públicos reales: se salta
-    // en la vista previa del admin (previewToken) y con sesión de cliente
-    // logueado, porque esas visitas no vienen de un link compartido y
-    // mezclarían el conteo. Best-effort: si falla (RPC caída, catálogo
-    // público deshabilitado — la RPC no inserta en ese caso, ver migración
-    // 605) no afecta en nada la carga del catálogo.
-    function registrarVisitaOrigen() {
-      if (previewToken || clienteId) return;
-      const origen = params.get('src');
-      sb.rpc('registrar_visita_catalogo', { p_empresa_id: empresaId, p_origen: origen })
-        .catch(() => { /* no bloquea el catálogo si falla */ });
-    }
 
     // Combos (531/cliente_combos_disponibles): mismo criterio que
     // cargarDestacados — fetch propio, no bloquea el catálogo principal si

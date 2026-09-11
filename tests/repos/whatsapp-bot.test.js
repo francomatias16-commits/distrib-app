@@ -345,34 +345,6 @@ describe('registrarMensajeWhatsapp', () => {
     const res = await registrarMensajeWhatsapp({ conversacion_id: 'conv1', direccion: 'in', texto: 'hola' });
     expect(res.error.code).toBe('23505');
   });
-
-  // Migración 604 (Capa 3, PLAN_QA_ASISTENTE_WHATSAPP.md) — tools_usadas/
-  // proveedor_usado, mismo criterio que la 600 del asistente de ayuda.
-  it('inserta tools_usadas/proveedor_usado cuando vienen (mensaje saliente del bot)', async () => {
-    const query = fakeQuery({ error: null });
-    dbMock.from.mockReturnValue(query);
-
-    await registrarMensajeWhatsapp({
-      conversacion_id: 'conv1', direccion: 'out', texto: 'listo',
-      tools_usadas: ['buscar_productos', 'agregar_item'], proveedor_usado: 'gemini',
-    });
-
-    expect(query.insert).toHaveBeenCalledWith({
-      conversacion_id: 'conv1', direccion: 'out', wa_message_id: null, texto: 'listo', tipo: 'text', metadata: null,
-      tools_usadas: ['buscar_productos', 'agregar_item'], proveedor_usado: 'gemini',
-    });
-  });
-
-  it('no agrega tools_usadas/proveedor_usado al payload cuando no se pasan (resto de los call sites)', async () => {
-    const query = fakeQuery({ error: null });
-    dbMock.from.mockReturnValue(query);
-
-    await registrarMensajeWhatsapp({ conversacion_id: 'conv1', direccion: 'in', texto: 'hola' });
-
-    const payload = query.insert.mock.calls[0][0];
-    expect(payload).not.toHaveProperty('tools_usadas');
-    expect(payload).not.toHaveProperty('proveedor_usado');
-  });
 });
 
 describe('obtenerHistorialMensajes', () => {

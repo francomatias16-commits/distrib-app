@@ -391,16 +391,36 @@
       "destination": "/api/index?_mod=empresa&_svc=catalogo-publico"
     },
     {
-      "source": "/api/empresa/catalogo-qr",
-      "destination": "/api/index?_mod=empresa&_svc=catalogo-qr"
-    },
-    {
-      "source": "/api/empresa/catalogo-visitas",
-      "destination": "/api/index?_mod=empresa&_svc=catalogo-visitas"
-    },
-    {
       "source": "/api/empresa",
       "destination": "/api/index?_mod=empresa"
+    },
+    {
+      "source": "/api/catalogo-meta/estado",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=estado"
+    },
+    {
+      "source": "/api/catalogo-meta/conectar",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=conectar"
+    },
+    {
+      "source": "/api/catalogo-meta/desconectar",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=desconectar"
+    },
+    {
+      "source": "/api/catalogo-meta/carga-inicial",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=carga-inicial"
+    },
+    {
+      "source": "/api/catalogo-meta/importar",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=importar"
+    },
+    {
+      "source": "/api/catalogo-meta/sync-producto",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=sync-producto"
+    },
+    {
+      "source": "/api/catalogo-meta/importar-cron",
+      "destination": "/api/index?_mod=catalogo-meta&_svc=importar-cron"
     },
     {
       "source": "/api/health",
@@ -597,10 +617,6 @@
     {
       "source": "/api/etiquetas(.*)",
       "destination": "/api/index?_mod=etiquetas"
-    },
-    {
-      "source": "/api/whatsapp-catalog(.*)",
-      "destination": "/api/index?_mod=whatsapp-catalog"
     },
     {
       "source": "/api/reglas-automatizacion(.*)",
@@ -1235,6 +1251,10 @@
       "destination": "/frontend/admin/whatsapp-onboarding.html"
     },
     {
+      "source": "/admin/catalogo-meta",
+      "destination": "/frontend/admin/catalogo-meta.html"
+    },
+    {
       "source": "/admin/superadmin",
       "destination": "/frontend/admin/superadmin.html"
     },
@@ -1529,6 +1549,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/catalogo-meta/importar-cron",
+      "schedule": "0 10 * * *"
+    },
+    {
       "path": "/api/rutas-live?accion=reporte-semanal",
       "schedule": "30 7 * * 1"
     },
@@ -1551,10 +1575,6 @@
     {
       "path": "/api/retencion",
       "schedule": "50 3 * * *"
-    },
-    {
-      "path": "/api/whatsapp-catalog?_svc=cron",
-      "schedule": "0 12 * * *"
     }
   ],
   "functions": {

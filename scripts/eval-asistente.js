@@ -105,7 +105,7 @@ async function llamarProveedor(proveedor, { systemPromptConTools, systemPromptSi
 async function crearConversacionDePrueba() {
   const { data, error } = await db
     .from('asistente_conversaciones')
-    .insert({ empresa_id: EMPRESA_ID, usuario_id: USUARIO_ID })
+    .insert({ empresa_id: EMPRESA_ID, usuario_id: USUARIO_ID, titulo: '[EVAL] descartar' })
     .select('id')
     .single();
   if (error) throw new Error(`No se pudo crear conversación de prueba: ${error.message}`);

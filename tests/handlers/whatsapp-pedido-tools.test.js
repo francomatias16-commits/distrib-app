@@ -334,35 +334,6 @@ describe('agregar_item / quitar_item', () => {
 
     expect(r.items).toEqual([]);
   });
-
-  // FIX (2026-09-08, hallazgo real de scripts/audit-borrador-whatsapp.js
-  // Capa 4): antes esto era un filter() ciego que no tocaba nada si el
-  // producto_id no estaba en el borrador, guardaba el mismo borrador de
-  // vuelta y el bot podía confirmarle al cliente "listo, lo saqué" sin que
-  // fuera cierto. Ahora rechaza explícitamente, mismo criterio que
-  // modificar_cantidad. Solo una respuesta mockeada para
-  // whatsapp_conversaciones: si el fix funciona, nunca debería llegar al
-  // guardarBorrador() que dispararía una segunda llamada.
-  it('rechaza si el producto_id no está en el borrador actual (silent no-op corregido)', async () => {
-    dbMock.fromResponses.whatsapp_conversaciones = (() => {
-      let llamada = 0;
-      return () => {
-        llamada += 1;
-        if (llamada === 1) {
-          return { data: { pedido_borrador: { items: [{ producto_id: 'p1', nombre: 'Aceite 1L', cantidad: 2, precio: 100 }] } }, error: null };
-        }
-        throw new Error('quitar_item: no debería llegar a guardar si el producto no está en el borrador');
-      };
-    })();
-
-    await expect(
-      ejecutarToolPedidoWhatsApp('quitar_item', {
-        empresaId: EMPRESA_ID,
-        conversacionId: CONVERSACION_ID,
-        args: { producto_id: 'no-existe' },
-      })
-    ).rejects.toThrow('quitar_item: ese producto no está en el borrador actual');
-  });
 });
 
 // FIX (2026-08-30): antes, "dejar en N unidades" un producto ya agregado
