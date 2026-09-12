@@ -471,6 +471,26 @@ tbody tr:hover td { background: rgba(106,152,115,.035) !important; }
   display: flex;
   gap: 8px;
 }
+
+/* FIX bug real (hallado con test E2E, no hipotético): frontend/shared/
+   reskin-patch.css tiene `button.btn.btn--primary { display: inline-flex
+   !important; }` (sección "Botones legacy"), que se carga en TODAS las
+   páginas admin. Esa regla le gana a cualquier btn.style.display='none'
+   que pedidos.js intente aplicar sobre #btn-generar-factura (un
+   !important en hoja de estilos siempre le gana a un inline style que no
+   lo es), sin importar el orden de <link> en el <head>. Resultado: el
+   botón de "Generar Comprobante de Venta" quedaba SIEMPRE visible en el
+   modal, sin importar el estado real del pedido o si ya tenía factura
+   emitida — nadie lo había notado porque ningún test afirmaba
+   explícitamente "está oculto", solo "está visible" en el momento
+   correcto (que sigue pasando igual, con o sin el bug).
+   Solución: un selector con especificidad de ID (#btn-generar-factura)
+   le gana a la combinación de 2 clases + elemento de reskin-patch.css
+   (button.btn.btn--primary), sin depender del orden de carga. pedidos.js
+   ahora togglea la clase .btn-factura--visible en vez de
+   btn.style.display — ver abrirModal() y generarFactura(). */
+#btn-generar-factura { display: none !important; }
+#btn-generar-factura.btn-factura--visible { display: inline-flex !important; }
 .modal-acciones-danger .btn-cancelar-modal { margin-left: 0; }
 
 .btn-eliminar-modal {

@@ -47,4 +47,40 @@ export class PedidosPage extends PageObjectBase {
     // un selector de ícono que puede cambiar).
     await this.page.evaluate(() => window.cerrarModal?.());
   }
+
+  // ── Transición de estado (Etapa 5 del plan de auditoría) ────────────
+  // abrirModal() arma los botones de "próximo estado" con clase
+  // `.btn-estado.btn-est-<estado>` (pedidos.js:804) — no tienen id propio
+  // porque `sig` (TRANSICIONES[p.estado]) puede traer más de una opción
+  // (ej. confirmado → [preparando, cancelado]), así que el selector va
+  // por el estado destino, no por posición.
+  btnTransicion(estadoDestino) {
+    return this.page.locator(`#modal-estado-row .btn-est-${estadoDestino}`);
+  }
+
+  get btnGenerarFactura() { return this.page.locator('#btn-generar-factura'); }
+
+  // Mismo overlay global que ya documentó cta-cte.page.js
+  // (`window.confirmar()`, frontend/admin/js/ui-utils.js) — reusado acá
+  // porque cambiarEstado() pide confirmación para confirmado/preparando/
+  // despachado/entregado (MENSAJE_CONFIRMACION_ESTADO).
+  get dialogoConfirmar() { return this.page.locator('[role="dialog"]:has([data-action])').last(); }
+  get btnConfirmarOk() { return this.dialogoConfirmar.locator('[data-action="ok"]'); }
+
+  /**
+   * Click en el botón de transición + confirmar el diálogo. cambiarEstado()
+   * cierra el modal solo SI la transición fue exitosa (`if (ok) cerrarModal()`)
+   * — quien llama debe reabrir el modal (abrirDetallePorId) para la
+   * siguiente transición.
+   */
+  async confirmarTransicion(estadoDestino) {
+    await this.btnTransicion(estadoDestino).click();
+    await expect(this.dialogoConfirmar).toBeVisible();
+    await this.btnConfirmarOk.click();
+  }
+
+  /** Click en "Generar comprobante" (POST /api/facturas, ver facturacion.page.js para el resto del flujo). */
+  async generarFactura() {
+    await this.btnGenerarFactura.click();
+  }
 }
