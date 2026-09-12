@@ -60,6 +60,27 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
   process.exit(1);
 }
 
+// ── Guard anti-producción ────────────────────────────────────────────────────
+// Este script hace ~45 llamadas reales de insert/delete/rpc. Corrido sin querer
+// contra el proyecto de producción escribiría y borraría datos de clientes
+// reales (hallazgo de la Etapa 0 de la auditoría: el .env.local del repo apunta
+// a jgiquzjwoedmzwqgzubr, que es producción, no un Supabase de test separado).
+// Lista de refs de proyecto conocidos como producción, ampliable por env var.
+const PROD_REFS = [
+  'jgiquzjwoedmzwqgzubr',
+  ...String(process.env.SUPABASE_PROD_REFS || '').split(',').map(s => s.trim()).filter(Boolean),
+];
+const urlRef = (SUPABASE_URL.match(/^https:\/\/([a-z0-9-]+)\.supabase\.co/i) || [])[1] || '';
+const ALLOW_PROD = process.argv.includes('--allow-prod') || process.env.ALLOW_PROD_INTEGRATION_TESTS === '1';
+
+if (PROD_REFS.includes(urlRef) && !ALLOW_PROD) {
+  console.error(`${C.fail}[FAIL] SUPABASE_URL apunta a un proyecto marcado como PRODUCCIÓN (${urlRef}).${C.x}`);
+  console.error(`${C.fail}       Este script inserta y borra datos reales — no se ejecuta contra prod por defecto.${C.x}`);
+  console.error(`${C.dim}       Si esto es intencional, volvé a correrlo con --allow-prod (o ALLOW_PROD_INTEGRATION_TESTS=1).${C.x}`);
+  console.error(`${C.dim}       Lo normal es apuntar SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY a un proyecto Supabase de test separado.${C.x}`);
+  process.exit(1);
+}
+
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: false },
 });
@@ -1188,6 +1209,173 @@ async function grupoConcurrenciaPagos() {
     IDS.cobroConcurrente = r1.data.cobro_id;
     return { cobro_id: r1.data.cobro_id, filas_cobro: filasCobro.length, filas_cta_cte: filasCtaCte.length };
   }, ['cobros', 'cta_cte']);
+
+  // T51: row locking en sync_saldo_deuda_cliente (Etapa 3, último ítem
+  // pendiente del plan de auditoría). A diferencia de T49/T50 (mismo
+  // offline_local_id → debe deduplicar), acá van DOS offline_local_id
+  // DISTINTOS para el mismo cliente — las dos llamadas deben insertar de
+  // verdad en cta_cte, y el trigger sync_saldo_deuda_cliente dispara dos
+  // veces casi en simultáneo. Antes del fix (migración
+  // fix_row_locking_sync_saldo_deuda_cliente), el SELECT SUM de ese
+  // trigger leía sin lock, así que la segunda ejecución podía no ver el
+  // commit de la primera y pisar su resultado (lost update): el saldo
+  // quedaba corto por el monto de una de las dos llamadas, aunque las
+  // dos filas de cta_cte (el ledger real) estuvieran bien. El fix agrega
+  // `PERFORM ... FOR UPDATE` sobre la fila del cliente antes de recalcular,
+  // serializando los dos triggers.
+  await run('concurrencia-pagos', 'T51', 'registrar_cobro_completo x2 en paralelo (mismo cliente, offline_local_id distinto) → saldo_deuda no debe perder una actualización', async () => {
+    const antes = await q(sb.from('clientes')
+      .select('saldo_deuda')
+      .eq('id', IDS.cliente)
+      .single());
+    const saldoAntes = Number(antes.saldo_deuda) || 0;
+
+    const montoA = 700;
+    const montoB = 900;
+
+    const [r1, r2] = await Promise.all([
+      sb.rpc('registrar_cobro_completo', {
+        p_empresa_id: IDS.empresa,
+        p_cliente_id: IDS.cliente,
+        p_monto: montoA,
+        p_medio: 'efectivo',
+        p_offline_local_id: `${TEST_TAG}_saldo_race_A`,
+      }),
+      sb.rpc('registrar_cobro_completo', {
+        p_empresa_id: IDS.empresa,
+        p_cliente_id: IDS.cliente,
+        p_monto: montoB,
+        p_medio: 'efectivo',
+        p_offline_local_id: `${TEST_TAG}_saldo_race_B`,
+      }),
+    ]);
+
+    if (r1.error) throw new Error(`llamada A: ${r1.error.message}`);
+    if (r2.error) throw new Error(`llamada B: ${r2.error.message}`);
+    assert(r1.data?.ok === true, `llamada A debe ser ok:true — ${JSON.stringify(r1.data)}`);
+    assert(r2.data?.ok === true, `llamada B debe ser ok:true — ${JSON.stringify(r2.data)}`);
+
+    // Deben ser DOS cobros distintos (offline_local_id distinto), no una
+    // dedupe como en T50.
+    assert(r1.data.cobro_id !== r2.data.cobro_id,
+      'con offline_local_id distinto deben crearse dos cobros distintos, no uno solo');
+
+    // El ledger (cta_cte) siempre queda bien porque cada INSERT es
+    // atómico — lo que este test verifica es que saldo_deuda (el
+    // "cache" recalculado por el trigger) coincide con ese ledger.
+    const despues = await q(sb.from('clientes')
+      .select('saldo_deuda')
+      .eq('id', IDS.cliente)
+      .single());
+    const saldoDespues = Number(despues.saldo_deuda);
+    const saldoEsperado = saldoAntes - montoA - montoB; // un 'cobro' resta saldo_deuda
+
+    assert(Math.abs(saldoDespues - saldoEsperado) < 0.01,
+      `lost update detectado: saldo_deuda quedó en ${saldoDespues}, esperado ${saldoEsperado} (antes=${saldoAntes}, -${montoA}, -${montoB})`);
+
+    return { saldo_antes: saldoAntes, saldo_despues: saldoDespues, esperado: saldoEsperado };
+  }, ['cta_cte', 'clientes']);
+
+  // T52: row locking en el chequeo de límite de crédito de
+  // registrar_venta_pos (Etapa 3, hallazgo detectado al auditar). Dos
+  // ventas POS concurrentes al mismo cliente, ambas a cuenta corriente,
+  // cada una individualmente por debajo del límite pero que combinadas lo
+  // superan. Antes del fix (migración 618), el SELECT de límite/saldo no
+  // tenía FOR UPDATE, así que las dos llamadas podían leer el mismo
+  // saldo_deuda "viejo" y las dos pasar el chequeo — quedando el cliente
+  // con más deuda que su límite permite. El fix serializa: la segunda
+  // llamada espera a que la primera libere la fila del cliente y relee el
+  // saldo ya actualizado antes de decidir.
+  await run('concurrencia-pagos', 'T52', 'registrar_venta_pos: dos ventas paralelas a cta_cte, mismo cliente, exceden el límite combinado → solo una debe pasar', async () => {
+    const antes = await q(sb.from('clientes')
+      .select('saldo_deuda, limite_credito')
+      .eq('id', IDS.cliente)
+      .single());
+    const saldoAntes = Number(antes.saldo_deuda) || 0;
+    const limiteOriginal = antes.limite_credito;
+
+    // IDS.cliente es compartido con otros grupos de tests (cobros, notas de
+    // crédito, etc. de esta misma corrida), así que saldoAntes puede llegar
+    // en cualquier signo. Si queda negativo, `saldoAntes + margen` puede dar
+    // un límite negativo, y registrar_venta_pos salta por completo el
+    // chequeo de límite (`IF v_limite > 0`) — el test aprobaría ambas
+    // ventas sin que eso signifique que el locking falla. Normalizamos el
+    // saldo a 0 con un asiento de ajuste antes de fijar el límite, para que
+    // el margen de 100 sea determinístico sin importar el estado previo.
+    let ajusteId = null;
+    if (Math.abs(saldoAntes) > 0.005) {
+      const ajuste = await q(sb.from('cta_cte')
+        .insert({
+          empresa_id: IDS.empresa,
+          cliente_id: IDS.cliente,
+          tipo: saldoAntes > 0 ? 'nota_credito' : 'nota_debito',
+          monto: Math.abs(saldoAntes),
+          descripcion: 'Ajuste técnico T52 (normalizar saldo a 0 antes del test de concurrencia)',
+        })
+        .select('id')
+        .single());
+      ajusteId = ajuste.id;
+    }
+
+    // Límite bien ajustado: deja exactamente 100 de margen sobre el saldo
+    // actual (ya normalizado a 0). Cada venta pide 60 (individualmente
+    // entra), las dos juntas piden 120 (no entra).
+    const margen = 100;
+    const montoA = 60;
+    const montoB = 60;
+    await q(sb.from('clientes')
+      .update({ limite_credito: margen })
+      .eq('id', IDS.cliente));
+
+    const hacerVenta = (monto, offlineId) => sb.rpc('registrar_venta_pos', {
+      p_empresa_id:  IDS.empresa,
+      p_caja_id:     IDS.cajaPos,
+      p_turno_id:    IDS.turnoCaja,
+      p_vendedor_id: IDS.usuario,
+      p_cliente_id:  IDS.cliente,
+      p_deposito_id: IDS.deposito,
+      p_items:       [{ producto_id: IDS.producto, cantidad: 1, precio_unitario: monto, subtotal: monto }],
+      p_pagos:       [{ medio: 'cuenta_corriente', monto }],
+      p_subtotal:    monto,
+      p_iva_total:   0,
+      p_total:       monto,
+      p_offline_local_id: offlineId,
+    });
+
+    let r1, r2;
+    try {
+      [r1, r2] = await Promise.all([
+        hacerVenta(montoA, `${TEST_TAG}_venta_limite_A`),
+        hacerVenta(montoB, `${TEST_TAG}_venta_limite_B`),
+      ]);
+    } finally {
+      // Restaurar el límite original y deshacer el ajuste de saldo, pase lo
+      // que pase, para no afectar grupos de tests posteriores que usan el
+      // mismo cliente.
+      await q(sb.from('clientes')
+        .update({ limite_credito: limiteOriginal })
+        .eq('id', IDS.cliente));
+      if (ajusteId) {
+        await q(sb.from('cta_cte').delete().eq('id', ajusteId));
+      }
+    }
+
+    if (r1.error) throw new Error(`venta A: ${r1.error.message}`);
+    if (r2.error) throw new Error(`venta B: ${r2.error.message}`);
+
+    const resultados = [r1.data, r2.data];
+    const aprobadas  = resultados.filter(d => d?.ok === true);
+    const rechazadas = resultados.filter(d => d?.ok === false);
+
+    assert(aprobadas.length === 1,
+      `exactamente una venta debe aprobarse (individualmente entra en el margen de ${margen}), se aprobaron ${aprobadas.length} — ${JSON.stringify(resultados)}`);
+    assert(rechazadas.length === 1,
+      `exactamente una venta debe rechazarse por límite de crédito (combinadas superan el margen de ${margen}), se rechazaron ${rechazadas.length} — ${JSON.stringify(resultados)}`);
+    assert(rechazadas[0].tipo === 'limite_credito',
+      `el rechazo debe ser por tipo 'limite_credito', fue '${rechazadas[0].tipo}' — ${JSON.stringify(rechazadas[0])}`);
+
+    return { saldo_antes: saldoAntes, margen, monto_a: montoA, monto_b: montoB, resultado_a: r1.data, resultado_b: r2.data };
+  }, ['clientes', 'cta_cte', 'ventas_pos']);
 }
 
 
@@ -1282,12 +1470,20 @@ async function grupoCleanup() {
     ['cajas_pos',           () => IDS.empresa ? sb.from('cajas_pos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cajas_pos').delete(opts)],
     ['pedido_items',        () => IDS.pedido ? sb.from('pedido_items').delete(opts).eq('pedido_id', IDS.pedido) : sb.from('pedido_items').delete(opts)],
     ['pedidos',             () => IDS.empresa ? sb.from('pedidos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('pedidos').delete(opts)],
-    ['lotes',               () => IDS.empresa ? sb.from('lotes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('lotes').delete(opts)],
     // Faltaba este paso: cancelar_pedido (T25, ahora que corre con sesión
     // real via sbAuth) inserta filas de 'liberacion' acá, y otros tests
     // dejan filas de 'reserva'/'ingreso'. Sin este DELETE, 'productos'
     // queda bloqueado por movimientos_stock_producto_id_fkey.
+    // 'movimientos_stock' va ANTES que 'lotes': movimientos_stock_lotes
+    // tiene movimiento_stock_id → movimientos_stock con ON DELETE CASCADE
+    // (borrar movimientos_stock limpia movimientos_stock_lotes solo), pero
+    // lote_id → lotes NO tiene cascade. Si 'lotes' corre primero (como
+    // estaba antes), la fila de movimientos_stock_lotes que deja T49
+    // (via fn_lotes_consumir_fefo en registrar_venta_pos) todavía apunta
+    // al lote y el DELETE de 'lotes' falla con
+    // movimientos_stock_lotes_lote_id_fkey.
     ['movimientos_stock',   () => IDS.empresa ? sb.from('movimientos_stock').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('movimientos_stock').delete(opts)],
+    ['lotes',               () => IDS.empresa ? sb.from('lotes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('lotes').delete(opts)],
     ['stock',               () => IDS.deposito ? sb.from('stock').delete(opts).eq('deposito_id', IDS.deposito) : sb.from('stock').delete(opts)],
     ['clientes',            () => IDS.empresa ? sb.from('clientes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('clientes').delete(opts)],
     ['productos',           () => IDS.empresa ? sb.from('productos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('productos').delete(opts)],

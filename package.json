@@ -65,6 +65,11 @@
     "detectar:fallas-asistente": "node scripts/detectar-fallas-asistente.js",
     "detectar:fallas-asistente:json": "node scripts/detectar-fallas-asistente.js --json",
     "audit:all": "node scripts/audit-security-grants.js && node scripts/audit-funciones-fantasma.js && node scripts/audit-resumenes-asistente.js",
+    "conciliar:cta-cte": "node scripts/conciliar-cta-cte.js",
+    "conciliar:cta-cte:json": "node scripts/conciliar-cta-cte.js --json",
+    "conciliar:stock": "node scripts/conciliar-stock.js",
+    "conciliar:stock:json": "node scripts/conciliar-stock.js --json",
+    "conciliar:all": "node scripts/conciliar-cta-cte.js && node scripts/conciliar-stock.js",
     "audit:mobile": "node scripts/audit-mobile.js",
     "audit:mobile:json": "node scripts/audit-mobile.js --json",
     "audit:breakpoints": "node scripts/audit-breakpoints.js",
@@ -79,7 +84,9 @@
     "test:e2e": "playwright test -c playwright.config.e2e.js",
     "test:e2e:ui": "playwright test -c playwright.config.e2e.js --ui",
     "loadtest": "node scripts/load-test.js",
-    "loadtest:etapa4": "node scripts/load-test-etapa4.js"
+    "loadtest:etapa4": "node scripts/load-test-etapa4.js",
+    "audit:dinero": "node scripts/audit-dinero.js",
+    "audit:dinero:json": "node scripts/audit-dinero.js --json"
   },
   "type": "module",
   "devDependencies": {
