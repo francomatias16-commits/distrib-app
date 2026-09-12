@@ -1,0 +1,25 @@
+-- Punto 8b del plan de auditoria (2026-09-11).
+-- asistente_uso tiene RLS activado pero sin ninguna policy desde algun punto
+-- entre la migracion 195 (que creaba asistente_uso_empresa) y la 290, sin
+-- que ningun archivo del repo registrara el DROP POLICY (drift no versionado,
+-- ver AUDITORIA_PROGRESO_2026-09-11.md seccion 4.1).
+--
+-- Decision de producto: NO se restaura la policy. La migracion 290 ya revoco
+-- el GRANT de tabla a anon/authenticated sobre asistente_uso, asi que hoy
+-- solo postgres/service_role tienen cualquier privilegio -- doble bloqueo,
+-- restaurar solo la policy sin el GRANT no habilitaria nada igual. Se opta
+-- por dejar la tabla como deny-all intencional para todo rol que no sea
+-- service_role, en vez de reabrir una superficie de acceso que ningun
+-- panel usa hoy.
+--
+-- Si en el futuro se construye el panel de metricas por empresa que preveia
+-- el comentario de la migracion 195, restaurar ahi mismo, juntos:
+--   GRANT SELECT ON asistente_uso TO authenticated;
+--   CREATE POLICY asistente_uso_empresa ON asistente_uso FOR SELECT
+--     USING (empresa_id = (auth.jwt() ->> 'empresa_id')::uuid);
+-- (o el mecanismo de empresa_id vigente en ese momento -- confirmar contra
+-- el patron real de RLS del proyecto antes de reusar este snippet a ciegas).
+--
+-- Esta migracion no cambia ningun comportamiento: es documentacion versionada.
+COMMENT ON TABLE asistente_uso IS
+  'RLS activado sin policy = deny-all intencional para todo rol salvo service_role (decision de producto, punto 8b de la auditoria 2026-09-11). No confundir con un gap sin resolver: el GRANT de tabla a anon/authenticated tambien esta revocado desde la migracion 290, doble bloqueo. Si se construye un panel de metricas por empresa via authenticated, restaurar GRANT SELECT + policy asistente_uso_empresa juntos (ver migracion 195 y esta).';

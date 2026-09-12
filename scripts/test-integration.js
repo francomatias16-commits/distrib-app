@@ -1016,6 +1016,182 @@ async function grupoChequesYPush() {
 
 
 // ════════════════════════════════════════════════════════════════════════════
+// GRUPO — CONCURRENCIA DE PAGOS (Etapa 3 del plan)
+//
+// Los tests de tests/handlers/pagos-webhook-polling-concurrencia.test.js
+// mockean lib/repos/pagos.js — cubren que el CÓDIGO DE APLICACIÓN reacciona
+// bien a "0 filas afectadas"/"mismo cobro_id devuelto", pero no pueden
+// probar la garantía real: que dos transacciones de Postgres realmente
+// concurrentes, contra la MISMA fila y el MISMO offline_local_id, no
+// terminan las dos insertando. Eso solo lo puede validar una DB real —
+// acá se ejercitan las dos RPCs (registrar_venta_pos, migración 582;
+// registrar_cobro_completo, migración 509) con Promise.all para que las
+// dos conexiones al Postgres de test corran de verdad en paralelo.
+// ════════════════════════════════════════════════════════════════════════════
+
+async function grupoConcurrenciaPagos() {
+  log(`\n${C.h}── CONCURRENCIA PAGOS — registrar_venta_pos / registrar_cobro_completo (Etapa 3) ──${C.x}`);
+
+  // T48: caja + turno abierto (necesarios para registrar_venta_pos)
+  IDS.cajaPos = await run('concurrencia-pagos', 'T48', 'Crear caja POS de prueba', async () => {
+    const data = await q(sb.from('cajas_pos').insert({
+      empresa_id:  IDS.empresa,
+      deposito_id: IDS.deposito,
+      nombre:      `${TEST_TAG}_Caja 1`,
+      activa:      true,
+    }).select().single());
+    return data.id;
+  }, ['cajas_pos']);
+
+  IDS.turnoCaja = await run('concurrencia-pagos', 'T48b', 'Abrir turno de caja de prueba', async () => {
+    const data = await q(sb.from('turnos_caja').insert({
+      caja_id:       IDS.cajaPos,
+      usuario_id:    IDS.usuario,
+      monto_inicial: 0,
+      estado:        'abierto',
+    }).select().single());
+    return data.id;
+  }, ['turnos_caja']);
+
+  // T49: dos llamadas EN PARALELO a registrar_venta_pos con el MISMO
+  // offline_local_id (simula el reintento de red del navegador del POS
+  // reenviando la misma venta offline dos veces mientras la primera
+  // todavía no volvió). El fix real es la migración 582/181: índice único
+  // idx_ventas_pos_offline_local + captura de unique_violation. Antes de
+  // ese índice, esto duplicaba la venta (y el descuento de stock).
+  await run('concurrencia-pagos', 'T49', 'registrar_venta_pos: dos llamadas paralelas, mismo offline_local_id → una sola venta', async () => {
+    const offlineId = `${TEST_TAG}_venta_concurrente`;
+    const itemsVenta = [{
+      producto_id: IDS.producto,
+      cantidad: 1,
+      precio_unitario: 150,
+      subtotal: 150,
+    }];
+    const pagosVenta = [{ medio: 'efectivo', monto: 150 }];
+
+    const params = {
+      p_empresa_id:  IDS.empresa,
+      p_caja_id:     IDS.cajaPos,
+      p_turno_id:    IDS.turnoCaja,
+      p_vendedor_id: IDS.usuario,
+      p_cliente_id:  null,
+      p_deposito_id: IDS.deposito,
+      p_items:       itemsVenta,
+      p_pagos:       pagosVenta,
+      p_subtotal:    150,
+      p_iva_total:   0,
+      p_total:       150,
+      p_offline_local_id: offlineId,
+    };
+
+    const [r1, r2] = await Promise.all([
+      sb.rpc('registrar_venta_pos', params),
+      sb.rpc('registrar_venta_pos', params),
+    ]);
+
+    if (r1.error) throw new Error(`llamada 1: ${r1.error.message}`);
+    if (r2.error) throw new Error(`llamada 2: ${r2.error.message}`);
+
+    assert(r1.data?.ok === true, `llamada 1 debe ser ok:true — ${JSON.stringify(r1.data)}`);
+    assert(r2.data?.ok === true, `llamada 2 debe ser ok:true — ${JSON.stringify(r2.data)}`);
+
+    // Lo que de verdad importa: las dos respuestas apuntan a LA MISMA
+    // venta_id — una de las dos ganó la carrera de verdad (insertó) y la
+    // otra chocó contra el índice único y recuperó esa misma fila por el
+    // catch de unique_violation, en vez de crear una segunda.
+    assert(r1.data.venta_id === r2.data.venta_id,
+      `ambas llamadas deben devolver el mismo venta_id — r1:${r1.data.venta_id} r2:${r2.data.venta_id}`);
+
+    // Exactamente una de las dos debe traer ya_existia:true (la que
+    // efectivamente chocó); si ninguna lo trae, las dos pasaron el check
+    // inicial e insertaron sin chocar — sería la regresión que este test
+    // existe para detectar.
+    const marcadasComoExistentes = [r1.data.ya_existia, r2.data.ya_existia].filter(Boolean).length;
+    assert(marcadasComoExistentes === 1,
+      `exactamente una respuesta debe traer ya_existia:true, hubo ${marcadasComoExistentes}`);
+
+    // Verificación directa contra la tabla: una sola fila con ese
+    // offline_local_id, no dos.
+    const filasVenta = await q(sb.from('ventas_pos')
+      .select('id')
+      .eq('empresa_id', IDS.empresa)
+      .eq('offline_local_id', offlineId));
+    assert(filasVenta.length === 1, `debe haber exactamente 1 venta con ese offline_local_id, hay ${filasVenta.length}`);
+
+    // Y el stock se descontó UNA sola vez (100 inicial − 1 de esta venta;
+    // T08 dejó cantidad=100). Si el índice único no hubiera frenado la
+    // segunda llamada, acá se verían 98 en vez de 99.
+    const stockRestante = await q(sb.from('stock')
+      .select('cantidad')
+      .eq('producto_id', IDS.producto)
+      .eq('deposito_id', IDS.deposito)
+      .single());
+    assert(stockRestante.cantidad === 99,
+      `stock esperado 99 (100 inicial - 1 vendida una sola vez), es ${stockRestante.cantidad}`);
+
+    IDS.ventaPosConcurrente = r1.data.venta_id;
+    return { venta_id: r1.data.venta_id, filas_en_db: filasVenta.length, stock_restante: stockRestante.cantidad };
+  }, ['ventas_pos', 'stock']);
+
+  // T50: mismo caso para registrar_cobro_completo — dos llamadas en
+  // paralelo con el mismo offline_local_id, replicando la carrera real
+  // entre manejarWebhook y verificarPago para un mismo payment_id de MP
+  // (ver tests/handlers/pagos-webhook-polling-concurrencia.test.js, que
+  // cubre lo mismo pero con repos/pagos.js mockeado). El fix real es la
+  // migración 508/509: índice único idx_cobros_offline_local_id + catch
+  // de unique_violation dentro de la función.
+  await run('concurrencia-pagos', 'T50', 'registrar_cobro_completo: dos llamadas paralelas, mismo offline_local_id → un solo cobro en cta_cte', async () => {
+    const offlineId = `${TEST_TAG}_cobro_concurrente`;
+    const params = {
+      p_empresa_id:  IDS.empresa,
+      p_cliente_id:  IDS.cliente,
+      p_monto:       500,
+      p_medio:       'mercado_pago',
+      p_referencia:  `${TEST_TAG}_mp_payment_id`,
+      p_offline_local_id: offlineId,
+    };
+
+    const [r1, r2] = await Promise.all([
+      sb.rpc('registrar_cobro_completo', params),
+      sb.rpc('registrar_cobro_completo', params),
+    ]);
+
+    if (r1.error) throw new Error(`llamada 1: ${r1.error.message}`);
+    if (r2.error) throw new Error(`llamada 2: ${r2.error.message}`);
+
+    assert(r1.data?.ok === true, `llamada 1 debe ser ok:true — ${JSON.stringify(r1.data)}`);
+    assert(r2.data?.ok === true, `llamada 2 debe ser ok:true — ${JSON.stringify(r2.data)}`);
+
+    assert(r1.data.cobro_id === r2.data.cobro_id,
+      `ambas llamadas deben devolver el mismo cobro_id — r1:${r1.data.cobro_id} r2:${r2.data.cobro_id}`);
+
+    const marcadasComoExistentes = [r1.data.ya_existia, r2.data.ya_existia].filter(Boolean).length;
+    assert(marcadasComoExistentes === 1,
+      `exactamente una respuesta debe traer ya_existia:true, hubo ${marcadasComoExistentes}`);
+
+    // Verificación directa: un solo cobro, y un solo asiento en cta_cte
+    // (esto es literalmente "no duplicar en cta_cte", el hallazgo original
+    // de la Etapa 3).
+    const filasCobro = await q(sb.from('cobros')
+      .select('id')
+      .eq('empresa_id', IDS.empresa)
+      .eq('offline_local_id', offlineId));
+    assert(filasCobro.length === 1, `debe haber exactamente 1 cobro con ese offline_local_id, hay ${filasCobro.length}`);
+
+    const filasCtaCte = await q(sb.from('cta_cte')
+      .select('id, monto, tipo')
+      .eq('empresa_id', IDS.empresa)
+      .eq('cobro_id', r1.data.cobro_id));
+    assert(filasCtaCte.length === 1, `debe haber exactamente 1 asiento en cta_cte para este cobro, hay ${filasCtaCte.length}`);
+    assert(Number(filasCtaCte[0].monto) === 500, `el asiento de cta_cte debe ser por 500, es ${filasCtaCte[0].monto}`);
+
+    IDS.cobroConcurrente = r1.data.cobro_id;
+    return { cobro_id: r1.data.cobro_id, filas_cobro: filasCobro.length, filas_cta_cte: filasCtaCte.length };
+  }, ['cobros', 'cta_cte']);
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
 
 
 
@@ -1086,6 +1262,24 @@ async function grupoCleanup() {
     ['saldo_puntos',        () => IDS.empresa ? sb.from('saldo_puntos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('saldo_puntos').delete(opts)],
     ['dispositivos_push',   () => IDS.empresa ? sb.from('dispositivos_push').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('dispositivos_push').delete(opts)],
     ['cheques',             () => IDS.empresa ? sb.from('cheques').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cheques').delete(opts)],
+    // Grupo concurrencia-pagos (Etapa 3): cta_cte y cobros ANTES de
+    // 'clientes' — cobros.cliente_id no tiene ON DELETE CASCADE (a
+    // diferencia de cobros.empresa_id, que sí), así que si el cliente de
+    // prueba se borra primero con un cobro todavía apuntándole, el DELETE
+    // de 'clientes' falla con violación de FK y aborta el resto del
+    // cleanup. cta_cte va primero por prolijidad (igual cascadea solo con
+    // clientes.id, pero así queda explícito y no depende de ese cascade).
+    ['cta_cte',             () => IDS.empresa ? sb.from('cta_cte').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cta_cte').delete(opts)],
+    ['cobros',              () => IDS.empresa ? sb.from('cobros').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cobros').delete(opts)],
+    // ventas_pos ANTES de turnos_caja/cajas_pos: ventas_pos.turno_id y
+    // .caja_id no tienen ON DELETE CASCADE hacia esas tablas (van en el
+    // sentido contrario), así que hay que vaciar la venta antes de poder
+    // borrar el turno/la caja que la generaron. (venta_pos_items y
+    // venta_pos_pagos sí cascadean desde ventas_pos, no hace falta un
+    // paso aparte para esas dos.)
+    ['ventas_pos',          () => IDS.empresa ? sb.from('ventas_pos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('ventas_pos').delete(opts)],
+    ['turnos_caja',         () => IDS.cajaPos ? sb.from('turnos_caja').delete(opts).eq('caja_id', IDS.cajaPos) : sb.from('turnos_caja').delete(opts)],
+    ['cajas_pos',           () => IDS.empresa ? sb.from('cajas_pos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('cajas_pos').delete(opts)],
     ['pedido_items',        () => IDS.pedido ? sb.from('pedido_items').delete(opts).eq('pedido_id', IDS.pedido) : sb.from('pedido_items').delete(opts)],
     ['pedidos',             () => IDS.empresa ? sb.from('pedidos').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('pedidos').delete(opts)],
     ['lotes',               () => IDS.empresa ? sb.from('lotes').delete(opts).eq('empresa_id', IDS.empresa) : sb.from('lotes').delete(opts)],
@@ -1202,6 +1396,7 @@ async function main() {
     await grupoNotif();
     await grupoImportar();
     await grupoChequesYPush();
+    await grupoConcurrenciaPagos();
     await grupoCoberturaMinima(); // Added this line to call the new group
   } catch (fatal) {
     log(`\n${C.fail}Error fatal en suite: ${fatal.message}${C.x}`);

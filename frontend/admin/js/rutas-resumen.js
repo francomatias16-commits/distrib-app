@@ -355,6 +355,10 @@ function prepararClientesCobroRapido(rutas) {
 }
 
 function seleccionarClienteCobro(clienteId) {
+  // Cambiar de cliente antes de reintentar significa que ya no es "el
+  // mismo cobro que puede haber fallado" — se libera el id para no
+  // dedupear por error contra el intento anterior (otro cliente).
+  _cobroRapidoOfflineId = null;
   _clienteCobroSeleccionado = _clientesHoy.find(c => c.id === clienteId) || null;
   document.querySelectorAll('#resumen-avatares .resumen-avatar').forEach(a => {
     a.classList.toggle('selected', a.dataset.cliente === clienteId);
@@ -367,6 +371,19 @@ function seleccionarClienteCobro(clienteId) {
     : 'Registrar cobro';
 }
 
+// Punto 10 (auditoría 2026-09-11): id de idempotencia del cobro rápido de
+// esta pantalla. Vive a nivel de módulo (no dentro de registrarCobroRapido)
+// a propósito: si se genera de nuevo en cada click, un reintento MANUAL del
+// usuario después de un timeout tendría un id distinto al del intento que
+// sí llegó a commitear en el servidor, y el dedupe de
+// registrar_cobro_completo no serviría de nada. Se fija una sola vez por
+// cobro pendiente y solo se limpia tras una respuesta ok:true confirmada
+// (o si el usuario cambia de cliente/monto, ver seleccionarClienteCobro) —
+// así un timeout seguido de un reintento real reusa el mismo id y
+// dedupea contra el índice único (idx_cobros_offline_local_id), igual que
+// ya hace cta-cte.js con su propio offlineLocalId.
+let _cobroRapidoOfflineId = null;
+
 async function registrarCobroRapido() {
   if (!_clienteCobroSeleccionado) { window.toast?.('Elegí un cliente'); return; }
   const monto = parseFloat(document.getElementById('resumen-cobro-monto').value);
@@ -378,6 +395,9 @@ async function registrarCobroRapido() {
   const textoOriginal = btn.textContent;
   btn.textContent = 'Guardando...';
 
+  if (!_cobroRapidoOfflineId) _cobroRapidoOfflineId = crypto.randomUUID();
+  const offlineLocalId = _cobroRapidoOfflineId;
+
   try {
     const { data, error } = await window.conTimeoutRed(sb.rpc('registrar_cobro_completo', {
       p_empresa_id: empresaId,
@@ -387,14 +407,24 @@ async function registrarCobroRapido() {
       p_medio: medio,
       p_referencia: null,
       p_notas: 'Cobro contra entrega — registrado desde Resumen de repartos',
+      p_offline_local_id: offlineLocalId,
     }), 10000);
     if (error) throw new Error(error.message);
     if (data && data.ok === false) throw new Error(data.error || 'Error desconocido');
+
+    // Éxito confirmado (sea cobro nuevo o el mismo que ya se había
+    // registrado en un intento anterior con este offlineLocalId) — recién
+    // acá se libera el id, para que el próximo click sea un cobro NUEVO.
+    _cobroRapidoOfflineId = null;
 
     window.toast?.('Cobro registrado');
     document.getElementById('resumen-cobro-monto').value = '';
     await cargarCobrosHoy();
   } catch (e) {
+    // No se libera _cobroRapidoOfflineId acá a propósito: no sabemos si
+    // esta falla fue antes o después de que el servidor commiteara. Se
+    // deja fijo para que, si el usuario reintenta, dedupee contra el
+    // intento anterior en vez de arriesgar un cobro duplicado.
     console.error('[resumen] registrarCobroRapido', e);
     window.toast?.(e.message || 'Error al registrar el cobro');
   } finally {

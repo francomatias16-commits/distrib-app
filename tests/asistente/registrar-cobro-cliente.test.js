@@ -128,6 +128,7 @@ describe('registrar_cobro_cliente — execute()', () => {
       empresaId: EMPRESA_ID,
       usuarioId: USUARIO_ID,
       args: { cliente: 'Perez', monto: 400, medio: 'transferencia', referencia: 'op-123', notas: 'nota del vendedor' },
+      accionPendienteId: 'accion-1',
     });
 
     expect(dbMock.rpc).toHaveBeenCalledWith('registrar_cobro_completo', {
@@ -138,8 +139,25 @@ describe('registrar_cobro_cliente — execute()', () => {
       p_referencia: 'op-123',
       p_notas: 'nota del vendedor',
       p_usuario_id: USUARIO_ID,
+      p_offline_local_id: 'accion-1',
     });
     expect(res).toEqual({ ok: true, cliente: 'Juan Pérez', monto: 400, medio: 'transferencia', cobro_id: 'cobro-1' });
+  });
+
+  // Punto 10 (auditoría 2026-09-11): accionPendienteId es el id estable
+  // de idempotencia (ver index.js — CAS de asistente_acciones_pendientes).
+  // Sin él (no debería pasar en producción, requiereConfirmacion:true
+  // obliga a pasar por ese flujo), se genera un UUID nuevo por llamada en
+  // vez de mandar undefined — registrar_cobro_completo requiere el
+  // parámetro para poder dedupear en cualquier reintento posterior.
+  it('sin accionPendienteId: genera un offline_local_id propio en vez de mandar undefined', async () => {
+    mockClienteEncontrado();
+
+    await tool.execute({ empresaId: EMPRESA_ID, usuarioId: USUARIO_ID, args: { cliente: 'Perez', monto: 100, medio: 'efectivo' } });
+
+    const llamada = dbMock.rpc.mock.calls.find(([rpc]) => rpc === 'registrar_cobro_completo');
+    expect(llamada[1].p_offline_local_id).toEqual(expect.any(String));
+    expect(llamada[1].p_offline_local_id.length).toBeGreaterThan(0);
   });
 
   it('sin referencia/notas: manda null y una nota por defecto, no undefined', async () => {
