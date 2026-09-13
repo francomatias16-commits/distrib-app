@@ -806,7 +806,15 @@ async function notificarChofer(rutaId, chofer, fecha, cantPedidos) {
         const body = await resp.text();
         console.warn('[NOTIF] whatsapp error:', resp.status, body);
       } else {
-        waOk = true;
+        const result = await resp.json();
+        // FIX: resp.ok es 200 también cuando el backend bloqueó el envío
+        // (tope de plan trial, envíos deshabilitados) o lo simuló (empresa
+        // demo) — en esos casos el chofer no recibió nada real.
+        if (result.bloqueado || result.demo) {
+          console.warn('[NOTIF] whatsapp no enviado (bloqueado/demo):', result);
+        } else {
+          waOk = true;
+        }
       }
     } catch (err) {
       console.warn('[NOTIF] Error WA chofer:', err.message);
