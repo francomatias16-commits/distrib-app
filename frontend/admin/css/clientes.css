@@ -222,13 +222,12 @@ tbody tr:hover td { background: rgba(0,174,112,.035) !important; }
 .btn-limpiar:hover { background: var(--color-bg); }
 
 /* ── Tabla ─────────────────────────────────────────────────────── */
-.tabla-wrap {
-  background: var(--color-surface);
-  border: 1px solid rgba(0,0,0,.07);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  overflow-x: auto;
-}
+/* [1.3] .tabla-wrap base migrada al canónico de componentes-admin.css
+   (era duplicado exacto). El color de borde real de esta página termina
+   siendo var(--color-border-soft) — ver el override más abajo (línea
+   ~880) y su reafirmación con mayor especificidad en
+   #vista-clientes .tabla-wrap (línea ~985), que sigue ganando sin
+   cambios pese a que ahora el canónico también declara `border`. */
 
 .tabla-admin {
   width: 100%;
@@ -881,9 +880,12 @@ body { background: var(--color-bg); }
   z-index: var(--z-overlay-critical) !important;
 }
 
+/* [1.3] border/border-radius acá eran redundantes: el color de borde real
+   de esta página se reafirma con mayor especificidad en
+   #vista-clientes .tabla-wrap (ver abajo), y el border-radius ya lo cubre
+   el canónico (y esa misma regla, con !important). Se conserva solo el
+   box-shadow, que es la personalización real de esta página. */
 .tabla-wrap {
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-lg);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
@@ -984,8 +986,14 @@ body { background: var(--color-bg); }
 }
 
 /* ── Tabla: aireada, separación mínima entre filas ───────────────────── */
+/* [1.3] border-color agregado acá (mayor especificidad que el .tabla-wrap
+   plano) para conservar el color real de esta página — var(--color-border-soft)
+   en vez del rgba(0,0,0,.07) genérico que ahora declara el canónico de
+   componentes-admin.css. Sin esto, el borde de clientes.html cambiaría de
+   color al promover la propiedad al componente compartido. */
 #vista-clientes .tabla-wrap {
   border-radius: var(--radius-xl) !important;
+  border-color: var(--color-border-soft) !important;
 }
 #vista-clientes .tabla-admin thead th {
   background: transparent !important;

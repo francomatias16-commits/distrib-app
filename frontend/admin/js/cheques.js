@@ -17,13 +17,13 @@ let totalChequesFiltrados = 0;
 let filtroProximosActivo = false;
 
 const ESTADO_CHIP = {
-  pendiente:   { cls: 'chip-gris',     label: 'Pendiente' },
-  en_cartera:  { cls: 'chip-azul',     label: 'En cartera' },
-  depositado:  { cls: 'chip-amarillo', label: 'Depositado' },
-  cobrado:     { cls: 'chip-verde',    label: 'Cobrado' },
-  rechazado:   { cls: 'chip-rojo',     label: 'Rechazado' },
-  entregado_proveedor: { cls: 'chip-gris', label: 'Endosado' }, // FIX: la key debe ser el valor real del constraint (cheques_estado_check), no el sinónimo "endosado"
-  anulado:     { cls: 'chip-rojo',     label: 'Anulado' },
+  pendiente:   { cls: 'badge-inactivo', label: 'Pendiente' },
+  en_cartera:  { cls: 'badge-info',     label: 'En cartera' },
+  depositado:  { cls: 'badge-warning',  label: 'Depositado' },
+  cobrado:     { cls: 'badge-ok',       label: 'Cobrado' },
+  rechazado:   { cls: 'badge-critico',  label: 'Rechazado' },
+  entregado_proveedor: { cls: 'badge-inactivo', label: 'Endosado' }, // FIX: la key debe ser el valor real del constraint (cheques_estado_check), no el sinónimo "endosado"
+  anulado:     { cls: 'badge-critico',  label: 'Anulado' },
 };
 
 window.authReady.then(async () => {
@@ -297,7 +297,7 @@ function renderTabla(cheques) {
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
   tbody.innerHTML = cheques.map(c => {
-    const chip = ESTADO_CHIP[c.estado] || { cls: 'chip-gris', label: c.estado };
+    const chip = ESTADO_CHIP[c.estado] || { cls: 'badge-inactivo', label: c.estado };
     const nombre = c.clientes?.nombre_fantasia || c.clientes?.razon_social || '—';
     const vto = c.vencimiento ? new Date(c.vencimiento) : null;
     const vencido = esVencido(c);
@@ -309,7 +309,7 @@ function renderTabla(cheques) {
       <td data-label="Banco" style="font-size:12px">${window.sanitize(c.banco || '—')}</td>
       <td class="monto" data-label="Monto">${formatPeso(c.monto)}</td>
       <td data-label="Vencimiento">${vtoStr}</td>
-      <td data-label="Estado"><span class="chip ${chip.cls}">${chip.label}</span></td>
+      <td data-label="Estado"><span class="badge-estado ${chip.cls}">${chip.label}</span></td>
       <td class="col-sticky-end td-acciones-cheque" data-label="Acciones">
         <span class="fila-acciones">
           <button type="button" class="btn-tabla" onclick="editarCheque('${c.id}')">Editar</button>

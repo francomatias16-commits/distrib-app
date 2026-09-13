@@ -10,8 +10,11 @@
 // Uso: npm run audit:breakpoints [-- --anchos=480,640,900,1200,1400]
 //                                     [--paginas=pedidos,presupuestos] [--json]
 
-import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+// IMPORTANTE: usar `playwright-core` (ya presente como dependencia del
+// proyecto) y NO el paquete `playwright` completo — mismo fix que
+// audit-accesibilidad.js y audit-mobile.js, mismo motivo.
+import { chromium } from 'playwright-core';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -169,7 +172,10 @@ async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
 
   const staticServer = await startStaticServer();
-  const browser = await chromium.launch();
+  const CACHED_CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+  const browser = await chromium.launch(
+    existsSync(CACHED_CHROMIUM) ? { executablePath: CACHED_CHROMIUM } : {}
+  );
   const resultados = {};
 
   for (const ancho of anchos) {

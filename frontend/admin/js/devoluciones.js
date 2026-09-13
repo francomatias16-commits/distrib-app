@@ -844,15 +844,16 @@ function motivoLabel(m) {
   })[m] || m || '—';
 }
 
+// [1.2] chip → badge-estado (componente canónico de componentes-admin.css)
 function chipEstado(estado) {
   const map = {
-    pendiente:  ['chip-amarillo', 'Pendiente'],
-    aprobada:   ['chip-verde',    'Aprobada'],
-    rechazada:  ['chip-rojo',     'Rechazada'],
+    pendiente:  ['badge-warning', 'Pendiente'],
+    aprobada:   ['badge-ok',      'Aprobada'],
+    rechazada:  ['badge-critico', 'Rechazada'],
   };
-  const [cls, labelRaw] = map[estado] || ['chip-gris', estado || '—'];
+  const [cls, labelRaw] = map[estado] || ['badge-inactivo', estado || '—'];
   const label = map[estado] ? labelRaw : (typeof sanitize === 'function' ? sanitize(labelRaw) : labelRaw);
-  return `<span class="chip ${cls}">${label}</span>`;
+  return `<span class="badge-estado ${cls}">${label}</span>`;
 }
 
 function formatPeso(n) {

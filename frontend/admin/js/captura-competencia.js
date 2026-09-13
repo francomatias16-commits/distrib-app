@@ -47,11 +47,11 @@ const PC_ESTADO_LABEL = {
   descartado: 'Descartado',
 };
 const PC_ESTADO_CHIP = {
-  pendiente: 'chip-amarillo',
-  visita_planificada: 'chip-azul',
-  visitado: 'chip-verde',
-  convertido: 'chip-verde',
-  descartado: 'chip-gris',
+  pendiente: 'badge-warning',
+  visita_planificada: 'badge-info',
+  visitado: 'badge-ok',
+  convertido: 'badge-ok',
+  descartado: 'badge-inactivo',
 };
 
 const CC_ESTADO_LABEL = {
@@ -61,10 +61,10 @@ const CC_ESTADO_LABEL = {
   descartado: 'Descartado',
 };
 const CC_ESTADO_CHIP = {
-  pendiente_revision: 'chip-amarillo',
-  revisado: 'chip-azul',
-  convertido_pedido: 'chip-verde',
-  descartado: 'chip-gris',
+  pendiente_revision: 'badge-warning',
+  revisado: 'badge-info',
+  convertido_pedido: 'badge-ok',
+  descartado: 'badge-inactivo',
 };
 
 // ── Helpers de API (mismo criterio que pos.js) ────────────────────────────
@@ -238,14 +238,14 @@ function pcRenderBandeja() {
   }
 
   tbody.innerHTML = pcProspectos.map(p => {
-    const chip = PC_ESTADO_CHIP[p.estado] || 'chip-gris';
+    const chip = PC_ESTADO_CHIP[p.estado] || 'badge-inactivo';
     const label = PC_ESTADO_LABEL[p.estado] || p.estado;
     return `
       <tr data-id="${p.id}">
         <td>${esc(p.nombre)}</td>
         ${conVendedor ? `<td class="col-fit">${esc(p.usuarios?.nombre || '—')}</td>` : ''}
         <td>${esc(p.rubro || '—')}</td>
-        <td class="col-fit"><span class="chip ${chip}">${label}</span></td>
+        <td class="col-fit"><span class="badge-estado ${chip}">${label}</span></td>
         <td class="col-sticky-end col-fit">
           ${pcAccionesBandeja(p)}
         </td>
@@ -409,14 +409,14 @@ window.pcCargarRanking = async function () {
       return;
     }
     tbody.innerHTML = prospectos.map(p => {
-      const chip = PC_ESTADO_CHIP[p.estado] || 'chip-gris';
+      const chip = PC_ESTADO_CHIP[p.estado] || 'badge-inactivo';
       const label = PC_ESTADO_LABEL[p.estado] || p.estado;
       return `
         <tr data-id="${p.id}">
           <td>${esc(p.nombre)}</td>
           <td>${esc(p.rubro || '—')}</td>
           <td class="col-fit pc-distancia">${p.distancia_metros} m</td>
-          <td class="col-fit"><span class="chip ${chip}">${label}</span></td>
+          <td class="col-fit"><span class="badge-estado ${chip}">${label}</span></td>
           <td class="col-sticky-end col-fit">
             <span class="fila-acciones">
               ${p.estado === 'pendiente' ? `<button type="button" class="btn btn--ghost" onclick="pcMarcarEstado('${p.id}', 'visita_planificada')">Planificar visita</button>` : ''}
@@ -550,7 +550,7 @@ function ccRenderLista() {
   }
 
   tbody.innerHTML = filas.map(c => {
-    const chip = CC_ESTADO_CHIP[c.estado] || 'chip-gris';
+    const chip = CC_ESTADO_CHIP[c.estado] || 'badge-inactivo';
     const label = CC_ESTADO_LABEL[c.estado] || c.estado;
     const ahorroTxt = c.ahorro_absoluto != null
       ? `<span class="${Number(c.ahorro_absoluto) > 0 ? 'cc-ahorro-pos' : 'cc-ahorro-neg'}">${fmt(c.ahorro_absoluto)}${c.ahorro_porcentual != null ? ` (${Number(c.ahorro_porcentual).toFixed(1)}%)` : ''}</span>`
@@ -565,7 +565,7 @@ function ccRenderLista() {
         <td class="col-fit" data-label="Fecha">${fmtFecha(c.fecha_captura)}</td>
         ${conVendedor ? `<td class="col-fit" data-label="Vendedor">${esc(c.usuarios?.nombre || '—')}</td>` : ''}
         <td data-label="Proveedor">${esc(c.proveedor_competencia_nombre || 'Sin especificar')}</td>
-        <td class="col-fit" data-label="Estado"><span class="chip ${chip}">${label}</span></td>
+        <td class="col-fit" data-label="Estado"><span class="badge-estado ${chip}">${label}</span></td>
         <td class="col-fit" data-label="Ahorro">${ahorroTxt}</td>
         <td class="col-sticky-end col-fit" data-label="Acciones">
           <div class="fila-acciones" style="display:flex;gap:6px;flex-wrap:wrap">
@@ -686,11 +686,11 @@ window.ccCerrarPanel = function () {
 };
 
 function ccBadgeConfianza(score) {
-  if (score == null) return '<span class="chip chip-gris">Sin match</span>';
+  if (score == null) return '<span class="badge-estado badge-inactivo">Sin match</span>';
   const s = Number(score);
-  if (s >= 0.85) return `<span class="chip chip-verde">Alta (${(s * 100).toFixed(0)}%)</span>`;
-  if (s >= 0.5) return `<span class="chip chip-amarillo">Media (${(s * 100).toFixed(0)}%)</span>`;
-  return `<span class="chip chip-rojo">Baja (${(s * 100).toFixed(0)}%)</span>`;
+  if (s >= 0.85) return `<span class="badge-estado badge-ok">Alta (${(s * 100).toFixed(0)}%)</span>`;
+  if (s >= 0.5) return `<span class="badge-estado badge-warning">Media (${(s * 100).toFixed(0)}%)</span>`;
+  return `<span class="badge-estado badge-critico">Baja (${(s * 100).toFixed(0)}%)</span>`;
 }
 
 function ccRenderPanel() {

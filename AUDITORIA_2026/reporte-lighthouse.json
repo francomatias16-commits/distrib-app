@@ -1,13 +1,13 @@
 {
-  "generado_en": "2026-09-03T01:31:43.930Z",
+  "generado_en": "2026-09-13T16:39:04.538Z",
   "alcance": "páginas públicas servidas por tests/e2e/helpers/static-server.js — no cubre páginas admin autenticadas (sin red a Supabase en este entorno, ver pendiente #3)",
   "paginas": [
     {
       "nombre": "Landing",
       "path": "/",
       "scores": {
-        "performance": 55,
-        "accessibility": 93,
+        "performance": 40,
+        "accessibility": 96,
         "best-practices": 96,
         "seo": 100
       },
@@ -52,7 +52,7 @@
         {
           "id": "unused-css-rules",
           "titulo": "Reduce unused CSS",
-          "ahorro_ms": 600
+          "ahorro_ms": 580
         }
       ]
     },

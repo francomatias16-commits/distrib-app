@@ -104,9 +104,9 @@ async function cargarCobranzaPriorizada() {
 }
 
 const PRIORIDAD_CHIP = {
-  accion_urgente: { cls: 'chip-rojo',     label: 'Acción urgente' },
-  seguimiento:    { cls: 'chip-amarillo', label: 'Seguimiento' },
-  cobro_probable: { cls: 'chip-verde',    label: 'Cobro probable' },
+  accion_urgente: { cls: 'badge-critico', label: 'Acción urgente' },
+  seguimiento:    { cls: 'badge-warning', label: 'Seguimiento' },
+  cobro_probable: { cls: 'badge-ok',      label: 'Cobro probable' },
 };
 
 const THEAD_FACTURAS   = `<th>N° Factura</th><th>Cliente</th><th>Total</th><th>Pendiente</th><th>Vencimiento</th><th class="col-sticky-end">Acciones</th>`;
@@ -241,13 +241,13 @@ function renderPriorizada() {
   }
 
   tbody.innerHTML = lista.map((f, idx) => {
-    const chip = PRIORIDAD_CHIP[f.prioridad] || { cls: 'chip-gris', label: f.prioridad || '—' };
+    const chip = PRIORIDAD_CHIP[f.prioridad] || { cls: 'badge-inactivo', label: f.prioridad || '—' };
     return `<tr data-testid="cobranza-priorizada-fila" data-cliente-id="${f.cliente_id}">
       <td data-label="N° Factura" style="font-family:monospace">${window.sanitize(f.numero_factura || '—')}</td>
       <td data-label="Cliente">${window.sanitize(f.cliente_nombre || '—')}</td>
       <td class="monto monto-rojo" data-label="Pendiente">${formatPeso(f.saldo_pendiente)}</td>
       <td data-label="Días vencida">${f.dias_vencida > 0 ? f.dias_vencida + ' días' : '—'}</td>
-      <td data-label="Prioridad"><span class="chip ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${window.sanitize(chip.label)}</span></td>
+      <td data-label="Prioridad"><span class="badge-estado ${chip.cls}" title="Nivel de cobrabilidad: ${f.score_cobrabilidad}/100">${window.sanitize(chip.label)}</span></td>
       <td class="col-sticky-end" data-label="Acciones">
         <button class="btn btn-sm btn-primary btn--primary" onclick="abrirCobroPriorizadaIdx(${idx})">Cobrar</button>
       </td>

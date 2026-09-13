@@ -750,16 +750,16 @@ function renderReglasAuto() {
 
   tbody.innerHTML = _reglasAuto.map(r => `
     <tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalReglaAuto('${r.id}')">
-      <td><strong>${escapeHtml(r.nombre)}</strong>${r.descripcion ? `<div style="font-size:12px;color:var(--color-text-muted)">${escapeHtml(r.descripcion)}</div>` : ''}</td>
-      <td>${escapeHtml(EVENTO_LABELS[r.evento_disparador] || r.evento_disparador)}</td>
-      <td style="font-family:var(--font-mono,monospace);font-size:12px">${escapeHtml(describirCondicion(r.condicion))}</td>
-      <td style="font-size:13px">${escapeHtml(describirAccion(r.accion))}</td>
-      <td>
+      <td data-label="Regla"><strong>${escapeHtml(r.nombre)}</strong>${r.descripcion ? `<div style="font-size:12px;color:var(--color-text-muted)">${escapeHtml(r.descripcion)}</div>` : ''}</td>
+      <td data-label="Se dispara con">${escapeHtml(EVENTO_LABELS[r.evento_disparador] || r.evento_disparador)}</td>
+      <td data-label="Condición" style="font-family:var(--font-mono,monospace);font-size:12px">${escapeHtml(describirCondicion(r.condicion))}</td>
+      <td data-label="Acción" style="font-size:13px">${escapeHtml(describirAccion(r.accion))}</td>
+      <td data-label="Estado">
         <span class="badge ${r.activa ? 'badge--success' : ''}" style="cursor:pointer" onclick="toggleReglaAuto('${r.id}', ${!r.activa})" title="Click para ${r.activa ? 'desactivar' : 'activar'}">
           ${r.activa ? 'Activa' : 'Inactiva'}
         </span>
       </td>
-      <td style="white-space:nowrap">
+      <td data-label="Acciones" style="white-space:nowrap">
         <button type="button" class="btn btn--ghost btn--icon btn--sm" onclick="abrirModalReglaAuto('${r.id}')" title="Editar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -1116,11 +1116,11 @@ function renderTareasAuto() {
 
   tbody.innerHTML = _tareasAuto.map(t => `
     <tr>
-      <td><strong>${escapeHtml(t.titulo)}</strong>${t.descripcion ? `<div style="font-size:12px;color:var(--color-text-muted)">${escapeHtml(t.descripcion)}</div>` : ''}</td>
-      <td style="font-size:13px">${escapeHtml(EVENTO_LABELS[t.evento_disparador] || t.evento_disparador)}</td>
-      <td style="font-size:13px">${formatTs(t.created_at)}</td>
-      <td><span class="badge">Pendiente</span></td>
-      <td style="white-space:nowrap">
+      <td data-label="Tarea"><strong>${escapeHtml(t.titulo)}</strong>${t.descripcion ? `<div style="font-size:12px;color:var(--color-text-muted)">${escapeHtml(t.descripcion)}</div>` : ''}</td>
+      <td data-label="Origen" style="font-size:13px">${escapeHtml(EVENTO_LABELS[t.evento_disparador] || t.evento_disparador)}</td>
+      <td data-label="Creada" style="font-size:13px">${formatTs(t.created_at)}</td>
+      <td data-label="Estado"><span class="badge">Pendiente</span></td>
+      <td data-label="Acciones" style="white-space:nowrap">
         <button type="button" class="btn btn--ghost btn--icon btn--sm" onclick="completarTareaAuto('${t.id}')" title="Marcar como completada">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
         </button>
