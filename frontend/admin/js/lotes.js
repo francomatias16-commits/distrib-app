@@ -163,7 +163,10 @@ function renderTablaLotes() {
     const prod    = l.productos?.nombre ? sanitize(l.productos.nombre) : '—';
     const cod     = l.productos?.codigo ? `<span class="cod-badge">${sanitize(l.productos.codigo)}</span>` : '';
     const dep     = l.depositos?.nombre ? sanitize(l.depositos.nombre) : '—';
-    const nro     = l.numero_lote ? sanitize(l.numero_lote) : '<em class="muted">Sin número</em>';
+    const nroLoteFull = l.numero_lote ? sanitize(l.numero_lote) : '';
+    const nro     = l.numero_lote
+      ? `<span class="lote-nro-truncado" title="${nroLoteFull}">${nroLoteFull}</span>`
+      : '<em class="muted">Sin número</em>';
     const cant    = fmtNum(l.cantidad);
     const venc    = l.fecha_vencimiento ? fmtFecha(l.fecha_vencimiento) : '—';
     const estado  = badgeEstado(l.estado);
@@ -171,12 +174,12 @@ function renderTablaLotes() {
 
     return `<tr data-testid="lote-fila" data-id="${l.id}" class="${esEscritor ? 'fila-clickeable' : ''}" ${esEscritor ? `onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalEditar('${l.id}')"` : ''}>
       <td data-label="Producto">${cod} ${prod}</td>
-      <td data-label="Nº Lote">${nro}</td>
-      <td data-label="Depósito">${dep}</td>
-      <td data-label="Cantidad" style="text-align:left">${cant}</td>
-      <td data-label="Vencimiento">${venc}</td>
-      <td data-label="Estado">${estado}</td>
-      <td class="acciones col-sticky-end" data-label="Acciones">
+      <td class="col-fit col-lote" data-label="Nº Lote">${nro}</td>
+      <td class="col-fit" data-label="Depósito">${dep}</td>
+      <td class="col-fit" data-label="Cantidad" style="text-align:left">${cant}</td>
+      <td class="col-fit" data-label="Vencimiento">${venc}</td>
+      <td class="col-fit" data-label="Estado">${estado}</td>
+      <td class="acciones col-sticky-end col-fit" data-label="Acciones">
         ${ComponentesAdmin.renderFilaAcciones([
           esEscritor ? { label: 'Editar', attrs: `onclick="abrirModalEditar('${l.id}')"` } : null,
           esEscritor && l.cantidad > 0 ? { label: 'Dar de baja', cls: 'peligro', attrs: `onclick="btnAsyncClick(this, () => darDeBajaLote('${l.id}'))"` } : null,
