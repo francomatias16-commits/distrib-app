@@ -367,6 +367,23 @@
     max-height: 200px;
     overflow-y: auto !important;
   }
+  /* FIX (sesión Nadal — "no aparece la ruta creada / falta Cancelar"):
+     la regla genérica de arriba (~línea 90, `.table-responsive-cards { flex:
+     1 1 0; min-height: 0; }`) fue pensada para tablas que ocupan toda una
+     pestaña con su contenedor padre estirado a flex:1 1 auto (Historial,
+     Zonas). Acá `.rutas-del-dia` (que también tiene la clase
+     `.table-responsive-cards`) vive dentro de `.rutas-del-dia-section--top`,
+     que es `flex: 0 0 auto` (se ajusta a contenido, no se estira) — un hijo
+     con flex-basis:0 + flex-grow:1 + min-height:0 dentro de un padre que no
+     se estira no tiene "espacio libre" del cual crecer y colapsa a ~0px de
+     alto, dejando invisible toda la tabla (y con ella el botón "Cancelar"
+     de cada ruta). Se fuerza acá `flex: 0 0 auto` con mayor especificidad
+     (el ID #tab-armar-content pesa más que las dos clases de la regla
+     genérica) para que vuelva a tomar altura por contenido, topeada igual
+     por el max-height:200px/overflow-y:auto de arriba. */
+  body.dash-rutas-gentelella.armar-ruta-activa #tab-armar-content .rutas-del-dia-section--top .table-responsive-cards {
+    flex: 0 0 auto;
+  }
 
   /* Cabecera "Nueva ruta": vuelve a su padding cómodo de lectura. */
   body.dash-rutas-gentelella.armar-ruta-activa #tab-armar-content .ruta-form-card {
