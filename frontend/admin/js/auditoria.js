@@ -120,9 +120,9 @@ function humanizarValorAuditoria(campo, valor) {
 }
 
 const ACCION_LABELS = {
-  INSERT: { texto: 'Alta',         clase: 'chip-verde' },
-  UPDATE: { texto: 'Modificación', clase: 'chip-amarillo' },
-  DELETE: { texto: 'Baja',         clase: 'chip-rojo' },
+  INSERT: { texto: 'Alta',         clase: 'badge-ok' },
+  UPDATE: { texto: 'Modificación', clase: 'badge-warning' },
+  DELETE: { texto: 'Baja',         clase: 'badge-critico' },
 };
 
 // Texto en criollo para la columna "Qué pasó": va al lado del chip de
@@ -147,9 +147,9 @@ const TIPO_EVENTO_LABELS = {
 };
 
 const ESTADO_EVENTO_LABELS = {
-  pendiente: { texto: 'Pendiente', clase: 'chip-amarillo' },
-  procesado: { texto: 'Procesado', clase: 'chip-verde' },
-  error:     { texto: 'Error',     clase: 'chip-rojo' },
+  pendiente: { texto: 'Pendiente', clase: 'badge-warning' },
+  procesado: { texto: 'Procesado', clase: 'badge-ok' },
+  error:     { texto: 'Error',     clase: 'badge-critico' },
 };
 
 const PAGE_SIZE_EVENTOS = 50;
@@ -331,14 +331,14 @@ function renderTabla(lista) {
 
   tbody.innerHTML = lista.map((r, idx) => {
     const idxReal = registros.indexOf(r);
-    const accionInfo = ACCION_LABELS[r.accion] || { texto: r.accion, clase: 'chip-gris' };
+    const accionInfo = ACCION_LABELS[r.accion] || { texto: r.accion, clase: 'badge-inactivo' };
     const esSistema = ENTIDADES_SISTEMA.has(r.tabla);
     const usuario = esSistema ? 'Sistema' : (cacheUsuarios[r.usuario_id] || (r.usuario_id ? '—' : 'Sistema'));
     const registroCorto = (!esSistema && r.registro_id) ? r.registro_id.substring(0, 8).toUpperCase() : '—';
 
     return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalDetalle(${idxReal})">
       <td class="col-fit" data-label="Fecha">${formatFechaHora(r.created_at)}</td>
-      <td data-label="Qué pasó"><span class="chip ${accionInfo.clase}">${sanitize(accionInfo.texto)}</span> ${esc(resumirQuePaso(r))}</td>
+      <td data-label="Qué pasó"><span class="badge-estado ${accionInfo.clase}">${sanitize(accionInfo.texto)}</span> ${esc(resumirQuePaso(r))}</td>
       <td class="col-fit" data-label="Referencia" style="font-family:monospace">${registroCorto}</td>
       <td class="col-fit" data-label="Usuario">${esc(usuario)}</td>
       <td class="col-fit col-sticky-end" data-label="Detalle">
@@ -354,7 +354,7 @@ function abrirModalDetalle(idx) {
   const r = registros[idx];
   if (!r) return;
 
-  const accionInfo = ACCION_LABELS[r.accion] || { texto: r.accion, clase: 'chip-gris' };
+  const accionInfo = ACCION_LABELS[r.accion] || { texto: r.accion, clase: 'badge-inactivo' };
   const esSistema = ENTIDADES_SISTEMA.has(r.tabla);
   const tablaLabel = TABLA_LABELS[r.tabla] || r.tabla;
   const usuario = esSistema ? 'Sistema' : (cacheUsuarios[r.usuario_id] || (r.usuario_id ? r.usuario_id : 'Sistema'));
@@ -502,13 +502,13 @@ function renderTablaEventos() {
   }
 
   tbody.innerHTML = eventos.map((ev, idx) => {
-    const estadoInfo = ESTADO_EVENTO_LABELS[ev.estado] || { texto: ev.estado, clase: 'chip-gris' };
+    const estadoInfo = ESTADO_EVENTO_LABELS[ev.estado] || { texto: ev.estado, clase: 'badge-inactivo' };
     const tipoLabel = TIPO_EVENTO_LABELS[ev.tipo_evento] || ev.tipo_evento;
 
     return `<tr class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) abrirModalDetalleEvento(${idx})">
       <td class="col-fit" data-label="Fecha">${formatFechaHora(ev.creado_en)}</td>
       <td data-label="Tipo de evento">${esc(tipoLabel)}</td>
-      <td class="col-fit" data-label="Estado"><span class="chip ${estadoInfo.clase}">${esc(estadoInfo.texto)}</span></td>
+      <td class="col-fit" data-label="Estado"><span class="badge-estado ${estadoInfo.clase}">${esc(estadoInfo.texto)}</span></td>
       <td class="col-fit" data-label="Origen">${esc(ev.origen || '—')}</td>
       <td class="col-fit col-sticky-end" data-label="Detalle">
         <span class="fila-acciones">
@@ -555,7 +555,7 @@ function abrirModalDetalleEvento(idx) {
   const ev = eventos[idx];
   if (!ev) return;
 
-  const estadoInfo = ESTADO_EVENTO_LABELS[ev.estado] || { texto: ev.estado, clase: 'chip-gris' };
+  const estadoInfo = ESTADO_EVENTO_LABELS[ev.estado] || { texto: ev.estado, clase: 'badge-inactivo' };
   const tipoLabel = TIPO_EVENTO_LABELS[ev.tipo_evento] || ev.tipo_evento;
 
   document.getElementById('modal-detalle-evt-titulo').textContent = `${tipoLabel} — ${estadoInfo.texto}`;

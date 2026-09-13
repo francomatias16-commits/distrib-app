@@ -22,8 +22,12 @@
 //
 // Uso: npm run audit:mobile [-- --paginas=clientes,stock] [--json]
 
-import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+// IMPORTANTE: usar `playwright-core` (ya presente como dependencia del
+// proyecto) y NO el paquete `playwright` completo — este último trae su
+// propio test-runner embebido que choca con @playwright/test y rompe
+// `test.beforeAll()` en la suite de e2e. Mismo fix que audit-accesibilidad.js.
+import { chromium } from 'playwright-core';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -232,7 +236,13 @@ async function main() {
   mkdirSync(SHOTS_DIR, { recursive: true });
 
   const staticServer = await startStaticServer();
-  const browser = await chromium.launch();
+  // El paquete `playwright` recién instalado espera un build de Chromium
+  // más nuevo del que ya está cacheado en este sandbox. Apuntamos directo
+  // al binario ya presente en vez de descargar uno nuevo.
+  const CACHED_CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+  const browser = await chromium.launch(
+    existsSync(CACHED_CHROMIUM) ? { executablePath: CACHED_CHROMIUM } : {}
+  );
   const resultados = [];
 
   for (const nombre of lista) {

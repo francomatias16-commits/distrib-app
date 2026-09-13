@@ -297,19 +297,15 @@ tbody tr:hover td { background: rgba(31,91,74,.035) !important; }
   .auto-grid { grid-template-columns: 1fr; padding: 12px; }
   .auto-topbar { padding: 12px 12px 0; }
 
-  /* AUDITORIA-RESPONSIVE-ETAPA4: .tabla-card (adminlte-components.css) usa
-     overflow:hidden para recortar la tabla a su border-radius. La tabla de
-     reglas (#tabla-reglas-auto) tiene 6 columnas de texto — en mobile eso
-     no entra en el ancho de pantalla y overflow:hidden la recorta en vez
-     de dejarla scrollear (a diferencia de .tabla-overflow, usado en otras
-     pantallas). Se habilita scroll horizontal sólo en esta tarjeta. */
-  #reglas-auto-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  #reglas-auto-card .tabla-base { min-width: 620px; }
-  /* Mismo problema en la tabla de tareas automáticas (#tareas-auto-card,
-     5 columnas) — no tenía el fix de scroll horizontal que sí se aplicó
-     a #reglas-auto-card. */
-  #tareas-auto-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  #tareas-auto-card .tabla-base { min-width: 480px; }
+  /* [1.1] Las tablas de reglas (#tabla-reglas-auto, 6 columnas) y tareas
+     (#tabla-tareas-auto, 5 columnas) migraron de `.tabla-base` (con este
+     hack de min-width + scroll horizontal, que además `check-breakpoints`
+     seguía marcando como overflow-x) a `.tabla-admin` + `table-responsive-cards`
+     — el patrón canónico "tabla → tarjetas" de componentes-admin.css, igual
+     que cheques/cobranzas/notas/etc. En mobile cada fila pasa a tarjeta
+     (data-label por celda) y no necesita scroll horizontal. El fix de scroll
+     que faltaba en #tareas-auto-card queda resuelto de la misma forma.
+     Bloque eliminado a propósito: ver PLAN_UIUX_OPTIMIZACION_TOTAL.md 1.1. */
 }
 
 /* Toast reutilizado */

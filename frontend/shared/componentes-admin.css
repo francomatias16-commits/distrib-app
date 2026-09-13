@@ -20,10 +20,18 @@
  * ════════════════════════════════════════════════════════════════════════ */
 
 /* ── Contenedor + tabla ─────────────────────────────────────────────── */
+/* [1.3] border+overflow-x promovidos acá — antes cada página que los
+   necesitaba los declaraba suelto (mismo valor idéntico en clientes.css,
+   facturacion.css, pedidos.css y stock.css: `border: 1px solid
+   rgba(0,0,0,.07); overflow-x: auto;`). Ver PLAN_UIUX_OPTIMIZACION_TOTAL.md
+   1.3. Páginas con una personalización real de color de borde (clientes) o
+   layout (compras) conservan su override local — no se tocaron. */
 .tabla-wrap {
   background: var(--color-surface);
+  border: 1px solid rgba(0,0,0,.07);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  overflow-x: auto;
 }
 
 .tabla-admin {

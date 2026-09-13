@@ -1,10 +1,11 @@
 {
-  "generado_en": "2026-09-03T01:33:18.569Z",
-  "alcance": "páginas públicas servidas por tests/e2e/helpers/static-server.js — no cubre páginas admin autenticadas (sin red a Supabase en este entorno, ver pendiente #3)",
+  "generado_en": "2026-09-13T16:37:58.524Z",
+  "alcance": "páginas públicas + páginas admin autenticadas (sesión mockeada, mismo mecanismo que audit-mobile.js/audit-breakpoints.js — nunca pega contra Supabase real). Ver PLAN_UIUX_OPTIMIZACION_TOTAL.md 2.2.",
   "paginas": [
     {
       "nombre": "Landing",
       "path": "/",
+      "admin": false,
       "ok": true,
       "total_violaciones": 4,
       "violaciones": [
@@ -59,6 +60,7 @@
     {
       "nombre": "Registro",
       "path": "/registro",
+      "admin": false,
       "ok": true,
       "total_violaciones": 1,
       "violaciones": [
@@ -84,6 +86,7 @@
     {
       "nombre": "Privacidad",
       "path": "/privacidad",
+      "admin": false,
       "ok": true,
       "total_violaciones": 2,
       "violaciones": [
@@ -117,6 +120,7 @@
     {
       "nombre": "Login admin",
       "path": "/admin/login",
+      "admin": false,
       "ok": true,
       "total_violaciones": 3,
       "violaciones": [
@@ -164,6 +168,7 @@
     {
       "nombre": "Login cliente",
       "path": "/cliente/login",
+      "admin": false,
       "ok": true,
       "total_violaciones": 3,
       "violaciones": [
@@ -209,6 +214,7 @@
     {
       "nombre": "Login chofer",
       "path": "/chofer/login",
+      "admin": false,
       "ok": true,
       "total_violaciones": 3,
       "violaciones": [
@@ -254,6 +260,7 @@
     {
       "nombre": "Portal proveedor",
       "path": "/proveedor/portal",
+      "admin": false,
       "ok": true,
       "total_violaciones": 2,
       "violaciones": [
@@ -275,6 +282,2634 @@
           "nodos_afectados": 1,
           "selectores": [
             "html"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: anomalias",
+      "path": "/frontend/admin/anomalias.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-analizar"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#dias-select"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: auditoria",
+      "path": "/frontend/admin/auditoria.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#tab-registro",
+            "#tab-eventos"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-tabla-aud",
+            "#filtro-accion-aud"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: automatizacion",
+      "path": "/frontend/admin/automatizacion.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "div:nth-child(3) > span:nth-child(1)",
+            "main > div:nth-child(3) > span:nth-child(2)",
+            "#btn-push-toggle",
+            "#btn-nueva-regla-auto"
+          ]
+        },
+        {
+          "id": "empty-table-header",
+          "impacto": "minor",
+          "descripcion": "Ensure table headers have discernible text",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/empty-table-header?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "th:nth-child(6)",
+            "#tabla-tareas-auto > thead > tr > th:nth-child(5)"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: avisos",
+      "path": "/frontend/admin/avisos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-refrescar"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#cantidad-select"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: cajas",
+      "path": "/frontend/admin/cajas.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-nueva-caja"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "#app-preloader",
+            ".chat-asistente-header > span",
+            ".chat-asistente-adjunto-miniatura",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: cc-proveedores",
+      "path": "/frontend/admin/cc-proveedores.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-nueva-factura"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-proveedor",
+            "#filtro-estado"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: cheques",
+      "path": "/frontend/admin/cheques.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: clientes",
+      "path": "/frontend/admin/clientes.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".btn--primary.btn[onclick=\"abrirModalNuevo()\"]"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 21,
+          "selectores": [
+            ":root",
+            "#modal-cliente > .modal-header > div",
+            "#modal-tabs",
+            "#panel-datos > .modal-seccion:nth-child(1)",
+            ".modal-seccion:nth-child(2) > .modal-sec-label"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 6,
+          "selectores": [
+            "#filtro-zona",
+            "#f-condicion_iva",
+            "#f-zona_id",
+            "#f-vendedor_id_default",
+            "#f-lista_precio_id"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: cobranzas",
+      "path": "/frontend/admin/cobranzas.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#vptab-cobranza"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 5,
+          "selectores": [
+            ".vista-principal-tabs",
+            "#panel-nombre",
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: comparador-precios",
+      "path": "/frontend/admin/comparador-precios.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impacto": "serious",
+          "descripcion": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/scrollable-region-focusable?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#vista-ranking > .table-responsive-cards.tabla-wrap > .tabla-overflow"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-meses"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: compras",
+      "path": "/frontend/admin/compras.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".btn--primary.btn[href$=\"comparador-precios\"]",
+            "button[onclick=\"abrirHistorialRecepciones()\"]",
+            "button[onclick=\"abrirModalNuevo()\"]"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-proveedor",
+            "#filtro-estado"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: conciliacion-bancaria",
+      "path": "/frontend/admin/conciliacion-bancaria.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#lista-lotes > div"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-estado-mov"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: cta-cte",
+      "path": "/frontend/admin/cta-cte.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#vptab-saldos"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 5,
+          "selectores": [
+            ".vista-principal-tabs",
+            "#panel-nombre",
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: dashboard",
+      "path": "/frontend/admin/dashboard.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "page-has-heading-one",
+          "impacto": "moderate",
+          "descripcion": "Ensure that the page, or at least one of its frames contains a level-one heading",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/page-has-heading-one?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 57,
+          "selectores": [
+            ".card-dark > div:nth-child(1) > .card-head > .card-label",
+            "#tag-fuente-kpis",
+            "#ultimo-update",
+            "div[title=\"Ver ventas\"] > div:nth-child(1)",
+            "#kv-ventas"
+          ]
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impacto": "serious",
+          "descripcion": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/scrollable-region-focusable?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".card-score > div:nth-child(4)",
+            ".card.card-nav[title=\"Ver en grande\"]:nth-child(8) > div:nth-child(3)",
+            "#tab-cobranza"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: devoluciones",
+      "path": "/frontend/admin/devoluciones.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "#panel-dev-titulo",
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-motivo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: empresa-config",
+      "path": "/frontend/admin/empresa-config.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            ".chat-asistente-adjunto-miniatura",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: export-contable",
+      "path": "/frontend/admin/export-contable.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".badge-listo",
+            "#btn-guardar-config",
+            "#btn-generar"
+          ]
+        },
+        {
+          "id": "label",
+          "impacto": "critical",
+          "descripcion": "Ensure every form element has a label",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/label?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#gen_desde",
+            "#gen_hasta"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            "#separador_decimal",
+            "#formato_fecha",
+            "#gen_tipo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: facturacion-config",
+      "path": "/frontend/admin/facturacion-config.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: facturacion",
+      "path": "/frontend/admin/facturacion.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".fac-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#tab-facturas"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 7,
+          "selectores": [
+            ".modal-header > div",
+            ".modal-seccion:nth-child(2)",
+            ".modal-seccion:nth-child(4)",
+            ".modal-seccion:nth-child(5)",
+            ".chat-asistente-header > span"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-periodo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: fidelizacion",
+      "path": "/frontend/admin/fidelizacion.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "button[onclick=\"selTab('configuracion')\"]",
+            "#form-config > .btn--primary.btn[type=\"submit\"]",
+            "#form-bonus > .btn--primary.btn[type=\"submit\"]",
+            "#form-reglas-score > .btn--primary.btn[type=\"submit\"]"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: liquidacion",
+      "path": "/frontend/admin/liquidacion.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".venc-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#tab-lotes",
+            "#btn-nuevo-lote"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            ".venc-tabs",
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-estado",
+            "#filtro-deposito"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: lotes",
+      "path": "/frontend/admin/lotes.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".venc-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#tab-lotes",
+            "#btn-nuevo-lote"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            ".venc-tabs",
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-estado",
+            "#filtro-deposito"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: mercadopago-config",
+      "path": "/frontend/admin/mercadopago-config.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            ".chat-asistente-adjunto-miniatura",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: notas",
+      "path": "/frontend/admin/notas.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-tipo-nota"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: notif-log",
+      "path": "/frontend/admin/notif-log.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#btnActivarPushAdmin",
+            ".canal-wa > .bento-lbl"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-canal",
+            "#filtro-tipo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: observabilidad",
+      "path": "/frontend/admin/observabilidad.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-refrescar"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#horas-select"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: pedidos",
+      "path": "/frontend/admin/pedidos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".page-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#btn-nuevo-pedido",
+            ".tabla-empty"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 8,
+          "selectores": [
+            ":root",
+            "#pres-panel-nombre",
+            ".modal-header > div",
+            ".modal-seccion:nth-child(3)",
+            ".modal-seccion:nth-child(4)"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "#filtro-cliente",
+            "#filtro-vendedor",
+            "#filtro-zona",
+            "#filtro-canal"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: pos",
+      "path": "/frontend/admin/pos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#pos-quickbar-admin > .pos-quickbar-label",
+            "#btn-abrir-turno"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: presupuestos",
+      "path": "/frontend/admin/presupuestos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".page-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-nuevo-presupuesto"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 8,
+          "selectores": [
+            ":root",
+            "#pres-panel-nombre",
+            ".modal-header > div",
+            ".modal-seccion:nth-child(3)",
+            ".modal-seccion:nth-child(4)"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: productos",
+      "path": "/frontend/admin/productos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#vtab-productos",
+            "button[aria-label=\"Nuevo producto\"] > span"
+          ]
+        },
+        {
+          "id": "empty-table-header",
+          "impacto": "minor",
+          "descripcion": "Ensure table headers have discernible text",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/empty-table-header?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "table[aria-label=\"Lista de productos\"] > thead > tr > .col-sticky-end"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            ".chat-asistente-adjunto-miniatura",
+            ".chat-asistente-input"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#receta-select-insumo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: proveedores",
+      "path": "/frontend/admin/proveedores.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "button[onclick=\"abrirModalNuevo()\"]"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            ".chat-asistente-input"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-activo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: puntos",
+      "path": "/frontend/admin/puntos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: reglas-precio",
+      "path": "/frontend/admin/reglas-precio.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-estado"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: rentabilidad-producto-vendedor",
+      "path": "/frontend/admin/rentabilidad-producto-vendedor.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#kpis-grid > div"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-categoria"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: rentabilidad-zona",
+      "path": "/frontend/admin/rentabilidad-zona.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#btn-guardar-costo-km",
+            "span:nth-child(5)"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-zona"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: reportes-financieros",
+      "path": "/frontend/admin/reportes-financieros.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 13,
+          "selectores": [
+            "#btnAplicarFiltros",
+            "section:nth-child(2) > .manifiesto-body > .linea:nth-child(1) > .linea-n",
+            "section:nth-child(2) > .manifiesto-body > .linea:nth-child(2) > .linea-n",
+            "#kpiCambioCostos",
+            "section:nth-child(2) > .manifiesto-body > .linea:nth-child(3) > .linea-n"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 12,
+          "selectores": [
+            ".filtro-group:nth-child(1)",
+            "section:nth-child(2)",
+            "#franjaGananciaNeta",
+            "section:nth-child(4)",
+            ".chart-section:nth-child(5)"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtroPeriodon"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: reportes-stock",
+      "path": "/frontend/admin/reportes-stock.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 8,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 5,
+          "selectores": [
+            "#btnAplicarFiltros",
+            "#criticosPaginacionInfo",
+            "#movimientosPaginacionInfo",
+            "#btnAplicarFiltrosConteos",
+            "#conteosPaginacionInfo"
+          ]
+        },
+        {
+          "id": "heading-order",
+          "impacto": "moderate",
+          "descripcion": "Ensure the order of headings is semantically correct",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/heading-order?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "h3"
+          ]
+        },
+        {
+          "id": "label",
+          "impacto": "critical",
+          "descripcion": "Ensure every form element has a label",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/label?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#conteosFiltroDesde",
+            "#conteosFiltroHasta"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 38,
+          "selectores": [
+            ".content-area > .filtros-section > .filtro-group:nth-child(1)",
+            ".content-area > .filtros-section > .filtro-group:nth-child(2)",
+            ".content-area > .filtros-section > .filtro-group:nth-child(3)",
+            ".content-area > .franja-resumen-sololectura",
+            ".stock-ov-grid"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 5,
+          "selectores": [
+            "#filtroDeposito",
+            "#filtroCategoria",
+            "#filtroEstado",
+            "#conteosFiltroDeposito",
+            "#conteosFiltroMotivo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: reportes-ventas",
+      "path": "/frontend/admin/reportes-ventas.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 5,
+          "selectores": [
+            "#btnAplicarFiltros",
+            ".linea:nth-child(1) > .linea-n",
+            ".linea:nth-child(2) > .linea-n",
+            ".linea:nth-child(3) > .linea-n",
+            ".linea:nth-child(4) > .linea-n"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 13,
+          "selectores": [
+            ".filtro-group:nth-child(1)",
+            ".filtro-group:nth-child(3)",
+            ".filtro-group:nth-child(4)",
+            "section",
+            ".chart-section:nth-child(3)"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            "#filtroPeriodon",
+            "#filtroVendedor",
+            "#filtroZona"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: riesgo-cheques",
+      "path": "/frontend/admin/riesgo-cheques.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#bcra-libre-entidad"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: rutas",
+      "path": "/frontend/admin/rutas.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 10,
+          "selectores": [
+            "#tab-resumen",
+            "label[for=\"filtro-fecha\"]",
+            ".resumen-pedidos-focus-head > div > .resumen-operativo-kicker",
+            ".resumen-card--capacity > .resumen-card-head > .resumen-card-head-titulo > div > .resumen-card-sub",
+            ".btn-chofer-accion--invitar"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            ".chat-asistente-adjunto-miniatura",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: saas-billing",
+      "path": "/frontend/admin/saas-billing.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "landmark-one-main",
+          "impacto": "moderate",
+          "descripcion": "Ensure the document has a main landmark",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/landmark-one-main?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "html"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 16,
+          "selectores": [
+            "#saas-toast",
+            "#vista-tenant > div:nth-child(1)",
+            "#tenant-banner-suspendida > div",
+            ".seccion-tabla:nth-child(4)",
+            "#vista-tenant > .seccion-tabla:nth-child(5)"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: stock",
+      "path": "/frontend/admin/stock.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 4,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 12,
+          "selectores": [
+            ":root",
+            ".modal-header > div",
+            ".modal-seccion:nth-child(3) > .modal-sec-label",
+            ".modal-seccion:nth-child(3) > .form-group:nth-child(2) > .form-label",
+            ".form-row"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            "#filtro-deposito",
+            "#filtro-categoria",
+            "#select-deposito",
+            "#select-motivo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: usuarios",
+      "path": "/frontend/admin/usuarios.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 5,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#btn-nuevo-usuario"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#filtro-activo"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: vencimientos",
+      "path": "/frontend/admin/vencimientos.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 6,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "aria-required-children",
+          "impacto": "critical",
+          "descripcion": "Ensure elements with an ARIA role that require child roles contain them",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-required-children?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".venc-tabs"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#tab-lotes",
+            "#btn-nuevo-lote"
+          ]
+        },
+        {
+          "id": "nested-interactive",
+          "impacto": "serious",
+          "descripcion": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/nested-interactive?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            ".topbar-right"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 4,
+          "selectores": [
+            ".venc-tabs",
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        },
+        {
+          "id": "select-name",
+          "impacto": "critical",
+          "descripcion": "Ensure select element has an accessible name",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/select-name?application=axeAPI",
+          "nodos_afectados": 2,
+          "selectores": [
+            "#filtro-estado",
+            "#filtro-deposito"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: whatsapp-conversaciones",
+      "path": "/frontend/admin/whatsapp-conversaciones.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 2,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
+          ]
+        }
+      ],
+      "errores_consola": []
+    },
+    {
+      "nombre": "Admin: whatsapp-onboarding",
+      "path": "/frontend/admin/whatsapp-onboarding.html",
+      "admin": true,
+      "ok": true,
+      "total_violaciones": 3,
+      "violaciones": [
+        {
+          "id": "aria-allowed-role",
+          "impacto": "minor",
+          "descripcion": "Ensure role attribute has an appropriate value for the element",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/aria-allowed-role?application=axeAPI",
+          "nodos_afectados": 1,
+          "selectores": [
+            "#nav-menu-panel"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            "#btn-conectar-wa",
+            ".ayuda-opciones",
+            "strong"
+          ]
+        },
+        {
+          "id": "region",
+          "impacto": "moderate",
+          "descripcion": "Ensure all page content is contained by landmarks",
+          "ayuda_url": "https://dequeuniversity.com/rules/axe/4.13/region?application=axeAPI",
+          "nodos_afectados": 3,
+          "selectores": [
+            ".chat-asistente-header > span",
+            "img",
+            "textarea"
           ]
         }
       ],

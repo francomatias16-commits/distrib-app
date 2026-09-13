@@ -144,7 +144,7 @@ function renderTablaOfertas(lista) {
       <td data-label="Lote" style="font-family:monospace">${l.numero_lote ? window.sanitize(l.numero_lote) : '—'}</td>
       <td data-label="Precio base">${formatPeso(p.precio_base)}</td>
       <td class="monto monto-verde" data-label="Precio oferta">${formatPeso(o.precio_oferta)}</td>
-      <td data-label="Descuento"><span class="chip chip-rojo">-${(+o.descuento_pct).toFixed(0)}%</span></td>
+      <td data-label="Descuento"><span class="badge-estado badge-critico">-${(+o.descuento_pct).toFixed(0)}%</span></td>
       <td data-label="Cantidad">${o.cantidad_snapshot}</td>
       <td data-label="Vence la oferta">${formatFecha(o.vence_oferta_at)}</td>
     </tr>`;

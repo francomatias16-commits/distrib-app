@@ -112,16 +112,16 @@ function renderTabla(notas) {
   tbody.innerHTML = notas.map(n => {
     const esCredito = n.tipo === 'nota_credito';
     const tipoLabel = esCredito ? 'Nota de Crédito' : 'Nota de Débito';
-    const tipoCls = esCredito ? 'chip-verde' : 'chip-rojo';
+    const tipoCls = esCredito ? 'badge-ok' : 'badge-critico';
     const montoCls = esCredito ? 'monto-verde' : 'monto-rojo';
 
     return `<tr data-testid="notas-fila" data-id="${n.id}" class="fila-clickeable" onclick="if (event.target.closest('[onclick],a,select,input,textarea,button') === this) verDetalleNota('${n.id}')" style="${n.anulado ? 'opacity:.55' : ''}">
       <td data-label="Fecha">${formatFecha(n.fecha)}</td>
       <td data-label="Número" style="font-family:monospace">${n.nro_comprobante || '—'}</td>
-      <td data-label="Tipo"><span class="chip ${tipoCls}">${tipoLabel}</span></td>
+      <td data-label="Tipo"><span class="badge-estado ${tipoCls}">${tipoLabel}</span></td>
       <td data-label="Cliente">${window.sanitize(n.clientes?.nombre_fantasia || n.clientes?.razon_social || '—')}</td>
       <td class="monto ${montoCls}" data-label="Monto">${formatPeso(n.importe)}</td>
-      <td data-label="Estado">${n.anulado ? '<span class="chip chip-gris">Anulada</span>' : '<span class="chip chip-azul">Emitida</span>'}</td>
+      <td data-label="Estado">${n.anulado ? '<span class="badge-estado badge-inactivo">Anulada</span>' : '<span class="badge-estado badge-info">Emitida</span>'}</td>
       <td class="col-sticky-end" data-label="Acciones">
         <span class="fila-acciones">
           <button type="button" class="btn-tabla" onclick="verDetalleNota('${n.id}')">Ver</button>
@@ -300,7 +300,7 @@ function verDetalleNota(id) {
 
   const esCredito = n.tipo === 'nota_credito';
   document.getElementById('detalle-nota-tipo').innerHTML =
-    `<span class="chip ${esCredito ? 'chip-verde' : 'chip-rojo'}">${esCredito ? 'Nota de Crédito' : 'Nota de Débito'}</span>${n.anulado ? ' <span class="chip chip-gris">Anulada</span>' : ''}`;
+    `<span class="badge-estado ${esCredito ? 'badge-ok' : 'badge-critico'}">${esCredito ? 'Nota de Crédito' : 'Nota de Débito'}</span>${n.anulado ? ' <span class="badge-estado badge-inactivo">Anulada</span>' : ''}`;
   document.getElementById('detalle-nota-numero').textContent = n.nro_comprobante || '—';
   document.getElementById('detalle-nota-fecha').textContent = formatFecha(n.fecha);
   document.getElementById('detalle-nota-monto').innerHTML =

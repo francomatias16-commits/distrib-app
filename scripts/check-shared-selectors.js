@@ -77,7 +77,7 @@ const WHITELIST = {
     'vencimientos-gentelella.css', 'whatsapp-conversaciones-gentelella.css',
   ],
   '.chip': [
-    'finanzas.css', 'pedidos-gentelella.css', 'pedidos.css', 'reportes.css',
+    'pedidos-gentelella.css', 'pedidos.css', 'reportes.css',
     'rutas.css',
   ],
   '.badge-estado': [
