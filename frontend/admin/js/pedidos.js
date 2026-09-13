@@ -886,7 +886,13 @@ async function abrirModal(p) {
   // reintentar (Hallazgo 1, auditoría Etapa 1 - Pedidos).
   const facturaSinEmitir = !p.factura_id || ['pendiente', 'error_afip'].includes(p.factura_estado);
   const puedeFacturar = facturaSinEmitir && p.estado !== 'borrador' && p.estado !== 'pendiente' && p.estado !== 'cancelado';
-  btnFactura.style.display = puedeFacturar ? '' : 'none';
+  // FIX: antes era btnFactura.style.display = puedeFacturar ? '' : 'none' —
+  // reskin-patch.css fuerza `display: inline-flex !important` sobre TODO
+  // button.btn.btn--primary, así que ese inline style nunca ganaba (ver
+  // el mismo FIX y el comentario largo en pedidos.css, junto a la regla
+  // #btn-generar-factura). Ahora se togglea una clase con especificidad
+  // de ID, que sí le gana al !important de la hoja global.
+  btnFactura.classList.toggle('btn-factura--visible', puedeFacturar);
   btnFactura.disabled = false;
   const esReintento = puedeFacturar && !!p.factura_id;
   btnFactura.innerHTML = `
@@ -1082,7 +1088,11 @@ async function generarFactura(pedidoId) {
     // Reflejar el cambio sin recargar todo: marcamos el pedido como facturado
     const p = pedidos.find(x => x.id === pedidoId);
     if (p) p.factura_id = json?.factura?.id || true;
-    if (btn) btn.style.display = 'none';
+    // FIX: ver el comentario largo en abrirModal() / pedidos.css — un
+    // style.display='none' acá nunca gana contra el !important de
+    // reskin-patch.css, así que el botón quedaba siempre visible después
+    // de facturar. classList sí le gana (especificidad de ID).
+    if (btn) btn.classList.remove('btn-factura--visible');
     aplicarFiltros();
   } catch (err) {
     console.error('[pedidos] Error al generar comprobante:', err);

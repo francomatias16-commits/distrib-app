@@ -101,4 +101,99 @@ export class FacturacionPage extends PageObjectBase {
     if (motivo !== undefined) await this.inputMotivoAnulacion.fill(motivo);
     await this.btnConfirmarAnular.click();
   }
+
+  /** window.cerrarModal() global de facturacion.js — mismo patrón que pedidos.page.js. */
+  async cerrarModal() {
+    await this.page.evaluate(() => window.cerrarModal?.());
+  }
+
+  // ── Tab "Notas de crédito" (notas-credito.js, mismo <script> clásico,
+  // comparte scope global con facturacion.js — ver CHANGELOG F3-05) ─────
+  get tabFacturas() { return this.page.locator('#tab-facturas'); }
+  get tabNC() { return this.page.locator('#tab-nc'); }
+  get panelNC() { return this.page.locator('#panel-nc'); }
+
+  async irATabFacturas() {
+    await this.tabFacturas.click();
+  }
+
+  async irATabNC() {
+    await this.tabNC.click();
+    await expect(this.panelNC).toBeVisible();
+  }
+
+  get btnNuevoNC() { return this.page.locator('#btn-nuevo-nc'); }
+  get modalNC() { return this.page.locator('#modal-nc'); }
+  get selClienteNC() { return this.page.locator('#nc-cliente'); }
+  get selFacturaNC() { return this.page.locator('#nc-factura'); }
+  get selTipoNC() { return this.page.locator('#nc-tipo'); }
+  get inputMotivoNC() { return this.page.locator('#nc-motivo'); }
+  // El onclick pasó a ser `btnAsyncClick(this, agregarItemNC)` (guard
+  // anti-doble-click) — ya no matchea `button[onclick="agregarItemNC()"]`
+  // literal. Se ubica por texto, scopeado al modal de NC para no chocar
+  // con otros botones "+ Agregar" de la página.
+  get btnAgregarItemNC() { return this.modalNC.locator('button', { hasText: 'Agregar ítem' }); }
+  get btnGuardarNC() { return this.page.locator('#btn-guardar-nc'); }
+
+  async abrirModalNuevaNC() {
+    await this.btnNuevoNC.click();
+    await expect(this.modalNC).toBeVisible();
+  }
+
+  /**
+   * Completa el alta mínima: cliente, factura asociada (dispara
+   * `onClienteNC()` → carga `#nc-factura` desde `facturas` filtradas por
+   * `cliente_id`, ver notas-credito.js), motivo y un ítem con precio > 0
+   * (guardarNC() descarta ítems con `precio_unitario` 0 o sin descripción).
+   */
+  async completarNuevaNC({ clienteId, facturaId, motivo, item }) {
+    await this.selClienteNC.selectOption(clienteId);
+    // onClienteNC() es async (fetch de facturas del cliente) — esperar a
+    // que la opción exista antes de seleccionarla, no solo a que el
+    // <select> esté "attached".
+    if (facturaId) {
+      await expect(this.selFacturaNC.locator(`option[value="${facturaId}"]`)).toHaveCount(1, { timeout: 5000 });
+      await this.selFacturaNC.selectOption(facturaId);
+    }
+    await this.inputMotivoNC.fill(motivo);
+    await this.btnAgregarItemNC.click();
+    const filaItem = this.page.locator('#tbody-items-nc tr').first();
+    await filaItem.locator('input[type="text"]').fill(item.descripcion);
+    await filaItem.locator('input[data-money]').fill(String(item.precio_unitario));
+  }
+
+  /** Click en "Crear NC" + confirmar el diálogo de `window.confirmar()`. */
+  async guardarNC() {
+    await this.btnGuardarNC.click();
+    await expect(this.dialogoConfirmarGlobal).toBeVisible();
+    await this.dialogoConfirmarGlobal.locator('[data-action="ok"]').click();
+  }
+
+  filaNC(ncId) {
+    // renderTablaNC() no agrega data-testid — arma la fila con
+    // onclick="verDetalleNC('<id>')" en el <tr>, único selector estable.
+    return this.page.locator(`tr[onclick*="verDetalleNC('${ncId}')"]`);
+  }
+
+  btnKebabNC(ncId) {
+    return this.page.locator(`.btn-kebab-nc[data-nc-id="${ncId}"]`);
+  }
+
+  get menuAccionesNC() { return this.page.locator('#menu-acciones-nc'); }
+
+  /** Abre el kebab de la fila NC y clickea "Emitir a AFIP" en el menú flotante. */
+  async emitirNC(ncId) {
+    await this.btnKebabNC(ncId).click();
+    await expect(this.menuAccionesNC).toBeVisible();
+    await this.menuAccionesNC.getByRole('menuitem', { name: 'Emitir a AFIP' }).click();
+    await expect(this.dialogoConfirmarGlobal).toBeVisible();
+    await this.dialogoConfirmarGlobal.locator('[data-action="ok"]').click();
+  }
+
+  // `window.confirmar()` (ui-utils.js) — mismo overlay global que ya
+  // documentaron pedidos.page.js/cobranzas.page.js para sus propios
+  // diálogos; acá se nombra aparte porque esta página ya usa
+  // `dialogoConfirmar` para la sección de anulación in-modal (no es el
+  // mismo elemento).
+  get dialogoConfirmarGlobal() { return this.page.locator('[role="dialog"]:has([data-action])').last(); }
 }

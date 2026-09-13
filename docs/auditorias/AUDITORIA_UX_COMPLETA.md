@@ -61,6 +61,18 @@ Conviven `'Inter'` (reskin nuevo) y `'Source Sans 3'` (era Gentelella/fireart vi
 2. **Manejo de errores débil** — la tabla original queda desactualizada en 2 de los 9 archivos. `depositos.js` y `listas-precio.js` **ya no existen como archivos independientes**: esa funcionalidad se consolidó en `migracion-maestra.js` (confirmado por el comentario en línea 170 y por flujo). Ese archivo sí tiene manejo de errores real: los dos flujos async (lectura/parseo del archivo y el loop de subida-mapeo-confirmación) están cada uno dentro de su propio `try {} catch (err)`, con `toast` visible para el usuario en el primero y registro de error por ítem en el segundo. Cierro esos dos como resueltos — no por fix nuevo, sino porque el código que los originaba no existe más.
    Quedan pendientes, sin cambios, los 3 restantes con lógica débil real: `lotes.js`, `usuarios.js`, `zonas.js` — pero ojo, la sesión anterior ya había reverificado estos tres y encontró más try/catch de los reportados originalmente (`lotes.js` 6 try / `usuarios.js` 3 try+3 catch / `zonas.js` 4 try+4 catch sobre 5-11 llamadas async cada uno) — no están en cero como decía la tabla vieja, tienen cobertura parcial. Falta mirar caso por caso si esa cobertura parcial deja huecos reales (que rutas exactas quedan sin try) antes de decir que están bien.
 
+## CERRADO — B6 "manejo de errores débil" en lotes.js/usuarios.js/zonas.js (verificado 2026-09-13, no reabrir)
+
+Se hizo el chequeo caso por caso que quedaba pendiente arriba: se listó **cada** `await` de los 3 archivos y se clasificó si queda dentro de un `try {}` o no. Resultado — **no hay huecos reales en ninguno de los 3**:
+
+- Los únicos `await` fuera de un `try` son: (a) llamadas a las propias `cargarLotes()`/`cargarUsuarios()`/`cargarZonas()` desde `init()` — funciones que ya capturan su propio error internamente y nunca propagan un throw, así que no hay nada sin manejar; y (b) llamadas a `confirmar()`/`window.confirmar()` (diálogo de confirmación in-page, no red) antes de entrar al bloque protegido.
+- **Todos** los `fetch()`/`sb.from(...)`/`sb.auth.getSession()` que sí tocan red están dentro de un `try {} catch (err) { toast(...) }`, con mensaje visible al usuario en cada caso (no queda ningún botón pegado en "Guardando..." sin feedback).
+- Extra, no documentado en la tabla original: los 3 archivos usan `btnAsyncClick` (`ui-utils.js`) para las acciones disparadas por botón (dar de baja, eliminar, activar/desactivar) — ese wrapper universal tiene su propio `try/catch/finally` alrededor del callback (libera el lock del botón y muestra un toast con `err.message` si algo escapa sin capturar), así que hay una segunda red de seguridad además del `try` propio de cada función.
+
+**No se tocó código** — no hacía falta, la cobertura ya era completa. La sospecha de "cobertura parcial" venía de comparar cantidad de `await` contra cantidad de `try {}` a nivel de archivo (una métrica gruesa: un mismo `try` cubre varios `await` consecutivos), no de un hueco real.
+
+**No volver a listar esto como pendiente** salvo que aparezca una función nueva en alguno de estos 3 archivos sin su propio `try/catch`.
+
 **Confirmado sin cambios (doble chequeo esta sesión):**
 - El override de `--color-primary` en `login.css` **no aparece en ninguno de los tres `login.css`** (admin/cliente/chofer) — ni redefinición ni referencia vía `var()`. Sigue sin reproducirse; se puede dar de baja del todo, no solo "no reaparece".
 - `aria-label` en `comparador-precios.html` y `conciliacion-bancaria.html`: 1 cada uno, confirmado.

@@ -1,4 +1,11 @@
-> **Estado de ejecución (actualizado):** Fase 1 (P0, 9/9 páginas) cerrada y confirmada 32/32 contra Chromium real (secciones 17-20). Fase 2 (P1) arrancada: 1/20 páginas escritas y confirmadas (`rutas.html`, sección 21). Suite completa: 128/131, los 3 rojos son el bloqueo de CDN de Dexie sin internet completo (secciones 18-19), no bugs reales.
+> **Este es el único ejemplar de este documento** — existía una copia
+> duplicada en la raíz del repo (`PLAN_E2E_COBERTURA_TOTAL.md`) que se
+> había desincronizado (le faltaban las secciones 30-33); se borró en esta
+> vuelta. Si en algún momento se necesita moverlo o copiarlo, actualizar
+> también las ~25 referencias por nombre de archivo en comentarios de
+> specs/page-objects/changelogs (`grep -rl PLAN_E2E_COBERTURA_TOTAL`).
+
+> **Estado de ejecución (actualizado):** Fase 1 (P0, 9/9 páginas) cerrada y confirmada. Fase 2 (P1) completa (bloques rutas/lotes-vencimientos/devoluciones-cheques-conciliación/usuarios-proveedores-notas-presupuestos/portal cliente/portal chofer, secciones 21-29). Deuda de 39 fallas preexistentes de una corrida completa (secciones 30-32) y 11 fallas nuevas de arnés de test (sección 33) diagnosticadas y corregidas. **Última corrida completa del usuario confirmada: 314/314 tests en verde, sin rojos pendientes.**
 
 # Plan de cobertura E2E completa (Playwright) — distrib
 
@@ -1715,3 +1722,61 @@ la sección 1 del plan queda desactualizada (dice 54 páginas admin, son
   browsers) — falta confirmar en la máquina del usuario. Con esto, las 39
   fallas originales de la sección 30 quedan todas diagnosticadas y
   corregidas en el código; el paso que falta es la corrida real.
+
+## 33. 11 rojos de una corrida completa del usuario (314 tests) — 3 causas, las 3 del arnés de test, no de la app — confirmado 314/314 verde
+
+Corrida real del usuario (`npm run test:e2e`, Windows, navegador real) sobre
+la suite completa: 303 passed / 11 failed en el primer intento. Las 11
+fallas se agruparon en 3 causas raíz — ninguna de las tres es un bug de la
+app:
+
+- **`facturacion-notas-credito.spec.js` (F3-05, 1 falla) — selector stale:**
+  `facturacion.page.js::btnAgregarItemNC` buscaba
+  `button[onclick="agregarItemNC()"]`, pero ese botón en `facturacion.html`
+  hoy tiene `onclick="btnAsyncClick(this, agregarItemNC)"` (wrapper
+  anti-doble-click agregado en algún momento posterior a cuando se escribió
+  el spec original de la sección 8/checklist). El selector nunca matcheaba
+  → timeout de 30s esperando el click. Fix: ubicarlo por texto
+  (`"Agregar ítem"`) scopeado a `#modal-nc`, no por el atributo `onclick`
+  literal — inmune a que se le agregue otro wrapper en el futuro.
+
+- **`stock-sincronizacion-cliente.spec.js` (F4-04, nuevo, 3 fallas) —
+  ambigüedad de selector, no duplicado real:** `catalogo.html` pinta el
+  mismo producto en 2 lugares A PROPÓSITO: el carrusel "Destacados"
+  (`#destacadosScroll`) y la grilla principal (`#gridProductos`) — mismo
+  producto, dos `<div data-producto-id="...">` legítimos en el DOM. El
+  helper `irACatalogoCliente()` buscaba `[data-producto-id="..."]` sin
+  desambiguar → "strict mode violation: locator resolved to 2 elements" en
+  los 3 tests del spec. Fix: scopear a `#gridProductos [data-producto-id=...]`.
+
+- **`smoke-universal.spec.js` (UI-001/UI-002, 7 fallas) — falso positivo de
+  `toBeVisible()` en paneles deslizantes cerrados fuera de pantalla:**
+  `clientes`, `compras`, `facturacion`, `productos`, `stock` usan el panel
+  lateral compartido de `frontend/shared/componentes-admin.css`
+  (`.modal { right: -600px } .modal.open { right: 0 }`, siempre
+  `display:flex`, nunca `display:none`); `pedidos`/`presupuestos` usan el
+  mismo patrón con `transform: translateX(...)`. `toBeVisible()` de
+  Playwright solo exige bounding box no vacío y sin
+  `display:none`/`visibility:hidden` — NO exige que el elemento intersecte
+  el viewport, así que reportaba "visible" un panel corrido fuera de
+  pantalla que ningún usuario real ve. Fix: `verificarSinModalAbierto()`
+  ahora exige además `estaRealmenteEnPantalla()` (bounding box solapado
+  con `viewportSize()`) antes de fallar — mismo criterio de fondo que ya
+  se había aplicado en `productos.spec.js` (sección 17,
+  `toHaveClass(/open/)`) pero nunca se llevó al smoke test genérico, que
+  chequea las 61 páginas con un solo criterio compartido en vez de uno por
+  página.
+
+**Confirmado por el usuario, corrida completa real:** los 3 fixes de
+arriba, sin tocar nada de `frontend/` — **314/314 tests en verde**
+(313 previamente pasando + los 11 corregidos, contando que
+`stock-sincronizacion-cliente.spec.js` sumó 3 tests nuevos al total de la
+sección 30 en vez de los 303 originales). Sin regresiones.
+
+**Nota para futuras vueltas de Fase 0.5/smoke:** si se agrega una página
+nueva con panel lateral que use un mecanismo de "cerrado" distinto a
+`right:-Npx`/`transform:translateX(...)` (ej. `opacity:0` sin
+`pointer-events:none`, o clip fuera de un `overflow:hidden` de un
+ancestro con tamaño fijo), `estaRealmenteEnPantalla()` podría necesitar un
+criterio adicional — hoy solo chequea intersección de bounding box con el
+viewport, no opacidad ni ancestros con `overflow:hidden`.

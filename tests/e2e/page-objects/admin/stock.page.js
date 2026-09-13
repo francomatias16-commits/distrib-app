@@ -47,6 +47,11 @@ export class StockPage extends PageObjectBase {
     await this.page.waitForTimeout(400);
   }
 
+  /** filtro-deposito dispara aplicarFiltros() → cargarStock() con p_deposito_id (F4-04). */
+  async filtrarPorDeposito(depId) {
+    await this.filtroDeposito.selectOption(depId ?? '');
+  }
+
   // ── Modal de ajuste ──────────────────────────────────────────────────
   get modalAjuste() { return this.page.locator('#modal-ajuste'); }
   get modalTitulo() { return this.page.locator('#modal-titulo'); }
@@ -70,6 +75,17 @@ export class StockPage extends PageObjectBase {
 
   async elegirTipo(tipo) {
     await this.tipoBtn(tipo).click();
+  }
+
+  get selectDepositoOrigen() { return this.page.locator('#select-deposito'); }
+  get selectDepositoDestino() { return this.page.locator('#select-deposito-destino'); }
+
+  /** Completa la sección de transferencia (F4-04, motivo fijo 'entre_depositos'). */
+  async completarTransferencia({ depositoDestinoId, cantidad }) {
+    await this.elegirTipo('transferencia');
+    await this.selectDepositoDestino.selectOption(depositoDestinoId);
+    await this.inputCantidad.fill(String(cantidad));
+    await this.selectMotivo.selectOption('entre_depositos');
   }
 
   /**
