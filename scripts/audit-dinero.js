@@ -88,9 +88,13 @@ if (SKIP_E2E) {
 if (!EMPRESA_ID) {
   steps.push(skip('conciliar:cta-cte', 'falta EMPRESA_ID de un tenant real (correr contra la demo da falsos positivos)'));
   steps.push(skip('conciliar:stock', 'falta EMPRESA_ID de un tenant real (correr contra la demo da falsos positivos)'));
+  steps.push(skip('conciliar:stock-deposito', 'falta EMPRESA_ID de un tenant real (correr contra la demo da falsos positivos)'));
 } else {
   steps.push(run('conciliar:cta-cte', 'npm', ['run', 'conciliar:cta-cte']));
   steps.push(run('conciliar:stock', 'npm', ['run', 'conciliar:stock']));
+  // Etapa 4 (A2 del plan de cierre, migración 621): complementa conciliar:stock
+  // detectando desvíos por depósito puntual, no solo el total por producto.
+  steps.push(run('conciliar:stock-deposito', 'npm', ['run', 'conciliar:stock-deposito']));
 }
 
 // ── Resumen ──────────────────────────────────────────────────────────────────
