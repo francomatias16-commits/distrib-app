@@ -7,6 +7,16 @@
 // tráfico real esperado: checkout del portal cliente, venta de POS, y el
 // webhook entrante de WhatsApp.
 //
+// Además (agregado después, sin cambiar el nombre del archivo para no
+// romper `npm run loadtest:etapa4` ni los CHANGELOGs que ya lo referencian):
+// dos escenarios de la Etapa 6 de PLAN_AUDITORIA_FLUXO.md ("carga sobre
+// escritura concurrente"), que reutilizan toda esta infraestructura
+// (login, empresa demo, reset) en vez de duplicarla en un archivo aparte:
+//   - 'pos' ahora también verifica conservación de stock (no solo HTTP OK)
+//     — ver el bloque de stock antes/después dentro de escenarioPos().
+//   - 'cobro-concurrente' (nuevo): N cobros en paralelo sobre la MISMA
+//     factura, verificando que total_cobrado nunca supere el total.
+//
 // A diferencia de load-test.js, estos NO son GET-only — escriben datos
 // reales (pedidos, ventas de POS). Decisión confirmada con vos (2026-08-28):
 //   - Tenant: la EMPRESA DEMO pública (fn_reset_demo_v2 la resetea a su
@@ -47,9 +57,12 @@
 //                                  p_empresa_id NULL en fn_reset_demo_v2 no está documentado acá y no
 //                                  vale la pena arriesgarse a que resetee de más).
 //   WA_APP_SECRET                — requerido para el escenario whatsapp-webhook (mismo secreto que Vercel)
-//   ESCENARIOS                   — default: "checkout,pos,whatsapp-webhook" (coma-separado, para correr un subconjunto)
+//   ESCENARIOS                   — default: "checkout,pos,whatsapp-webhook" (coma-separado; agregar
+//                                  "cobro-concurrente" para incluir el escenario de Etapa 6)
 //   CONNECTIONS_ESCRITURA         — default: 10 (más conservador que load-test.js: esto escribe datos reales)
 //   DURATION_ESCRITURA            — default: 10 (segundos por escenario)
+//   N_COBROS_CONCURRENTES        — default: 8 (solo 'cobro-concurrente' — cantidad de cobros disparados
+//                                  en paralelo sobre la misma factura, no usa CONNECTIONS/DURATION)
 //   SKIP_DEMO_RESET=yes          — no resetear la empresa demo al final (para inspeccionar los datos generados)
 //   CONFIRM_PROD=yes             — requerido si BASE_URL no es local, igual que load-test.js
 
@@ -100,6 +113,60 @@ async function apiFetch(path, { method = 'GET', token, body } = {}) {
   });
   const data = await res.json().catch(() => null);
   return { status: res.status, data };
+}
+
+// ── Helpers para pegarle DIRECTO al RPC/REST de Supabase, no a /api/* ───────
+// Etapa 6 de PLAN_AUDITORIA_FLUXO.md agrega escenarios que no tienen
+// endpoint propio en /api/pagos ni /api/admin — cta-cte.js llama a
+// `sb.rpc('registrar_cobro_completo', ...)` directo desde el browser, así
+// que para replicar la carrera real hay que pegarle igual: directo a
+// PostgREST (`${SUPABASE_URL}/rest/v1/...`), con el JWT del usuario logueado
+// y el apikey (anon) — mismo tráfico que generaría un browser real.
+async function supabaseFetch(path, { method = 'GET', token, body } = {}) {
+  const supabaseUrl = requerirEnv('SUPABASE_URL');
+  const supabaseAnonKey = requerirEnv('SUPABASE_ANON_KEY');
+  const res = await fetch(supabaseUrl + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${token}`,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => null);
+  return { status: res.status, data };
+}
+
+/**
+ * `login()` de arriba descarta todo salvo el access_token — alcanza para
+ * pegarle a /api/* (el perfil lo resuelve el propio handler server-side).
+ * Para pegarle directo a PostgREST hace falta el `empresa_id`/`cliente_id`
+ * del perfil, que acá no resuelve ningún handler — se lee de `usuarios`
+ * igual que hace `auth.js` del frontend (`sb.from('usuarios').eq('id',
+ * session.user.id)`), con el JWT del propio usuario (RLS ya permite leer
+ * la fila propia).
+ */
+async function loginConPerfil(email, password) {
+  const supabaseUrl = requerirEnv('SUPABASE_URL');
+  const supabaseAnonKey = requerirEnv('SUPABASE_ANON_KEY');
+  const sb = createClient(supabaseUrl, supabaseAnonKey);
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error || !data?.session?.access_token || !data?.user?.id) {
+    console.error(`[loadtest-etapa4] No se pudo iniciar sesión con ${email}:`, error?.message);
+    process.exit(1);
+  }
+  const token = data.session.access_token;
+  const perfilResp = await supabaseFetch(
+    `/rest/v1/usuarios?select=id,empresa_id,cliente_id,rol&id=eq.${data.user.id}`,
+    { token }
+  );
+  const perfil = perfilResp.data?.[0];
+  if (!perfil) {
+    console.error('[loadtest-etapa4] No se pudo resolver el perfil (tabla usuarios) del usuario logueado — no se puede armar el payload del RPC sin empresa_id.');
+    process.exit(1);
+  }
+  return { token, perfil };
 }
 
 function resumirResultado(nombre, r) {
@@ -221,9 +288,35 @@ async function escenarioPos() {
     return true;
   }
   const producto_id = productos.data[0].id;
+  const CANTIDAD_POR_VENTA = 1;
 
   console.log(`[loadtest-etapa4] Turno ${turno_id} abierto en caja ${caja_id}. Vendiendo producto ${producto_id} en bucle.`);
   console.log('[loadtest-etapa4] IMPORTANTE: cada request registra una venta REAL de POS contra la empresa demo — se resetea al final salvo SKIP_DEMO_RESET=yes.');
+
+  // ── Etapa 6 (PLAN_AUDITORIA_FLUXO.md): esto ya dispara CONNECTIONS
+  // ventas concurrentes sobre el MISMO producto (autocannon abre
+  // `CONNECTIONS` conexiones en paralelo, todas contra el mismo
+  // producto_id/turno_id) — exactamente la carrera que corrige el
+  // `SELECT ... FOR UPDATE` sobre `stock` en registrar_venta_pos (ver
+  // migración 618). Lo que faltaba (y agrega esta etapa) es la
+  // verificación de que el stock quedó matemáticamente consistente, no
+  // solo que HTTP no devolvió 5xx/timeouts — una venta con
+  // stock_insuficiente responde 200 con `{ok:false}` (no es un error
+  // HTTP), así que resumirResultado() no la puede detectar por sí sola.
+  // FIX: la tabla real es `cajas_pos`, no `cajas` — con el nombre equivocado
+  // PostgREST devolvía 404 (tabla inexistente en el schema expuesto), la
+  // respuesta no tenía `deposito_id`, y el escenario se saltaba en silencio
+  // la verificación de conservación de stock (el objetivo real de este
+  // escenario en la Etapa 6), degradando a solo medir performance HTTP.
+  const deposito = await supabaseFetch(`/rest/v1/cajas_pos?select=deposito_id&id=eq.${caja_id}`, { token });
+  const deposito_id = deposito.data?.[0]?.deposito_id;
+  let stockAntes = null;
+  if (deposito_id) {
+    const r = await supabaseFetch(`/rest/v1/stock?select=cantidad&producto_id=eq.${producto_id}&deposito_id=eq.${deposito_id}`, { token });
+    stockAntes = Number(r.data?.[0]?.cantidad);
+  } else {
+    console.error('[loadtest-etapa4] No se pudo resolver el depósito de la caja — se omite la verificación de conservación de stock (solo se mide performance HTTP).');
+  }
 
   const resultado = await autocannon({
     url: BASE_URL + '/api/pos',
@@ -240,7 +333,7 @@ async function escenarioPos() {
         request.body = JSON.stringify({
           caja_id,
           turno_id,
-          items: [{ producto_id, cantidad: 1 }],
+          items: [{ producto_id, cantidad: CANTIDAD_POR_VENTA }],
           // Monto de sobra en efectivo: no hace falta calcular el total
           // exacto server-side, solo que la suma de pagos alcance el total.
           pagos: [{ medio: 'efectivo', monto: 999999 }],
@@ -251,7 +344,37 @@ async function escenarioPos() {
     }],
   });
 
-  const ok = resumirResultado('POST /api/pos (registrar venta)', resultado);
+  let ok = resumirResultado('POST /api/pos (registrar venta)', resultado);
+
+  // Ventas que realmente se confirmaron en este turno (no alcanza con
+  // contar respuestas 2xx del autocannon: eso no distingue {ok:true} de
+  // {ok:false, tipo:'stock_insuficiente'} — ambas vuelven con status 200).
+  const ventasDelTurno = await supabaseFetch(
+    `/rest/v1/ventas_pos?select=id&turno_id=eq.${turno_id}&estado=eq.completada`,
+    { token }
+  );
+  const ventasConfirmadas = ventasDelTurno.data?.length ?? null;
+
+  if (deposito_id && stockAntes != null && ventasConfirmadas != null) {
+    const stockDespuesResp = await supabaseFetch(`/rest/v1/stock?select=cantidad&producto_id=eq.${producto_id}&deposito_id=eq.${deposito_id}`, { token });
+    const stockDespues = Number(stockDespuesResp.data?.[0]?.cantidad);
+    const consumidoReal = stockAntes - stockDespues;
+    const consumidoEsperado = ventasConfirmadas * CANTIDAD_POR_VENTA;
+
+    console.log(`    → stock antes: ${stockAntes}  después: ${stockDespues}  |  ventas confirmadas en el turno: ${ventasConfirmadas} (${consumidoEsperado} unidades esperadas, ${consumidoReal} unidades realmente descontadas)`);
+
+    const stockNoNegativo = stockDespues >= 0;
+    const conservacionOk = consumidoReal === consumidoEsperado;
+
+    if (!stockNoNegativo) {
+      console.error(`    ✗ FALLO: el stock quedó negativo (${stockDespues}) — se vendió más de lo disponible bajo concurrencia real.`);
+    } else if (!conservacionOk) {
+      console.error(`    ✗ FALLO: se descontaron ${consumidoReal} unidades de stock pero solo hay ${ventasConfirmadas} ventas confirmadas (deberían ser ${consumidoEsperado}) — hay un lost update o un descuento no atado a ninguna venta real.`);
+    } else {
+      console.log('    ✓ OK: el stock descontado coincide exactamente con las ventas confirmadas, y nunca quedó negativo.');
+    }
+    ok = ok && stockNoNegativo && conservacionOk;
+  }
 
   const cierre = await apiFetch('/api/pos?accion=cerrar-turno', { token, method: 'POST', body: { turno_id, monto_final_declarado: 0 } });
   if (cierre.status !== 200) {
@@ -259,6 +382,111 @@ async function escenarioPos() {
   }
 
   return ok;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Escenario 4 — Cobro concurrente sobre la MISMA factura (Etapa 6 de
+// PLAN_AUDITORIA_FLUXO.md — no confundir con la "Etapa 4" que da nombre a
+// este archivo, que es la de PLAN_ROBUSTEZ_ESCALABILIDAD_PROFESIONAL_2026.md).
+//
+// A diferencia de escenarioPos (throughput sostenido con autocannon), acá
+// interesa un instante puntual: N_COBROS_CONCURRENTES cobros disparados EN
+// PARALELO (Promise.all — awaits intercalados de verdad, no autocannon)
+// contra la MISMA factura, cada uno pidiendo el saldo pendiente completo —
+// a propósito, para forzar la condición de carrera que corrige el
+// `SELECT ... FOR UPDATE` sobre `facturas` en registrar_cobro_completo (ver
+// supabase/migrations/20260818_p1_sec03_sec08_sync03_sync05_rpcs_financieras.sql).
+// Sin ese lock, dos cobros concurrentes podrían leer el mismo total_cobrado
+// "viejo" y aplicar ambos hasta el total, sobre-cobrando la factura.
+//
+// Va DIRECTO al RPC de Supabase (POST /rest/v1/rpc/registrar_cobro_completo)
+// — no hay endpoint propio en /api/pagos ni /api/admin para el cobro manual
+// de cta_cte; cta-cte.js llama a `sb.rpc(...)` directo desde el browser, y
+// este escenario replica exactamente ese tráfico.
+async function escenarioCobroConcurrente() {
+  console.log('\n[loadtest-etapa4] === Cobro concurrente sobre la misma factura (Etapa 6) ===');
+  const email = requerirEnv('LOAD_TEST_EMAIL');
+  const password = requerirEnv('LOAD_TEST_PASSWORD');
+  const nCobros = Number(process.env.N_COBROS_CONCURRENTES || 8);
+
+  const { token, perfil } = await loginConPerfil(email, password);
+
+  // Se usa la primera factura con saldo pendiente real que aparezca en el
+  // snapshot de la demo — no se fabrica ninguna a propósito para esto.
+  // NOTA: `facturas` no tiene columna `created_at` (sí `updated_at`) — un
+  // `order=created_at.desc` acá hace que PostgREST devuelva un objeto de
+  // error (400) en vez de un array, y `.find` explota río abajo con un
+  // TypeError que no dice nada sobre la causa real. Se ordena por
+  // `updated_at` en su lugar, y se valida explícitamente que la respuesta
+  // sea un array antes de usarla, para que un futuro error de PostgREST
+  // (por el motivo que sea) falle con un mensaje claro en vez de un
+  // TypeError críptico.
+  const facturasResp = await supabaseFetch(
+    `/rest/v1/facturas?select=id,cliente_id,total,total_cobrado,estado&empresa_id=eq.${perfil.empresa_id}&estado=in.(emitida,parcial)&order=updated_at.desc&limit=50`,
+    { token }
+  );
+  if (!Array.isArray(facturasResp.data)) {
+    console.error('[loadtest-etapa4] La consulta de facturas pendientes no devolvió un array (posible error de PostgREST):', JSON.stringify(facturasResp.data));
+    return true; // se omite el escenario, no se cuenta como falla de performance
+  }
+  const factura = facturasResp.data.find(f => Number(f.total) > Number(f.total_cobrado || 0));
+  if (!factura) {
+    console.error('[loadtest-etapa4] No se encontró ninguna factura con saldo pendiente en la empresa demo (¿se corrió con SKIP_DEMO_RESET=yes en una corrida anterior que las saldó todas? re-generá el snapshot). Se omite este escenario.');
+    return true;
+  }
+
+  const totalCobradoInicial = Number(factura.total_cobrado || 0);
+  const saldoPendiente = Number(factura.total) - totalCobradoInicial;
+  console.log(`[loadtest-etapa4] Factura ${factura.id}: total=${factura.total} total_cobrado=${totalCobradoInicial} (saldo=${saldoPendiente}). Disparando ${nCobros} cobros concurrentes de ${saldoPendiente} c/u — IMPORTANTE: cobros REALES contra la empresa demo, se resetean al final salvo SKIP_DEMO_RESET=yes.`);
+
+  const llamadas = Array.from({ length: nCobros }, () =>
+    supabaseFetch('/rest/v1/rpc/registrar_cobro_completo', {
+      method: 'POST',
+      token,
+      body: {
+        p_empresa_id: perfil.empresa_id,
+        p_cliente_id: factura.cliente_id,
+        p_usuario_id: perfil.id,
+        p_monto: saldoPendiente,
+        p_medio: 'efectivo',
+        p_factura_id: factura.id,
+        p_offline_local_id: crypto.randomUUID(), // distinto en cada llamada: son N cobros reales, no reintentos del mismo
+      },
+    })
+  );
+
+  const resultados = await Promise.all(llamadas);
+  const exitosos = resultados.filter(r => r.status === 200 && r.data?.ok);
+  const fallidos = resultados.filter(r => !(r.status === 200 && r.data?.ok));
+
+  const aplicadoSegunRespuestas = exitosos.reduce((acc, r) => {
+    const aplicado = r.data?.facturas_aplicadas?.[0]?.monto_aplicado;
+    return acc + (Number(aplicado) || 0);
+  }, 0);
+
+  const facturaFinalResp = await supabaseFetch(`/rest/v1/facturas?select=id,total,total_cobrado&id=eq.${factura.id}`, { token });
+  const totalCobradoFinal = Number(facturaFinalResp.data?.[0]?.total_cobrado || 0);
+  const totalFactura = Number(facturaFinalResp.data?.[0]?.total || factura.total);
+  const incrementoReal = totalCobradoFinal - totalCobradoInicial;
+
+  console.log(`    → ${exitosos.length}/${nCobros} cobros aplicados. total_cobrado: ${totalCobradoInicial} → ${totalCobradoFinal} / total ${totalFactura}  (incremento real: ${incrementoReal}, aplicado según respuestas del RPC: ${aplicadoSegunRespuestas})`);
+
+  const noSobrepaso = totalCobradoFinal <= totalFactura + 0.01; // tolerancia de centavos
+  const coincideConRespuestas = Math.abs(incrementoReal - aplicadoSegunRespuestas) < 0.01;
+
+  if (!noSobrepaso) {
+    console.error(`    ✗ FALLO: total_cobrado (${totalCobradoFinal}) superó el total de la factura (${totalFactura}) bajo concurrencia real — revisar el lock de registrar_cobro_completo.`);
+  } else if (!coincideConRespuestas) {
+    console.error(`    ✗ FALLO: lo aplicado según las respuestas del RPC (${aplicadoSegunRespuestas}) no coincide con el incremento real de total_cobrado (${incrementoReal}) — hay una diferencia entre lo que el RPC dijo aplicar y lo que quedó en la base.`);
+  } else {
+    console.log('    ✓ OK: la factura nunca superó su total, y lo aplicado según las respuestas coincide con lo que quedó en la base.');
+  }
+
+  if (fallidos.length) {
+    console.log(`    (${fallidos.length} de los ${nCobros} cobros no se aplicaron a esta factura — esperable una vez que el saldo se agota: ${fallidos.map(f => f.data?.error || f.status).join(' | ')})`);
+  }
+
+  return noSobrepaso && coincideConRespuestas;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -370,6 +598,7 @@ async function main() {
     'checkout': escenarioCheckout,
     'pos': escenarioPos,
     'whatsapp-webhook': escenarioWhatsappWebhook,
+    'cobro-concurrente': escenarioCobroConcurrente,
   };
 
   let todoOk = true;
@@ -388,7 +617,7 @@ async function main() {
     // Se resetea SIEMPRE que se corrió al menos checkout o pos, haya o no
     // habido errores de performance — el reset es sobre datos, no sobre el
     // resultado de la medición.
-    if (ESCENARIOS.includes('checkout') || ESCENARIOS.includes('pos')) {
+    if (ESCENARIOS.includes('checkout') || ESCENARIOS.includes('pos') || ESCENARIOS.includes('cobro-concurrente')) {
       await resetearDemo();
     }
   }

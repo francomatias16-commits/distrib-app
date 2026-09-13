@@ -69,6 +69,19 @@ async function cargarDatos() {
       mostrarError('No se pudo abrir el portal', data.error || 'Ocurrió un error al validar el link.');
       return;
     }
+
+    // Bug de UX: antes esto caía directo a render(data) con órdenes/facturas
+    // vacías (indistinguible de "al día, sin pendientes"). El backend ahora
+    // corta antes y devuelve este flag explícito.
+    if (data.empresa_suspendida) {
+      mostrarError(
+        'Cuenta temporalmente suspendida',
+        `${data.empresa || 'La distribuidora'} tiene la cuenta pausada en este momento. ` +
+        'Este portal no está disponible hasta que se regularice la situación. ' +
+        'Contactá directamente a la distribuidora para más información.'
+      );
+      return;
+    }
   } catch (err) {
     mostrarError('Sin conexión', 'No se pudo contactar al servidor. Probá de nuevo en un momento.');
     return;
