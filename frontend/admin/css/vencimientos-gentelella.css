@@ -230,6 +230,28 @@ body.dash-vencimientos-gentelella .cod-badge {
   font-family: monospace !important;
 }
 
+/* Nº de lote: los autogenerados al recibir una orden de compra
+   ('OC-' + uuid completo + '-' + fecha/hora) llegan a ~54 caracteres —
+   sin truncar, ensanchan la columna y fuerzan scroll horizontal en toda
+   la tabla aunque ya no envuelvan en varias líneas (ver col-fit en
+   lotes.js). Se topea el ancho de la columna y el texto se corta con
+   elipsis; el valor completo queda disponible en el tooltip nativo
+   (atributo title del <span>, seteado en renderTablaLotes()). */
+body.dash-vencimientos-gentelella #panel-lotes .tabla-admin td.col-lote {
+  max-width: 150px;
+}
+body.dash-vencimientos-gentelella .lote-nro-truncado {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--ge-ink-soft);
+}
+
 /* Pastillas de estado del lote (Activo / Por vencer / Vencido / Agotado) y
    botones de acción en fila (Editar / Dar de baja / Eliminar): migrados al
    componente canónico (ComponentesAdmin.renderBadgeEstado/renderFilaAcciones
