@@ -763,14 +763,24 @@ var OfflineCore = (function () {
     }
 
     async function sincronizarPendientes() {
+      // A4 (fix): el chequeo y el marcado de _estado.syncEnCurso deben ser
+      // síncronos, sin ningún await en el medio. Antes, el flag se marcaba
+      // recién después de `await getContexto()` — si dos eventos `online`
+      // se disparaban casi seguidos (reconexión intermitente real), ambos
+      // podían pasar el chequeo `if (_estado.syncEnCurso)` antes de que el
+      // primero llegara a marcarlo, disparando dos syncs en paralelo y
+      // duplicando operaciones (ventas, cobros) encoladas offline.
       if (_estado.syncEnCurso || !_estado.online) return;
+      _estado.syncEnCurso = true;
 
       const contexto = await Promise.resolve(
         typeof opts.getContexto === 'function' ? opts.getContexto() : null
       );
-      if (!contexto) return; // sesión/cliente todavía no disponible
+      if (!contexto) {
+        _estado.syncEnCurso = false;
+        return; // sesión/cliente todavía no disponible
+      }
 
-      _estado.syncEnCurso = true;
       await _actualizar();
 
       const pendientes = await getPendientes();

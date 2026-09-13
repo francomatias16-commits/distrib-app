@@ -529,3 +529,5 @@ Estructura:
 | 1043 | [CHANGELOG_v1043_track_funciones_fantasma.md](v800-984/CHANGELOG_v1043_track_funciones_fantasma.md) | v1043 — Trackeo de las 7 funciones fantasma reportadas por audit:funciones-fantasma | fix |
 | 1044 | [CHANGELOG_v1044_fix_falso_ok_loadtest_servidor_caido.md](v800-984/CHANGELOG_v1044_fix_falso_ok_loadtest_servidor_caido.md) | v1044 — Fix de falso "OK" en load-test.js cuando el servidor está caído | fix |
 | 1045 | [CHANGELOG_v1045_ttl_cache_dashboards_pesados_30s_a_60s.md](v800-984/CHANGELOG_v1045_ttl_cache_dashboards_pesados_30s_a_60s.md) | v1045 — TTL del caché de dashboards pesados: 30s → 60s | perf |
+| 1080 | [CHANGELOG_v1080_b4_b5_via_mcp_supabase.md](v1000-1099/CHANGELOG_v1080_b4_b5_via_mcp_supabase.md) | v1080 — B4/B5 (audit:dinero + conciliación) verificados vía MCP de Supabase, sin credenciales manuales | verificación |
+| 1081 | [CHANGELOG_v1081_cierre_test_integration_e2e_b4.md](v1000-1099/CHANGELOG_v1081_cierre_test_integration_e2e_b4.md) | v1081 — `test:integration` y `test:e2e` en verde, cierre de B4 | verificación |

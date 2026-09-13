@@ -83,4 +83,20 @@ export class PedidosPage extends PageObjectBase {
   async generarFactura() {
     await this.btnGenerarFactura.click();
   }
+
+  // ── Filtro de estado (FiltroTabs, F4-01) ────────────────────────────
+  // Markup real de frontend/shared/filtro-tabs.js: <button class="filtro-tab"
+  // data-key="<estado>">. key '' = "Todos".
+  chipEstado(key) {
+    return this.page.locator(`#filtro-tabs-estado .filtro-tab[data-key="${key}"]`);
+  }
+
+  async filtrarPorEstado(key) {
+    await this.chipEstado(key).click();
+  }
+
+  /** Mensaje real de tabla vacía (pedidos.js:600) — no "sin resultados" genérico. */
+  get mensajeVacio() {
+    return this.page.getByText('No hay pedidos que coincidan con los filtros');
+  }
 }

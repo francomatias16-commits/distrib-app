@@ -126,7 +126,48 @@ async function prepararRedComun(page) {
   mockearApiGenerico(page);
 }
 
-async function visitarYVerificar(page, url, { esperarNavRoot = false } = {}) {
+// ── UI-001/UI-002 (F2 checklist §9) ──────────────────────────────────────
+// El bug original: un `<div id="modal-...">` sin `style="display:none"`
+// propio, ocultándose solo por CSS de OTRA hoja de estilos del mismo
+// módulo — si esa cascada se rompe (orden de <link>, un rename de clase),
+// el modal queda visible al cargar sin que nadie lo haya abierto. El fix
+// (ver 03_fase2_nivel2_nivel3.md) fue agregar `style="display:none"`
+// directo en el div — así que el chequeo genérico es: ningún elemento
+// cuyo id contenga "modal" debe estar visible apenas carga la página, ni
+// después de recargar varias veces seguidas (el timing de CSS/JS es
+// justamente lo que un análisis estático no puede confirmar).
+// `toBeVisible()` de Playwright solo exige bounding box no vacío y sin
+// `display:none`/`visibility:hidden` — NO exige que el elemento
+// intersecte el viewport. Varios paneles (clientes/compras/facturacion/
+// productos/stock vía `right: -600px` en componentes-admin.css;
+// pedidos/presupuestos vía `transform: translateX(...)`) están cerrados
+// por defecto corriéndose FUERA de pantalla, pero mantienen
+// `display:flex` — así que Playwright los reporta "visible" aunque
+// ningún usuario real los vea. Esta función agrega esa comprobación:
+// además de pasar `toBeVisible()`, el bounding box tiene que solaparse
+// con el viewport actual.
+async function estaRealmenteEnPantalla(locator) {
+  const box = await locator.boundingBox();
+  if (!box) return false; // display:none, desmontado, etc. → no visible.
+  const viewport = locator.page().viewportSize();
+  if (!viewport) return true; // sin info de viewport, confiar en boundingBox() no-nulo.
+  const solapaX = box.x < viewport.width && box.x + box.width > 0;
+  const solapaY = box.y < viewport.height && box.y + box.height > 0;
+  return solapaX && solapaY;
+}
+
+async function verificarSinModalAbierto(page, url) {
+  const modales = page.locator('[id*="modal" i]');
+  const cantidad = await modales.count();
+  for (let i = 0; i < cantidad; i++) {
+    const modal = modales.nth(i);
+    if (!(await modal.isVisible())) continue; // display:none real — ok, no hace falta chequear posición.
+    const enPantalla = await estaRealmenteEnPantalla(modal);
+    expect(enPantalla, `${url}: ${await modal.getAttribute('id')} visible EN PANTALLA al cargar, sin que nadie lo abriera`).toBe(false);
+  }
+}
+
+async function visitarYVerificar(page, url, { esperarNavRoot = false, verificarModales = false } = {}) {
   const errores = [];
   page.on('console', (msg) => {
     if (msg.type() === 'error' && !esRuidoIgnorado(msg.text())) errores.push(`[console] ${msg.text()}`);
@@ -149,6 +190,18 @@ async function visitarYVerificar(page, url, { esperarNavRoot = false } = {}) {
   await page.waitForTimeout(300);
 
   expect(errores, `Errores de consola en ${url}:\n${errores.join('\n')}`).toEqual([]);
+
+  if (verificarModales) {
+    await verificarSinModalAbierto(page, url);
+    // Recargado rápido 2 veces más (Ctrl+R x3-4 del pase manual original)
+    // — el bug de cascada CSS es justamente más probable bajo timing
+    // distinto entre cargas, no en la primera.
+    for (let i = 0; i < 2; i++) {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(200);
+      await verificarSinModalAbierto(page, url);
+    }
+  }
 }
 
 test.describe('Smoke universal — Fase 0.5 (carga sin error, layout renderiza)', () => {
@@ -168,7 +221,7 @@ test.describe('Smoke universal — Fase 0.5 (carga sin error, layout renderiza)'
         await prepararRedComun(page);
         await loguearComoAdmin(page);
         const esperarNavRoot = !PAGINAS_ADMIN_SIN_NAV_ROOT.has(nombre);
-        await visitarYVerificar(page, `${staticServer.baseURL}/frontend/admin/${nombre}.html`, { esperarNavRoot });
+        await visitarYVerificar(page, `${staticServer.baseURL}/frontend/admin/${nombre}.html`, { esperarNavRoot, verificarModales: true });
       });
     }
   });

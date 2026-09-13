@@ -1,5 +1,10 @@
 # Checklist de pase manual — Auditoría de páginas (Fase 2/3/4)
 
+> **Este es el único ejemplar de este documento** — existía una copia
+> duplicada en la raíz del repo (`checklist_pase_manual.md`) que se había
+> desincronizado (le faltaban las 4 secciones de Etiquetas de precio); se
+> borró en esta vuelta.
+
 **Objetivo:** confirmar en navegador real los fixes que hasta ahora solo se
 verificaron con análisis estático de código. Tiempo estimado: 40-50 min.
 
