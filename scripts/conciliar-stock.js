@@ -12,11 +12,16 @@
  * cualquier función que inserte un movimiento sin actualizar stock (o
  * viceversa) genera divergencia silenciosa.
  *
- * LIMITACIÓN CONOCIDA: esto concilia el TOTAL por producto (entre
- * depósitos), no por depósito individual. tipo='transferencia' no tiene
- * columna de dirección (ver migración 620) y se excluye del recálculo, lo
- * cual es correcto para el total (una transferencia interna nunca cambia
- * el total de la empresa) pero impide conciliar por depósito.
+ * ALCANCE: esto concilia el TOTAL por producto (entre depósitos).
+ * tipo='transferencia' se excluye a propósito del recálculo — correcto
+ * para el total, porque una transferencia interna nunca cambia el total
+ * de la empresa. Para detectar un desvío en un depósito puntual, ver
+ * conciliar-stock-por-deposito.js (migración 621): usa el signo que
+ * movimientos_stock ya guarda para tipo='transferencia' desde la
+ * migración 400 (negativo en origen, positivo en destino). La nota
+ * anterior de este comentario ("no tiene columna de dirección, así que no
+ * se puede conciliar por depósito") quedó desactualizada — el signo ya
+ * cumple esa función, no hizo falta agregar una columna nueva.
  *
  * Depende de la RPC conciliar_stock_por_producto(empresa_id) (migración
  * 620), solo ejecutable por service_role.
