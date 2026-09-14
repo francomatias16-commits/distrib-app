@@ -1081,7 +1081,13 @@
 
 /* KPIs de saldo */
 .pos-caja-kpis {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  /* minmax(0, 1fr) en vez de 1fr: sin el 0 explícito, el ancho mínimo de
+     cada columna es "auto" (el contenido intrínseco del KPI: label +
+     monto sin cortar), así que en mobile el texto empuja la grilla más
+     ancha que el modal y el panel se derrama fuera de la tarjeta en vez
+     de achicarse — se veía como el modal "superponiéndose" al resto de
+     la página (ver reporte mobile modal-movimiento, fix v956). */
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
   margin-bottom: 14px;
 }
 .pos-caja-kpi {
@@ -1090,6 +1096,7 @@
   border-radius: var(--radius-sm);
   padding: 9px 11px;
   display: flex; flex-direction: column; gap: 3px;
+  min-width: 0; /* permite que el flex/grid item se achique bajo su ancho de contenido */
 }
 .pos-caja-kpi--efectivo {
   border-color: var(--color-box-success);
@@ -1102,6 +1109,7 @@
 .pos-caja-kpi-valor {
   font-size: var(--font-size-md, 15px); font-weight: 700;
   color: var(--color-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pos-caja-kpi--efectivo .pos-caja-kpi-valor { color: var(--color-success); }
 
@@ -1154,7 +1162,7 @@
 
 /* Formulario inline */
 .pos-caja-form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.pos-caja-form-col { flex: 1; }
+.pos-caja-form-col { flex: 1; min-width: 0; }
 .pos-caja-form-col--monto { max-width: 140px; }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1589,6 +1597,22 @@
     position: static;
     background: transparent;
   }
+
+  /* Modal "Estado de caja" / movimiento (F7) — no tenía reglas mobile:
+     los KPIs (3 columnas) y la fila tipo+monto quedaban demasiado
+     apretados en pantallas angostas y el contenido se derramaba fuera
+     de la tarjeta del modal, tapando el resto de la página. Se apila
+     el formulario y se compacta el panel de KPIs en vez de forzar 3
+     columnas parejas. */
+  .pos-modal-caja-pro { padding: 16px; max-height: 92vh; }
+  .pos-caja-kpis { gap: 6px; margin-bottom: 12px; }
+  .pos-caja-kpi { padding: 7px 8px; }
+  .pos-caja-kpi-label { font-size: 9.5px; letter-spacing: .02em; }
+  .pos-caja-kpi-valor { font-size: 13px; }
+  .pos-caja-form-row { flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .pos-caja-form-col--monto { max-width: 100%; }
+  .pos-caja-mov-lista { max-height: 110px; }
+  .pos-caja-mov-item { padding: 6px 8px; font-size: 12px; }
 }
 
 /* Modal de ayuda — Atajos de teclado (F1) */
