@@ -600,8 +600,8 @@
 
       document.getElementById('success-titulo').textContent =
         `¡Bienvenido a Fluxo, ${body.admin_nombre.split(' ')[0]}!`;
-      document.getElementById('success-trial').textContent =
-        `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>Tu trial gratuito vence el ${trialFin}`;
+      document.getElementById('success-trial').innerHTML =
+        `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>Tu trial gratuito vence el ${trialFin.replace(/[<>&]/g, '')}`;
       document.getElementById('success-desc').textContent =
         'Te enviamos un email de bienvenida a ' + body.admin_email +
         '. El siguiente paso es configurar los datos de tu empresa.';
