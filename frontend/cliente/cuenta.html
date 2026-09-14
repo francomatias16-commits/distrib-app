@@ -267,7 +267,7 @@
         .select('nombre, email, empresa_id, cliente_id').eq('id', session.user.id).single();
       if (!u?.cliente_id) { window.location.href = '/cliente/login'; return; }
 
-      const [{ data: cliente }, { data: puntos }, { data: ahorro }, { count: pedidosCount }] = await Promise.all([
+      const [{ data: cliente }, { data: puntos }, { data: ahorro }, { count: pedidosCount }, { data: programaFidelizacion }] = await Promise.all([
         sb.from('clientes').select('razon_social, email, telefono, domicilio, score_actual, score_categoria, saldo_deuda, limite_credito').eq('id', u.cliente_id).single(),
         sb.from('saldo_puntos').select('puntos_disponibles, puntos_totales').eq('cliente_id', u.cliente_id).maybeSingle(),
         // Fase 2 (PLAN_CAPTURA_COMPETENCIA.md): solo existe fila acá si el
@@ -276,7 +276,13 @@
         // widget de abajo es condicional, no todo cliente la tiene.
         sb.from('cliente_ahorro_acumulado').select('ahorro_acumulado, pedidos_con_ahorro').eq('cliente_id', u.cliente_id).maybeSingle(),
         sb.from('pedidos').select('id', { count: 'exact', head: true }).eq('cliente_id', u.cliente_id).neq('estado', 'borrador'),
+        // Si la empresa nunca activó (o desactivó) el programa de puntos,
+        // no le mostramos nada de fidelización al cliente — mostrar una
+        // tarjeta con "0 puntos" y un catálogo vacío genera confusión.
+        sb.from('programas_fidelizacion').select('activo').eq('empresa_id', u.empresa_id).maybeSingle(),
       ]);
+
+      const fidelizacionActiva = !!programaFidelizacion?.activo;
 
       const nombre = u.nombre || cliente?.razon_social || 'Cliente';
       const inicial = nombre.charAt(0).toUpperCase();
@@ -298,6 +304,7 @@
           </div>
         </div>
 
+        ${fidelizacionActiva ? `
         <div class="cta-puntos-card">
           <div>
             <div class="cta-puntos-label">Mis puntos disponibles</div>
@@ -305,7 +312,7 @@
             <div class="cta-puntos-sub">${Math.round(puntosTotal).toLocaleString('es-AR')} pts acumulados en total</div>
           </div>
           <div class="cta-puntos-icono"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
-        </div>
+        </div>` : ''}
 
         ${ahorroAcumulado > 0 ? `
         <div class="cta-ahorro-card">
@@ -319,9 +326,10 @@
         <div class="cta-ahorro-nota">Comparado contra lo que pagabas antes de cambiarte. No se actualiza en tiempo real contra el precio actual de tu proveedor anterior.</div>
         ` : ''}
 
+        ${fidelizacionActiva ? `
         <div class="cta-sec-titulo">Canjear recompensas</div>
         <div id="recompensasMsg"></div>
-        <div id="recompensasLista"><div class="cta-recompensas-vacio">Cargando catálogo...</div></div>
+        <div id="recompensasLista"><div class="cta-recompensas-vacio">Cargando catálogo...</div></div>` : ''}
 
         <div class="cta-sec-titulo">Cuenta corriente</div>
         <div class="cta-info-card">
@@ -416,7 +424,7 @@
         });
       }
 
-      cargarRecompensas();
+      if (fidelizacionActiva) cargarRecompensas();
 
       const pwToggle  = document.getElementById('pwToggle');
       const pwBody    = document.getElementById('pwBody');

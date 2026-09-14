@@ -70,7 +70,7 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="card-acceso-label">Mi cuenta</div>
-        <div class="card-acceso-sub">Perfil y puntos</div>
+        <div class="card-acceso-sub" id="subMiCuenta">Ver perfil</div>
       </a>
     </div>
 
@@ -135,6 +135,15 @@
       const { data: empresa } = await sb.from('empresas')
         .select('nombre').eq('id', usuario.empresa_id).single();
       document.getElementById('nombreEmpresa').textContent = empresa?.nombre || '';
+
+      // Si la empresa tiene activo el programa de fidelización, el acceso
+      // a "Mi cuenta" lo menciona; si no, queda en "Ver perfil" a secas
+      // para no insinuar un programa de puntos que la empresa no ofrece.
+      const { data: programaFidelizacion } = await sb.from('programas_fidelizacion')
+        .select('activo').eq('empresa_id', usuario.empresa_id).maybeSingle();
+      if (programaFidelizacion?.activo) {
+        document.getElementById('subMiCuenta').textContent = 'Perfil y puntos';
+      }
 
       // Carrito — contar ítems
       const { data: carrito } = await sb.from('carrito_items')

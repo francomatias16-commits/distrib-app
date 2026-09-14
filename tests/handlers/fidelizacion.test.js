@@ -25,6 +25,7 @@ const reposMock = vi.hoisted(() => ({
   obtenerUsuarioPorAuthId: vi.fn(),
   obtenerClientePorId: vi.fn(),
   obtenerClientePorEmail: vi.fn(),
+  obtenerEstadoProgramaFidelizacion: vi.fn(async () => ({ data: { activo: true }, error: null })),
   listarRecompensasActivas: vi.fn(async () => ({
     data: [
       { id: 'rec1', nombre: 'Remera', cantidad_disponible: null, cantidad_canjeada: 0 },
@@ -59,6 +60,10 @@ beforeEach(() => {
   supabaseMock.getUser.mockResolvedValue({ data: { user: { id: 'auth-1' } }, error: null });
   reposMock.obtenerUsuarioPorAuthId.mockResolvedValue({ data: usuarioClienteActivo, error: null });
   reposMock.obtenerClientePorId.mockResolvedValue({ data: clienteActivo, error: null });
+  // vi.clearAllMocks() no resetea implementaciones puestas con mockResolvedValue
+  // en un test anterior — se reafirma acá el default (programa activo) para
+  // que los tests que lo pisan (inactivo/error) no contaminen a los siguientes.
+  reposMock.obtenerEstadoProgramaFidelizacion.mockResolvedValue({ data: { activo: true }, error: null });
 });
 
 describe('resolverClienteDesdeSesion — cadena de validación', () => {
@@ -145,6 +150,7 @@ describe('GET — catálogo', () => {
     const body = res.json.mock.calls[0][0];
     const ids = body.recompensas.map(r => r.id);
     expect(ids).toEqual(['rec1', 'rec3']); // rec2 quedó afuera (agotada)
+    expect(body.activo).toBe(true);
     expect(body.puntos_disponibles).toBe(300);
     expect(body.puntos_totales).toBe(800);
   });
@@ -165,6 +171,37 @@ describe('GET — catálogo', () => {
     await handler({ method: 'GET', headers: { authorization: 'Bearer x' } }, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it('programa de fidelización inactivo → catálogo vacío con activo:false, no consulta recompensas ni saldo', async () => {
+    reposMock.obtenerEstadoProgramaFidelizacion.mockResolvedValue({ data: { activo: false }, error: null });
+    const res = mockRes();
+    await handler({ method: 'GET', headers: { authorization: 'Bearer x' } }, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true, activo: false, puntos_disponibles: 0, puntos_totales: 0, recompensas: [],
+    });
+    expect(reposMock.listarRecompensasActivas).not.toHaveBeenCalled();
+    expect(reposMock.obtenerSaldoPuntos).not.toHaveBeenCalled();
+  });
+
+  it('empresa sin programa configurado (sin fila) → mismo resultado que inactivo', async () => {
+    reposMock.obtenerEstadoProgramaFidelizacion.mockResolvedValue({ data: null, error: null });
+    const res = mockRes();
+    await handler({ method: 'GET', headers: { authorization: 'Bearer x' } }, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ok: true, activo: false, puntos_disponibles: 0, puntos_totales: 0, recompensas: [],
+    });
+  });
+
+  it('error al verificar el estado del programa → 500 vía errorSeguro', async () => {
+    reposMock.obtenerEstadoProgramaFidelizacion.mockResolvedValue({ data: null, error: new Error('db caída') });
+    const res = mockRes();
+    await handler({ method: 'GET', headers: { authorization: 'Bearer x' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(reposMock.listarRecompensasActivas).not.toHaveBeenCalled();
   });
 });
 
@@ -198,6 +235,15 @@ describe('POST ?accion=canjear', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'Saldo insuficiente' });
+  });
+
+  it('programa de fidelización inactivo → 400, no llama a la RPC (aunque el cliente tenga puntos previos)', async () => {
+    reposMock.obtenerEstadoProgramaFidelizacion.mockResolvedValue({ data: { activo: false }, error: null });
+    const res = mockRes();
+    await handler(reqCanje({ recompensa_id: 'rec3' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(reposMock.canjearRecompensaRpc).not.toHaveBeenCalled();
   });
 });
 
