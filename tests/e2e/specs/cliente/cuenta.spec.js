@@ -37,7 +37,7 @@ test.beforeAll(async () => { staticServer = await startStaticServer(); });
 test.afterAll(async () => { staticServer.server.close(); });
 
 async function prepararRed(page, { cliente = CLIENTE_BASE, puntos = PUNTOS, recompensas = RECOMPENSAS,
-  pedidosCount = 7, onChangePassword, onCanjear } = {}) {
+  pedidosCount = 7, onChangePassword, onCanjear, programaFidelizacion = { activo: true } } = {}) {
   const erroresConsola = [];
   page.on('console', (msg) => { if (msg.type() === 'error') erroresConsola.push(msg.text()); });
   page.on('pageerror', (err) => erroresConsola.push(err.message));
@@ -54,6 +54,12 @@ async function prepararRed(page, { cliente = CLIENTE_BASE, puntos = PUNTOS, reco
   mockearTabla(page, 'usuarios', { onSelect: () => USUARIO });
   mockearTabla(page, 'clientes', { onSelect: () => cliente });
   mockearTabla(page, 'saldo_puntos', { onSelect: () => puntos });
+  // La empresa necesita el programa activo para que cuenta.html muestre
+  // la tarjeta de puntos y "Canjear recompensas" — ver
+  // frontend/cliente/cuenta.html. Se puede pisar con
+  // programaFidelizacion: { activo: false } (o null) para probar el caso
+  // "empresa sin fidelización".
+  mockearTabla(page, 'programas_fidelizacion', { onSelect: () => programaFidelizacion });
   mockearTabla(page, 'pedidos', { onSelect: () => [] });
   // Registrado DESPUÉS de mockearTabla('pedidos', ...) a propósito — ver
   // nota de orden en el propio helper.
@@ -97,6 +103,28 @@ test.describe('cliente/cuenta.html', () => {
 
     await expect(cuentaPage.puntosValor).toHaveText('1.200');
     await expect(cuentaPage.puntosSub).toContainText('3.400');
+  });
+
+  test('fidelización inactiva: no muestra tarjeta de puntos ni "Canjear recompensas"', async ({ page }) => {
+    await sembrarSesionCliente(page);
+    await prepararRed(page, { programaFidelizacion: { activo: false } });
+    const cuentaPage = new ClienteCuentaPage(page, staticServer.baseURL);
+    await cuentaPage.goto();
+
+    await expect(cuentaPage.puntosValor).toHaveCount(0);
+    await expect(cuentaPage.recompensasLista).toHaveCount(0);
+    // El resto del perfil sigue andando normalmente.
+    await expect(cuentaPage.perfilCard).toContainText('Juan Pérez');
+  });
+
+  test('empresa sin fila en programas_fidelizacion (nunca lo configuró): mismo resultado que inactivo', async ({ page }) => {
+    await sembrarSesionCliente(page);
+    await prepararRed(page, { programaFidelizacion: null });
+    const cuentaPage = new ClienteCuentaPage(page, staticServer.baseURL);
+    await cuentaPage.goto();
+
+    await expect(cuentaPage.puntosValor).toHaveCount(0);
+    await expect(cuentaPage.recompensasLista).toHaveCount(0);
   });
 
   test('cuenta corriente: deuda pendiente se muestra en rojo', async ({ page }) => {
