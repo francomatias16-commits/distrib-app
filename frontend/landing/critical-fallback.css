@@ -41,12 +41,23 @@ body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; ba
 #ssr-fallback footer { text-align: center; padding: 32px 16px; margin-top: 32px; color: #6b7280; font-size: .85rem; border-top: 1px solid #e5e7eb; }
 #ssr-fallback footer a { color: #0540AD; margin: 0 8px; }
 /*
-  El bloque de respaldo (#ssr-fallback) queda oculto por defecto. Así el
-  "instante" entre el primer paint y el montaje de React nunca se ve.
-  Como React reemplaza TODO el contenido de #root al montar, el contenido
-  real nunca hereda esta regla (ya no existe el id ssr-fallback en el
-  DOM). Si JS está deshabilitado (o falla), noscript-fallback.css (ver
-  <noscript> más abajo) vuelve a mostrar el fallback para que la página
-  siga siendo utilizable e indexable.
+  El bloque de respaldo (#ssr-fallback) es VISIBLE por defecto — a
+  propósito, para que el HTML crudo (que ya tiene el <h1> real, texto y
+  estructura) pinte de inmediato en pantalla, sin esperar a que bajen y
+  se ejecuten los ~4 scripts de la landing (app.js, bundle-part1.js,
+  landing-install.js, bundle-part2.js). Antes se ocultaba con
+  `visibility: hidden` esperando a React, lo que hacía que FCP/LCP
+  dependieran por completo de JS (medido: FCP 3.0s, LCP 4.2s en mobile).
+
+  Como React reemplaza TODO el contenido de #root al montar (no
+  hidrata), el nodo #ssr-fallback y esta regla dejan de existir en el
+  DOM apenas React toma control — no hay necesidad de ocultarlo a mano
+  ni de que un script le saque visibilidad: el propio montaje lo
+  reemplaza. El "swap" de fallback → contenido real de React debería
+  ser prácticamente imperceptible porque critical-fallback.css ya
+  reproduce el mismo layout/estilos que el render final.
+
+  Si JS está deshabilitado (o falla), noscript-fallback.css sigue
+  aplicando sin cambios — el fallback ya es visible por defecto, así
+  que ese caso queda cubierto igual.
 */
-#ssr-fallback { visibility: hidden; }
