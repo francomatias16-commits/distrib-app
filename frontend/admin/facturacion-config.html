@@ -75,6 +75,13 @@
     .slider:before { position:absolute; content:""; width:16px; height:16px; left:3px; bottom:3px; background:var(--color-surface); border-radius:50%; transition:.2s; }
     input:checked + .slider { background:var(--color-primary); }
     input:checked + .slider:before { transform:translateX(18px); }
+    /* Fila input+botón para el CUIT a copiar en la card de Vinculación con ARCA */
+    .fila-input-boton { display:flex; align-items:center; gap:8px; }
+    .fila-input-boton input {
+      flex:1; padding:7px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md, 8px);
+      font-size:14px; outline:none; transition:border .15s; background:var(--color-surface-2);
+    }
+    .fila-input-boton input:focus { border-color: var(--color-primary); }
   </style>
   <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
@@ -125,6 +132,34 @@
             Completá los datos a continuación para comenzar a emitir comprobantes electrónicos ante ARCA.
           </p>
         </div>
+
+        <!-- Vinculación simplificada (recomendado): sin certificados, sin
+             OpenSSL, sin WSASS. El usuario solo autoriza a la CUIT del
+             proveedor (Fluxo) a facturar en su nombre desde su propio
+             Administrador de Relaciones de Clave Fiscal. Ver migración 628
+             y lib/arca/delegacion.js. -->
+        <div class="cfg-card" id="card-delegacion">
+          <h2>Vinculación con ARCA</h2>
+          <p class="sub">No hace falta generar ningún certificado. Solo autorizá a nuestro sistema a facturar en tu nombre — es un trámite de 2 minutos con tu Clave Fiscal.</p>
+
+          <div class="paso"><span class="paso-n">1</span><p class="paso-t">Entrá a <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" style="color:var(--color-primary)">arca.gob.ar</a> con tu CUIT y Clave Fiscal, y abrí <strong>Administrador de Relaciones de Clave Fiscal</strong>.</p></div>
+          <div class="paso"><span class="paso-n">2</span><p class="paso-t"><strong>Nueva Relación</strong> → en "Servicio" buscá <strong>ARCA → Web Services → Factura Electrónica</strong>.</p></div>
+          <div class="paso"><span class="paso-n">3</span><p class="paso-t">En "Representante" hacé clic en Buscar e ingresá esta CUIT:</p>
+            <div class="fila-input-boton" style="margin-top:8px">
+              <input type="text" id="cuit-proveedor" readonly aria-label="CUIT a autorizar">
+              <button type="button" class="btn btn--secondary" id="btn-copiar-cuit-proveedor">Copiar</button>
+            </div>
+          </div>
+          <div class="paso"><span class="paso-n">4</span><p class="paso-t">Confirmá. Si aparece algún cartel de advertencia (por ejemplo sobre "Computador Fiscal Registrado"), confirmá igual — es esperable y no impide la delegación.</p></div>
+
+          <div class="acciones" style="margin-top:16px;align-items:center;gap:14px">
+            <button type="button" class="btn btn--primary" id="btn-verificar-delegacion">Verificar vinculación</button>
+            <span id="estado-delegacion" style="font-size:13px;color:var(--color-text-muted)"></span>
+          </div>
+        </div>
+
+        <details style="margin-top:20px">
+          <summary style="cursor:pointer;font-size:13px;color:var(--color-text-muted);padding:8px 0">Modo avanzado: usar mi propio certificado ARCA</summary>
 
         <!-- Guía + formulario a la par en escritorio (ver .cfg-grid-2col) -->
         <div class="cfg-grid-2col">
@@ -217,6 +252,7 @@
         </div>
 
         </div><!-- /cfg-grid-2col -->
+        </details>
 
       </div>
     </div><!-- /contenido -->
@@ -254,6 +290,91 @@ async function init() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('contenido').style.display = 'block';
   await cargarConfig();
+  await cargarDelegacion();
+
+  document.getElementById('btn-copiar-cuit-proveedor')?.addEventListener('click', copiarCuitProveedor);
+  document.getElementById('btn-verificar-delegacion')?.addEventListener('click', verificarDelegacion);
+}
+
+// ── Vinculación con ARCA (delegación de servicio, sin certificados) ────
+
+async function cargarDelegacion() {
+  const estadoEl = document.getElementById('estado-delegacion');
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/arca-delegacion`, {
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+
+    document.getElementById('cuit-proveedor').value = formatearCuitDelegacion(d.cuitProveedor);
+    pintarEstadoDelegacion(d.estadoDelegacion, d.error);
+
+    if (d.modoCertificado === 'propio') {
+      // Esta empresa ya usa su propio certificado (flujo legacy) — no
+      // tiene sentido mostrarle el paso de delegación como pendiente.
+      document.getElementById('card-delegacion').style.display = 'none';
+    }
+  } catch (e) {
+    if (estadoEl) estadoEl.textContent = 'No se pudo cargar el estado de la vinculación.';
+  }
+}
+
+function pintarEstadoDelegacion(estado, error) {
+  const el = document.getElementById('estado-delegacion');
+  if (!el) return;
+  const textos = {
+    activa:     '✓ Vinculación activa — ya podés facturar.',
+    pendiente:  'Todavía no detectamos la autorización. Hacé los pasos de arriba y volvé a verificar.',
+    rechazada:  `Hubo un problema al verificar: ${error || 'error desconocido'}`,
+  };
+  el.textContent = textos[estado] || '';
+  el.style.color = estado === 'activa' ? 'var(--color-success)' : 'var(--color-text-muted)';
+}
+
+function formatearCuitDelegacion(cuit) {
+  const limpio = String(cuit || '').replace(/\D/g, '');
+  if (limpio.length !== 11) return cuit || '';
+  return `${limpio.slice(0,2)}-${limpio.slice(2,10)}-${limpio.slice(10)}`;
+}
+
+async function copiarCuitProveedor() {
+  const input = document.getElementById('cuit-proveedor');
+  try {
+    await navigator.clipboard.writeText(input.value);
+  } catch (e) {
+    input.select();
+    document.execCommand('copy');
+  }
+  const btn = document.getElementById('btn-copiar-cuit-proveedor');
+  const original = btn.textContent;
+  btn.textContent = 'Copiado ✓';
+  setTimeout(() => { btn.textContent = original; }, 1800);
+}
+
+async function verificarDelegacion() {
+  const btn = document.getElementById('btn-verificar-delegacion');
+  const estadoEl = document.getElementById('estado-delegacion');
+  btn.disabled = true;
+  btn.textContent = 'Verificando…';
+  estadoEl.textContent = '';
+  try {
+    const r = await fetch(`${API_BASE}/api/empresa/arca-delegacion/verificar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${await getToken()}` }
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      pintarEstadoDelegacion('rechazada', d.error || 'No se pudo verificar.');
+    } else {
+      pintarEstadoDelegacion(d.estado, d.mensaje);
+    }
+  } catch (e) {
+    pintarEstadoDelegacion('rechazada', 'Error de conexión al verificar.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verificar vinculación';
+  }
 }
 
 async function cargarConfig() {

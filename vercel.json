@@ -391,6 +391,14 @@
       "destination": "/api/index?_mod=empresa&_svc=catalogo-publico"
     },
     {
+      "source": "/api/empresa/arca-delegacion",
+      "destination": "/api/index?_mod=empresa&_svc=arca-delegacion"
+    },
+    {
+      "source": "/api/empresa/arca-delegacion/verificar",
+      "destination": "/api/index?_mod=empresa&_svc=arca-delegacion-verificar"
+    },
+    {
       "source": "/api/empresa",
       "destination": "/api/index?_mod=empresa"
     },
