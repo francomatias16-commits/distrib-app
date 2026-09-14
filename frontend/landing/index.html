@@ -93,22 +93,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
-<!--
-  CSS crítico del fallback SSR (#ssr-fallback): estiliza el HTML de
-  respaldo de #root (el que ve un crawler o alguien sin JS) para que, si
-  llega a mostrarse, no se vea "roto". El bloque de respaldo en sí está
-  oculto por defecto para que no aparezca ni un instante mientras carga
-  React; solo se revela si JS está deshabilitado.
-
-  IMPORTANTE: va como <link> externo, NO como <style> inline. El header
-  Content-Security-Policy que Vercel sirve para "/" es
-  `style-src 'self' https://fonts.googleapis.com` (sin 'unsafe-inline'),
-  así que un <style> inline queda bloqueado por el navegador y esta regla
-  nunca se aplicaba — esa era la causa real del flash del fallback sin
-  estilos antes de que cargara React. Ver critical-fallback.css.
--->
-<link rel="stylesheet" href="/frontend/landing/critical-fallback.css?v=mtcen4r5">
-<noscript><link rel="stylesheet" href="/frontend/landing/noscript-fallback.css?v=mtcen4r5"></noscript>
 <script defer src="/app.js?v=mtcen4r5"></script>
 <script defer src="/frontend/landing/bundle-part1.js?v=mtcen4r5"></script>
 <script defer src="/frontend/landing-install.js?v=mtcen4r5"></script>
@@ -116,66 +100,6 @@
 <script defer src="/frontend/landing/bundle-part2.js?v=mtcen4r5"></script>
 </head>
 <body>
-<div id="root"><div id="ssr-fallback">
-  <header>
-    <a href="#inicio"><strong>FLUXO</strong></a>
-    <nav aria-label="Navegación principal">
-      <a href="/registro">Registrate</a>
-      <a href="/admin/login">Inicio de sesión</a>
-      <a href="/demo">Ver demo en vivo</a>
-    </nav>
-  </header>
-  <main>
-    <section id="inicio">
-      <p>Menos espera, más clientes</p>
-      <h1>Menos espera, más clientes.</h1>
-      <p>Mientras tu competencia solo atiende pedidos por teléfono en horario de oficina, tus clientes te compran por WhatsApp o entran a tu tienda online y pagan como quieran, a cualquier hora. Es la diferencia que hace que te elijan a vos.</p>
-      <a href="/demo">Ver cómo funciona</a>
-    </section>
-    <section id="producto">
-      <h2>Vendé más fácil que tu competencia, sin cambiar de pantalla.</h2>
-      <p>Cada punto en el que tu competencia hace esperar a un cliente es una chance de que ese cliente te elija a vos. Estas son las herramientas que te dan esa ventaja.</p>
-      <ul>
-        <li><h3>Tienda online con Mercado Pago</h3><p>Tu catálogo abierto las 24 horas, con cobro online al instante. Tu competencia sin tienda pierde esa venta.</p></li>
-        <li><h3>WhatsApp sin que nadie lo atienda</h3><p>El sistema recibe el mensaje, entiende el pedido y lo carga solo, sin que nadie de tu equipo esté escribiendo del otro lado.</p></li>
-        <li><h3>Punto de venta</h3><p>Cobrá en el local con caja, QR, tarjeta o lector de códigos.</p></li>
-        <li><h3>Facturación en regla</h3><p>Comprobantes válidos, sin cargar nada dos veces.</p></li>
-        <li><h3>Seguimiento de entregas en vivo</h3><p>Tu cliente ve en tiempo real cuándo llega su pedido.</p></li>
-        <li><h3>Un ayudante que suma</h3><p>Convertí archivos y listas en información lista para usar.</p></li>
-        <li><h3>Etiquetas de precio en un clic</h3><p>Actualizá precios y código de barras sin escribir a mano.</p></li>
-        <li><h3>Todo conectado, de punta a punta</h3><p>Pedido, stock, factura, entrega y cobro sin cargar nada dos veces.</p></li>
-      </ul>
-    </section>
-    <section id="preguntas">
-      <h2>Antes de empezar, preguntá lo que necesites.</h2>
-      <dl>
-        <dt>¿Esto realmente me ayuda a ganarle clientes a otro distribuidor?</dt>
-        <dd>Sí. La mayoría de las distribuidoras solo atienden pedidos por teléfono en su horario y muchas ni siquiera tienen tienda online. Con Fluxo, tus clientes te piden por WhatsApp o compran en tu tienda online a cualquier hora, ven cuándo les llega el pedido y suman puntos por comprarte. Son motivos reales para elegirte a vos.</dd>
-        <dt>¿Alguien de mi equipo tiene que estar respondiendo los mensajes de WhatsApp?</dt>
-        <dd>No. Es automático: el sistema recibe el mensaje, entiende qué está pidiendo el cliente, arma el pedido, lo carga y responde, todo sin que una persona de tu equipo esté escribiendo. Vos lo ves ya cargado, listo para preparar.</dd>
-        <dt>¿También puedo vender por una tienda online, no solo por WhatsApp?</dt>
-        <dd>Sí. Tenés una tienda online con catálogo, stock y cobro por Mercado Pago, además del canal de WhatsApp. Todo cae en el mismo pedido, el mismo stock y la misma cuenta corriente del cliente.</dd>
-        <dt>¿Mis clientes tienen que instalar algo o aprender a usar una app?</dt>
-        <dd>No. Piden por el mismo WhatsApp de siempre, con sus propias palabras, y el sistema responde y carga el pedido solo, sin que nadie de tu equipo esté del otro lado. No hay nada que instalar ni que aprender.</dd>
-        <dt>¿Puedo usar lectores de código de barras que ya tengo?</dt>
-        <dd>Sí. Funciona con lectores físicos o con la cámara del celular o la computadora, lo que tengas a mano.</dd>
-        <dt>¿La factura que emito es válida?</dt>
-        <dd>Sí, cada comprobante sale homologado, directo desde el pedido, sin cargar los datos dos veces.</dd>
-        <dt>¿Puedo pasar mis datos desde el sistema que uso hoy (o desde Excel)?</dt>
-        <dd>Sí. Arrastrás el archivo que ya tenés (productos, clientes, stock) y en minutos queda todo cargado, sin perder nada del camino.</dd>
-        <dt>¿Sirve para fidelizar a los clientes que ya tengo, no solo para sumar nuevos?</dt>
-        <dd>Sí. Cada compra suma puntos que después se canjean por productos, así el cliente tiene un motivo extra para no irse a comprarle a otro.</dd>
-        <dt>¿Mis clientes van a poder ver cuándo les llega el pedido?</dt>
-        <dd>Sí. Ven en tiempo real si el pedido está preparado, en camino o entregado, sin tener que llamarte para preguntar.</dd>
-      </dl>
-    </section>
-  </main>
-  <footer>
-    <p>El sistema pensado para que tu distribuidora le gane terreno a la competencia, no solo para ordenar lo que ya tenés.</p>
-    <p>Reconquista, Santa Fe</p>
-    <a href="/privacidad">Privacidad</a>
-    <a href="/terminos">Términos de servicio</a>
-  </footer>
-</div></div>
+<div id="root"></div>
 </body>
 </html>
