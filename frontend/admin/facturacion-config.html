@@ -270,6 +270,14 @@
 <script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
 <script>
 const API_BASE = window.ENV?.API_URL || '';
+// Se llena en cargarConfig() con facturacion_config.activo. La independiente
+// verificación de "Vinculación con ARCA" (estado_delegacion) puede dar
+// 'activa' aunque facturacion_config.activo siga en false (caso típico:
+// empresa demo pública, donde se deja la delegación simulada como activa
+// pero la emisión real permanece deshabilitada a propósito). pintarEstadoDelegacion()
+// usa esta variable para no prometer "ya podés facturar" cuando el POS lo
+// va a bloquear igual.
+let facturacionActiva = false;
 
 async function init() {
   await window.authReady;
@@ -323,6 +331,18 @@ async function cargarDelegacion() {
 function pintarEstadoDelegacion(estado, error) {
   const el = document.getElementById('estado-delegacion');
   if (!el) return;
+
+  // La delegación (autorización ARCA de la CUIT) y facturacion_config.activo
+  // son dos cosas independientes. Si la delegación está activa pero la
+  // facturación real sigue desactivada (p. ej. empresas demo, donde se deja
+  // así a propósito), no hay que decir "ya podés facturar": el POS la va a
+  // bloquear igual con "Todavía no configuraste la facturación electrónica".
+  if (estado === 'activa' && !facturacionActiva) {
+    el.textContent = '✓ Vinculación con ARCA autorizada. La emisión de comprobantes de esta empresa sigue desactivada.';
+    el.style.color = 'var(--color-text-muted)';
+    return;
+  }
+
   const textos = {
     activa:     '✓ Vinculación activa — ya podés facturar.',
     pendiente:  'Todavía no detectamos la autorización. Hacé los pasos de arriba y volvé a verificar.',
@@ -384,6 +404,7 @@ async function cargarConfig() {
     });
     if (!r.ok) return;
     const d = await r.json();
+    facturacionActiva = !!d.activo;
 
     const chip = document.getElementById('chip-estado');
     const txt  = document.getElementById('txt-estado');
