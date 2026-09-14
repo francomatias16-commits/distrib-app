@@ -1129,6 +1129,18 @@
      ("Registrar movimiento") queda superpuesto sobre este panel durante
      el scroll. Ver reporte mobile modal-movimiento. */
   overscroll-behavior: contain;
+  /* contain:paint + capa de composición propia: el contenido se inserta
+     vía innerHTML DESPUÉS del primer pintado (ver _cargarEstadoCaja),
+     y en mobile eso puede hacer que el navegador no re-clippee bien el
+     overflow — el texto de un ítem termina "escapando" visualmente su
+     caja y solapándose con el separador "Registrar movimiento" de más
+     abajo (ver captura del reporte). contain:paint fuerza a que TODO
+     el pintado interno (texto, fondos, bordes de cada ítem) quede
+     estrictamente adentro de esta caja, sin excepción. */
+  position: relative;
+  contain: paint;
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
 }
 .pos-caja-mov-item {
   display: flex; align-items: center; gap: 8px;

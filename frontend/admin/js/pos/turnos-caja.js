@@ -345,7 +345,7 @@ async function _cargarEstadoCaja() {
       };
       lista.innerHTML = data.movimientos.map(m => {
         const esPlus = m.tipo === 'refuerzo';
-        const hora   = new Date(m.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const hora   = new Date(m.hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         return `<div class="pos-caja-mov-item pos-caja-mov--${m.tipo}">
           <span class="pos-caja-mov-icono">${iconos[m.tipo] || ''}</span>
           <span class="pos-caja-mov-desc">
