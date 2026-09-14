@@ -305,6 +305,14 @@ window.abrirModalMovimiento = async function () {
   document.getElementById('pos-mov-concepto').value = '';
   document.getElementById('pos-mov-error').style.display = 'none';
   document.getElementById('modal-movimiento-overlay').style.display = '';
+  // Bloquea el scroll del body detrás del modal: sin esto, en mobile el
+  // dedo scrollea a la vez el modal Y la página de fondo (double-scroll),
+  // lo que en Safari/Chrome iOS produce que el contenido con overflow
+  // anidado (historial de movimientos dentro del modal, que también
+  // scrollea) se repinte mal y el texto del formulario ("Registrar
+  // movimiento") quede superpuesto encima del panel de saldo mientras
+  // se scrollea. Se restaura en cerrarModalMovimiento().
+  document.body.style.overflow = 'hidden';
 
   // Cargar estado de caja
   await _cargarEstadoCaja();
@@ -360,6 +368,7 @@ async function _cargarEstadoCaja() {
 
 window.cerrarModalMovimiento = function () {
   document.getElementById('modal-movimiento-overlay').style.display = 'none';
+  document.body.style.overflow = '';
 };
 
 window.confirmarMovimiento = async function () {

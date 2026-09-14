@@ -260,6 +260,7 @@
 .pos-modal {
   background: var(--color-surface); border-radius: var(--radius-lg);
   width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+  overscroll-behavior: contain; /* no propaga el scroll al body de fondo */
   padding: 22px; box-shadow: var(--shadow-xl); display: flex; flex-direction: column; gap: 12px;
   /* Ancla para los botones "X" de cerrar (.modal-close / .pos-modal-cerrar),
      que se posicionan con position:absolute. Sin esto, el navegador los
@@ -1121,6 +1122,13 @@
 .pos-caja-mov-lista {
   display: flex; flex-direction: column; gap: 4px;
   max-height: 140px; overflow-y: auto;
+  /* Evita "scroll chaining": sin esto, al llegar al tope/final de esta
+     lista (que scrollea sola dentro del modal, que también scrollea),
+     el gesto de touch sigue de largo al contenedor padre — en mobile
+     eso genera un repintado inconsistente donde el formulario de abajo
+     ("Registrar movimiento") queda superpuesto sobre este panel durante
+     el scroll. Ver reporte mobile modal-movimiento. */
+  overscroll-behavior: contain;
 }
 .pos-caja-mov-item {
   display: flex; align-items: center; gap: 8px;
