@@ -11,6 +11,17 @@ Allow: /eliminacion-datos
 Allow: /eliminacion-datos.html
 Allow: /cliente/catalogo
 
+# Assets públicos de la landing (CSS/JS): sin esto, "Disallow: /frontend/"
+# de más abajo le bloquea a Googlebot el propio bundle.css/bundle-part*.js
+# de la landing. Google indexa renderizando la página como un navegador,
+# así que si no puede bajar estos archivos ve la landing sin estilos ni
+# contenido dinámico al momento de decidir qué mostrar en el buscador —
+# esto puede ser la causa de que ni el nombre de marca aparezca en
+# resultados. app.js queda afuera de esta excepción porque ya vive en la
+# raíz (/app.js), no bajo /frontend/, así que nunca estuvo bloqueado.
+Allow: /frontend/landing/
+Allow: /frontend/landing-install.js
+
 Disallow: /admin
 Disallow: /admin/
 Disallow: /cliente/login
