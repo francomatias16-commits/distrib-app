@@ -76,12 +76,15 @@
     input:checked + .slider { background:var(--color-primary); }
     input:checked + .slider:before { transform:translateX(18px); }
     /* Fila input+botón para el CUIT a copiar en la card de Vinculación con ARCA */
-    .fila-input-boton { display:flex; align-items:center; gap:8px; }
+    .fila-input-boton { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .fila-input-boton input {
-      flex:1; padding:7px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md, 8px);
+      flex:1; min-width:0; padding:7px 12px; border:1px solid var(--color-border); border-radius: var(--radius-md, 8px);
       font-size:14px; outline:none; transition:border .15s; background:var(--color-surface-2);
     }
     .fila-input-boton input:focus { border-color: var(--color-primary); }
+    @media (max-width:360px) {
+      .fila-input-boton input { flex-basis:100%; }
+    }
   </style>
   <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
   <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
@@ -211,12 +214,13 @@
 
           <div class="paso"><span class="paso-n">1</span><p class="paso-t">Entrá a <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" style="color:var(--color-primary)">arca.gob.ar</a> con tu CUIT y Clave Fiscal, y abrí <strong>Administrador de Relaciones de Clave Fiscal</strong>.</p></div>
           <div class="paso"><span class="paso-n">2</span><p class="paso-t"><strong>Nueva Relación</strong> → en "Servicio" buscá <strong>ARCA → Web Services → Factura Electrónica</strong>.</p></div>
-          <div class="paso"><span class="paso-n">3</span><p class="paso-t">En "Representante" hacé clic en Buscar e ingresá esta CUIT:</p>
+          <div class="paso"><span class="paso-n">3</span><div style="min-width:0;flex:1">
+            <p class="paso-t">En "Representante" hacé clic en Buscar e ingresá esta CUIT:</p>
             <div class="fila-input-boton" style="margin-top:8px">
               <input type="text" id="cuit-proveedor" readonly aria-label="CUIT a autorizar">
               <button type="button" class="btn btn--secondary" id="btn-copiar-cuit-proveedor">Copiar</button>
             </div>
-          </div>
+          </div></div>
           <div class="paso"><span class="paso-n">4</span><p class="paso-t">Confirmá. Si aparece algún cartel de advertencia (por ejemplo sobre "Computador Fiscal Registrado"), confirmá igual — es esperable y no impide la delegación.</p></div>
 
           <div class="acciones" style="margin-top:16px;align-items:center;gap:14px">
