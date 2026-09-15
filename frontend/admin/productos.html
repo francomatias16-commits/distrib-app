@@ -699,8 +699,8 @@
 </div>
 
 <!-- ── Mini-modal: nueva categoría rápida (sin salir del producto) ──────── -->
-<div id="modal-backdrop-cat-rapida" onclick="cerrarModalCategoriaRapidaSiFondo(event)" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.35);z-index:500"></div>
-<div id="modal-categoria-rapida" role="dialog" aria-modal="true" aria-label="Nueva categoría" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:501;background:var(--color-surface);border-radius:var(--radius-lg,14px);box-shadow:var(--shadow-big);width:100%;max-width:400px;padding:24px;">
+<div id="modal-backdrop-cat-rapida" onclick="cerrarModalCategoriaRapidaSiFondo(event)" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.35);z-index:var(--z-modal-anidado-1,9100)"></div>
+<div id="modal-categoria-rapida" role="dialog" aria-modal="true" aria-label="Nueva categoría" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:var(--z-modal-anidado-2,9200);background:var(--color-surface);border-radius:var(--radius-lg,14px);box-shadow:var(--shadow-big);width:100%;max-width:400px;padding:24px;">
   <h2 class="modal-titulo" style="margin:0 0 16px">Nueva categoría</h2>
   <div class="form-group">
     <label class="form-label">Nombre *</label>
