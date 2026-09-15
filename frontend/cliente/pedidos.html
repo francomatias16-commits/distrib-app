@@ -55,7 +55,13 @@
         <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align:-3px;margin-right:4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Seguimiento en vivo</h2>
         <button type="button" class="btn-cerrar-seg" id="btnCerrarSeguimiento" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
-      <div id="mapaSeguimientoCliente"></div>
+      <div class="mapa-seg-wrap">
+        <div id="mapaSeguimientoCliente"></div>
+        <div class="mapa-placeholder" id="mapaPlaceholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="mapaPlaceholderTexto">Buscando la ubicación del chofer...</span>
+        </div>
+      </div>
       <div class="eta-box eta-esperando" id="etaTexto">Buscando la ubicación del chofer...</div>
     </div>
   </div>
@@ -258,13 +264,17 @@
       document.getElementById('overlaySeguimiento').classList.add('show');
       document.getElementById('etaTexto').className = 'eta-box eta-esperando';
       document.getElementById('etaTexto').textContent = 'Buscando la ubicación del chofer...';
+      mostrarPlaceholderMapa('Buscando la ubicación del chofer...');
 
       if (!mapaSeguimiento) {
         // Vista inicial genérica: así el mapa arranca a pedir tiles apenas se
         // crea, en vez de quedar sin centro (en blanco) hasta que llegue la
-        // ubicación del chofer.
+        // ubicación del chofer. FIX (auditoría UX): esta vista genérica
+        // (todo Sudamérica, zoom 5) quedaba visible sin explicación mientras
+        // no había ubicación real — ahora #mapaPlaceholder la tapa con un
+        // mensaje claro hasta el primer ping de GPS.
         mapaSeguimiento = L.map('mapaSeguimientoCliente', { zoomControl: true }).setView([-34.6, -58.6], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap',
         }).addTo(mapaSeguimiento);
       }
@@ -283,6 +293,24 @@
       timerSeguimiento = setInterval(consultar, 20000);
     }
 
+    // FIX (auditoría UX — mapa genérico sin explicación): el placeholder
+    // tapa el mapa (que arranca centrado en todo Sudamérica) mientras no
+    // haya un ping de GPS real del chofer para este pedido. Antes el
+    // cliente veía un mapa gigante zoomeado afuera sin ningún marcador y
+    // sin nada en pantalla que explicara que era un estado de espera (el
+    // mensaje real vivía solo en el cartel de abajo, fácil de perderse en
+    // pantallas chicas).
+    function mostrarPlaceholderMapa(texto) {
+      const el = document.getElementById('mapaPlaceholder');
+      if (!el) return;
+      document.getElementById('mapaPlaceholderTexto').textContent = texto;
+      el.style.display = 'flex';
+    }
+    function ocultarPlaceholderMapa() {
+      const el = document.getElementById('mapaPlaceholder');
+      if (el) el.style.display = 'none';
+    }
+
     async function actualizarSeguimientoCliente(pedidoId) {
       try {
         const { data: { session } } = await sb.auth.getSession();
@@ -297,11 +325,13 @@
         if (!data.disponible) {
           etaBox.className = 'eta-box eta-esperando';
           etaBox.textContent = data.mensaje || 'El pedido todavía no salió a la calle.';
+          mostrarPlaceholderMapa(data.mensaje || 'El pedido todavía no salió a la calle.');
           return;
         }
         if (!data.ubicacion) {
           etaBox.className = 'eta-box eta-esperando';
           etaBox.textContent = 'El chofer está en camino, todavía sin ubicación disponible.';
+          mostrarPlaceholderMapa('El chofer está en camino, todavía sin ubicación disponible en el mapa.');
           return;
         }
 
@@ -313,6 +343,7 @@
         }
         mapaSeguimiento.setView([lat, lng], 14);
         setTimeout(() => mapaSeguimiento.invalidateSize(), 50);
+        ocultarPlaceholderMapa();
 
         etaBox.className = 'eta-box';
         etaBox.textContent = data.eta_minutos != null
@@ -321,6 +352,7 @@
       } catch (e) {
         document.getElementById('etaTexto').className = 'eta-box eta-esperando';
         document.getElementById('etaTexto').textContent = e.message;
+        mostrarPlaceholderMapa(e.message);
       }
     }
 

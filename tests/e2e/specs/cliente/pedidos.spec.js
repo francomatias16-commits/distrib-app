@@ -147,6 +147,27 @@ test.describe('cliente/pedidos.html', () => {
     await pedidosPage.abrirSeguimiento('PED-0002');
 
     await expect(pedidosPage.etaTexto).toContainText('12 min');
+    // FIX (auditoría UX — mapa genérico sin explicación): con ubicación real
+    // disponible, el placeholder que tapa el mapa debe desaparecer.
+    await expect(pedidosPage.mapaPlaceholder).toBeHidden();
+  });
+
+  test('ver seguimiento en vivo sin ubicación del chofer todavía: el mapa queda tapado por un placeholder explicativo', async ({ page }) => {
+    // Este es el bug real reportado: antes, sin ubicación disponible, el
+    // cliente veía el mapa genérico (todo Sudamérica, zoom bajo) sin ningún
+    // marcador y sin ninguna explicación visible sobre el mapa en sí.
+    await sembrarSesionCliente(page);
+    await stubLeaflet(page);
+    await prepararRed(page, {
+      onSeguimiento: () => ({ json: { disponible: true, ubicacion: null, mensaje: 'Ubicación del chofer no disponible aún' } }),
+    });
+    const pedidosPage = new ClientePedidosPage(page, staticServer.baseURL);
+    await pedidosPage.goto();
+    await pedidosPage.toggleDetalle('PED-0002');
+    await pedidosPage.abrirSeguimiento('PED-0002');
+
+    await expect(pedidosPage.mapaPlaceholder).toBeVisible();
+    await expect(pedidosPage.mapaPlaceholder).toContainText('sin ubicación disponible');
   });
 
   test('cerrar seguimiento: oculta el overlay', async ({ page }) => {
