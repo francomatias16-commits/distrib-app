@@ -2,7 +2,7 @@
     body { background: #f0f4f8; min-height: 100vh; padding-bottom: 2rem; }
 
     .topbar {
-      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%) !important;
       color: #fff; padding: 1.25rem 1.25rem 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
     }

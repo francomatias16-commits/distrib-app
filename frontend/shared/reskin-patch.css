@@ -31,10 +31,24 @@ body {
 
 /* ══════════════════════════════════════════════════
    2. TOPBAR — blanco sólido, sin glassmorphism
-   ══════════════════════════════════════════════════ */
-header.topbar,
-.topbar,
-.main-header {
+   ──────────────────────────────────────────────────
+   FIX DE RAÍZ (2026-09): este bloque forzaba fondo blanco
+   con !important a TODO `.topbar` de la app, sin importar
+   si la página definía su propio header oscuro/degradado
+   con texto blanco (cliente y chofer). Cada página tenía
+   que "pelear" ese !important agregando el suyo propio en
+   el fondo — y si alguien se olvidaba (pasó en
+   cliente/notificaciones.css, cliente/cuenta.html y las
+   3 páginas de chofer), el resultado era un header
+   invisible: texto e ícono de "volver" blancos sobre un
+   fondo que este archivo pintaba blanco por encima.
+   Solución: las páginas con header propio marcan su
+   `.topbar` con el atributo `data-topbar-tema` y quedan
+   afuera de esta regla, sin depender del orden en que se
+   cargan los <link> ni de acordarse de un !important. */
+header.topbar:not([data-topbar-tema]),
+.topbar:not([data-topbar-tema]),
+.main-header:not([data-topbar-tema]) {
   background: var(--color-surface) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;

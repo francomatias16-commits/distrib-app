@@ -2,7 +2,7 @@
     body { font-family: 'Inter', sans-serif; background: var(--color-bg); min-height: 100vh; }
 
     .topbar {
-      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%) !important;
       color: #fff; padding: 1.25rem 1.25rem .75rem; position: sticky; top: 0; z-index: 10;
     }
     .topbar-row { display: flex; align-items: center; gap: .75rem; }
