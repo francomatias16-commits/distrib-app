@@ -18,7 +18,15 @@ function mostrarTicket(venta) {
   });
   const headerEl = document.getElementById('pos-ticket-print-header');
   if (headerEl) {
+    // 4b del audit — logo en el ticket térmico. Va antes del nombre, mismo
+    // criterio visual que remito.js: si la empresa no cargó logo (todavía
+    // el caso más común, ver empresa-config.html), no se agrega nada — el
+    // ticket queda igual que antes.
+    const logoHtml = empresaData?.logo_url
+      ? `<img class="pos-ticket-print-logo" src="${empresaData.logo_url}" alt="${escapeHtml(empresaData?.nombre || '')}" />`
+      : '';
     headerEl.innerHTML = `
+      ${logoHtml}
       <div class="pos-ticket-print-empresa">${escapeHtml(empresaData?.nombre || '')}</div>
       ${empresaData?.domicilio ? `<div>${escapeHtml(empresaData.domicilio)}</div>` : ''}
       ${empresaData?.cuit     ? `<div>CUIT: ${escapeHtml(empresaData.cuit)}</div>`     : ''}
