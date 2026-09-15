@@ -252,7 +252,7 @@ function renderTabla(datos) {
       <td class="monto ${(c.deuda_vencida||0) > 0 ? 'monto-rojo' : 'monto-verde'}" data-label="Vencido">${formatPeso(c.deuda_vencida || 0)}</td>
       <td data-label="Último pago" style="font-size:12px;color:var(--color-text-muted)">${c.ultimo_pago ? formatFecha(c.ultimo_pago) : '—'}</td>
       <td class="col-sticky-end" data-label="Acciones">
-        <button class="btn btn-sm btn-primary btn--primary" onclick="event.stopPropagation();abrirModalCobroDirecto('${c.cliente_id}')">Cobrar</button>
+        <button class="btn btn-sm btn-primary btn--primary" onclick="event.stopPropagation();abrirModalCobroDirecto('${c.cliente_id}')">${(c.facturas_pendientes||0) > 0 ? 'Cobrar' : 'Pago a cuenta'}</button>
       </td>
     </tr>`;
   }).join('');
@@ -334,22 +334,45 @@ async function abrirCliente(clienteId) {
   document.getElementById('panel-cliente').classList.add('open');
 
   try {
-    const r = await fetch(
-      `${window.ENV.SUPABASE_URL}/rest/v1/cta_cte?empresa_id=eq.${window.authCtx?.perfil?.empresa_id}&cliente_id=eq.${clienteId}&order=fecha.desc&limit=50`,
-      { headers: await getHeaders() }
-    );
+    const headers = await getHeaders();
+    // FIX (auditoría UX — conflicto cobro genérico vs factura): si el
+    // cliente tiene facturas abiertas, las traemos acá para listarlas con
+    // su propio botón "Cobrar" en el panel. Antes el único "Cobrar"
+    // disponible desde "Saldos por cliente" era genérico (sin factura_id),
+    // y el pago quedaba sin aplicar a ninguna factura puntual — la factura
+    // nunca salía de "Facturas pendientes" aunque estuviera cobrada.
+    const pedirFacturas = (c.facturas_pendientes || 0) > 0
+      ? fetch(
+          `${window.ENV.SUPABASE_URL}/rest/v1/facturas?empresa_id=eq.${window.authCtx?.perfil?.empresa_id}&cliente_id=eq.${clienteId}&estado=in.(emitida,parcial)&select=id,numero,total,total_cobrado,vencimiento&order=vencimiento.asc`,
+          { headers }
+        )
+      : Promise.resolve(null);
+
+    const [rMovs, rFact] = await Promise.all([
+      fetch(
+        `${window.ENV.SUPABASE_URL}/rest/v1/cta_cte?empresa_id=eq.${window.authCtx?.perfil?.empresa_id}&cliente_id=eq.${clienteId}&order=fecha.desc&limit=50`,
+        { headers }
+      ),
+      pedirFacturas,
+    ]);
     // BUG-06: antes, un !r.ok se traducía silenciosamente en `movs = []` —
     // el panel mostraba "Sin movimientos registrados" exactamente igual que
     // un cliente sin historial real, sin ninguna forma de distinguir "no
     // hay movimientos" de "no pudimos leerlos". Ahora se propaga el error
     // real y se renderiza distinto.
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const movs = await r.json();
-    renderPanelBody(c, movs);
+    if (!rMovs.ok) throw new Error(`HTTP ${rMovs.status}`);
+    const movs = await rMovs.json();
+    const facturas = (rFact && rFact.ok) ? await rFact.json() : [];
+    renderPanelBody(c, movs, { facturas });
   } catch (e) {
     renderPanelBody(c, [], { error: true, onRetry: () => abrirCliente(clienteId) });
   }
 }
+
+// Facturas pendientes del cliente actualmente abierto en el panel — usado
+// por abrirCobroPanelFacturaIdx (botón "Cobrar" de cada fila) para no
+// depender de índices contra un array que ya se re-renderizó.
+let facturasPanelActual = [];
 
 function renderPanelBody(c, movs, opts = {}) {
   const vencido   = c.deuda_vencida || 0;
@@ -380,6 +403,27 @@ function renderPanelBody(c, movs, opts = {}) {
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       Este cliente tiene deuda vencida. Considerar bloquear nuevos pedidos.
     </div>`;
+  }
+
+  // FIX (auditoría UX — conflicto cobro genérico vs factura): con facturas
+  // abiertas, el cobro se hace acá, factura por factura, en vez del botón
+  // genérico de la cabecera (que quedaba "sin aplicar" a ninguna factura).
+  const facturas = opts.facturas || [];
+  facturasPanelActual = facturas;
+  if (facturas.length) {
+    html += `<div class="detalle-seccion"><h4>Facturas pendientes</h4>`;
+    html += facturas.map((f, idx) => {
+      const pendiente = (f.total || 0) - (f.total_cobrado || 0);
+      return `<div class="movimiento-row">
+        <div class="movimiento-info">
+          <span class="movimiento-desc" style="font-family:monospace">${window.sanitize(f.numero || '—')}</span>
+          <span class="movimiento-fecha">Vence ${formatFecha(f.vencimiento)}</span>
+        </div>
+        <span class="movimiento-monto debito" style="margin-right:8px">${formatPeso(pendiente)}</span>
+        <button class="btn btn-sm btn-primary btn--primary" onclick="abrirCobroPanelFacturaIdx(${idx})">Cobrar</button>
+      </div>`;
+    }).join('');
+    html += '</div>';
   }
 
   html += `<div class="detalle-seccion"><h4>Últimos movimientos</h4>`;
@@ -476,12 +520,36 @@ function abrirModalCobroParaFactura(facturaId, clienteId, clienteNombre, montoPe
 }
 window.abrirModalCobroParaFactura = abrirModalCobroParaFactura;
 
-function abrirModalCobroDirecto(clienteId) {
+// FIX (auditoría UX — conflicto cobro genérico vs factura): antes este
+// botón abría siempre el modal "suelto" (sin factura_id), incluso con
+// facturas emitidas pendientes — el cobro quedaba como saldo genérico en
+// cta_cte y ninguna factura salía de "Facturas pendientes" aunque el
+// cliente ya hubiera pagado. Ahora, si el cliente tiene facturas abiertas,
+// mandamos al panel a elegir cuál cobrar (sección "Facturas pendientes"
+// de renderPanelBody); el modal genérico queda solo para pago a cuenta
+// real (cliente sin facturas emitidas, o que paga por adelantado).
+async function abrirModalCobroDirecto(clienteId) {
   const c = todosClientes.find(x => x.cliente_id === clienteId);
   if (!c) return;
   clienteActivo = c;
+
+  if ((c.facturas_pendientes || 0) > 0) {
+    await abrirCliente(clienteId);
+    mostrarToast('Este cliente tiene facturas pendientes: elegí a cuál aplicar el cobro, abajo en "Facturas pendientes".', 'warning', 6000);
+    return;
+  }
+
   abrirModalCobro();
 }
+
+function abrirCobroPanelFacturaIdx(idx) {
+  const f = facturasPanelActual[idx];
+  if (!f || !clienteActivo) return;
+  const pendiente = (f.total || 0) - (f.total_cobrado || 0);
+  const nombre = clienteActivo.nombre_fantasia || clienteActivo.razon_social;
+  abrirModalCobroParaFactura(f.id, clienteActivo.cliente_id, nombre, pendiente);
+}
+window.abrirCobroPanelFacturaIdx = abrirCobroPanelFacturaIdx;
 
 function cerrarModalCobro() {
   document.getElementById('modal-cobro').classList.add('hidden');
