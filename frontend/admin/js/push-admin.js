@@ -14,9 +14,28 @@
 //
 // Si alguna de estas variables no está configurada, el módulo se desactiva
 // silenciosamente sin lanzar errores — el panel funciona sin push.
-
-
-
+//
+// FIX (2026-09-15, "nunca llega ningún push a nadie"): este archivo llamaba
+// a `firebase.initializeApp(...)` / `firebase.messaging.getMessaging(...)`
+// como si existiera un objeto global `firebase` con un namespace anidado
+// `.messaging` — ese objeto NUNCA se carga en pedidos.html/dashboard.html/
+// notif-log.html (no hay ningún <script> del SDK de Firebase en esas
+// páginas), así que la llamada tiraba ReferenceError en el primer paso,
+// caía al catch silencioso de más abajo, y jamás se llegaba a pedir el
+// permiso de notificaciones del navegador. Resultado verificado contra
+// Supabase real: CERO filas en `dispositivos_push` para cualquier usuario,
+// de cualquier empresa — el push nunca funcionó desde que se migró a este
+// archivo. Fix: usar el SDK modular real (mismo import que ya funciona en
+// frontend/js/push-init.js, usado por el portal cliente/chofer) en vez del
+// namespace global inexistente.
+//
+// Nota: sw-admin.js NO necesita recibir la config de Firebase — su listener
+// 'push' ya es 100% genérico (Push API estándar, no depende del SDK de
+// Firebase para mostrar la notificación), así que se elimina el postMessage
+// de FIREBASE_CONFIG que antes se mandaba sin que nada del otro lado lo
+// escuchara.
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js';
 
 // ── Config ─────────────────────────────────────────────────────────────────
 const ENV = window.ENV || {};
@@ -59,26 +78,26 @@ window.inicializarPushAdmin = inicializarPushAdmin;
 
   try {
     // 1. Registrar el Service Worker del admin (scope acotado a /admin, ver auth.js)
+    //    register() con la misma URL+scope es idempotente — si ya está
+    //    registrado (shell/offline lo registra en auth.js), esto no crea
+    //    una segunda instancia ni dispara el bug de doble-SW que motivó
+    //    dejar de usar push-init.js/sw-push.js en el admin.
     swRegistration = await navigator.serviceWorker.register(SW_PATH, { scope: '/admin/' });
     await swRegistration.update();
 
-    // 2. Enviar config de Firebase al SW para que pueda inicializarse
-    const sw = swRegistration.active || swRegistration.installing || swRegistration.waiting;
-    sw?.postMessage({ type: 'FIREBASE_CONFIG', config: FIREBASE_CONFIG });
+    // 2. Inicializar Firebase (SDK modular real) en el contexto de la página
+    const app = initializeApp(FIREBASE_CONFIG, 'admin-push');
+    messagingInstance = getMessaging(app);
 
-    // 3. Inicializar Firebase en el contexto de la página
-    const app = firebase.initializeApp(FIREBASE_CONFIG, 'admin-push');
-    messagingInstance = firebase.messaging.getMessaging(app);
-
-    // 4. Pedir permiso (muestra el diálogo del browser si está en 'default')
+    // 3. Pedir permiso (muestra el diálogo del browser si está en 'default')
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       console.info('[PUSH-ADMIN] Permiso no concedido:', permission);
       return;
     }
 
-    // 5. Obtener el FCM token
-    const token = await firebase.messaging.getToken(messagingInstance, {
+    // 4. Obtener el FCM token
+    const token = await getToken(messagingInstance, {
       vapidKey:           VAPID_KEY,
       serviceWorkerRegistration: swRegistration,
     });
