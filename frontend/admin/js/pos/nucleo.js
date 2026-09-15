@@ -28,6 +28,12 @@ let cajaActual   = null;
 let carrito      = [];          // [{ producto_id, nombre, codigo, cantidad, precio, iva, descuento_pct, stock_disponible }]
 let descuentoGlobal = 0;        // % de descuento global sobre el total
 let clienteSel   = null;
+// Punto 2 del audit — "comprobante en espera": ventas armadas (carrito +
+// cliente + descuento) que se dejan de lado para atender a otro cliente sin
+// perder nada, y se retomán después. Ver carrito-en-espera.js. Solo en
+// memoria: no sobrevive un refresh de página, igual que pasaba antes con el
+// carrito único.
+let carritosEnEspera = []; // [{ id, etiqueta, carrito, descuentoGlobal, clienteSel, creado_en }]
 let buscarTimer  = null;
 let ultimaVenta  = null;
 let pdfUrlActual = null;       // URL del PDF del comprobante ya emitido para ultimaVenta (item nuevo: "Ver/imprimir comprobante")

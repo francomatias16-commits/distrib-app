@@ -207,6 +207,19 @@ window.abrirModalCierreTurno = async function () {
     window.toast('Cobrá o vacía el carrito antes de cerrar la caja', 'error');
     return;
   }
+  // Punto 2 del audit — "comprobante en espera" vive solo en memoria (no
+  // sobrevive un refresh, ver nucleo.js). Cerrar turno con ventas en espera
+  // sin avisar sería perderlas en silencio en el próximo refresh/relogueo;
+  // se pide confirmación explícita en vez de bloquear del todo, porque puede
+  // ser una decisión válida (ej. el cliente nunca volvió).
+  if (carritosEnEspera.length) {
+    const plural = carritosEnEspera.length === 1;
+    const ok = await window.confirmar(
+      `Hay ${carritosEnEspera.length} ${plural ? 'venta en espera' : 'ventas en espera'} sin cobrar. No se guardan si cerrás la caja y se pierden en el próximo ingreso. ¿Cerrar igual?`,
+      { tipo: 'danger', labelOk: 'Sí, cerrar igual' }
+    );
+    if (!ok) return;
+  }
   document.getElementById('pos-monto-final').value = '';
   document.getElementById('pos-cierre-error').style.display = 'none';
 
