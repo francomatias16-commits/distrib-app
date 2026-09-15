@@ -16,6 +16,7 @@
 
 let _pmzIds       = [];   // ids de producto de la tanda actual (snapshot al abrir)
 let _pmzPreview   = null; // [{id, nombre, precio_anterior, precio_nuevo}] de la última preview
+let _pmzFormUsado = null; // {tipo, valor, redondeo} con el que se generó _pmzPreview
 let _pmzCargando  = false;
 
 function _pmzFormatPeso(n) {
@@ -29,6 +30,7 @@ function abrirModalPreciosMasivo() {
   if (!ids.length) return;
   _pmzIds = ids;
   _pmzPreview = null;
+  _pmzFormUsado = null;
 
   const modal = document.getElementById('modal-precios-masivo');
   const cuerpo = document.getElementById('precios-masivo-cuerpo');
@@ -153,6 +155,7 @@ async function previsualizarPreciosMasivo() {
       window.toast?.('Ninguno de los productos seleccionados pertenece a tu empresa, o ya no existen.', 'error');
       return;
     }
+    _pmzFormUsado = form; // el formulario ya no va a estar en el DOM una vez renderizada la preview
     _pmzRenderPreview();
   } catch (err) {
     console.error('[precios-masivo] Error previsualizando:', err);
@@ -202,8 +205,14 @@ function volverAlFormularioPreciosMasivo() {
 
 async function confirmarPreciosMasivo() {
   if (_pmzCargando || !sb || !_pmzPreview) return;
-  const form = _pmzLeerFormulario();
-  if (!form) return;
+  // No se relee el formulario acá: en este punto el modal está mostrando
+  // la preview y los inputs (#pmz-valor, etc.) ya no están en el DOM.
+  // Se reutiliza el mismo formulario con el que se calculó la preview.
+  const form = _pmzFormUsado;
+  if (!form) {
+    window.toast?.('No se pudo aplicar: volvé a calcular la vista previa.', 'error');
+    return;
+  }
 
   _pmzCargando = true;
   const btn = document.getElementById('pmz-btn-confirmar');
@@ -238,4 +247,5 @@ function cerrarModalPreciosMasivo() {
   document.getElementById('modal-backdrop-precios-masivo')?.style.setProperty('display', 'none');
   _pmzIds = [];
   _pmzPreview = null;
+  _pmzFormUsado = null;
 }
