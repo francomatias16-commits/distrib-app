@@ -84,13 +84,34 @@ export class CtaCtePage extends PageObjectBase {
   }
 
   /**
-   * Click en el botón "Cobrar" de la fila → abre el modal de cobro directo
-   * (abrirModalCobroDirecto()), SIN pasar por el panel lateral. El botón
-   * hace `event.stopPropagation()` en el HTML así que no dispara también
+   * Click en el botón de cobro de la fila → abre el modal de cobro directo
+   * (abrirModalCobroDirecto()), SIN pasar por el panel lateral. Solo válido
+   * para un cliente SIN facturas pendientes (facturas_pendientes: 0) — con
+   * facturas abiertas, abrirModalCobroDirecto() redirige al panel en vez de
+   * abrir este modal (ver `cobrarDesdeFilaConFacturasAbre PanelPorId`, fixture
+   * `filaCliente({ facturas_pendientes: 0 })` en el spec). El botón hace
+   * `event.stopPropagation()` en el HTML así que no dispara también
    * abrirCliente().
    */
   async cobrarDesdeFilaPorId(clienteId) {
+    await this.fila(clienteId).getByRole('button', { name: /Cobrar|Pago a cuenta/ }).click();
+    await expect(this.modalCobro).not.toHaveClass(/hidden/);
+  }
+
+  /**
+   * Click en el botón "Cobrar" de la fila cuando el cliente SÍ tiene
+   * facturas pendientes → ya no abre el modal genérico, abre el panel
+   * lateral con la sección "Facturas pendientes" (fix conflicto UX cobro
+   * genérico vs factura).
+   */
+  async cobrarDesdeFilaPorId_conFacturas(clienteId) {
     await this.fila(clienteId).getByRole('button', { name: 'Cobrar' }).click();
+    await expect(this.panelCliente).toHaveClass(/open/);
+  }
+
+  /** Dentro del panel ya abierto, click en "Cobrar" de la N-ésima factura pendiente (0-based). */
+  async cobrarFacturaPanel(idx = 0) {
+    await this.panelBody.locator('.movimiento-row').getByRole('button', { name: 'Cobrar' }).nth(idx).click();
     await expect(this.modalCobro).not.toHaveClass(/hidden/);
   }
 

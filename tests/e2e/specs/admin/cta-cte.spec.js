@@ -113,8 +113,12 @@ test.describe('Cta-cte / Saldos por cliente (admin) — Fase 1 P0', () => {
     await expect(ctaCtePage.panelBody).toContainText(formatPesoEsperado(5000));  // por vencer
   });
 
-  test('cobrar desde la fila llama a registrar_cobro_completo con el payload correcto', async ({ page }) => {
-    const { ctaCtePage } = await armarPagina(page);
+  test('cobrar desde la fila (sin facturas pendientes) llama a registrar_cobro_completo con el payload correcto', async ({ page }) => {
+    // FIX (auditoría UX — conflicto cobro genérico vs factura): el modal
+    // genérico ("Pago a cuenta") solo se abre directo desde la fila cuando
+    // el cliente NO tiene facturas emitidas pendientes — ver test aparte
+    // más abajo para el caso con facturas.
+    const { ctaCtePage } = await armarPagina(page, { filaInicial: filaCliente({ facturas_pendientes: 0 }) });
 
     const obtenerParamsCobro = mockearRpc(page, 'registrar_cobro_completo', ({ params }) => {
       // Confirma el payload real armado por guardarCobro() para el cobro
@@ -144,8 +148,40 @@ test.describe('Cta-cte / Saldos por cliente (admin) — Fase 1 P0', () => {
     expect(obtenerParamsCobro(), 'registrar_cobro_completo debería haberse llamado exactamente una vez').toBe(1);
   });
 
+  test('cliente CON facturas pendientes: "Cobrar" de la fila abre el panel a elegir factura, no el modal genérico', async ({ page }) => {
+    // Este es el bug real que motivó el fix: antes, este mismo click abría
+    // el modal genérico (p_factura_id: null) sin importar cuántas facturas
+    // pendientes tuviera el cliente — el cobro quedaba sin aplicar a
+    // ninguna factura puntual.
+    const { ctaCtePage } = await armarPagina(page); // fixture por defecto: facturas_pendientes: 2
+
+    mockearTabla(page, 'facturas', {
+      onSelect: () => [
+        { id: 'fact-001', numero: 'A-0001', total: 21780, total_cobrado: 0, vencimiento: '2026-09-20' },
+        { id: 'fact-002', numero: 'A-0002', total: 12100, total_cobrado: 0, vencimiento: '2026-09-25' },
+      ],
+    });
+    const obtenerParamsCobro = mockearRpc(page, 'registrar_cobro_completo', () => ({ ok: true, nro: 'C-0003', factura_saldada: true }));
+
+    await ctaCtePage.goto();
+    await ctaCtePage.cobrarDesdeFilaPorId_conFacturas(CLIENTE_ID);
+
+    await expect(ctaCtePage.panelBody).toContainText('Facturas pendientes');
+    await expect(ctaCtePage.panelBody).toContainText('A-0001');
+    await expect(ctaCtePage.panelBody).toContainText('A-0002');
+
+    // Cobrar la primera factura del panel precarga el monto pendiente y
+    // vincula p_factura_id — ya no es un cobro suelto.
+    await ctaCtePage.cobrarFacturaPanel(0);
+    await expect(ctaCtePage.inputMonto).toHaveValue('21780');
+    await ctaCtePage.completarCobro({ medio: 'efectivo' });
+    await ctaCtePage.guardarCobro();
+
+    expect(obtenerParamsCobro()).toBe(1);
+  });
+
   test('sin medio de pago no dispara ningún request — validación de cliente', async ({ page }) => {
-    const { ctaCtePage } = await armarPagina(page);
+    const { ctaCtePage } = await armarPagina(page, { filaInicial: filaCliente({ facturas_pendientes: 0 }) });
     const obtenerParamsCobro = mockearRpc(page, 'registrar_cobro_completo', () => ({ ok: true, nro: 'C-0002' }));
 
     await ctaCtePage.goto();
@@ -163,7 +199,7 @@ test.describe('Cta-cte / Saldos por cliente (admin) — Fase 1 P0', () => {
   });
 
   test('rechazo del servidor (ok:false) muestra el error y no pierde los datos del formulario', async ({ page }) => {
-    const { ctaCtePage } = await armarPagina(page);
+    const { ctaCtePage } = await armarPagina(page, { filaInicial: filaCliente({ facturas_pendientes: 0 }) });
     mockearRpc(page, 'registrar_cobro_completo', () => ({ ok: false, error: 'Cliente con crédito bloqueado' }));
 
     await ctaCtePage.goto();
