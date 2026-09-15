@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
   <link rel="stylesheet" href="/frontend/admin/css/productos-modal-fix.css?v=mtcen4r4" />
   <link rel="stylesheet" href="/frontend/admin/css/etiquetas-preview.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/frontend/admin/css/precios-masivo.css?v=mtcen4r4" />
   <!-- Combos (FIX 2026-08-23: absorbido dentro de Productos como pestaña,
        ver nav-data.js). combos.css complementa productos.css; producto-picker
        es el buscador de productos que usa el modal de combo. -->
@@ -153,6 +154,19 @@
                     <span>
                       <strong>Generar etiquetas</strong>
                       <small>Precio y código de barras para imprimir</small>
+                    </span>
+                  </button>
+                  <!-- 629: mismo patrón que "Generar etiquetas" — accesos directos que
+                       reusan la selección múltiple ya existente (checkbox por fila +
+                       "Seleccionar los N resultados"). Ver iniciarActualizarPreciosDesdeMenu()
+                       en precios-masivo.js. -->
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); iniciarActualizarPreciosDesdeMenu()">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    <span>
+                      <strong>Actualizar precios</strong>
+                      <small>Aplicá un ajuste a varios productos a la vez</small>
                     </span>
                   </button>
                 </div>
@@ -845,6 +859,33 @@
   </div>
 </div>
 
+<!-- 629 — actualización masiva de precios: aplica un ajuste (%, $ fijo, o
+     precio fijo) a la selección de productos, con vista previa antes/después
+     antes de confirmar (la RPC fn_actualizar_precios_masivo hace el cálculo
+     y el UPDATE atómico del lado del servidor). Reusa la misma selección
+     múltiple que "Generar etiquetas" (ver precios-masivo.js). -->
+<div class="modal-backdrop" id="modal-backdrop-precios-masivo" onclick="cerrarModalPreciosMasivo()" aria-hidden="true"></div>
+<div class="modal" id="modal-precios-masivo" role="dialog" aria-modal="true" aria-labelledby="pmz-titulo">
+  <div class="modal-header">
+    <div>
+      <div class="modal-titulo" id="pmz-titulo">Actualizar precios</div>
+      <div class="modal-subtitulo" id="pmz-subtitulo"></div>
+    </div>
+    <button type="button" class="modal-close" onclick="cerrarModalPreciosMasivo()" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div id="precios-masivo-cuerpo"></div>
+  <div id="pmz-footer-formulario" style="display:flex;gap:8px;margin-top:16px">
+    <button type="button" class="btn-secundario" onclick="cerrarModalPreciosMasivo()">Cancelar</button>
+    <button type="button" id="pmz-btn-previsualizar" class="btn btn--primary" onclick="previsualizarPreciosMasivo()">Previsualizar</button>
+  </div>
+  <div id="pmz-footer-preview" style="display:none;gap:8px;margin-top:16px">
+    <button type="button" class="btn-secundario" onclick="volverAlFormularioPreciosMasivo()">Volver</button>
+    <button type="button" id="pmz-btn-confirmar" class="btn btn--primary" onclick="confirmarPreciosMasivo()">Aplicar cambios</button>
+  </div>
+</div>
+
 <!-- v730: Zoom de imagen de producto — se abre desde la miniatura de la fila
      (ver renderAvatarFoto en productos.js) y desde la preview del formulario
      de crear/editar (fp-foto-preview). -->
@@ -889,6 +930,8 @@
 <script src="/frontend/admin/js/productos/filtros-menu.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/productos/render-tabla.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/productos/seleccion-etiquetas.js?v=mtcen4r4"></script>
+<!-- 629 — actualización masiva de precios, reusa la selección de arriba. -->
+<script src="/frontend/admin/js/productos/precios-masivo.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/productos/orden-busqueda-nav.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/productos/modal-producto.js?v=mtcen4r4"></script>
 <script src="/frontend/admin/js/productos/categorias-abm.js?v=mtcen4r4"></script>
