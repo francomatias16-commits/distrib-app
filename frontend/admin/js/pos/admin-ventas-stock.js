@@ -212,15 +212,33 @@ window.anularVenta = async function (venta_pos_id, numero) {
 // cantidad a devolver, pensados para otra cosa). Reutilizamos el mismo
 // endpoint que ya usa ese flujo (GET /api/pos/ticket?venta_id=) pero en un
 // modal read-only propio, sin RPC ni endpoint nuevo.
+let _facturaIdVentaDetalle = null;
+
 window.verDetalleVenta = async function (ventaId) {
   const overlay = document.getElementById('modal-venta-detalle-overlay');
   const body    = document.getElementById('venta-detalle-body');
+  const btnVerComprobante = document.getElementById('btn-ver-comprobante-historial');
   body.innerHTML = '<p class="pos-resultados-vacio">Cargando...</p>';
+  if (btnVerComprobante) btnVerComprobante.style.display = 'none';
+  _facturaIdVentaDetalle = null;
   overlay.style.display = '';
   try {
     const venta = await apiGet(`/api/pos/ticket?venta_id=${ventaId}`);
     const items = venta.venta_pos_items || [];
     const pagos = venta.venta_pos_pagos || [];
+
+    // FIX (punto 5b del audit): antes no había forma de reabrir el PDF de
+    // una factura ya emitida — pdfUrlActual (ticket-facturacion.js) es una
+    // variable de sesión que se resetea en cada venta nueva, así que solo
+    // servía para la venta recién cobrada. Reutilizamos el mismo endpoint
+    // que ya usa el botón "Ver comprobante" del ticket recién emitido
+    // (GET /api/facturas?id=&accion=pdf, que re-firma o regenera el PDF
+    // según haga falta), pero disparado desde el historial con el
+    // factura_id de la venta que se esté mirando.
+    if (venta.factura_id && btnVerComprobante) {
+      _facturaIdVentaDetalle = venta.factura_id;
+      btnVerComprobante.style.display = '';
+    }
 
     body.innerHTML = `
       <div class="pos-ticket-fila"><span>Número</span><span>N° ${escapeHtml(venta.numero || '—')}</span></div>
@@ -248,6 +266,32 @@ window.verDetalleVenta = async function (ventaId) {
 
 window.cerrarModalDetalleVenta = function () {
   document.getElementById('modal-venta-detalle-overlay').style.display = 'none';
+};
+
+// FIX (punto 5b del audit): reabre el PDF fiscal de una factura ya emitida,
+// desde el historial de ventas. El backend (GET /api/facturas?id=&accion=pdf)
+// ya sabe re-firmar la URL si el PDF fue generado antes, o regenerarlo si
+// hizo falta — no depende de que la venta se haya cobrado en esta sesión.
+window.reabrirComprobanteVenta = async function () {
+  if (!_facturaIdVentaDetalle) return;
+  const btn = document.getElementById('btn-ver-comprobante-historial');
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Abriendo...';
+  try {
+    const resp = await apiGet(`/api/facturas?id=${_facturaIdVentaDetalle}&accion=pdf`);
+    if (resp?.url) {
+      window.open(resp.url, '_blank', 'noopener');
+    } else {
+      window.toast('No se pudo obtener el comprobante', 'error');
+    }
+  } catch (e) {
+    console.error(e);
+    window.toast(e.message || 'No se pudo abrir el comprobante', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
 };
 
 // ── Pestaña Stock ──────────────────────────────────────────────────────────
