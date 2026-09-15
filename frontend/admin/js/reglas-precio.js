@@ -264,7 +264,7 @@ function abrirModalNueva() {
   document.getElementById('fr-valor').value = '';
   document.getElementById('fr-fecha_desde').value = '';
   document.getElementById('fr-fecha_hasta').value = '';
-  document.getElementById('fr-prioridad').value = '0';
+  document.getElementById('fr-prioridad').value = ''; // vacío, no 0 — ver placeholder en el HTML
   document.getElementById('fr-activa').checked = true;
   actualizarPlaceholderValor();
 

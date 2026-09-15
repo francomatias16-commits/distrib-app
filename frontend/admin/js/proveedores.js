@@ -243,8 +243,10 @@ async function abrirModalEditar(id) {
 function limpiarForm() {
   ['razon_social','nombre_fantasia','cuit','contacto','telefono','email','domicilio','localidad','notas']
     .forEach(id => { const el = document.getElementById('f-' + id); if (el) el.value = ''; });
+  // Vacío (no en 0): así no hay que borrar el 0 antes de tipear un valor.
+  // El placeholder "0 = contado" ya comunica el default sin ocupar el value.
   const dp = document.getElementById('f-dias_pago');
-  if (dp) dp.value = '0';
+  if (dp) dp.value = '';
   const ci = document.getElementById('f-condicion_iva');
   if (ci) ci.value = 'responsable_inscripto';
 }

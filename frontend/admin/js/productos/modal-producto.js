@@ -78,10 +78,12 @@ async function abrirModalProducto(id) {
     document.getElementById('fp-codigo').value       = '';
     document.getElementById('fp-nombre').value        = '';
     document.getElementById('fp-categoria_id').value = '';
-    document.getElementById('fp-precio_base').value  = 0;
-    document.getElementById('fp-costo').value        = 0;
-    document.getElementById('fp-stock_minimo').value = 0;
-    document.getElementById('fp-stock_objetivo').value = 0;
+    // v: se dejan vacíos (no en 0) para no obligar a borrar antes de tipear
+    // un valor — el guardado ya trata "vacío" como 0 (ver guardarProducto()).
+    document.getElementById('fp-precio_base').value  = '';
+    document.getElementById('fp-costo').value        = '';
+    document.getElementById('fp-stock_minimo').value = '';
+    document.getElementById('fp-stock_objetivo').value = '';
     document.getElementById('fp-activo').value       = 'true';
     document.getElementById('fp-destacado').checked  = false;
     nombreProductoAutoCompletado = false;
@@ -167,10 +169,10 @@ async function limpiarFormularioProducto() {
   document.getElementById('fp-codigo').value       = '';
   document.getElementById('fp-nombre').value        = '';
   document.getElementById('fp-categoria_id').value = '';
-  document.getElementById('fp-precio_base').value  = 0;
-  document.getElementById('fp-costo').value        = 0;
-  document.getElementById('fp-stock_minimo').value = 0;
-  document.getElementById('fp-stock_objetivo').value = 0;
+  document.getElementById('fp-precio_base').value  = '';
+  document.getElementById('fp-costo').value        = '';
+  document.getElementById('fp-stock_minimo').value = '';
+  document.getElementById('fp-stock_objetivo').value = '';
   document.getElementById('fp-activo').value       = 'true';
   document.getElementById('fp-destacado').checked  = false;
   nombreProductoAutoCompletado = false;
