@@ -1561,37 +1561,70 @@ function verAlertas() {
 }
 
 /* ── Exportar CSV ──────────────────────────────────────────────────────────
-   Auditoría filtros v280: ya no existe un array completo en memoria
-   (productosAll/productosFilt) — solo tenemos la página actual
-   (productosPage), resuelta por fn_productos_lista con LIMIT/OFFSET.
-   Exportamos lo que el usuario está viendo en pantalla (la página actual,
-   ya filtrada/ordenada). Si se necesita exportar TODO el resultado
-   filtrado (no solo la página visible), habría que pedirle a
-   fn_productos_lista un p_limit alto y armar el CSV con esa respuesta. ── */
-function exportarProductos() {
-  const lista = productosPage;
-  if (!lista.length) { toast('No hay productos para exportar.', 'warning'); return; }
+   FIX (bug real): antes exportaba solo `productosPage` (la página actual,
+   50 filas por `fn_productos_lista` con LIMIT/OFFSET) — si el usuario tenía
+   un filtro aplicado y esperaba "todo el catálogo filtrado", se llevaba
+   solo la primera página sin ningún aviso. Ahora se le pide a
+   fn_productos_lista el TOTAL de filas que matchean el filtro actual
+   (mismos parámetros que cargarProductos(), pero p_limit = totalCount y
+   p_offset = 0), sin tocar la paginación que se ve en pantalla. ── */
+async function exportarProductos() {
+  if (!totalCount) { toast('No hay productos para exportar.', 'warning'); return; }
 
-  const cols = ['Nombre', 'Categoría', 'Estado', 'Última Actualización', 'Precio', 'Costo', 'Stock', 'Margen%', 'Goal%'];
-  const filas = lista.map(p => [
-    p.nombre, p.cat, p.estado, formatFecha(p.fechaAct),
-    p.precio, p.costo, p.stock, p.margen, p.goal
-  ]);
-  const csv = [cols, ...filas]
-    .map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n');
+  // El menú de "Más funciones" ya se cierra (cerrarMenuMasFunciones()) apenas
+  // se hace clic, así que no hay un botón visible para poner en estado de
+  // carga — si la exportación trae más de una página, avisamos por toast.
+  if (totalCount > PAGE_SIZE) toast('Exportando todo el catálogo filtrado…', 'info');
 
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), {
-    href:     url,
-    download: `productos_${new Date().toISOString().slice(0, 10)}.csv`,
-  });
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  toast(`${lista.length} productos exportados correctamente.`, 'success');
+  try {
+    let lista;
+    if (!sb) {
+      // Modo demo: no hay sesión autenticada — el dataset ya está completo.
+      lista = datosDemoEstaticos();
+    } else {
+      const { data, error } = await sb.rpc('fn_productos_lista', {
+        p_busqueda:     busquedaTag.trim() || null,
+        p_categoria_id: filtroCatId || null,
+        p_estado:       filtroEstado || null,
+        p_orden:        ordenCol,
+        p_asc:          ordenAsc,
+        p_limit:        totalCount, // todo el resultado filtrado, no solo la página visible
+        p_offset:       0,
+        p_mes:          mesActivo === null ? null : mesActivo + 1,
+        p_anio:         mesActivo === null ? null : yearActivo,
+        p_foto_fuente:  filtroFoto || null,
+        p_etiqueta_id:  filtroEtiquetaId || null,
+      });
+      if (error) throw error;
+      lista = (data || []).map(normalizarRpc);
+    }
+
+    if (!lista.length) { toast('No hay productos para exportar.', 'warning'); return; }
+
+    const cols = ['Nombre', 'Categoría', 'Estado', 'Última Actualización', 'Precio', 'Costo', 'Stock', 'Margen%', 'Goal%'];
+    const filas = lista.map(p => [
+      p.nombre, p.cat, p.estado, formatFecha(p.fechaAct),
+      p.precio, p.costo, p.stock, p.margen, p.goal
+    ]);
+    const csv = [cols, ...filas]
+      .map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href:     url,
+      download: `productos_${new Date().toISOString().slice(0, 10)}.csv`,
+    });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast(`${lista.length} productos exportados correctamente.`, 'success');
+  } catch (err) {
+    console.error('[productos] Error al exportar CSV:', err);
+    toast('No se pudo exportar el listado completo. Probá de nuevo en un momento.', 'error');
+  }
 }
 
 /* ── Init ── */
