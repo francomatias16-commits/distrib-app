@@ -307,7 +307,7 @@ function renderTrackingHoy(rutas) {
   if (!_mapaResumen) {
     mapaDiv.innerHTML = '';
     _mapaResumen = L.map(mapaDiv, { zoomControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(_mapaResumen);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(_mapaResumen);
   }
   _mapaResumenMarkers.forEach(m => m.remove());
   _mapaResumenMarkers = [];
