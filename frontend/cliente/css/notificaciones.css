@@ -17,7 +17,13 @@
        Cuenta, no tiene ítem propio en la barra (mismo criterio que el
        resto de subpáginas sin nav-item dedicado, ej. checkout). */
 
-    .contenido { padding: .75rem .75rem 5rem; max-width: 480px; margin: 0 auto; }
+    /* Antes: max-width 480px. La fila de pestañas (Todas / Deuda /
+       Pedidos entregados / Pedidos en camino / Puntos) necesita más
+       ancho que eso para entrar sin recortarse — a diferencia de
+       pedidos.html, que usa el mismo componente de filtros con
+       max-width 760px. Se iguala acá para que las 5 pestañas se
+       vean completas sin depender del scroll horizontal oculto. */
+    .contenido { padding: .75rem .75rem 5rem; max-width: 760px; margin: 0 auto; }
 
     /* BUG REAL: `#btnCargarMas` se oculta con `classList.toggle('hidden', ...)`
        (ver cargarNotif() más abajo), pero esta página nunca definía la clase
