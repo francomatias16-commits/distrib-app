@@ -615,11 +615,11 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Precio de venta</label>
-              <input type="number" id="fp-precio_base" class="form-input" min="0" step="0.01" aria-label="Precio de venta" />
+              <input type="number" id="fp-precio_base" class="form-input" min="0" step="0.01" placeholder="0" aria-label="Precio de venta" />
             </div>
             <div class="form-group">
               <label class="form-label">Costo</label>
-              <input type="number" id="fp-costo" class="form-input" min="0" step="0.01" aria-label="Costo" />
+              <input type="number" id="fp-costo" class="form-input" min="0" step="0.01" placeholder="0" aria-label="Costo" />
             </div>
           </div>
           <div class="form-row">
@@ -630,7 +630,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </span>
               </label>
-              <input type="number" id="fp-stock_minimo" class="form-input" min="0" step="1" aria-label="Stock mínimo" />
+              <input type="number" id="fp-stock_minimo" class="form-input" min="0" step="1" placeholder="0" aria-label="Stock mínimo" />
             </div>
             <div class="form-group">
               <label class="form-label">
@@ -639,7 +639,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </span>
               </label>
-              <input type="number" id="fp-stock_objetivo" class="form-input" min="0" step="1" aria-label="Stock objetivo" />
+              <input type="number" id="fp-stock_objetivo" class="form-input" min="0" step="1" placeholder="0" aria-label="Stock objetivo" />
             </div>
           </div>
           <p class="form-nota">
@@ -699,8 +699,8 @@
 </div>
 
 <!-- ── Mini-modal: nueva categoría rápida (sin salir del producto) ──────── -->
-<div id="modal-backdrop-cat-rapida" onclick="cerrarModalCategoriaRapidaSiFondo(event)" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.35);z-index:500"></div>
-<div id="modal-categoria-rapida" role="dialog" aria-modal="true" aria-label="Nueva categoría" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:501;background:var(--color-surface);border-radius:var(--radius-lg,14px);box-shadow:var(--shadow-big);width:100%;max-width:400px;padding:24px;">
+<div id="modal-backdrop-cat-rapida" onclick="cerrarModalCategoriaRapidaSiFondo(event)" style="display:none;position:fixed;inset:0;background:rgba(22,24,29,.35);z-index:var(--z-modal-anidado-1,9100)"></div>
+<div id="modal-categoria-rapida" role="dialog" aria-modal="true" aria-label="Nueva categoría" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:var(--z-modal-anidado-2,9200);background:var(--color-surface);border-radius:var(--radius-lg,14px);box-shadow:var(--shadow-big);width:100%;max-width:400px;padding:24px;">
   <h2 class="modal-titulo" style="margin:0 0 16px">Nueva categoría</h2>
   <div class="form-group">
     <label class="form-label">Nombre *</label>
