@@ -202,6 +202,12 @@
       <!-- ── Columna derecha: totales, cobro, categorías y cliente ── -->
       <div class="pos-col-carrito">
 
+        <!-- Punto 2 del audit — "comprobante en espera": ventas dejadas de lado
+             para atender a otro cliente. Sin montos a la vista (la pantalla
+             suele estar de cara al mostrador) — solo etiqueta y hace cuánto
+             quedó en espera. Oculto por completo si no hay ninguna. -->
+        <div id="pos-carritos-espera" class="pos-carritos-espera" style="display:none"></div>
+
         <!-- Panel oscuro de totales (subtotal / descuento / total) + cobrar -->
         <div class="pos-panel-totales">
           <div class="pos-totales">
@@ -236,6 +242,12 @@
           <div class="pos-acciones-rapidas">
             <button type="button" class="pos-btn-accion-rapida" id="btn-vaciar-carrito" onclick="vaciarCarrito()">
               <span>Nueva venta</span><span class="pos-btn-cobrar-hint">F4 / 4</span>
+            </button>
+            <!-- Punto 2 del audit — deja esta venta en espera (sin perderla) para
+                 atender a otro cliente. Se oculta junto con "Nueva venta" cuando
+                 el carrito está vacío: no hay nada que dejar en espera. -->
+            <button type="button" class="pos-btn-accion-rapida" id="btn-en-espera" onclick="ponerEnEspera()" title="Guarda esta venta para retomarla después, sin perderla">
+              <span>En espera</span>
             </button>
             <button type="button" class="pos-btn-accion-rapida" onclick="document.getElementById('pos-input-descuento-global')?.focus()" title="Solo disponible con ítems en el carrito">
               <span>Descuento</span><span class="pos-btn-cobrar-hint">F3 / 3</span>
@@ -1167,6 +1179,7 @@
 <script src="/frontend/admin/js/pos/turnos-caja.js?v=mu2weany"></script>
 <script src="/frontend/admin/js/pos/busqueda-favoritos.js?v=mu2weany"></script>
 <script src="/frontend/admin/js/pos/carrito.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/pos/carrito-en-espera.js?v=mu2weany"></script>
 <script src="/frontend/admin/js/pos/cliente-cobro.js?v=mu2weany"></script>
 <script src="/frontend/admin/js/pos/ticket-facturacion.js?v=mu2weany"></script>
 <script src="/frontend/admin/js/pos/admin-ventas-stock.js?v=mu2weany"></script>
@@ -1206,13 +1219,17 @@
   }
   actualizarSep();
 
-  // También mostrar el input de descuento global cuando el carrito tiene items
+  // También mostrar el input de descuento global, y el botón "En espera",
+  // cuando el carrito tiene items (nada de esto tiene sentido con el
+  // carrito vacío).
   const carrItems = document.getElementById('pos-carrito-items');
   const descWrap  = document.getElementById('pos-descuento-global-wrap');
-  if (carrItems && descWrap) {
+  const btnEspera = document.getElementById('btn-en-espera');
+  if (carrItems && (descWrap || btnEspera)) {
     new MutationObserver(() => {
       const vacio = !!carrItems.querySelector('.pos-carrito-vacio');
-      descWrap.style.display = vacio ? 'none' : '';
+      if (descWrap)  descWrap.style.display  = vacio ? 'none' : '';
+      if (btnEspera) btnEspera.style.display = vacio ? 'none' : '';
     }).observe(carrItems, { childList: true, subtree: false });
   }
 })();
