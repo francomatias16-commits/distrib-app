@@ -215,7 +215,7 @@
   --z-mnav-overlay:690;        /* fondo del drawer de navegación mobile (admin/nav.css) */
   --z-mnav-panel:691;          /* panel del drawer de navegación mobile (admin/nav.css) */
   --z-mnav-toggle:700;         /* botón que abre/cierra el drawer mobile (admin/nav.css) */
-  --z-confirm-dialog:750;      /* diálogo global window.confirmar()/confirmarConTexto() (ui-utils.js).
+  --z-confirm-dialog:10050;    /* diálogo global window.confirmar()/confirmarConTexto() (ui-utils.js).
                                    Dedicado y fijo: antes reutilizaba --z-modal (400) y algunas páginas
                                    (notas, cheques, cobranzas, productos) subían --z-modal a 10100 a nivel
                                    :root para que este diálogo superara a su modal local (--z-flyout:500) —
@@ -223,7 +223,17 @@
                                    (admin/nav.css), así que esa página entera quedaba tapada por el fondo
                                    oscuro del menú por encima de su propio panel. Con un token propio, ya
                                    por encima de --z-flyout sin tocar --z-modal, esas cuatro sobreescrituras
-                                   dejan de hacer falta. */
+                                   dejan de hacer falta.
+                                   FIX (2026-09-14): 750 quedaba por debajo de varios modales locales de
+                                   segundo nivel con z-index hardcodeado más alto (ej. stock.html
+                                   #modal-deposito-form:1001, clientes.html #modal-portal-overlay:9999).
+                                   Al abrir confirmar() desde esos modales (ej. "¿Confirmás crear el
+                                   depósito...?" al guardar un depósito nuevo), el diálogo se renderizaba
+                                   detrás y quedaba invisible: el usuario no podía tocar "Crear"/"Confirmar",
+                                   la Promise nunca se resolvía y el botón que llamó a confirmar() quedaba
+                                   trabado en estado de carga para siempre. Subido a 10050, por encima del
+                                   máximo z-index modal usado hoy en el admin (9999), para que el diálogo de
+                                   confirmación global siempre gane sin importar desde qué modal se invoque. */
   --z-cobranzas-overlay:999;   /* overlay fullscreen puntual de cobranzas-gentelella.css */
   --z-modal-stack-1:1000;      /* backdrop de modal en cascada (automatizacion, devoluciones) */
   --z-modal-stack-2:1001;      /* contenido de modal en cascada, sobre --z-modal-stack-1 */
