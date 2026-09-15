@@ -541,12 +541,18 @@ async function ndCargarPedidosCliente() {
     return;
   }
 
+  // FIX (auditoría UX — dropdown "Pedido de origen" siempre vacío): filtraba
+  // y ordenaba por `entregado_at`, una columna que existe en el schema pero
+  // que ningún código del sistema escribe — marcarPedidoEntregado() guarda
+  // la fecha real en `fecha_entrega`. Resultado: por más pedidos entregados
+  // que tuviera el cliente, este selector nunca traía nada. Se corrige para
+  // usar la columna que sí se completa.
   const { data } = await window.conTimeoutRed(sb.from('pedidos')
-    .select('id, created_at, entregado_at')
+    .select('id, created_at, fecha_entrega')
     .eq('empresa_id', empresaId)
     .eq('cliente_id', clienteId)
-    .not('entregado_at', 'is', null)
-    .order('entregado_at', { ascending: false })
+    .not('fecha_entrega', 'is', null)
+    .order('fecha_entrega', { ascending: false })
     .limit(30), 10000);
   (data || []).forEach(p => {
     const o = document.createElement('option');
@@ -557,7 +563,7 @@ async function ndCargarPedidosCliente() {
     // Dos recortes distintos del mismo UUID → nunca coincidían visualmente
     // y el admin no podía saber a qué pedido de la lista correspondía cada
     // opción de este selector. Se unifica al mismo formato que la lista.
-    o.textContent = `Pedido #${p.id.slice(-6).toUpperCase()} — entregado ${formatFecha(p.entregado_at)}`;
+    o.textContent = `Pedido #${p.id.slice(-6).toUpperCase()} — entregado ${formatFecha(p.fecha_entrega)}`;
     sel.appendChild(o);
   });
 
