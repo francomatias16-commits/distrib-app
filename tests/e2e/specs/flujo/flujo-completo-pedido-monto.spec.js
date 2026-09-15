@@ -324,6 +324,27 @@ test.describe('Flujo completo de un pedido (admin) — Etapa 5 del plan de audit
       deuda_al_dia: 0, clientes_al_dia: 0,
     }]);
     mockearTabla(page, 'cta_cte', { onSelect: () => [] });
+    // Hallazgo real corrigiendo este spec contra cta-cte.js (abrirModalCobroDirecto,
+    // l.531): el botón "Cobrar" de la fila NO abre el modal genérico cuando el
+    // cliente tiene facturas_pendientes > 0 (que es justo este caso: la factura
+    // recién emitida arriba todavía no está cobrada, así que el mock de
+    // fn_cta_cte_lista de más arriba ya le puso facturas_pendientes: 1) — en vez
+    // de eso llama a abrirCliente() y manda al panel lateral a elegir la factura
+    // en "Facturas pendientes" (fetch a mano a /rest/v1/facturas, no un RPC). El
+    // spec original llamaba a cobrarDesdeFilaPorId() (variante sin facturas,
+    // documentada así en el propio page-object) y quedaba esperando para siempre
+    // a que #modal-cobro perdiera la clase "hidden" — nunca iba a pasar por ese
+    // camino. Se corrige al flujo real: abrir el panel, mockear /rest/v1/facturas
+    // con la factura emitida arriba (mismo FACTURA_ID) y cobrarla desde ahí.
+    mockearTabla(page, 'facturas', {
+      onSelect: () => [{
+        id: FACTURA_ID,
+        numero: '00001-00000042',
+        total: MONTO_TOTAL,
+        total_cobrado: 0,
+        vencimiento: null,
+      }],
+    });
     mockearRpc(page, 'registrar_cobro_completo', ({ params }) => {
       llamadasRpc.registrar_cobro_completo += 1;
       payloadCobro = params;
@@ -336,13 +357,15 @@ test.describe('Flujo completo de un pedido (admin) — Etapa 5 del plan de audit
     await expect(ctaCtePage.fila(CLIENTE_ID)).toBeVisible();
     await expect(ctaCtePage.fila(CLIENTE_ID)).toContainText(formatPesoEsperado(MONTO_TOTAL));
 
-    await ctaCtePage.cobrarDesdeFilaPorId(CLIENTE_ID);
+    await ctaCtePage.cobrarDesdeFilaPorId_conFacturas(CLIENTE_ID);
+    await ctaCtePage.cobrarFacturaPanel(0);
     await ctaCtePage.completarCobro({ monto: MONTO_TOTAL, medio: 'efectivo' });
     await ctaCtePage.guardarCobro();
 
     expect(llamadasRpc.registrar_cobro_completo).toBe(1);
     expect(payloadCobro.p_cliente_id).toBe(CLIENTE_ID);
     expect(payloadCobro.p_monto).toBe(MONTO_TOTAL); // el monto pagado coincide con el total del pedido/factura de arriba
+    expect(payloadCobro.p_factura_id).toBe(FACTURA_ID); // cierra el círculo: el cobro se aplicó a LA factura emitida arriba, no como saldo genérico
     await expect(page.locator('.toast-msg')).toContainText('registrado');
 
     // ── Cierre del círculo: saldo del cliente en $0 después de cobrar
