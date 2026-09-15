@@ -17,8 +17,10 @@ export function resetForm() {
   document.getElementById('f-zona_id').value        = '';
   document.getElementById('f-deposito_id').value     = '';
   document.getElementById('f-lista_precio_id').value = '';
-  document.getElementById('f-dias_credito').value   = 0;
-  document.getElementById('f-limite_credito').value = 0;
+  // Vacíos (no en 0): así no hay que borrar el 0 antes de tipear un valor.
+  // El guardado ya trata "vacío" como 0 (ver más abajo, dias_credito/limite_credito).
+  document.getElementById('f-dias_credito').value   = '';
+  document.getElementById('f-limite_credito').value = '';
   document.getElementById('f-activo').value         = 'true';
   document.getElementById('f-lat').value            = '';
   document.getElementById('f-lng').value            = '';
