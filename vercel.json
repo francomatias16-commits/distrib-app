@@ -931,6 +931,10 @@
       "destination": "/api/index?_mod=pos&accion=sincronizar-offline"
     },
     {
+      "source": "/api/pos/agregar-stock-rapido",
+      "destination": "/api/index?_mod=pos&accion=agregar-stock-rapido"
+    },
+    {
       "source": "/admin/cajas",
       "destination": "/frontend/admin/cajas.html"
     },

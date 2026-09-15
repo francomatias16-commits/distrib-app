@@ -132,11 +132,19 @@ function renderResultados(items) {
   cont.innerHTML = items.map(p => {
     const stock = p.stock_disponible;
     let badge = '';
+    // FIX (punto 1 del audit, v631): un producto con permite_negativo
+    // puede venderse sin stock — se avisa con la misma paleta que "stock
+    // bajo" (naranja) en vez de "sin stock" (rojo/deshabilitado), porque
+    // acá sí se puede vender.
     if (stock !== null && stock !== undefined) {
-      const cls = stock <= 0 ? 'sin' : (stock < 5 ? 'bajo' : 'ok');
-      badge = `<span class="pos-producto-stock ${cls}">${stock <= 0 ? 'Sin stock' : `Stock: ${stock}`}</span>`;
+      const sinStockPeroPermitido = stock <= 0 && p.permite_negativo;
+      const cls = stock <= 0 ? (sinStockPeroPermitido ? 'bajo' : 'sin') : (stock < 5 ? 'bajo' : 'ok');
+      const texto = stock <= 0
+        ? (sinStockPeroPermitido ? 'Sin stock (autorizado)' : 'Sin stock')
+        : `Stock: ${stock}`;
+      badge = `<span class="pos-producto-stock ${cls}">${texto}</span>`;
     }
-    const sinStock = stock !== null && stock !== undefined && stock <= 0;
+    const sinStock = stock !== null && stock !== undefined && stock <= 0 && !p.permite_negativo;
     return `
       <div class="pos-producto-card ${sinStock ? 'sin-stock' : ''}" data-id="${p.id}">
         <div class="pos-producto-info">
@@ -203,6 +211,7 @@ function renderGrillaFavoritos(favs) {
         iva: f.iva ?? 21,
         unidad: f.unidad || 'un',
         stock_disponible: f.stock_disponible ?? 9999, // favorito: si no hay dato, se permite (avisa RPC)
+        permite_negativo: f.permite_negativo === true,
       });
     });
   });

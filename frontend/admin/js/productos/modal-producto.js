@@ -55,6 +55,7 @@ async function abrirModalProducto(id) {
     document.getElementById('fp-stock_objetivo').value = p.stockObjetivo ?? 0;
     document.getElementById('fp-activo').value       = String(p.activo !== false);
     document.getElementById('fp-destacado').checked  = p.destacado === true;
+    document.getElementById('fp-permite_negativo').checked = p.permiteNegativo === true;
     if (linkReceta) linkReceta.style.display = 'inline';
     // v351: el selector de depósitos solo tiene sentido en el alta —
     // en edición el producto ya existe y el stock se gestiona desde Stock.
@@ -86,6 +87,7 @@ async function abrirModalProducto(id) {
     document.getElementById('fp-stock_objetivo').value = '';
     document.getElementById('fp-activo').value       = 'true';
     document.getElementById('fp-destacado').checked  = false;
+    document.getElementById('fp-permite_negativo').checked = false;
     nombreProductoAutoCompletado = false;
     if (linkReceta) linkReceta.style.display = 'none';
 
@@ -175,6 +177,7 @@ async function limpiarFormularioProducto() {
   document.getElementById('fp-stock_objetivo').value = '';
   document.getElementById('fp-activo').value       = 'true';
   document.getElementById('fp-destacado').checked  = false;
+  document.getElementById('fp-permite_negativo').checked = false;
   nombreProductoAutoCompletado = false;
 
   resetFotoProductoModal();

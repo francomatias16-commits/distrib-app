@@ -13,9 +13,31 @@ function agregarAlCarrito(producto) {
     return;
   }
   if (producto.stock_disponible <= 0) {
-    pitarError();
-    window.toast('Ese producto no tiene stock en el depósito de esta caja', 'error');
-    return;
+    // FIX (punto 1 del audit, v631): antes esto bloqueaba SIEMPRE. Ahora,
+    // si el producto tiene permite_negativo (columna de `productos`
+    // existente desde la migración 001; el RPC registrar_venta_pos la
+    // respeta desde la 631), se deja agregar con una alerta en vez de
+    // cortar la venta. El "carrito en espera" (punto 2) sigue fuera de
+    // alcance — esto solo resuelve la mitad "vender sin stock".
+    if (!producto.permite_negativo) {
+      // FIX (punto 1 del audit, "agregar stock sin perder el comprobante"):
+      // antes esto cortaba la venta con un toast de error y el cajero tenía
+      // que ir a otra pantalla a cargar stock, perdiendo el carrito armado
+      // hasta ese momento. Ahora se abre el modal de carga rápida
+      // (agregar-stock-rapido.js) sobre el POS mismo; si el ajuste sale
+      // bien, el modal agrega el producto al carrito por su cuenta
+      // (ver confirmarStockRapido()). Si el modal no llegó a cargarse por
+      // algún motivo, se cae al comportamiento anterior para no dejar al
+      // cajero sin feedback.
+      if (window.abrirModalStockRapido) {
+        window.abrirModalStockRapido(producto);
+      } else {
+        pitarError();
+        window.toast('Ese producto no tiene stock en el depósito de esta caja', 'error');
+      }
+      return;
+    }
+    window.toast(`"${producto.nombre}" no tiene stock — se agrega igual (quedará en negativo)`, 'warning');
   }
 
   // ── Producto por peso (balanza) ─────────────────────────────────────────
@@ -30,6 +52,7 @@ function agregarAlCarrito(producto) {
       iva:              producto.iva ?? 21,
       descuento_pct:    0,
       stock_disponible: producto.stock_disponible,
+      permite_negativo: producto.permite_negativo === true,
       vendido_por_peso: true,
       promocion:        producto.promocion || null,
       promocion_id:     producto.promocion?.id || null,
@@ -63,6 +86,7 @@ function agregarAlCarrito(producto) {
       iva:              producto.iva ?? 21,
       descuento_pct:    0,
       stock_disponible: producto.stock_disponible,
+      permite_negativo: producto.permite_negativo === true,
       vendido_por_peso: false,
       promocion:        producto.promocion || null,
       promocion_id:     producto.promocion?.id || null,
