@@ -537,6 +537,60 @@ describe('buscarProductosPos', () => {
 
     await expect(buscarProductosPos('empresa-1', {})).rejects.toBe(errorOriginal);
   });
+
+  // v1089 (punto 3 del audit): la coma y los paréntesis son sintaxis dentro
+  // de un filtro .or() de PostgREST. Sin escapar, un nombre real del
+  // catálogo como "SECADOR GOMA SIMPLE HACENDOSA 40 CM (SIN CABO)" partía
+  // la condición al medio y no encontraba nada, aunque el cajero escribiera
+  // el nombre exacto (104 de 1458 productos activos, 7%, tienen alguno de
+  // esos caracteres en el nombre).
+  it('escapa coma y parentesis del texto libre en los tres niveles del ranking', async () => {
+    const query = fakeQuery({ data: [], error: null });
+    dbMock.from.mockReturnValue(query);
+
+    await buscarProductosPos('empresa-1', {
+      textoLibre: '%SECADOR GOMA SIMPLE HACENDOSA 40 CM (SIN CABO)%',
+      limit: 20,
+    });
+
+    const filtros = query.or.mock.calls.map(c => c[0]);
+    expect(filtros).toHaveLength(3); // exacto, prefijo, contiene
+
+    for (const filtro of filtros) {
+      // El parentesis del nombre viaja escapado...
+      expect(filtro).toContain('40 CM \\(SIN CABO\\)');
+      // ...y no queda ningun parentesis sin escapar que PostgREST pueda
+      // leer como sintaxis de agrupacion.
+      expect(filtro.replace(/\\[,()*]/g, '')).not.toMatch(/[()]/);
+    }
+  });
+
+  it('escapa la coma del texto libre (separador de condiciones del .or)', async () => {
+    const query = fakeQuery({ data: [], error: null });
+    dbMock.from.mockReturnValue(query);
+
+    await buscarProductosPos('empresa-1', { textoLibre: '%CAFE, TE Y MATE%', limit: 20 });
+
+    const filtro = query.or.mock.calls[0][0];
+    expect(filtro).toContain('CAFE\\, TE Y MATE');
+    // Sin escapar habria 4 condiciones en vez de 2 (la coma del nombre
+    // cuenta como separador).
+    expect(filtro.replace(/\\,/g, '').split(',')).toHaveLength(2);
+  });
+
+  // v631: sin permite_negativo en el select, el POS no puede distinguir
+  // "sin stock, no se vende" de "sin stock, pero autorizado a negativo" y
+  // vuelve a bloquear la venta aunque el producto tenga el flag.
+  it('el select incluye permite_negativo en las tres estrategias de busqueda', async () => {
+    for (const opciones of [{}, { codigo: 'ABC', limit: 5 }, { textoLibre: '%aceite%', limit: 20 }]) {
+      const query = fakeQuery({ data: [], error: null });
+      dbMock.from.mockReturnValue(query);
+
+      await buscarProductosPos('empresa-1', opciones);
+
+      expect(query.select).toHaveBeenCalledWith(expect.stringContaining('permite_negativo'));
+    }
+  });
 });
 
 describe('obtenerCategoriasDeProductos', () => {

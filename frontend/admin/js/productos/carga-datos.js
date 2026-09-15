@@ -179,6 +179,9 @@ function normalizarRpc(p) {
     categoriaId:  p.categoria_id || '',
     activo:       p.activo !== false,
     destacado:    p.destacado === true,
+    // v631: fn_productos_lista ahora devuelve permite_negativo (columna de
+    // `productos` desde la 001, hasta ahora solo editable por SQL directo).
+    permiteNegativo: p.permite_negativo === true,
     estado:       p.estado || 'borrador',
     fechaAct:     p.updated_at || p.created_at || null,
     precio,

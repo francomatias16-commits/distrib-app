@@ -13,32 +13,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/shared/tokens.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/shared/skeletons.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/productos.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/productos-gentelella.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mtcen4r4" />
-  <script src="/shared/responsive-mobile.js?v=mtcen4r4" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css?v=mu2weany" />
+  <link rel="stylesheet" href="/shared/skeletons.css?v=mu2weany" />
+  <link rel="stylesheet" href="/shared/adminlte-components.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/base-layout.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/nav.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-tokens.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/shared/tabla-agrupada.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/shared/gentelella-nav.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos-gentelella.css?v=mu2weany" />
+  <link rel="stylesheet" href="/shared/reskin-patch.css?v=mu2weany" />
+  <link rel="stylesheet" href="/shared/reskin-patch-v2-shadcn.css?v=mu2weany" />
+  <link rel="stylesheet" href="/shared/responsive-mobile.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/shared/componentes-admin.css?v=mu2weany" />
+  <script src="/shared/responsive-mobile.js?v=mu2weany" defer></script>
 
-  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/productos-modal-fix.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/etiquetas-preview.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/precios-masivo.css?v=mtcen4r4" />
+  <link rel="stylesheet" href="/shared/microinteracciones.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/productos-modal-fix.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/etiquetas-preview.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/precios-masivo.css?v=mu2weany" />
   <!-- Combos (FIX 2026-08-23: absorbido dentro de Productos como pestaña,
        ver nav-data.js). combos.css complementa productos.css; producto-picker
        es el buscador de productos que usa el modal de combo. -->
-  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=mtcen4r4" />
-  <link rel="stylesheet" href="/frontend/admin/css/combos.css?v=mtcen4r4" />
-  <script src="/frontend/env-config.js?v=mtcen4r4"></script>
+  <link rel="stylesheet" href="/frontend/admin/css/producto-picker.css?v=mu2weany" />
+  <link rel="stylesheet" href="/frontend/admin/css/combos.css?v=mu2weany" />
+  <script src="/frontend/env-config.js?v=mu2weany"></script>
   <script type="module">import{PaceBar}from"/shared/adminlte-widgets.js";window.PaceBar=PaceBar;</script>
 </head>
 <body class="dash-productos-gentelella dash-gentelella">
@@ -121,14 +121,38 @@
                       <small>Desde un archivo CSV o Excel</small>
                     </span>
                   </a>
-                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); exportarProductos()">
+                  <!-- v1089: antes había un único "Exportar CSV" que bajaba
+                       SOLO los 50 productos de la página en pantalla. Ahora los
+                       tres formatos exportan el filtro completo (ver
+                       productos/exportar-lista.js). -->
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('xlsx'))">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     <span>
-                      <strong>Exportar CSV</strong>
-                      <small>Descarga el catálogo actual</small>
+                      <strong>Exportar a Excel</strong>
+                      <small>Todo el listado filtrado, en .xlsx</small>
+                    </span>
+                  </button>
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('pdf'))">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>
+                      <strong>Exportar a PDF</strong>
+                      <small>Lista de precios lista para imprimir</small>
+                    </span>
+                  </button>
+                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('csv'))">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>
+                      <strong>Exportar a CSV</strong>
+                      <small>Todo el listado filtrado, en texto plano</small>
                     </span>
                   </button>
                   <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, buscarImagenesAutomaticas)">
@@ -656,6 +680,21 @@
               <input type="number" id="fp-stock_objetivo" class="form-input" min="0" step="1" placeholder="0" aria-label="Stock objetivo" />
             </div>
           </div>
+          <!-- v631: la columna productos.permite_negativo existe desde la
+               migración 001 y el trigger de la 438 ya la respetaba, pero no
+               había ningún control en la app para tocarla — quedaba en false
+               para todos y el POS bloqueaba la venta sin stock siempre. -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="fp-permite_negativo" aria-label="Permitir vender sin stock" />
+                <span>Permitir vender sin stock</span>
+                <span class="ayuda-contextual" tabindex="0" data-tooltip="El punto de venta va a dejar cobrar este producto aunque el depósito esté en cero: la venta se registra igual y el stock queda en negativo hasta que ingrese mercadería. Útil para productos que se entregan contra pedido o que se reponen a diario.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+              </label>
+            </div>
+          </div>
           <p class="form-nota">
             El stock disponible se gestiona por depósito desde <a href="/admin/stock.html">Depósito → Stock</a>.
             <span id="fp-link-receta" style="display:none"> · <a href="#" onclick="abrirModalReceta(); return false;">Gestionar receta (BOM) →</a></span>
@@ -904,58 +943,59 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- ── Nav ── -->
-<script src="/frontend/admin/js/nav-data.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/nav.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/nav-mobile.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/ui-utils.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/auth-ready.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/nav-data.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/nav.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/nav-mobile.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/ui-utils.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/auth-ready.js?v=mu2weany"></script>
 <script>
   window.PAGINA_ROLES_PERMITIDOS = ['dueno', 'admin', 'depositero'];
 </script>
-<script src="/frontend/admin/js/auth.js?v=mtcen4r4"></script>
-<script src="/frontend/shared/topbar-widgets.js?v=mtcen4r4"></script>  <!-- reloj + avatar + campanita de notificaciones -->
-<script src="/frontend/admin/js/busqueda-global.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/auth.js?v=mu2weany"></script>
+<script src="/frontend/shared/topbar-widgets.js?v=mu2weany"></script>  <!-- reloj + avatar + campanita de notificaciones -->
+<script src="/frontend/admin/js/busqueda-global.js?v=mu2weany"></script>
 
 <!-- ── Lógica de la sección ── -->
-<script src="/frontend/admin/js/notas-internas.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/etiquetas.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/notas-internas.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/etiquetas.js?v=mu2weany"></script>
 <!-- 543 — generador de etiquetas de precio/código de barras (Etapa 2:
      selección real desde este listado). Mismo motor que Admin → Hardware
      (etiquetas-print.js, Etapa 1) — no se duplica lógica. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
-<script src="/frontend/admin/js/etiquetas-print.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/etiquetas-preview.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/nucleo-estado.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/carga-datos.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/filtros-menu.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/render-tabla.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/seleccion-etiquetas.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/etiquetas-print.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/etiquetas-preview.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/nucleo-estado.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/carga-datos.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/filtros-menu.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/render-tabla.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/seleccion-etiquetas.js?v=mu2weany"></script>
 <!-- 629 — actualización masiva de precios, reusa la selección de arriba. -->
-<script src="/frontend/admin/js/productos/precios-masivo.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/orden-busqueda-nav.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/modal-producto.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/categorias-abm.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/guardar-eliminar-producto.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/init-vistas.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/receta-bom.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos/auto-imagenes.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/productos/precios-masivo.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/orden-busqueda-nav.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/modal-producto.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/categorias-abm.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/guardar-eliminar-producto.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/exportar-lista.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/init-vistas.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/receta-bom.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos/auto-imagenes.js?v=mu2weany"></script>
 
 <!-- ── Combos (FIX 2026-08-23: absorbido acá desde /admin/combos).
      Reusa el mismo cliente Supabase (sb) y empresaData que ya resolvió
      productos.js más arriba — por eso combos-tab.js NO los redeclara. ── -->
-<script src="/frontend/admin/js/producto-picker.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/combos-tab.js?v=mtcen4r4"></script>
+<script src="/frontend/admin/js/producto-picker.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/combos-tab.js?v=mu2weany"></script>
 
 <!-- v617: "Escanear con celular" para autocompletar el código al crear/editar
      un producto. Mismo circuito que stock, ver frontend/shared/vincular-celular.js. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="/frontend/shared/vincular-celular.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/vincular-celular.js?v=mu2weany"></script>
 
 <!-- v628: escaneo directo con la cámara de este dispositivo (compu o
      celular), sin depender de vincular un segundo dispositivo. -->
 <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
-<script src="/frontend/shared/camera-scanner.js?v=mtcen4r4"></script>
-<script src="/frontend/admin/js/productos-scanner-remoto.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/camera-scanner.js?v=mu2weany"></script>
+<script src="/frontend/admin/js/productos-scanner-remoto.js?v=mu2weany"></script>
 
 <!-- ── Preloader ocultador ── -->
 <script>
@@ -972,6 +1012,6 @@
 })();
 </script>
 
-<script src="/frontend/shared/tabla-agrupada.js?v=mtcen4r4"></script>
+<script src="/frontend/shared/tabla-agrupada.js?v=mu2weany"></script>
 </body>
 </html>

@@ -1115,6 +1115,17 @@ const MENSAJE_CONFIRMACION_ESTADO = {
   entregado:  (num) => `¿Confirmar la entrega del pedido ${num}? Es el último paso: una vez entregado no se puede volver atrás.`,
 };
 
+// SINCRONIZACIÓN CON REPARTOS (migración 630, 15/09/2026)
+// Esta función NO pega a `PATCH /api/pedidos`: escribe `pedidos.estado`
+// directo con supabase-js ('despachado'/'entregado') o vía RPC
+// ('confirmar_pedido'/'marcar_preparado'/'cancelar_pedido'). Por eso el fix
+// v1086 —que sincronizaba `entregas`/`rutas` dentro del PATCH admin— nunca
+// se ejecutaba desde esta pantalla, y Repartos (que lee 100% de
+// `entregas.estado`/`rutas.estado`, nunca de `pedidos.estado`) seguía
+// mostrando el pedido como pendiente.
+// Desde la migración 630 la sincronización la hace el trigger
+// `trg_sync_entregas_desde_pedido` en la base, así que cualquiera de estos
+// caminos impacta en Repartos. No agregar sincronización manual acá.
 async function cambiarEstado(id, nuevoEstado) {
   const perfil = window.authCtx?.perfil;
   if (!perfil) { window.toast('Sin sesión'); return false; }

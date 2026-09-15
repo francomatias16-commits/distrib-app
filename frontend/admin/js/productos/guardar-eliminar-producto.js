@@ -24,6 +24,10 @@ async function guardarProducto() {
     stock_objetivo: parseInt(document.getElementById('fp-stock_objetivo').value, 10) || 0,
     activo:       document.getElementById('fp-activo').value === 'true',
     destacado:    document.getElementById('fp-destacado').checked,
+    // v631: "Permitir vender sin stock". La columna existía desde la
+    // migración 001 y el trigger de la 438 ya la respetaba, pero no había
+    // forma de tocarla desde la app — quedaba en false para todos.
+    permite_negativo: document.getElementById('fp-permite_negativo').checked,
   };
 
   if (!payload.empresa_id) {
@@ -90,6 +94,7 @@ async function guardarProducto() {
         p_destacado:    payload.destacado,
         p_foto_url:     fotoUrlNueva,
         p_stock_objetivo: payload.stock_objetivo,
+        p_permite_negativo: payload.permite_negativo,
       }), 10000);
       if (error) throw error;
       // fn_crear_producto devuelve el uuid del producto recién creado —
@@ -168,36 +173,11 @@ function verAlertas() {
   recargarConFiltro();
 }
 
-/* ── Exportar CSV ──────────────────────────────────────────────────────────
-   Auditoría filtros v280: ya no existe un array completo en memoria
-   (productosAll/productosFilt) — solo tenemos la página actual
-   (productosPage), resuelta por fn_productos_lista con LIMIT/OFFSET.
-   Exportamos lo que el usuario está viendo en pantalla (la página actual,
-   ya filtrada/ordenada). Si se necesita exportar TODO el resultado
-   filtrado (no solo la página visible), habría que pedirle a
-   fn_productos_lista un p_limit alto y armar el CSV con esa respuesta. ── */
-function exportarProductos() {
-  const lista = productosPage;
-  if (!lista.length) { toast('No hay productos para exportar.', 'warning'); return; }
 
-  const cols = ['Nombre', 'Categoría', 'Estado', 'Última Actualización', 'Precio', 'Costo', 'Stock', 'Margen%', 'Goal%'];
-  const filas = lista.map(p => [
-    p.nombre, p.cat, p.estado, formatFecha(p.fechaAct),
-    p.precio, p.costo, p.stock, p.margen, p.goal
-  ]);
-  const csv = [cols, ...filas]
-    .map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n');
-
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), {
-    href:     url,
-    download: `productos_${new Date().toISOString().slice(0, 10)}.csv`,
-  });
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  toast(`${lista.length} productos exportados correctamente.`, 'success');
-}
+/* ── Exportar ──────────────────────────────────────────────────────────────
+   v1089: exportarProductos() se mudó a productos/exportar-lista.js. Acá
+   exportaba `productosPage` — o sea, únicamente los 50 productos de la
+   página que estaba en pantalla, sin avisarle a nadie que el resto del
+   catálogo filtrado quedaba afuera. La versión nueva vuelve a pedir
+   fn_productos_lista con los mismos filtros y sin paginar, y suma Excel
+   (.xlsx real) y PDF además del CSV. ── */
