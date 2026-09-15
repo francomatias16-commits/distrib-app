@@ -40,6 +40,7 @@ export class ClientePedidosPage {
   get listaPedidos()  { return this.page.locator('#listaPedidos'); }
   get overlaySeguimiento() { return this.page.locator('#overlaySeguimiento'); }
   get etaTexto()       { return this.page.locator('#etaTexto'); }
+  get mapaPlaceholder() { return this.page.locator('#mapaPlaceholder'); }
   get btnCerrarSeguimiento() { return this.page.locator('#btnCerrarSeguimiento'); }
 
   chipFiltro(estado) {
