@@ -943,7 +943,7 @@ function inicializarMapa(entregas) {
   if (!_mapaLeaflet) {
     contenedor.innerHTML = '';
     _mapaLeaflet = L.map(contenedor, { zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 18,
     }).addTo(_mapaLeaflet);
@@ -1876,7 +1876,7 @@ function inicializarMapaReporte(entregas, rutaData) {
   }
   contenedor.innerHTML = '';
   _reporteMapaLeaflet = L.map(contenedor, { zoomControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 18,
   }).addTo(_reporteMapaLeaflet);

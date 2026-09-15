@@ -260,11 +260,22 @@
       document.getElementById('etaTexto').textContent = 'Buscando la ubicación del chofer...';
 
       if (!mapaSeguimiento) {
-        mapaSeguimiento = L.map('mapaSeguimientoCliente', { zoomControl: true });
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Vista inicial genérica: así el mapa arranca a pedir tiles apenas se
+        // crea, en vez de quedar sin centro (en blanco) hasta que llegue la
+        // ubicación del chofer.
+        mapaSeguimiento = L.map('mapaSeguimientoCliente', { zoomControl: true }).setView([-34.6, -58.6], 5);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap',
         }).addTo(mapaSeguimiento);
       }
+
+      // El modal recién pasa a display:flex en este mismo tick: Leaflet puede
+      // medir el contenedor con tamaño 0 si calcula el tamaño antes del
+      // repintado del navegador (o si el mapa ya existía de una apertura
+      // previa y estuvo oculto). Forzamos un recalculo tras el repintado.
+      requestAnimationFrame(() => {
+        setTimeout(() => { if (mapaSeguimiento) mapaSeguimiento.invalidateSize(); }, 60);
+      });
 
       const consultar = () => actualizarSeguimientoCliente(pedidoId);
       await consultar();
