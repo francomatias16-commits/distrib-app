@@ -1780,3 +1780,61 @@ nueva con panel lateral que use un mecanismo de "cerrado" distinto a
 ancestro con tamaño fijo), `estaRealmenteEnPantalla()` podría necesitar un
 criterio adicional — hoy solo chequea intersección de bounding box con el
 viewport, no opacidad ni ancestros con `overflow:hidden`.
+
+## 34. Falla nueva en flujo-completo-pedido-monto.spec.js (corrida de 318 tests, 1 roja) — assert contra el camino equivocado del botón "Cobrar"
+
+Corrida del usuario sobre la suite ya en 318 tests (sumó `stock-sincronizacion-cliente.spec.js`
+de la sección 33 más algún test nuevo): 317 passed / 1 failed, tres intentos
+(original + 2 reintentos), siempre la misma falla en
+`flujo-completo-pedido-monto.spec.js` (Etapa 5), paso "cobrar":
+
+```
+Error: expect(locator).not.toHaveClass(expected) failed
+Locator: locator('#modal-cobro')
+Expected pattern: not /hidden/
+Received string: "modal-overlay hidden"
+  at ../page-objects/admin/cta-cte.page.js:98 (cobrarDesdeFilaPorId)
+```
+
+**Causa raíz (no es bug de la app):** el spec llegaba al paso "cobrar" con
+`cobrarDesdeFilaPorId(CLIENTE_ID)`, la variante documentada en el propio
+`cta-cte.page.js` como válida solo para un cliente **sin** facturas
+pendientes. Pero en este punto del flujo la factura emitida en el paso 2
+todavía no está cobrada — el mock de `fn_cta_cte_lista` de la sección
+"Paso 4" ya calculaba `facturas_pendientes: flujo.saldoDeuda > 0 ? 1 : 0`,
+y `flujo.saldoDeuda` sigue en `MONTO_TOTAL` hasta que el cobro se registra.
+Contra `cta-cte.js::abrirModalCobroDirecto()` (l.531): con
+`facturas_pendientes > 0` el botón NO abre `#modal-cobro` — llama a
+`abrirCliente()` y manda al panel lateral con un toast ("elegí a cuál
+aplicar el cobro, abajo en Facturas pendientes"), como fix intencional de
+la auditoría UX (evitar que un cobro genérico quede sin aplicar a ninguna
+factura puntual). El modal se queda con la clase `hidden` para siempre —
+exactamente el síntoma de la falla.
+
+Ese camino (panel → "Facturas pendientes") pide una capa de red que el
+spec no tenía mockeada: `abrirCliente()` trae las facturas abiertas con un
+`fetch()` a mano contra `/rest/v1/facturas` (no un RPC, no `sb.from()`),
+documentado ya en el header del page-object como el "cuarto patrón" de
+esta página.
+
+**Fix aplicado** (`flujo-completo-pedido-monto.spec.js`, paso "cobrar"):
+- Se agrega `mockearTabla(page, 'facturas', { onSelect: () => [...] })`
+  devolviendo la misma `FACTURA_ID`/`MONTO_TOTAL` del paso 2 (facturar) —
+  `mockearTabla` intercepta por patrón de URL, cubre igual el `fetch()`
+  manual que un `sb.from('facturas')`.
+- Se reemplaza `cobrarDesdeFilaPorId(CLIENTE_ID)` por
+  `cobrarDesdeFilaPorId_conFacturas(CLIENTE_ID)` (abre el panel) +
+  `cobrarFacturaPanel(0)` (click en "Cobrar" de la factura dentro del
+  panel, que sí abre `#modal-cobro`, ahora vía `abrirModalCobroParaFactura`
+  con `facturaVinculadaCobro` seteado).
+- Se suma `expect(payloadCobro.p_factura_id).toBe(FACTURA_ID)` al final —
+  antes el spec solo chequeaba cliente/monto; con el camino correcto se
+  puede cerrar el círculo completo del monto (pedido → factura → cobro
+  **de esa factura puntual**, no como saldo genérico), que es justamente
+  lo que esta Etapa 5 dice probar.
+
+### Sigue pendiente
+
+- Como con las secciones 30-33: este sandbox no tiene acceso de red a
+  Supabase/Playwright browsers — el fix está aplicado en el código pero
+  falta confirmar la corrida real (318/318) en la máquina del usuario.

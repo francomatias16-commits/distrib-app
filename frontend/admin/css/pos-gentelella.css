@@ -693,6 +693,15 @@ body.dash-pos-gentelella .pos-venta-btn-anular {
 body.dash-pos-gentelella .pos-venta-btn-anular:hover {
   background: rgba(231,76,60,.1) !important;
 }
+body.dash-pos-gentelella .pos-venta-btn-detalle {
+  border: 1px solid var(--ge-border) !important;
+  color: var(--ge-muted) !important;
+  border-radius: var(--ge-radius-btn) !important;
+  background: transparent !important;
+}
+body.dash-pos-gentelella .pos-venta-btn-detalle:hover {
+  background: rgba(0,0,0,.04) !important;
+}
 
 /* Producto seleccionado en transferencia */
 body.dash-pos-gentelella .pos-transf-producto-sel {
