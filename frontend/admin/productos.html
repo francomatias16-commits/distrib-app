@@ -121,40 +121,38 @@
                       <small>Desde un archivo CSV o Excel</small>
                     </span>
                   </a>
-                  <!-- v1089: antes había un único "Exportar CSV" que bajaba
-                       SOLO los 50 productos de la página en pantalla. Ahora los
-                       tres formatos exportan el filtro completo (ver
-                       productos/exportar-lista.js). -->
-                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('xlsx'))">
+                  <!-- v1090: los tres formatos (antes tres ítems sueltos —
+                       Excel/PDF/CSV, cada uno bajando el filtro completo, ver
+                       productos/exportar-lista.js) se agrupan en un solo ítem
+                       "Exportar datos" con un submenú de formato, para que el
+                       menú no quede tan cargado. exportarProductos(formato)
+                       no cambia. -->
+                  <button type="button" class="menu-mas-funciones-item menu-mas-funciones-item--expandible"
+                          id="btn-exportar-datos" aria-haspopup="true" aria-expanded="false"
+                          onclick="event.stopPropagation(); toggleSubmenuExportar()">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     <span>
-                      <strong>Exportar a Excel</strong>
-                      <small>Todo el listado filtrado, en .xlsx</small>
+                      <strong>Exportar datos</strong>
+                      <small>Excel, PDF o CSV — todo el listado filtrado</small>
                     </span>
-                  </button>
-                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('pdf'))">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron menu-mas-funciones-item-chevron">
+                      <polyline points="9 6 15 12 9 18"/>
                     </svg>
-                    <span>
-                      <strong>Exportar a PDF</strong>
-                      <small>Lista de precios lista para imprimir</small>
-                    </span>
                   </button>
-                  <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('csv'))">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    <span>
-                      <strong>Exportar a CSV</strong>
-                      <small>Todo el listado filtrado, en texto plano</small>
-                    </span>
-                  </button>
+                  <div class="menu-mas-funciones-submenu" id="submenu-exportar" hidden>
+                    <button type="button" class="menu-mas-funciones-subitem" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('xlsx'))">
+                      Excel <small>(.xlsx)</small>
+                    </button>
+                    <button type="button" class="menu-mas-funciones-subitem" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('pdf'))">
+                      PDF <small>lista para imprimir</small>
+                    </button>
+                    <button type="button" class="menu-mas-funciones-subitem" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, () => exportarProductos('csv'))">
+                      CSV <small>texto plano</small>
+                    </button>
+                  </div>
                   <button type="button" class="menu-mas-funciones-item" onclick="cerrarMenuMasFunciones(); btnAsyncClick(this, buscarImagenesAutomaticas)">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/>
