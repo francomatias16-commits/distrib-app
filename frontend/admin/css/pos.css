@@ -969,6 +969,16 @@
 
   body:not(.imprimiendo-z) .pos-ticket-print-header,
   body:not(.imprimiendo-z) .pos-ticket-print-footer { display: block; text-align: center; }
+  /* 4b del audit — logo en el ticket térmico. max-width acotado al ancho de
+     rollo (no al ancho de pantalla, que acá no aplica) y max-height corto:
+     un logo pensado para la topbar/PDF puede venir con proporciones
+     horizontales, y sin tope de alto se comía buena parte del papel antes
+     de llegar al primer ítem. object-fit conserva la proporción original
+     en vez de deformarlo para llenar la caja. */
+  .pos-ticket-print-logo {
+    display: block; margin: 0 auto 4px; max-width: 70%; max-height: 22mm;
+    object-fit: contain;
+  }
   .pos-ticket-print-empresa { font-weight: 700; font-size: 1.2em; margin-bottom: 2px; }
   .pos-ticket-print-sep     { border-top: 1px dashed #000; margin: 5px 0; }
   .pos-ticket-print-meta    { display: flex; justify-content: space-between; gap: 6px; text-align: left; }
