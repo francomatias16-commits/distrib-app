@@ -76,6 +76,9 @@ function actualizarBarraEtiquetas() {
     <span class="prod-barra-etiquetas-count">${n} producto${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'}</span>
     ${linkTodos}
     <button type="button" class="btn-secundario" onclick="cancelarSeleccionEtiquetas()">Cancelar</button>
+    <!-- 629: segunda acción sobre la misma selección, junto a "Generar
+         etiquetas" — ver precios-masivo.js. -->
+    <button type="button" class="btn-secundario" onclick="abrirModalPreciosMasivo()">Actualizar precios</button>
     <button type="button" class="btn btn--primary" onclick="abrirVistaPreviaEtiquetas()">Generar etiquetas</button>
   `;
 }
