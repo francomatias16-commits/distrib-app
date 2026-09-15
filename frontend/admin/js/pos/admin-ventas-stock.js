@@ -143,11 +143,14 @@ function renderVentas(ventas) {
         <span class="pos-venta-fila-meta">${escapeHtml(v.clientes?.razon_social || 'Consumidor final')} · ${escapeHtml(v.cajas_pos?.nombre || '')} · ${window.formatHora ? window.formatHora(v.created_at) : ''}</span>
       </div>
       <span class="pos-venta-fila-total">${fmt(v.total)}</span>
-      ${v.estado === 'anulada'
-        ? '<span class="pos-venta-badge-anulada">Anulada</span>'
-        : v.factura_id
-          ? '<span class="pos-venta-badge-facturada" title="Ya tiene factura con CAE emitida. Para anularla, emití antes una Nota de Crédito.">Facturada</span>'
-          : `<button class="pos-venta-btn-anular" onclick="anularVenta('${v.id}', '${escapeHtml(v.numero || '')}')">Anular</button>`}
+      <div class="pos-venta-fila-acciones">
+        <button class="pos-venta-btn-detalle" onclick="verDetalleVenta('${v.id}')" title="Ver el detalle de esta venta">Ver detalle</button>
+        ${v.estado === 'anulada'
+          ? '<span class="pos-venta-badge-anulada">Anulada</span>'
+          : v.factura_id
+            ? '<span class="pos-venta-badge-facturada" title="Ya tiene factura con CAE emitida. Para anularla, emití antes una Nota de Crédito.">Facturada</span>'
+            : `<button class="pos-venta-btn-anular" onclick="anularVenta('${v.id}', '${escapeHtml(v.numero || '')}')">Anular</button>`}
+      </div>
     </div>
   `).join('');
 
@@ -202,6 +205,49 @@ window.anularVenta = async function (venta_pos_id, numero) {
   } else {
     pedirPinSupervisor(`Anular la venta N° ${numero} requiere autorización de supervisor.`, doAnular);
   }
+};
+
+// FIX (punto 5 del audit): no había forma de ver el detalle de una venta ya
+// registrada sin pasar por Devoluciones (que además muestra inputs de
+// cantidad a devolver, pensados para otra cosa). Reutilizamos el mismo
+// endpoint que ya usa ese flujo (GET /api/pos/ticket?venta_id=) pero en un
+// modal read-only propio, sin RPC ni endpoint nuevo.
+window.verDetalleVenta = async function (ventaId) {
+  const overlay = document.getElementById('modal-venta-detalle-overlay');
+  const body    = document.getElementById('venta-detalle-body');
+  body.innerHTML = '<p class="pos-resultados-vacio">Cargando...</p>';
+  overlay.style.display = '';
+  try {
+    const venta = await apiGet(`/api/pos/ticket?venta_id=${ventaId}`);
+    const items = venta.venta_pos_items || [];
+    const pagos = venta.venta_pos_pagos || [];
+
+    body.innerHTML = `
+      <div class="pos-ticket-fila"><span>Número</span><span>N° ${escapeHtml(venta.numero || '—')}</span></div>
+      <div class="pos-ticket-fila"><span>Fecha</span><span>${venta.created_at ? new Date(venta.created_at).toLocaleString('es-AR') : '—'}</span></div>
+      <div class="pos-ticket-fila"><span>Cliente</span><span>${escapeHtml(venta.clientes?.razon_social || 'Consumidor final')}</span></div>
+      ${venta.usuarios?.nombre ? `<div class="pos-ticket-fila"><span>Vendedor</span><span>${escapeHtml(venta.usuarios.nombre)}</span></div>` : ''}
+      ${venta.estado === 'anulada' ? '<div class="pos-ticket-fila" style="color:var(--color-danger-mid)"><span>Estado</span><span>Anulada</span></div>' : ''}
+      <div class="pos-ticket-detalle" style="margin-top:8px">
+        ${items.map(i => `
+          <div class="pos-ticket-fila"><span>${parseFloat(i.cantidad)} × ${escapeHtml(i.productos?.nombre || 'Producto')}${i.descuento_pct ? ` (−${i.descuento_pct}%)` : ''}</span><span>${fmt(i.subtotal)}</span></div>
+        `).join('') || '<p class="pos-resultados-vacio">Sin ítems</p>'}
+      </div>
+      <div class="pos-ticket-fila"><span>Subtotal</span><span>${fmt(venta.subtotal)}</span></div>
+      <div class="pos-ticket-fila"><span>IVA</span><span>${fmt(venta.iva_total)}</span></div>
+      ${venta.descuento_global_pct ? `<div class="pos-ticket-fila"><span>Descuento global (${venta.descuento_global_pct}%)</span><span>−${fmt(venta.descuento)}</span></div>` : ''}
+      <div class="pos-ticket-fila" style="font-weight:700"><span>Total</span><span>${fmt(venta.total)}</span></div>
+      ${pagos.map(p => `
+        <div class="pos-ticket-fila"><span>Pago (${escapeHtml(labelMedio(p.medio))})</span><span>${fmt(p.monto)}</span></div>
+      `).join('')}
+    `;
+  } catch (e) {
+    body.innerHTML = `<p class="pos-resultados-vacio">${escapeHtml(e.message || 'No se pudo cargar el detalle de la venta')}</p>`;
+  }
+};
+
+window.cerrarModalDetalleVenta = function () {
+  document.getElementById('modal-venta-detalle-overlay').style.display = 'none';
 };
 
 // ── Pestaña Stock ──────────────────────────────────────────────────────────

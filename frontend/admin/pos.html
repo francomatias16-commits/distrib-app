@@ -868,6 +868,24 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════
+     Modal detalle de venta (solo lectura — pestaña Ventas, punto 5)
+══════════════════════════════════════════════════════════════════════ -->
+<div class="pos-modal-overlay" id="modal-venta-detalle-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-vd-tit" style="display:none">
+  <div class="pos-modal" style="max-width:480px">
+    <div class="pos-modal-header">
+      <h2 class="pos-modal-titulo" id="modal-vd-tit">Detalle de venta</h2>
+      <button type="button" class="pos-modal-cerrar" onclick="cerrarModalDetalleVenta()" aria-label="Cerrar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="pos-modal-body" id="venta-detalle-body">
+      <p class="pos-resultados-vacio">Cargando...</p>
+    </div>
+    <div class="pos-modal-footer">
+      <button type="button" class="btn btn--secondary" onclick="cerrarModalDetalleVenta()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
      Modal PIN supervisor (Fase 2 — ítem 14)
 ══════════════════════════════════════════════════════════════════════ -->
 <div class="pos-modal-overlay" id="modal-pin-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-pin-tit" style="display:none">

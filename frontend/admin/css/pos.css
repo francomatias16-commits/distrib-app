@@ -906,6 +906,13 @@
   white-space: nowrap;
 }
 .pos-venta-btn-anular:hover { background: var(--color-danger-bg); }
+.pos-venta-fila-acciones { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.pos-venta-btn-detalle {
+  background: none; border: 1px solid rgba(0,0,0,.14); color: var(--color-text-secondary, var(--color-text-muted)); border-radius: var(--radius-sm);
+  padding: 4px 10px; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); cursor: pointer;
+  white-space: nowrap;
+}
+.pos-venta-btn-detalle:hover { background: var(--color-bg); }
 
 .pos-transf-producto-sel {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
